@@ -1,0 +1,37 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Local league data and embedded databases
+data/raw/
+data/processed/
+*.db
+*.db-*
+*.duckdb
+*.duckdb.*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+
+# Python environments, build artifacts, and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local logs and OS files
+*.log
+.DS_Store
