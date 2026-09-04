@@ -1,0 +1,11 @@
+{
+  "id": 12345,
+  "seasonId": 2026,
+  "scoringPeriodId": 0,
+  "settings": {
+    "name": "Synthetic League",
+    "size": 2,
+    "scoringSettings": {"scoringType": "ROTO", "scoringItems": []},
+    "rosterSettings": {"lineupSlotCounts": {"0": 1, "12": 1}}
+  }
+}

@@ -1,0 +1,62 @@
+# Public repository and architecture review
+
+The [GitHub repository](https://github.com/kangliu47/fantasy-basketball-ai) contains
+the application source, dependency locks, synthetic tests and documentation.
+The [interactive review](https://kangliu47.github.io/fantasy-basketball-ai/) is a
+self-contained HTML snapshot of the architecture and selected source evidence.
+
+## What is published
+
+GitHub Pages serves `docs/architecture-review.html` as both `/index.html` and
+`/architecture-review.html` beneath the repository's site URL. Its diagrams,
+request flows, source viewer and decision forms run in the browser without an API.
+Review notes use browser-local storage and a JSON export; collaborators do not
+automatically share notes. The source fingerprint identifies the reviewed version.
+
+The Pages workflow copies only that HTML into its deployment artifact. It does
+not start FastAPI, connect to ESPN or provision an application database. A fresh
+clone must be set up locally and connected to its own league before using the app.
+
+## Private information stays local
+
+Excluded files include environment files other than the empty `.env.example`,
+Keychain credentials, the dedicated browser profile, `.local/` workspace state,
+DuckDB databases and backups, raw/processed league captures, generated launchers,
+local logs, tooling caches, HAR/key exports and exported architecture review notes.
+Private league acceptance counts were removed from the public documentation;
+structural findings and synthetic test evidence remain.
+
+The initial publication checks cover eligible source files, staged Git blobs,
+the previous commit history and decoded source files embedded in the HTML.
+Gitleaks 8.30.1 checks credentials with fully redacted output. A separate privacy
+check flags private file paths, personal home paths and non-example email addresses.
+The checks do not prove that arbitrary prose or every unknown credential format
+is safe: review each proposed diff before pushing, including screenshots and data.
+
+## Subsequent updates
+
+1. Inspect the proposed diff and use synthetic examples in documentation/tests.
+2. Run `.venv/bin/python -m tools.check_publication --working-tree` before staging.
+3. Stage the intended files, then run `.venv/bin/python -m tools.check_publication`.
+   The installed pre-commit hook runs this same check against staged blobs.
+4. Run Gitleaks against the complete proposed Git history before pushing. Use
+   `gitleaks git . --log-opts=--all --redact=100 --no-banner` after committing.
+5. Push `main`. GitHub Actions repeats the privacy/history checks, then publishes
+   the checked-in HTML. It does not regenerate the source snapshot inside the HTML;
+   update and verify that artifact when reviewing a changed architecture.
+
+CI is a second check after upload, not a substitute for the local pre-push audit.
+Never bypass a privacy finding by broadly allowlisting real credentials or data.
+
+## Hosting configuration
+
+The repository's Pages source is **GitHub Actions**. The workflow uses pinned
+revisions of official GitHub actions, read-only checkout tokens, and a separate
+deployment job with only Pages and OIDC write permissions. No deployment secret
+or ESPN credential is required. Pull requests run the audit without deployment.
+
+GitHub documents the configuration in
+[custom Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+The connected application still follows the local-only constraints in AGENTS.md.
+The [deployment comparison](deployment-options.md) concerns a future application
+demo and is separate from this static architecture showcase.

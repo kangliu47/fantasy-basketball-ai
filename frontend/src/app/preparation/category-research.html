@@ -1,0 +1,116 @@
+<section class="panel">
+  <h3>Which categories should shape my draft?</h3>
+  <p>
+    Compare your scored finishes with each season's league reference. Decide what to investigate and
+    record a target for 2027.
+  </p>
+  @if (!store.data()?.my_profile) {
+    <p class="callout">
+      To see your own results alongside the league, select your manager in My plan and review their
+      season-team links. League reference values are available now.
+    </p>
+  }
+  @if (store.data()?.plan; as plan) {
+    <div class="target-list">
+      @for (target of plan.settings.category_targets; track target.category) {
+        <article class="target-card">
+          <strong>{{ target.category }} · {{ target.value ?? 'Qualitative priority' }}</strong>
+          <p>{{ target.note || 'No note yet' }}</p>
+          <button mat-button [disabled]="store.pending()" (click)="edit(target.category)">
+            Edit target</button
+          ><button mat-button [disabled]="store.pending()" (click)="remove(target.category)">
+            Remove
+          </button>
+        </article>
+      }
+    </div>
+    @if (editing()) {
+      <form class="target-editor" (submit)="$event.preventDefault(); save()">
+        <h4>My {{ editing() }} target for 2027</h4>
+        <p class="muted">
+          A personal goal, not a projection. Leave the value blank for a qualitative priority.
+          Percentage values use decimals, for example 0.48 for 48%.
+        </p>
+        <div class="form-grid">
+          <mat-form-field appearance="outline"
+            ><mat-label>Target value (optional)</mat-label
+            ><input
+              matInput
+              type="number"
+              min="0"
+              [formControl]="value"
+              step="any" /></mat-form-field
+          ><mat-form-field appearance="outline"
+            ><mat-label>Why this matters / evidence to revisit</mat-label
+            ><input matInput [formControl]="note" maxlength="500"
+          /></mat-form-field>
+        </div>
+        <div class="actions">
+          <button mat-flat-button type="submit" [disabled]="store.pending()">
+            Save category target</button
+          ><button mat-button type="button" (click)="editing.set('')">Cancel</button>
+        </div>
+      </form>
+    }
+  }
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Season / category</th>
+          <th>League reference</th>
+          <th>My scored results</th>
+          <th>Plan</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of references(); track row.season + row.category.code) {
+          <tr>
+            <td>
+              <strong>{{ row.season }} · {{ row.category.code }}</strong
+              ><small
+                >{{ row.format ?? 'Unknown format' }} · {{ row.team_count }} teams ·
+                {{ row.category.higher_is_better ? 'Higher wins' : 'Lower wins' }} · Weight
+                {{ row.category.weight }}</small
+              >
+            </td>
+            <td>
+              {{ row.median === null ? 'Unavailable' : (row.median | number: '1.0-4')
+              }}<small>Median scored team value</small>
+              <details class="source">
+                <summary>Evidence</summary>
+                <small>Team observation {{ row.source ?? 'Unavailable' }}</small>
+              </details>
+            </td>
+            <td>
+              @for (mine of row.my_results; track mine.team_id) {
+                <strong>{{
+                  mine.value === null ? 'Unavailable' : (mine.value | number: '1.0-4')
+                }}</strong
+                ><small
+                  >{{ mine.team_name }} · Rank {{ mine.rank ?? '—' }} / {{ mine.team_count
+                  }}{{ mine.shared_management ? ' · Shared management' : '' }}</small
+                >
+              } @empty {
+                <span class="muted">No reviewed whole-season result</span>
+              }
+            </td>
+            <td>
+              <button
+                mat-button
+                [disabled]="!canTarget(row.category.code) || store.pending()"
+                (click)="edit(row.category.code)"
+              >
+                {{ target(row.category.code) ? 'Edit priority' : 'Set a priority' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">
+    Keep seasons separate: rules, team counts, season length and activity can change. Full-season
+    player totals are not the same as scored team results. This table uses scored outcomes.
+  </p>
+</section>

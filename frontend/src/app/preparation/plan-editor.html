@@ -1,0 +1,140 @@
+@if (store.data(); as data) {
+  @if (data.plan; as plan) {
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h3>My approach for 2027</h3>
+          <p>
+            Write down what you want to change. Your notes and ceilings are personal decisions,
+            supported by the evidence you explore.
+          </p>
+        </div>
+        <span class="badge">Rules provisional</span>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <mat-form-field appearance="outline" class="full"
+          ><mat-label>What will I prioritize in this draft?</mat-label
+          ><textarea
+            matInput
+            formControlName="strategy_notes"
+            rows="3"
+            maxlength="4000"
+            placeholder="For example: investigate why my teams lagged in assists, and compare guard costs before setting my budget."
+          ></textarea>
+        </mat-form-field>
+        <div class="form-grid">
+          <mat-form-field appearance="outline"
+            ><mat-label>My manager identity</mat-label
+            ><mat-select formControlName="manager_id"
+              ><mat-option [value]="null">Not selected yet</mat-option>
+              @for (manager of data.managers; track manager.id) {
+                <mat-option [value]="manager.id">{{ manager.alias }}</mat-option>
+              }</mat-select
+            ><mat-hint
+              >Reviewed team links determine your historical results.</mat-hint
+            ></mat-form-field
+          >
+          <mat-form-field appearance="outline"
+            ><mat-label>My team in {{ plan.reference_season }}</mat-label
+            ><mat-select formControlName="reference_team_id"
+              ><mat-option [value]="null">Not selected yet</mat-option>
+              @for (team of data.teams; track team.id) {
+                <mat-option [value]="team.id">{{ team.name }}</mat-option>
+              }</mat-select
+            ><mat-hint>A reference team, not a verified 2027 assignment.</mat-hint></mat-form-field
+          >
+        </div>
+        @if (!data.managers.length) {
+          <p class="muted">
+            You can save a plan before naming managers.
+            <button type="button" mat-button (click)="explore.emit()">Add manager names</button>
+          </p>
+        }
+        <details>
+          <summary>Draft context, keepers & managers to watch</summary>
+          <div class="form-grid">
+            <mat-form-field appearance="outline"
+              ><mat-label>Draft format</mat-label
+              ><mat-select formControlName="draft_type"
+                ><mat-option value="AUCTION">Auction</mat-option
+                ><mat-option value="SNAKE">Snake</mat-option
+                ><mat-option value="UNKNOWN">Unconfirmed</mat-option></mat-select
+              ></mat-form-field
+            >
+            @if (form.controls.draft_type.value === 'AUCTION') {
+              <mat-form-field appearance="outline"
+                ><mat-label>Planned auction budget</mat-label
+                ><input matInput type="number" min="1" formControlName="budget"
+              /></mat-form-field>
+            }
+            @if (form.controls.draft_type.value === 'SNAKE') {
+              <mat-form-field appearance="outline"
+                ><mat-label>Draft slot, if known</mat-label
+                ><input matInput type="number" min="1" max="100" formControlName="draft_slot"
+              /></mat-form-field>
+            }
+            <mat-form-field appearance="outline"
+              ><mat-label>Seasons to learn from</mat-label
+              ><mat-select multiple formControlName="analysis_seasons">
+                @for (year of data.imported_seasons; track year) {
+                  <mat-option [value]="year">{{ year }}</mat-option>
+                }
+              </mat-select></mat-form-field
+            >
+            <mat-form-field appearance="outline"
+              ><mat-label>Managers to watch</mat-label
+              ><mat-select multiple formControlName="watched_manager_ids">
+                @for (manager of data.managers; track manager.id) {
+                  <mat-option [value]="manager.id">{{ manager.alias }}</mat-option>
+                }</mat-select
+              ><mat-hint
+                >Their past selections will be highlighted during player research.</mat-hint
+              ></mat-form-field
+            >
+          </div>
+          <mat-form-field appearance="outline" class="full"
+            ><mat-label>Keeper context and open questions</mat-label
+            ><textarea
+              matInput
+              rows="2"
+              formControlName="keeper_notes"
+              maxlength="2000"
+              placeholder="Record expected keepers and any rules that still need confirmation."
+            ></textarea>
+          </mat-form-field>
+        </details>
+        <div class="actions">
+          <button
+            mat-flat-button
+            type="submit"
+            [disabled]="
+              store.pending() || store.loading() || !form.controls.analysis_seasons.value.length
+            "
+          >
+            Save plan
+          </button>
+          @if (form.dirty) {
+            <span class="muted">Unsaved changes</span>
+          }
+        </div>
+      </form>
+      <details class="source">
+        <summary>Where these rules came from</summary>
+        <p>
+          Copied from {{ plan.reference_season }}: {{ plan.reference_team_count }} teams,
+          {{ plan.reference_rules.scoring_format }} scoring. Your draft format and budget above are
+          planning assumptions. This plan's historical reference stays fixed.
+        </p>
+        <p>
+          {{ plan.reference_rules.categories.length }} categories ·
+          {{ plan.reference_rules.keeper_count ?? 'Unknown' }} keeper slots in the source season.
+        </p>
+        <small>Settings observation {{ plan.reference_observation_id }}</small>
+        <p>
+          Confirm the actual 2027 rules when available. Historical category thresholds are not
+          forecasts.
+        </p>
+      </details>
+    </section>
+  }
+}

@@ -1,0 +1,185 @@
+<section class="archive-intro">
+  <div>
+    <p class="eyebrow">HISTORY → BETTER PREPARATION</p>
+    <h2>Your league, across seasons.</h2>
+    <p>
+      Review completed seasons and the choices behind each roster. Prepare for 2027 with evidence.
+    </p>
+  </div>
+  <span class="pill">Planning target · 2027</span>
+</section>
+@if (error()) {
+  <div class="notice error" role="alert">
+    {{ error() }} <button mat-button (click)="reload()">Reload</button>
+  </div>
+}
+<mat-tab-group
+  [selectedIndex]="tabIndex()"
+  (selectedIndexChange)="tabIndex.set($event)"
+  animationDuration="0ms"
+>
+  <mat-tab label="Player choices & category trends"
+    ><ng-template matTabContent
+      ><section class="panel">
+        <app-league-patterns
+          [seasons]="catalog().imported_seasons"
+          [leagueId]="leagueId()"
+          [revision]="revision()"
+        /></section></ng-template
+  ></mat-tab>
+  <mat-tab label="Understand managers">
+    <ng-template matTabContent
+      ><section class="panel">
+        <app-manager-profiles
+          [data]="managerData()"
+          [seasons]="catalog().imported_seasons"
+          [leagueId]="leagueId()"
+          (changed)="reload()"
+        /></section
+    ></ng-template>
+  </mat-tab>
+  <mat-tab label="Season records & manager links">
+    <ng-template matTabContent
+      ><section class="panel">
+        <mat-form-field appearance="outline"
+          ><mat-label>Archive season</mat-label
+          ><mat-select
+            [value]="selectedSeason()"
+            (selectionChange)="selectedSeason.set($event.value)"
+          >
+            @for (year of catalog().imported_seasons; track year) {
+              <mat-option [value]="year">{{ year }}</mat-option>
+            }
+          </mat-select></mat-form-field
+        >
+        @if (catalog().imported_seasons.length) {
+          <app-season-browser
+            [season]="selectedSeason()"
+            [leagueId]="leagueId()"
+            [managerData]="managerData()"
+            [revision]="revision()"
+            (changed)="reload()"
+          />
+        } @else {
+          <p>
+            Import a season first. You can then browse its rosters, draft selections and dataset
+            coverage.
+          </p>
+        }
+      </section></ng-template
+    >
+  </mat-tab>
+  <mat-tab label="Data coverage & imports">
+    <section class="panel">
+      <h3>Build your league archive</h3>
+      <p>
+        Start with 2024–2026. Discover other years, then import the ones you want to explore. Saved
+        datasets are reused unless you request a fresh observation.
+      </p>
+      <div class="actions">
+        <button mat-stroked-button [disabled]="busy() || workspaceBusy()" (click)="discover()">
+          Discover seasons
+        </button>
+        <button
+          mat-flat-button
+          [disabled]="busy() || workspaceBusy() || !selectedYears().length"
+          (click)="start()"
+        >
+          Import selected years
+        </button>
+      </div>
+      @if (pending()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+      <div class="year-grid">
+        @for (candidate of catalog().candidates; track candidate.season) {
+          <div class="year-tile">
+            <mat-checkbox
+              [checked]="selectedYears().includes(candidate.season)"
+              [disabled]="!candidate.supported || busy()"
+              (change)="toggle(candidate.season, $event.checked)"
+              >{{ candidate.season }}</mat-checkbox
+            >
+            <small>{{
+              candidate.supported
+                ? catalog().imported_seasons.includes(candidate.season)
+                  ? 'Saved archive'
+                  : 'Ready to check'
+                : 'Legacy · not supported yet'
+            }}</small>
+            @if (!candidate.supported) {
+              <p>{{ candidate.reason }}</p>
+            }
+          </div>
+        } @empty {
+          <p class="muted">Discover seasons to see the years ESPN advertises for your league.</p>
+        }
+      </div>
+      <mat-checkbox
+        [checked]="refreshSaved()"
+        [disabled]="busy()"
+        (change)="refreshSaved.set($event.checked)"
+        >Fetch a new observation for saved datasets</mat-checkbox
+      >
+      <div>
+        <mat-checkbox
+          [checked]="probeDated()"
+          [disabled]="busy()"
+          (change)="probeDated.set($event.checked)"
+          >Check dated-history availability with a small sample</mat-checkbox
+        >
+      </div>
+      @if (job(); as current) {
+        <div class="job" role="status">
+          <h3>Import · {{ current.status.replaceAll('_', ' ') }}</h3>
+          <p>{{ current.message }}</p>
+          @if (jobRunning()) {
+            <mat-progress-bar mode="indeterminate" />
+          }
+          <p>
+            {{ done() }} of {{ current.items.length }} datasets processed ·
+            {{ current.updated_at | date: 'medium' }}
+          </p>
+          @if (jobRunning()) {
+            <button
+              mat-stroked-button
+              [disabled]="pending() || cancellationRequested()"
+              (click)="cancel()"
+            >
+              {{ cancellationRequested() ? 'Finishing current request…' : 'Cancel import' }}
+            </button>
+          } @else if (current.status !== 'completed') {
+            <button mat-flat-button [disabled]="busy() || workspaceBusy()" (click)="resume()">
+              Resume / retry missing data
+            </button>
+          }
+          <details>
+            <summary>Dataset progress</summary>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Season</th>
+                    <th>Dataset</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of current.items; track item.season + item.dataset) {
+                    <tr>
+                      <td>{{ item.season }}</td>
+                      <td>{{ item.dataset }}</td>
+                      <td>{{ item.status }}</td>
+                      <td>{{ item.message }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      }
+    </section>
+  </mat-tab>
+</mat-tab-group>

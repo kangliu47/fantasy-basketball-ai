@@ -1,0 +1,147 @@
+<section class="panel">
+  <div class="section-head">
+    <div>
+      <h3>Who should I research for 2027?</h3>
+      <p>
+        Start with a player you are considering. See their historical selection context and the
+        managers who may be worth watching.
+      </p>
+    </div>
+  </div>
+  <mat-form-field appearance="outline" class="full"
+    ><mat-label>Find a player in league history</mat-label
+    ><input
+      matInput
+      [value]="query()"
+      (input)="search($any($event.target).value)"
+      placeholder="Search a player name"
+  /></mat-form-field>
+  <p class="muted">
+    Analysis seasons:
+    {{ store.data()?.plan?.settings?.analysis_seasons?.join(', ') || 'Recent completed seasons' }}.
+    This is a historical research list, not the 2027 draft pool.
+  </p>
+  <div class="research-grid">
+    <div class="player-list">
+      @for (player of visible(); track player.id) {
+        <button
+          class="player-option"
+          [class.selected]="selected() === player.id"
+          [attr.aria-pressed]="selected() === player.id"
+          (click)="selected.set(player.id)"
+        >
+          <strong>{{ player.name }}</strong
+          ><small
+            >{{ player.positions.join(' / ') || 'Position unknown' }} ·
+            {{ player.seasons.join(', ') }}</small
+          >
+          @if (saved(player.id)) {
+            <small class="saved">On your shortlist</small>
+          }
+        </button>
+      } @empty {
+        <p>
+          No matching player in these analysis seasons. You can broaden the season filter in your
+          plan.
+        </p>
+      }
+      @if (visible().length < filtered().length) {
+        <button mat-button (click)="showMore()">Show more players</button>
+      }
+    </div>
+    <div class="player-evidence">
+      @if (player(); as player) {
+        <div class="section-head">
+          <div>
+            <h3>{{ player.name }}</h3>
+            <p>Historical positions: {{ player.positions.join(' / ') || 'Unknown' }}</p>
+          </div>
+          <button
+            mat-flat-button
+            [disabled]="!store.data()?.plan || store.pending() || saved(player.id)"
+            (click)="store.shortlist(player.id)"
+          >
+            {{ saved(player.id) ? 'Saved to shortlist' : 'Add to my shortlist' }}
+          </button>
+        </div>
+        @if (!store.data()?.plan) {
+          <p class="muted">Start your 2027 plan above to save this player.</p>
+        }
+        <h4>Managers with observed non-keeper selections</h4>
+        @for (group of interests(); track group.alias) {
+          <div class="interest">
+            <strong>{{ group.alias }}</strong> · {{ group.years.length }} seasons ({{
+              group.years.join(', ')
+            }})
+            @if (group.watched) {
+              <span class="badge">On your watchlist</span>
+            }
+          </div>
+        }
+        @if (!interests().length) {
+          <p class="muted">
+            No attributable non-keeper selections in this sample. Team-level records may still be
+            available below.
+          </p>
+        }
+        <p class="muted">
+          These examples suggest people to investigate, not a prediction of who will bid. Keepers,
+          unknown keeper status and shared management are marked separately.
+        </p>
+        @for (row of selections(); track row.season + row.team_id) {
+          <article class="evidence">
+            <strong>{{ row.season }} · {{ row.team_name }}</strong>
+            <p>
+              {{ row.manager_aliases.join(' + ') || 'Manager not yet linked'
+              }}{{ row.shared_management ? ' · Shared management' : '' }}
+            </p>
+            <p>
+              {{ row.draft_type ?? 'Unknown format' }} ·
+              {{
+                row.keeper === null
+                  ? 'Keeper status unknown'
+                  : row.keeper
+                    ? 'Keeper'
+                    : 'Non-keeper selection'
+              }}
+              @if (row.draft_type === 'AUCTION') {
+                · Bid {{ row.bid ?? 'Unknown' }}
+                @if (row.budget_share !== null) {
+                  ({{ row.budget_share | percent: '1.1-1' }} of budget)
+                }
+              } @else {
+                · Pick {{ row.pick ?? 'Unknown' }} · Round {{ row.round ?? 'Unknown' }}
+              }
+            </p>
+            <details class="source">
+              <summary>Source and coverage</summary>
+              <small
+                >Retrieved {{ row.retrieved_at | date: 'medium' }} · {{ row.coverage }} draft
+                coverage</small
+              ><small>Observation {{ row.observation_id }}</small
+              ><small
+                >Assignment versions
+                {{ row.assignment_revisions.join(', ') || 'Unresolved' }}</small
+              >
+            </details>
+          </article>
+        }
+        @if (!selections().length) {
+          <p>
+            No draft selections returned for this player in the selected seasons. An archived-roster
+            appearance does not prove they were drafted.
+          </p>
+        }
+        <button mat-button (click)="explore.emit()">Explore manager profiles</button>
+      } @else {
+        <div class="empty">
+          <h4>Choose a player to see the evidence.</h4>
+          <p>
+            Compare past auction costs, separate keepers and identify repeated selections. Add a
+            player to your shortlist when you have a question worth investigating.
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

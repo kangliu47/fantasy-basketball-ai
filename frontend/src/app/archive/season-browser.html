@@ -1,0 +1,234 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+@if (archive()) {
+  <h3>{{ rules()?.name || 'League archive' }} · {{ season() }}</h3>
+  <p>
+    {{ rules()?.scoring_format || 'Scoring unknown' }} ·
+    {{ rules()?.draft_type || 'Draft type unknown' }} ·
+    {{ rules()?.phase === 'completed' ? 'Completed schedule' : 'Season phase unverified' }}
+  </p>
+  <p class="muted">
+    These are last-available archive observations. Retrieval dates show when this app fetched them,
+    not when the roster took effect.
+  </p>
+  <details open>
+    <summary>Data coverage</summary>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Dataset</th>
+            <th>Status</th>
+            <th>Records</th>
+            <th>Retrieved</th>
+            <th>Scope and limitations</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (dataset of datasets; track dataset) {
+            @let item = observation(dataset);
+            <tr>
+              <td>{{ dataset.replaceAll('_', ' ') }}</td>
+              <td>
+                <mat-chip>{{ item?.coverage?.status || 'not checked' }}</mat-chip>
+              </td>
+              <td>{{ item?.coverage?.record_count ?? '—' }}</td>
+              <td>{{ item?.retrieved_at ? (item!.retrieved_at | date: 'short') : '—' }}</td>
+              <td>
+                {{
+                  item?.coverage?.message ||
+                    'Dated history has not been verified. Churn, holding periods and a full timeline are unavailable.'
+                }}<small>{{ item?.coverage?.scope }}</small>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <details>
+    <summary>Compare scored category finishes across the league</summary>
+    <p class="muted">
+      Actual scored values, with descriptive category rank in parentheses. Average-tie ranks are
+      checked against ESPN's reported category points. Team-level results require no manager
+      assignment.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Team</th>
+            @for (category of rules()?.categories ?? []; track category.code) {
+              <th>{{ category.code }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (team of teams(); track team.id) {
+            <tr>
+              <td>{{ team.name }}</td>
+              @for (category of rules()?.categories ?? []; track category.code) {
+                @let row = result(team.id, category.code);
+                <td>
+                  {{ row?.value == null ? '—' : (row!.value | number: '1.0-4') }}
+                  <small>Rank {{ row?.rank ?? '—' }} / {{ row?.team_count ?? '—' }}</small>
+                  @if (row?.points_reconcile === false) {
+                    <small>Points differ · check rules</small>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <h3 class="section-title">Teams, rosters and manager links</h3>
+  <mat-form-field appearance="outline"
+    ><mat-label>My team in {{ season() }}</mat-label
+    ><mat-select
+      [value]="myTeam()"
+      [disabled]="savingTeam()"
+      (selectionChange)="chooseTeam($event.value)"
+      ><mat-option [value]="null">Not selected</mat-option>
+      @for (team of teams(); track team.id) {
+        <mat-option [value]="team.id">{{ team.name }}</mat-option>
+      }
+    </mat-select></mat-form-field
+  >
+  <p class="muted">
+    Choosing your team is a personal bookmark. Review its manager assignment separately.
+  </p>
+  <p>
+    Expand a team to inspect the archive and review its manager assignment. Confirm full-season
+    coverage only when you know it applies.
+  </p>
+  <mat-accordion multi>
+    @for (team of teams(); track team.id) {
+      <mat-expansion-panel
+        ><mat-expansion-panel-header
+          ><mat-panel-title>{{ team.name }}</mat-panel-title
+          ><mat-panel-description
+            >{{ roster(team.id)?.players?.length ?? 'Unknown' }} players · Finish
+            {{ team.final_rank ?? '—' }}</mat-panel-description
+          ></mat-expansion-panel-header
+        >
+        <ng-template matExpansionPanelContent>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Season eligibility</th>
+                  <th>Games</th>
+                  <th>Points total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (player of roster(team.id)?.players ?? []; track player.id) {
+                  <tr>
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.positions.join(' / ') || 'Unknown' }}</td>
+                    <td>{{ player.totals['GP'] ?? '—' }}</td>
+                    <td>{{ player.totals['PTS'] ?? '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (!roster(team.id)) {
+            <p>Roster unavailable. This is not evidence of an empty team.</p>
+          }
+          <details>
+            <summary>Reported category results</summary>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Reported value</th>
+                    <th>Reported points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (category of rules()?.categories ?? []; track category.code) {
+                    <tr>
+                      <td>{{ category.code }}</td>
+                      <td>{{ team.category_values[category.code] ?? '—' }}</td>
+                      <td>{{ team.category_points[category.code] ?? '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </details>
+          @for (slot of slots(team.id); track slot) {
+            <app-manager-assignment
+              [season]="season()"
+              [teamId]="team.id"
+              [slot]="slot"
+              [managers]="managerData().managers"
+              [assignment]="assignment(team.id, slot)"
+              [suggestion]="slot === 0 ? suggestion(team.id) : null"
+              (changed)="changed.emit()"
+            />
+          }
+          <button mat-button [disabled]="slots(team.id).length >= 10" (click)="addPeriod(team.id)">
+            Add another management period
+          </button>
+        </ng-template></mat-expansion-panel
+      >
+    } @empty {
+      <p>Team records are unavailable. Review the import coverage above.</p>
+    }
+  </mat-accordion>
+  <h3 class="section-title">Returned draft selections</h3>
+  @if (unnamedPicks()) {
+    <p class="muted">
+      {{ unnamedPicks() }} selections have no verified player name in saved season data. Their IDs
+      and pick records remain visible.
+    </p>
+  }
+  <p class="muted">
+    Keepers are identified where supplied. Auto-draft status and the historical eligible-player pool
+    remain unknown.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Team</th>
+          <th>{{ rules()?.draft_type === 'AUCTION' ? 'Bid' : 'Pick' }}</th>
+          <th>Round</th>
+          <th>Keeper</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (pick of draft(); track pick.id) {
+          <tr>
+            <td>
+              {{ pick.player_name
+              }}<small>{{
+                pick.metadata_source === 'unavailable'
+                  ? 'Name unavailable'
+                  : 'Name from saved season data'
+              }}</small>
+            </td>
+            <td>{{ teamName(pick.team_id) }}</td>
+            <td>{{ (rules()?.draft_type === 'AUCTION' ? pick.bid : pick.pick) ?? '—' }}</td>
+            <td>{{ pick.round ?? '—' }}</td>
+            <td>{{ pick.keeper === null ? 'Unknown' : pick.keeper ? 'Yes' : 'No' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (!draft().length) {
+    <p>No draft selections available in this archive.</p>
+  }
+}

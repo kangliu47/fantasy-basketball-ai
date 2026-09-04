@@ -1,0 +1,93 @@
+<section aria-labelledby="history-heading" class="history-section">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">SAVED ON THIS MAC</p>
+      <h2 id="history-heading">League history</h2>
+    </div>
+    <mat-chip
+      >{{ history().total }} saved {{ history().total === 1 ? 'refresh' : 'refreshes' }}</mat-chip
+    >
+  </div>
+  <p class="intro">
+    Each successful refresh keeps a copy of your league. Revisit a roster without contacting ESPN.
+  </p>
+
+  @if (error()) {
+    <div class="error" role="alert">
+      <span>{{ error() }}</span
+      ><button mat-button (click)="retry()">Retry history</button>
+    </div>
+  }
+  @if (loading()) {
+    <div class="loading" role="status">
+      <mat-spinner diameter="20" /><span>Loading saved refreshes…</span>
+    </div>
+  } @else if (!error()) {
+    <ul class="snapshots">
+      @for (snapshot of history().snapshots; track snapshot.id; let first = $first) {
+        <li [class.selected]="selected()?.id === snapshot.id">
+          <div>
+            <div class="snapshot-title">
+              <time [attr.datetime]="snapshot.captured_at">{{
+                snapshot.captured_at | date: 'MMM d, yyyy · h:mm:ss a'
+              }}</time>
+              @if (first && pageIndex() === 0) {
+                <span class="latest">Latest</span>
+              }
+            </div>
+            <p>
+              {{ snapshot.team_count }} teams · {{ snapshot.rostered_player_count }} rostered
+              players
+            </p>
+          </div>
+          <button
+            mat-stroked-button
+            (click)="view(snapshot.id)"
+            [attr.aria-label]="
+              'View roster saved ' + (snapshot.captured_at | date: 'MMM d, yyyy h:mm:ss a')
+            "
+          >
+            View roster
+          </button>
+        </li>
+      } @empty {
+        <li class="empty">No saved refreshes yet. Refresh your league to start its history.</li>
+      }
+    </ul>
+    @if (history().total > 5) {
+      <mat-paginator
+        [length]="history().total"
+        [pageSize]="5"
+        [pageIndex]="pageIndex()"
+        [hidePageSize]="true"
+        (page)="pageIndex.set($event.pageIndex)"
+        aria-label="Saved refresh pages"
+      />
+    }
+  }
+
+  @if (previewLoading()) {
+    <div class="loading" role="status">
+      <mat-spinner diameter="20" /><span>Opening saved roster…</span>
+    </div>
+  }
+  @if (previewError()) {
+    <div class="error" role="alert">{{ previewError() }}</div>
+  }
+  @if (selected(); as snapshot) {
+    <div class="preview">
+      <div class="preview-heading">
+        <div>
+          <p class="eyebrow">SAVED ROSTER</p>
+          <h3>{{ snapshot.league.name }}</h3>
+          <p>{{ snapshot.captured_at | date: 'MMMM d, yyyy · h:mm:ss a' }}</p>
+        </div>
+        <button mat-button (click)="closePreview()">Close saved roster</button>
+      </div>
+      <p class="preview-note">
+        This is a saved copy. Your latest league view above stays unchanged.
+      </p>
+      <app-league-roster [teams]="snapshot.league.teams" />
+    </div>
+  }
+</section>

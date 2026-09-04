@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  margin: 40px 0;
+}
+.history-section {
+  padding: 26px;
+  border: 1px solid #dfe6dc;
+  border-radius: 18px;
+  background: #fff;
+}
+.section-heading,
+.preview-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.eyebrow {
+  color: #687d6d;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+h2 {
+  font-size: 24px;
+  letter-spacing: -0.035em;
+  margin: 0;
+  color: #244437;
+}
+h3 {
+  font-size: 19px;
+  margin: 0;
+  color: #244437;
+}
+.intro,
+.preview-note {
+  font-size: 13px;
+  color: #687d6d;
+  line-height: 1.7;
+}
+.snapshots {
+  padding: 0;
+  margin: 24px 0 0;
+  list-style: none;
+}
+.snapshots li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #e5ebe3;
+  padding: 18px 0;
+}
+.snapshots li.selected {
+  background: #f4f8f1;
+}
+.snapshot-title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  color: #244437;
+  font-size: 14px;
+  font-weight: 600;
+}
+.snapshots p,
+.preview-heading p:last-child {
+  font-size: 12px;
+  color: #73816f;
+  margin: 8px 0 0;
+}
+.latest {
+  background: #e8f1e3;
+  color: #3c714c;
+  font-size: 10px;
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+.snapshots button {
+  flex-shrink: 0;
+}
+.empty {
+  font-size: 13px;
+  color: #73816f;
+}
+.error {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #8b482e;
+  background: #fff0e9;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  font-size: 13px;
+  color: #687d6d;
+}
+.preview {
+  border-top: 1px solid #dfe6dc;
+  margin-top: 20px;
+  padding-top: 24px;
+}
+mat-paginator {
+  background: transparent;
+}
+@media (max-width: 550px) {
+  .history-section {
+    padding: 20px;
+  }
+  .section-heading,
+  .preview-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .snapshots li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

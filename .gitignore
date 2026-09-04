@@ -31,7 +31,27 @@ dist/
 .coverage
 .coverage.*
 htmlcov/
+.tools/
+.cache/
+work/
+.local/
+*.app/
+node_modules/
+.angular/
+.pnpm-store/
+frontend/dist/
 
 # Local logs and OS files
 *.log
 .DS_Store
+
+# Personal tooling, credential exports and architecture review notes
+.codex/
+.agents/
+*.har
+*.pem
+*.p12
+*.pfx
+identity.key
+fantasy-architecture-review-notes*.json
+_site/

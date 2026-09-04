@@ -1,0 +1,293 @@
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="18" fill="currentColor" />
+      <path
+        d="M3 20h34M20 2v36M7 7c17 5 21 17 26 26M33 7C16 12 12 24 7 33"
+        fill="none"
+        stroke="#fff"
+        stroke-width="1.6"
+      />
+    </svg>
+    <span>Fantasy Basketball<span class="brand-subtitle">Your league workspace</span></span>
+  </div>
+  <div class="local-label"><span></span>Local on your Mac</div>
+</header>
+<main>
+  <section class="intro">
+    <div>
+      <p class="eyebrow">
+        {{
+          activeSection() === 'connection'
+            ? 'YOUR LEAGUE CONNECTION'
+            : 'LEARN FROM YOUR LEAGUE. PREPARE FOR 2027.'
+        }}
+      </p>
+      <h1>{{ store.state()?.league?.name || 'A clearer view of your league.' }}</h1>
+      <p class="intro-copy">
+        {{
+          activeSection() === 'prepare'
+            ? 'Turn league history into your next draft plan.'
+            : activeSection() === 'archive'
+              ? 'Explore the evidence behind your draft decisions.'
+              : 'Manage your ESPN connection and saved league data.'
+        }}
+      </p>
+    </div>
+    @if (activeSection() === 'connection') {
+      <button
+        mat-flat-button
+        class="refresh-button"
+        [disabled]="!canRefresh()"
+        (click)="store.refresh()"
+      >
+        Refresh league <span aria-hidden="true">↗</span>
+      </button>
+    }
+  </section>
+
+  @if (store.error()) {
+    <div class="notice error" role="alert">
+      <span>{{ store.error() }}</span
+      ><button mat-button (click)="store.load()">Retry</button>
+    </div>
+  }
+
+  @if (store.state(); as state) {
+    @if (state.operation.status !== 'idle') {
+      <div
+        class="notice"
+        [class.error]="state.operation.status === 'error'"
+        [class.success]="state.operation.status === 'success'"
+        role="status"
+        aria-live="polite"
+      >
+        @if (state.operation.status === 'running') {
+          <mat-spinner diameter="20" />
+        }
+        <span>{{ state.operation.message }}</span>
+        @if (state.operation.kind === 'login' && state.operation.status === 'running') {
+          <button mat-button [disabled]="store.pending()" (click)="store.cancel()">
+            Cancel sign-in
+          </button>
+        }
+      </div>
+    }
+
+    <nav class="workspace-nav" aria-label="Workspace sections">
+      <button
+        mat-button
+        [disabled]="!state.selection"
+        [class.nav-active]="activeSection() === 'prepare'"
+        [attr.aria-pressed]="activeSection() === 'prepare'"
+        (click)="section.set('prepare')"
+      >
+        Prepare for 2027
+      </button>
+      <button
+        mat-button
+        [disabled]="!state.selection"
+        [class.nav-active]="activeSection() === 'archive'"
+        [attr.aria-pressed]="activeSection() === 'archive'"
+        (click)="explore('patterns')"
+      >
+        Explore league history
+      </button>
+      <button
+        mat-button
+        [class.nav-active]="activeSection() === 'connection'"
+        [attr.aria-pressed]="activeSection() === 'connection'"
+        (click)="section.set('connection')"
+      >
+        Connection & data
+      </button>
+    </nav>
+    @if (state.selection) {
+      <div [hidden]="activeSection() !== 'prepare'">
+        @defer (when activeSection() === 'prepare') {
+          <app-preparation
+            [leagueId]="state.selection.league_id"
+            [active]="activeSection() === 'prepare'"
+            (explore)="explore($event)"
+          />
+        } @placeholder {
+          <p>Opening your preparation workspace…</p>
+        }
+      </div>
+    }
+    @if (activeSection() === 'archive' && state.selection) {
+      @defer {
+        <app-archive
+          [leagueId]="state.selection.league_id"
+          [initialView]="archiveView()"
+          [workspaceBusy]="store.busy()"
+          (busyChange)="archiveBusy.set($event)"
+        />
+      } @placeholder {
+        <p>Opening league history…</p>
+      }
+    } @else if (activeSection() === 'connection') {
+      <div class="summary-grid">
+        <mat-card appearance="outlined" class="summary-card"
+          ><span class="stat-label">League teams</span
+          ><strong>{{ state.league?.team_count ?? '—' }}</strong
+          ><span class="stat-caption">{{
+            state.league ? state.league.season + ' season' : 'Your competition, in one place'
+          }}</span></mat-card
+        >
+        <mat-card appearance="outlined" class="summary-card"
+          ><span class="stat-label">Rostered players</span
+          ><strong>{{ state.league?.rostered_player_count ?? '—' }}</strong
+          ><span class="stat-caption">{{
+            state.league ? 'Across every team in your league' : 'A snapshot of every roster'
+          }}</span></mat-card
+        >
+        <mat-card appearance="outlined" class="summary-card freshness"
+          ><span class="stat-label">Last refresh</span
+          ><strong>{{ state.last_sync ? (state.last_sync | date: 'h:mm a') : 'Not yet' }}</strong
+          ><span class="stat-caption">{{
+            state.last_sync
+              ? (state.last_sync | date: 'MMMM d, yyyy')
+              : 'Refresh whenever you need a new view'
+          }}</span></mat-card
+        >
+      </div>
+
+      <section class="setup-grid" aria-label="League connection">
+        <mat-card appearance="outlined" class="setup-card">
+          <div class="section-heading">
+            <span class="step-number" [class.complete]="state.selection">01</span>
+            <div>
+              <h2>Your league</h2>
+              <p>A couple of details to find the right court.</p>
+            </div>
+            @if (state.selection) {
+              <span class="saved-label">Saved</span>
+            }
+          </div>
+          <app-league-setup
+            [selection]="state.selection"
+            [busy]="store.busy() || archiveBusy()"
+            (saved)="store.save($event)"
+          />
+        </mat-card>
+        <mat-card appearance="outlined" class="connection-card">
+          <div class="connection-top">
+            <span class="provider-label">ESPN FANTASY</span
+            ><mat-chip [class.connected]="state.connection === 'connected'">{{
+              connectionLabel()
+            }}</mat-chip>
+          </div>
+          <h2>
+            {{
+              state.connection === 'connected'
+                ? 'Your league is connected.'
+                : 'Sign in. We’ll take it from here.'
+            }}
+          </h2>
+          <p>
+            Your ESPN sign-in opens in a separate browser window. Your saved connection stays on
+            this Mac.
+          </p>
+          <div class="connection-actions">
+            <button
+              mat-flat-button
+              [disabled]="!state.selection || store.busy() || archiveBusy()"
+              (click)="store.connect()"
+            >
+              {{ state.connection === 'disconnected' ? 'Connect ESPN' : 'Reconnect ESPN' }}
+              <span aria-hidden="true">↗</span>
+            </button>
+            @if (state.connection !== 'disconnected') {
+              <button
+                mat-button
+                [disabled]="store.busy() || archiveBusy()"
+                (click)="store.disconnect()"
+              >
+                Disconnect
+              </button>
+            }
+          </div>
+          <span class="connection-hint">{{
+            !state.selection
+              ? 'Save your league details to begin.'
+              : 'No passwords or cookies to paste here.'
+          }}</span>
+        </mat-card>
+      </section>
+
+      <section class="league-section" aria-labelledby="teams-heading">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">THE FULL PICTURE</p>
+            <h2 id="teams-heading">Teams & rosters</h2>
+          </div>
+          @if (state.league) {
+            <mat-chip
+              >{{ state.league.scoring_format || 'ESPN league' }}
+              @if (state.league.category_count) {
+                · {{ state.league.category_count }} categories
+              }
+            </mat-chip>
+          }
+        </div>
+        @if (state.league; as league) {
+          <p class="snapshot-caption">
+            Showing your last successful refresh. Expand a team to see its players.
+          </p>
+          <app-league-roster [teams]="league.teams" />
+        } @else {
+          <div class="empty-state">
+            <div class="court" aria-hidden="true">
+              <div class="court-circle"></div>
+              <div class="court-key"></div>
+              <div class="court-line"></div>
+            </div>
+            <div>
+              <h3>Your league will feel right at home.</h3>
+              <p>
+                Save your league details, connect ESPN, then refresh.<br />Every team and roster
+                will appear here.
+              </p>
+              <div class="mini-steps">
+                <span [class.done]="state.selection">1 · Set up</span><i></i
+                ><span [class.done]="state.connection === 'connected'">2 · Connect</span><i></i
+                ><span>3 · Refresh</span>
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+      @if (state.league && state.selection) {
+        <app-league-history [selection]="state.selection" [lastSync]="state.last_sync" />
+      }
+    }
+    @if (activeSection() === 'connection') {
+      <mat-expansion-panel class="help-panel">
+        <mat-expansion-panel-header
+          ><mat-panel-title
+            >Where do I find my league details?</mat-panel-title
+          ></mat-expansion-panel-header
+        >
+        <p>
+          Open your league on ESPN. The number after <strong>leagueId=</strong> in its address is
+          your league ID. Use the ESPN season ID for the season you want to view; it may differ from
+          the calendar year.
+        </p>
+        <p>
+          When you connect, sign in directly in the ESPN window and complete any verification there.
+          You can cancel and retry from this page. Disconnect removes this app’s saved connection;
+          the dedicated ESPN browser may stay signed in.
+        </p>
+      </mat-expansion-panel>
+    }
+  } @else if (!store.error()) {
+    <div class="loading" role="status">
+      <mat-spinner diameter="32" />
+      <p>Opening your workspace…</p>
+    </div>
+  }
+  <footer>
+    <span>YOUR LEAGUE. YOUR MAC.</span><span>Read-only access · No roster changes</span>
+  </footer>
+</main>

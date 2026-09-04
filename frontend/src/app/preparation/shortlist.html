@@ -1,0 +1,88 @@
+@if (store.data()?.plan; as plan) {
+  <section class="panel">
+    <div class="section-head">
+      <div>
+        <h3>My player shortlist</h3>
+        <p>
+          Keep a reason beside each choice. A saved player is a research target; 2027 availability
+          has not been verified.
+        </p>
+      </div>
+      <button mat-stroked-button (click)="research.emit()">Research & add players</button>
+    </div>
+    @for (player of plan.shortlist; track player.player_id) {
+      <article class="shortlist-row">
+        <div class="section-head">
+          <div>
+            <h4>{{ player.player_name }}</h4>
+            <span class="badge" [class.target]="player.priority === 'target'">{{
+              player.priority
+            }}</span>
+            @if (plan.settings.draft_type === 'AUCTION' && player.max_bid !== null) {
+              <span class="muted"> · Personal bid ceiling {{ player.max_bid }}</span>
+            }
+          </div>
+          <div class="actions">
+            <button mat-button [disabled]="store.pending()" (click)="edit(player)">Edit</button
+            ><button
+              mat-button
+              [disabled]="store.pending()"
+              (click)="store.remove(player.player_id)"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+        @if (editing() === player.player_id) {
+          <form [formGroup]="form" (ngSubmit)="save()">
+            <div class="form-grid">
+              <mat-form-field appearance="outline"
+                ><mat-label>My intention</mat-label
+                ><mat-select formControlName="priority"
+                  ><mat-option value="target">Target</mat-option
+                  ><mat-option value="watch">Watch</mat-option
+                  ><mat-option value="avoid">Avoid at current cost</mat-option></mat-select
+                ></mat-form-field
+              >
+              @if (plan.settings.draft_type === 'AUCTION') {
+                <mat-form-field appearance="outline"
+                  ><mat-label>Personal bid ceiling</mat-label
+                  ><input matInput type="number" min="0" formControlName="max_bid"
+                /></mat-form-field>
+              }
+            </div>
+            <mat-form-field appearance="outline" class="full"
+              ><mat-label>Reason, evidence or question to investigate</mat-label
+              ><textarea matInput rows="2" formControlName="note" maxlength="2000"></textarea>
+            </mat-form-field>
+            <div class="actions">
+              <button mat-flat-button type="submit" [disabled]="store.pending()">
+                Save player note</button
+              ><button mat-button type="button" (click)="editing.set(null)">Cancel edit</button>
+            </div>
+          </form>
+        } @else {
+          <p class="note">
+            {{ player.note || 'Add a reason or an open question for this player.' }}
+          </p>
+        }
+        <details class="source">
+          <summary>Saved historical sources</summary>
+          @for (id of player.observation_ids; track id) {
+            <small>{{ id }}</small>
+          }
+          <p>These references preserve the evidence available when this player was added.</p>
+        </details>
+      </article>
+    } @empty {
+      <div class="empty">
+        <h4>Your shortlist starts with a question.</h4>
+        <p>
+          Which players fit the approach you want to explore? Search past drafts, review who
+          selected them, then save the ones worth researching.
+        </p>
+        <button mat-flat-button (click)="research.emit()">Find my first player</button>
+      </div>
+    }
+  </section>
+}

@@ -1,0 +1,140 @@
+@if (store.loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+@if (store.error()) {
+  <div class="notice error" role="alert">
+    {{ store.error() }}
+    <button mat-button [disabled]="store.pending()" (click)="store.load(leagueId())">
+      Reload saved plan
+    </button>
+  </div>
+}
+@if (store.message()) {
+  <p class="notice success" role="status">{{ store.message() }}</p>
+}
+@if (store.data(); as data) {
+  @if (!data.imported_seasons.length) {
+    <section class="welcome">
+      <p class="eyebrow">START WITH YOUR LEAGUE'S HISTORY</p>
+      <h2>Build a draft plan you can explain.</h2>
+      <p>
+        Import completed seasons to see who your managers select and what category results look
+        like. Then save your own targets for 2027.
+      </p>
+      <button mat-flat-button (click)="explore.emit('imports')">Bring in league history</button>
+    </section>
+  } @else {
+    <section class="welcome">
+      <div>
+        <p class="eyebrow">YOUR NEXT SEASON STARTS HERE</p>
+        <h2>
+          {{
+            plan()
+              ? 'Research. Decide. Keep your plan together.'
+              : 'What would you change next season?'
+          }}
+        </h2>
+        <p>
+          Use {{ data.imported_seasons.length }} seasons of league history to find players to
+          research, understand other managers and choose your category priorities.
+        </p>
+      </div>
+      @if (!plan()) {
+        <div class="start-plan">
+          <mat-form-field appearance="outline"
+            ><mat-label>Use rules from</mat-label
+            ><mat-select [value]="reference()" (selectionChange)="reference.set($event.value)">
+              @for (year of data.imported_seasons; track year) {
+                <mat-option [value]="year">{{ year }} completed season</mat-option>
+              }
+            </mat-select></mat-form-field
+          ><button
+            mat-flat-button
+            [disabled]="store.pending() || store.loading()"
+            (click)="store.create(reference())"
+          >
+            Start my 2027 plan</button
+          ><small>Copies historical rules as provisional. No 2027 ESPN league is required.</small>
+        </div>
+      } @else {
+        <div class="plan-status">
+          <span class="season-pill">2027 PREPARATION</span
+          ><strong>{{ targets() }} targets · {{ plan()!.shortlist.length }} saved players</strong
+          ><small>Saved {{ plan()!.updated_at | date: 'short' }} · On this Mac</small>
+        </div>
+      }
+    </section>
+    <nav class="journey" aria-label="Draft preparation activities">
+      <button
+        [class.active]="page() === 'plan'"
+        [attr.aria-pressed]="page() === 'plan'"
+        (click)="page.set('plan')"
+      >
+        <span class="step">01</span
+        ><span
+          ><strong>Shape my plan</strong
+          ><small>Priorities, shortlist and draft context</small></span
+        >
+      </button>
+      <button
+        [class.active]="page() === 'players'"
+        [attr.aria-pressed]="page() === 'players'"
+        (click)="page.set('players')"
+      >
+        <span class="step">02</span
+        ><span
+          ><strong>Research players & managers</strong
+          ><small>Past selections and possible competition</small></span
+        >
+      </button>
+      <button
+        [class.active]="page() === 'categories'"
+        [attr.aria-pressed]="page() === 'categories'"
+        (click)="page.set('categories')"
+      >
+        <span class="step">03</span
+        ><span
+          ><strong>Set category priorities</strong
+          ><small>Historical results as reference points</small></span
+        >
+      </button>
+    </nav>
+    @if (data.unresolved_teams) {
+      <div class="identity-hint">
+        <span
+          ><strong>Put familiar names behind the teams.</strong> {{ data.unresolved_teams }} teams
+          in {{ data.reference_season }} still need full-season manager review. Team records are
+          available now.</span
+        ><button mat-button (click)="explore.emit(data.managers.length ? 'seasons' : 'profiles')">
+          {{ data.managers.length ? 'Review manager links' : 'Add manager names' }}
+        </button>
+      </div>
+    }
+    <div [hidden]="page() !== 'plan'">
+      @if (plan()) {
+        <app-plan-editor (explore)="explore.emit('profiles')" /><app-shortlist
+          (research)="page.set('players')"
+        />
+      } @else {
+        <section class="panel">
+          <h3>A place for your decisions</h3>
+          <p>
+            Start a plan above to save a shortlist, personal bid ceilings, category targets and
+            notes. You can explore the historical evidence first.
+          </p>
+          <button mat-stroked-button (click)="page.set('players')">Explore player history</button>
+        </section>
+      }
+    </div>
+    <div [hidden]="page() !== 'players'">
+      <app-player-research (explore)="explore.emit('profiles')" />
+    </div>
+    <div [hidden]="page() !== 'categories'"><app-category-research /></div>
+    <footer class="preparation-foot">
+      <span
+        >Historical references are not 2027 projections. Player availability, eligibility and
+        draft-day rules still need verification.</span
+      ><button mat-button (click)="explore.emit('imports')">Data coverage & imports</button>
+    </footer>
+  }
+}

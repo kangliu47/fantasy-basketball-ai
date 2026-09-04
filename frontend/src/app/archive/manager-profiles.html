@@ -1,0 +1,339 @@
+<h3>Follow the managers behind the teams</h3>
+<p>
+  Create local aliases, then review their team links in
+  <strong>Season records & manager links</strong>. Names can change; reviewed assignments keep the
+  history together.
+</p>
+<form (ngSubmit)="create()" class="filters">
+  <mat-form-field appearance="outline"
+    ><mat-label>New manager alias</mat-label
+    ><input matInput [formControl]="alias" maxlength="80" placeholder="A name you recognize"
+  /></mat-form-field>
+  <button mat-flat-button type="submit" [disabled]="pending() || alias.invalid">
+    Create manager
+  </button>
+</form>
+@if (message()) {
+  <p role="status">{{ message() }}</p>
+}
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+@if (data().managers.length) {
+  <div class="filters">
+    <mat-form-field appearance="outline"
+      ><mat-label>Manager</mat-label
+      ><mat-select [value]="selected()" (selectionChange)="selected.set($event.value)">
+        @for (manager of data().managers; track manager.id) {
+          <mat-option [value]="manager.id"
+            >{{ manager.alias }}{{ manager.id === data().my_manager_id ? ' · Me' : '' }}</mat-option
+          >
+        }
+      </mat-select></mat-form-field
+    >
+    <mat-form-field appearance="outline"
+      ><mat-label>Completed seasons</mat-label
+      ><mat-select multiple [value]="years()" (selectionChange)="years.set($event.value)">
+        @for (year of seasons(); track year) {
+          <mat-option [value]="year">{{ year }}</mat-option>
+        }
+      </mat-select></mat-form-field
+    >
+    <mat-form-field appearance="outline"
+      ><mat-label>Compare with</mat-label
+      ><mat-select [value]="compare()" (selectionChange)="compare.set($event.value)"
+        ><mat-option value="">No comparison</mat-option>
+        @for (manager of data().managers; track manager.id) {
+          @if (manager.id !== selected()) {
+            <mat-option [value]="manager.id">{{ manager.alias }}</mat-option>
+          }
+        }
+      </mat-select></mat-form-field
+    >
+  </div>
+  <div class="actions">
+    <button mat-stroked-button [disabled]="pending()" (click)="chooseMine(selected())">
+      This is my manager
+    </button>
+    @if (data().my_manager_id) {
+      <button mat-button [disabled]="pending()" (click)="chooseMine(null)">Clear my manager</button>
+    }
+    <button mat-button (click)="years.set(seasons())">Use all imported seasons</button>
+  </div>
+  <details>
+    <summary>Change this manager's alias</summary>
+    <form (ngSubmit)="renameManager()" class="filters">
+      <mat-form-field appearance="outline"
+        ><mat-label>Display alias</mat-label
+        ><input matInput [formControl]="rename" maxlength="80" /></mat-form-field
+      ><button mat-stroked-button type="submit" [disabled]="pending() || rename.invalid">
+        Save alias
+      </button>
+    </form>
+  </details>
+}
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+@if (profile(); as result) {
+  <h3 class="section-title">{{ selectedAlias() }} · Historical profile</h3>
+  <div class="cards">
+    <div class="stat">
+      Roster seasons covered<strong>{{ result.roster_seasons_covered.length }}</strong
+      ><small>{{ result.roster_seasons_covered.join(', ') || 'No attributable rosters' }}</small>
+    </div>
+    <div class="stat">
+      Drafts with observed picks<strong>{{ result.drafts_observed.length }}</strong
+      ><small>{{ result.drafts_observed.join(', ') || 'No attributable drafts' }}</small>
+    </div>
+    <div class="stat">
+      Player histories<strong>{{ result.players.length }}</strong
+      ><small>Draft, keeper and roster evidence separated</small>
+    </div>
+  </div>
+  <details open>
+    <summary>Coverage and interpretation</summary>
+    @for (note of result.notes; track note) {
+      <p class="muted">{{ note }}</p>
+    }
+    @for (exclusion of result.exclusions; track $index) {
+      <p class="muted">
+        {{ exclusion.season }} · {{ exclusion.team_name }}: {{ exclusion.reason }}
+      </p>
+    }
+  </details>
+  <h3 class="section-title">Repeated players and draft evidence</h3>
+  <mat-form-field appearance="outline" class="full"
+    ><mat-label>Find a player</mat-label
+    ><input matInput [value]="query()" (input)="query.set($any($event.target).value)"
+  /></mat-form-field>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Archived roster seasons</th>
+          <th>Non-keeper selections</th>
+          <th>Keepers / unknown</th>
+          @if (comparison()) {
+            <th>{{ comparisonAlias() }} · selections</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (player of visible(); track player.player_id) {
+          <tr>
+            <td>
+              <strong>{{ player.player_name }}</strong>
+              <details>
+                <summary>View {{ player.evidence.length }} supporting records</summary>
+                @for (row of player.evidence; track $index) {
+                  <div class="evidence">
+                    <p>
+                      <strong>{{ row.season }} · {{ row.team_name }}</strong
+                      >{{ row.shared_management ? ' · Shared management' : '' }}
+                    </p>
+                    <p>{{ row.basis }}</p>
+                    @if (row.bid !== null) {
+                      <p>
+                        Bid: {{ row.bid }}
+                        @if (row.budget_share !== null) {
+                          · {{ row.budget_share | percent: '1.1-1' }} of configured budget
+                        }
+                      </p>
+                    }
+                    @if (row.pick !== null) {
+                      <p>Pick {{ row.pick }} · Round {{ row.round ?? 'unknown' }}</p>
+                    }
+                    <small
+                      >Retrieved {{ row.retrieved_at | date: 'medium' }} · Assignment version
+                      {{ row.assignment_revision }}</small
+                    ><small>Observation {{ row.observation_id }}</small>
+                  </div>
+                }
+              </details>
+            </td>
+            <td>
+              {{ player.roster_seasons.join(', ') || '—'
+              }}<small
+                >{{ player.roster_seasons.length }} /
+                {{ result.roster_seasons_covered.length }} covered seasons</small
+              >
+            </td>
+            <td>
+              {{ player.draft_seasons.join(', ') || '—'
+              }}<small>Observed selections, eligible pool unknown</small>
+            </td>
+            <td>
+              Keepers: {{ player.keeper_seasons.join(', ') || '—'
+              }}<small
+                >Unknown keeper status: {{ player.unknown_keeper_seasons.join(', ') || '—' }}</small
+              >
+            </td>
+            @if (comparison()) {
+              <td>{{ otherDrafts(player.player_id).join(', ') || 'No observed selection' }}</td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">
+              No matching player evidence. Review manager assignments and dataset coverage.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (visible().length < filtered().length) {
+    <button mat-stroked-button (click)="showMore()">Show more players</button>
+  }
+  <h3 class="section-title">Category outcomes and roster profiles</h3>
+  <p class="muted">
+    Actual team-scored results and the last roster's eventual season totals measure different
+    things. Relative finish runs from 0 (last) to 1 (first), using descriptive average-tie ranks.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Season / category</th>
+          <th>Scored value</th>
+          <th>Rank / teams</th>
+          <th>Relative finish</th>
+          <th>Roster profile</th>
+          <th>Reported points check</th>
+          @if (comparison()) {
+            <th>{{ comparisonAlias() }} · relative finish</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of result.categories; track row.season + row.team_id + row.category) {
+          <tr>
+            <td>
+              {{ row.season }} · {{ row.category
+              }}<small>{{ row.team_name }}{{ row.shared_management ? ' · Shared' : '' }}</small>
+            </td>
+            <td>
+              {{ row.value === null ? '—' : (row.value | number: '1.0-4')
+              }}<small
+                >League median:
+                {{
+                  row.league_median === null ? '—' : (row.league_median | number: '1.0-4')
+                }}</small
+              >
+            </td>
+            <td>{{ row.rank ?? '—' }} / {{ row.team_count }}</td>
+            <td>
+              {{ row.normalized_finish === null ? '—' : (row.normalized_finish | number: '1.2-2') }}
+            </td>
+            <td>
+              {{ row.roster_value === null ? 'Unavailable' : (row.roster_value | number: '1.0-4')
+              }}<small
+                >{{ row.roster_players_with_stats }}/{{ row.roster_player_count }} players with
+                required stats</small
+              >
+            </td>
+            <td>
+              {{
+                row.points_reconcile === null
+                  ? 'Unavailable'
+                  : row.points_reconcile
+                    ? 'Matches average-tie calculation'
+                    : 'Differs · investigate rules/precision'
+              }}
+              <details>
+                <summary>Sources</summary>
+                <small>{{ row.basis }}</small
+                ><small>Scored: {{ row.observation_id }}</small
+                ><small>Roster: {{ row.roster_observation_id || 'unavailable' }}</small
+                ><small>Assignment version {{ row.assignment_revision }}</small>
+              </details>
+            </td>
+            @if (comparison()) {
+              <td>
+                @for (other of otherCategories(row.season, row.category); track other.team_id) {
+                  {{
+                    other.normalized_finish === null
+                      ? '—'
+                      : (other.normalized_finish | number: '1.2-2')
+                  }}<small>{{ other.team_name }}</small>
+                } @empty {
+                  —
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <h3 class="section-title">Draft-to-archive overlap</h3>
+  <p class="muted">
+    Overlap does not prove continuous retention. Counts use the returned draft selections.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Season</th>
+          <th>Team</th>
+          <th>Observed drafted players</th>
+          <th>Also on archived roster</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of result.overlaps; track row.season + row.team_name) {
+          <tr>
+            <td>{{ row.season }}</td>
+            <td>{{ row.team_name }}</td>
+            <td>
+              {{ row.drafted_observed
+              }}<small>{{
+                row.complete_draft
+                  ? 'Draft coverage complete'
+                  : 'Full draft completeness unverified'
+              }}</small>
+            </td>
+            <td>{{ row.still_on_archive }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <details>
+    <summary>Position mix</summary>
+    <p class="muted">
+      Each player contributes one unit split equally across their known PG/SG/SF/PF/C eligibility.
+      These are season archive positions, not verified draft-day eligibility.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Season / team</th>
+            <th>Basis</th>
+            <th>Position</th>
+            <th>Fractional players</th>
+            <th>Position coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of result.positions; track $index) {
+            <tr>
+              <td>{{ row.season }} · {{ row.team_name }}</td>
+              <td>{{ row.basis }}</td>
+              <td>{{ row.position }}</td>
+              <td>{{ row.fractional_count | number: '1.1-1' }}</td>
+              <td>{{ row.known_players }}/{{ row.total_players }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <small
+    >Calculation version {{ result.calculation_version }} · Historical descriptions, not predictions
+    for 2027.</small
+  >
+}

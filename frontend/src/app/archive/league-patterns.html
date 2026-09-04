@@ -1,0 +1,196 @@
+<h3>League patterns across completed seasons</h3>
+<p>
+  Use historical results as references for 2027. Each season retains its rules, league size and
+  source; these values are not forecasts.
+</p>
+<div class="filters">
+  <mat-form-field appearance="outline"
+    ><mat-label>Analysis seasons</mat-label
+    ><mat-select multiple [value]="years()" (selectionChange)="years.set($event.value)">
+      @for (year of seasons(); track year) {
+        <mat-option [value]="year">{{ year }}</mat-option>
+      }
+    </mat-select></mat-form-field
+  >
+  <button mat-button (click)="years.set(seasons())">Use all imported seasons</button>
+</div>
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+@if (!years().length) {
+  <p>Select imported seasons to compare.</p>
+}
+@if (data(); as result) {
+  <h3 class="section-title">Category reference values</h3>
+  <mat-form-field appearance="outline"
+    ><mat-label>Scored category</mat-label
+    ><mat-select [value]="category()" (selectionChange)="category.set($event.value)">
+      @for (code of categories(); track code) {
+        <mat-option [value]="code">{{ code }}</mat-option>
+      }
+    </mat-select></mat-form-field
+  >
+  <p class="muted">
+    Compare seasons with compatible rules. Season length, roster limits and manager activity also
+    affect totals. Roto ranks use average ties; incomplete category results have no median or
+    best-value reference.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Season / teams</th>
+          <th>Scoring and draft context</th>
+          <th>League median</th>
+          <th>Best scored value</th>
+          <th>Calculation evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (season of result.seasons; track season.season) {
+          @let row = summary(season);
+          <tr>
+            <td>
+              {{ season.season }}<small>{{ season.team_count }} teams</small>
+            </td>
+            <td>
+              {{ season.rules?.scoring_format ?? 'Unknown' }} ·
+              {{ season.rules?.draft_type ?? 'Unknown draft'
+              }}<small
+                >Budget {{ season.rules?.auction_budget ?? '—' }} · Keeper slots
+                {{ season.rules?.keeper_count ?? 'unknown' }}</small
+              ><small
+                >{{
+                  row.rule
+                    ? row.rule.higher_is_better
+                      ? 'Higher wins'
+                      : 'Lower wins'
+                    : 'Category unavailable'
+                }}
+                · Weight {{ row.rule?.weight ?? '—' }}</small
+              >
+              <details>
+                <summary>Season categories and source</summary>
+                @for (rule of season.rules?.categories ?? []; track rule.code) {
+                  <small
+                    >{{ rule.code }} · {{ rule.higher_is_better ? 'Higher' : 'Lower' }} · Weight
+                    {{ rule.weight }}</small
+                  >
+                }
+                <small
+                  >Settings observation {{ season.settings_observation_id ?? 'unavailable' }}</small
+                >
+              </details>
+            </td>
+            <td>{{ row.median == null ? '—' : (row.median | number: '1.0-4') }}</td>
+            <td>{{ row.best == null ? '—' : (row.best | number: '1.0-4') }}</td>
+            <td>
+              {{ row.checked }} / {{ season.team_count }} teams' reported category points reconcile
+              <details>
+                <summary>Scored records</summary>
+                @for (team of season.results; track team.team_id + team.category) {
+                  @if (team.category === category()) {
+                    <small
+                      >{{ team.team_name }} ·
+                      {{ team.value == null ? 'Unavailable' : (team.value | number: '1.0-4') }} ·
+                      Rank {{ team.rank ?? '—' }} · {{ team.observation_id }}</small
+                    >
+                  }
+                }
+              </details>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <h3 class="section-title">Who selected this player?</h3>
+  <p>
+    Search all returned drafts. Reviewed manager links identify people across team renames. An
+    unresolved team remains visible so missing links cannot hide a selection.
+  </p>
+  <mat-form-field appearance="outline" class="full"
+    ><mat-label>Search player selections</mat-label
+    ><input matInput [value]="query()" (input)="query.set($any($event.target).value)"
+  /></mat-form-field>
+  @for (group of repeated(); track group.player + group.manager) {
+    <p>
+      <strong>{{ group.manager }}</strong> selected {{ group.player }} in
+      {{ group.years.join(', ') }} ({{ group.years.length }} observed non-keeper seasons).
+    </p>
+  }
+  <p class="muted">
+    Keepers and unknown keeper status are separate. The eligible player pool and auto-draft status
+    are unknown; these are selection counts, not preference probabilities. Shared management does
+    not identify who made the pick.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Player / season</th>
+          <th>Team / reviewed managers</th>
+          <th>Draft context</th>
+          <th>Selection evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of visible(); track row.season + row.team_id + row.player_id) {
+          <tr>
+            <td>
+              {{ row.player_name }}<small>{{ row.season }}</small>
+            </td>
+            <td>
+              {{ row.team_name
+              }}<small
+                >{{ row.manager_aliases.join(' + ') || 'Manager assignment unresolved'
+                }}{{ row.shared_management ? ' · Shared' : '' }}</small
+              >
+            </td>
+            <td>
+              {{ row.draft_type ?? 'Unknown draft type'
+              }}<small
+                >Keeper: {{ row.keeper === null ? 'Unknown' : row.keeper ? 'Yes' : 'No' }}</small
+              >
+              @if (row.draft_type === 'AUCTION') {
+                <small
+                  >Bid {{ row.bid ?? '—' }} ·
+                  {{
+                    row.budget_share === null
+                      ? 'Budget unknown'
+                      : (row.budget_share | percent: '1.1-1')
+                  }}</small
+                >
+              } @else {
+                <small>Pick {{ row.pick ?? '—' }} · Round {{ row.round ?? '—' }}</small>
+              }
+            </td>
+            <td>
+              <details>
+                <summary>Source and coverage</summary>
+                <small>Draft coverage: {{ row.coverage }}</small
+                ><small>Retrieved {{ row.retrieved_at | date: 'medium' }}</small
+                ><small>Observation {{ row.observation_id }}</small
+                ><small
+                  >Assignment versions
+                  {{ row.assignment_revisions.join(', ') || 'Unresolved' }}</small
+                >
+              </details>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">No matching selections in covered drafts.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>{{ selected().length }} matching selections.</p>
+  @if (visible().length < selected().length) {
+    <button mat-stroked-button (click)="showMore()">Show more selections</button>
+  }
+}

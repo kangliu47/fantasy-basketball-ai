@@ -1,0 +1,28 @@
+{
+  "id": 12345,
+  "seasonId": 2026,
+  "scoringPeriodId": 0,
+  "teams": [
+    {
+      "id": 1,
+      "roster": {
+        "entries": [
+          {
+            "playerId": 1001,
+            "lineupSlotId": 0,
+            "playerPoolEntry": {
+              "id": 1001,
+              "player": {
+                "id": 1001,
+                "fullName": "Example Player",
+                "proTeamId": 1,
+                "eligibleSlots": [0, 5, 11, 12]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {"id": 2, "roster": {"entries": []}}
+  ]
+}

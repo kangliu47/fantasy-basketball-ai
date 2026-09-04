@@ -1,0 +1,9 @@
+{
+  "id": 12345,
+  "seasonId": 2026,
+  "scoringPeriodId": 0,
+  "teams": [
+    {"id": 1, "name": "Example North", "abbrev": "NTH"},
+    {"id": 2, "name": "Example South", "abbrev": "STH"}
+  ]
+}

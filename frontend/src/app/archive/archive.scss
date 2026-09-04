@@ -1,0 +1,111 @@
+:host {
+  display: block;
+  margin: 1.5rem 0;
+}
+.archive-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+h2 {
+  font-size: 1.8rem;
+  margin: 0.3rem 0;
+}
+h3 {
+  margin-top: 0;
+}
+p {
+  line-height: 1.6;
+}
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+.pill {
+  background: #e5eee1;
+  border-radius: 2rem;
+  padding: 0.65rem 1rem;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+.panel {
+  padding: 1.5rem 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.year-tile {
+  border: 1px solid #dce3d7;
+  border-radius: 12px;
+  padding: 0.6rem;
+  background: white;
+}
+.year-tile small {
+  display: block;
+  margin: 0.2rem 0.8rem;
+}
+.year-tile p {
+  font-size: 0.75rem;
+}
+.job {
+  padding: 1.4rem;
+  background: #eef3e9;
+  border-radius: 16px;
+  margin: 1.5rem 0;
+}
+.notice {
+  padding: 1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+}
+.error {
+  background: #fff0ec;
+  color: #873a2d;
+}
+.table-scroll {
+  overflow: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+th,
+td {
+  padding: 0.7rem;
+  border-bottom: 1px solid #dce3d7;
+}
+th {
+  font-weight: 600;
+}
+details {
+  margin-top: 1rem;
+}
+summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+.muted {
+  color: #617469;
+}
+mat-progress-bar {
+  margin: 1rem 0;
+}
+@media (max-width: 700px) {
+  .archive-intro {
+    flex-direction: column;
+  }
+}
