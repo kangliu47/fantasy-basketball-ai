@@ -1,0 +1,18 @@
+<section class="analytics-page">
+  <p class="eyebrow">Your 2027 competition</p>
+  <h2>Competitor teams</h2>
+  <p class="notice">Planning assumption: reviewed 2026 participants may return in 2027. Participation is not yet verified.</p>
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
+  @if (!loading() && !competitors().length) { <p class="notice">No reviewed 2026 competitor identities are available yet.</p> }
+  @if (competitors().length) {
+    <div class="competitor-list" aria-label="Reviewed 2026 competitor teams">
+      @for (manager of competitors(); track manager.id) {
+        <button mat-stroked-button [class.selected-competitor]="selected() === manager.id" (click)="selected.set(manager.id)">
+          <strong>{{ manager.alias }}</strong><small>Reviewed evidence: {{ evidenceSeasons()(manager.id).join(', ') }}</small>
+        </button>
+      }
+    </div>
+    <app-manager-profiles [data]="data()" [seasons]="catalog().imported_seasons" [leagueId]="leagueId()" [managerId]="selected()" [viewerOnly]="true" />
+  }
+</section>

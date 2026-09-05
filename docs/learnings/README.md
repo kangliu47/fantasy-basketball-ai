@@ -39,6 +39,7 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S8 | Refocus app on personal use — September 5, 2026, MVP reset and context confirmation | User requests a fresh profile-first MVP using local CSV mappings, assumes 2026 participants return in 2027, confirms three historical insight areas, and prefers upfront choices followed by autonomous work |
 | S7 | Refocus app on personal use — September 5, 2026, UI/UX follow-up | User reports navigation confusion; requires HTML mock feedback before frontend code; identifies feature growth as token waste; requests newest-first learning and tracking records |
 | S6 | Refocus app on personal use — September 5, 2026, priority reply | The user selected “Understand past league results and category strengths” as the leading outcome |
 | S5 | Refocus app on personal use — September 5, 2026 | Request to record learnings, reduce nonessential features, resolve a small league's mappings conversationally, and focus on a personal product |

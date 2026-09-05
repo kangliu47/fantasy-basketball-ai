@@ -1,0 +1,12 @@
+<section class="analytics-page">
+  <p class="eyebrow">Your historical analytics</p>
+  <h2>My profile</h2>
+  <p class="intro-copy">Review completed-season draft spending, repeated selections and category results.</p>
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
+  @if (!loading() && !data().my_manager_id) {
+    <p class="notice">Your profile needs one reviewed manager link before historical insights can be shown.</p>
+  } @else if (data().my_manager_id) {
+    <app-manager-profiles [data]="data()" [seasons]="catalog().imported_seasons" [leagueId]="leagueId()" [managerId]="data().my_manager_id" [viewerOnly]="true" />
+  }
+</section>

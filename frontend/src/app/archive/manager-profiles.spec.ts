@@ -17,7 +17,7 @@ describe('Historical profile evidence', () => {
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ManagerProfiles);
     fixture.componentRef.setInput('leagueId', 12345);
-    fixture.componentRef.setInput('seasons', [2026, 2025]);
+    fixture.componentRef.setInput('seasons', [2026, 2025, 2017]);
     fixture.componentRef.setInput('data', managers);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -27,7 +27,9 @@ describe('Historical profile evidence', () => {
     http.verify();
   });
   it('renders separate draft, keeper and roster evidence and the retrospective basis', async () => {
-    http.expectOne((r) => r.url.endsWith('/profile')).flush(profile);
+    const request = http.expectOne((r) => r.url.endsWith('/profile'));
+    expect(request.request.params.getAll('seasons')).toEqual(['2026', '2025', '2017']);
+    request.flush(profile);
     await fixture.whenStable();
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent;

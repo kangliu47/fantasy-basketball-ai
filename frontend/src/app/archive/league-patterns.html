@@ -34,19 +34,6 @@
         }
       </mat-select></mat-form-field
     >
-    @if (comparisonChoices().length) {
-      <mat-form-field appearance="outline"
-        ><mat-label>Compare linked team</mat-label
-        ><mat-select
-          [value]="comparisonManager()"
-          (selectionChange)="comparisonManager.set($event.value)"
-        >
-          @for (manager of comparisonChoices(); track manager.id) {
-            <mat-option [value]="manager.id">{{ manager.alias }}</mat-option>
-          }
-        </mat-select></mat-form-field
-      >
-    }
   </div>
   <p class="muted">
     Compare seasons with compatible rules. Season length, roster limits and manager activity also
@@ -57,22 +44,54 @@
     <div class="distribution-heading">
       <div>
         <p class="eyebrow">Team-level historical comparison</p>
-        <h3 id="team-category-comparison">Where did these teams finish in {{ category() }}?</h3>
+        <h3 id="team-category-comparison">
+          Where did {{ myTeamName() }} and {{ comparisonTeamName() }} finish in {{ category() }}?
+        </h3>
         <p>
-          Each dot is one team's scored result. Position runs from last to first within that season,
-          using the same Python average-tie ranks as the evidence table.
+          Choose two teams from one completed season. Each dot is one team's scored result; position
+          runs from last to first using the same Python average-tie ranks as the evidence table.
         </p>
       </div>
       <div class="legend" aria-label="Highlighted teams">
-        <span><i class="mine"></i>{{ myAlias() }}</span>
-        <span><i class="comparison"></i>{{ comparisonAlias() }}</span>
+        <span><i class="mine"></i>{{ myTeamName() }}</span>
+        <span><i class="comparison"></i>{{ comparisonTeamName() }}</span>
         <span><i class="league"></i>Other league teams</span>
       </div>
     </div>
+    <div class="filters team-comparison-filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Completed season</mat-label>
+        <mat-select [value]="comparisonSeason()" (selectionChange)="comparisonSeason.set($event.value)">
+          @for (season of result.seasons; track season.season) {
+            <mat-option [value]="season.season">{{ season.season }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>My team</mat-label>
+        <mat-select [value]="myTeamId()" (selectionChange)="myTeamId.set($event.value)">
+          @for (team of teamChoices(); track team.id) {
+            <mat-option [value]="team.id">{{ team.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Compare with</mat-label>
+        <mat-select [value]="comparisonTeamId()" (selectionChange)="comparisonTeamId.set($event.value)">
+          @for (team of teamChoices(); track team.id) {
+            <mat-option [value]="team.id" [disabled]="team.id === myTeamId()">{{ team.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <p class="muted">
+      This direct team selection works without a manager mapping. A reviewed link only provides an
+      optional default.
+    </p>
     @if (headToHead(); as matchup) {
       <div class="linked-profile">
         <div>
-          <h4>{{ matchup.season }} linked-team category profile</h4>
+          <h4>{{ matchup.season }} selected-team category profile</h4>
           <p>
             Compare both teams across every scored category in their latest shared season. Select a
             rank to open that category's league distribution below.
@@ -83,8 +102,8 @@
             <thead>
               <tr>
                 <th>Category</th>
-                <th>{{ myAlias() }}</th>
-                <th>{{ comparisonAlias() }}</th>
+                <th>{{ myTeamName() }}</th>
+                <th>{{ comparisonTeamName() }}</th>
               </tr>
             </thead>
             <tbody>
@@ -96,7 +115,7 @@
                       type="button"
                       [class.selected]="selectedResult() === row.mine"
                       [attr.aria-label]="
-                        myAlias() +
+                        myTeamName() +
                         ' ' +
                         row.category +
                         ', rank ' +
@@ -113,7 +132,7 @@
                       type="button"
                       [class.selected]="selectedResult() === row.comparison"
                       [attr.aria-label]="
-                        comparisonAlias() +
+                        comparisonTeamName() +
                         ' ' +
                         row.category +
                         ', rank ' +
@@ -133,7 +152,7 @@
       </div>
     }
     <div class="distribution-grid">
-      @for (season of result.seasons; track season.season) {
+      @if (comparisonSeasonData(); as season) {
         @let seasonSummary = summary(season);
         <article class="distribution-card">
           <header>

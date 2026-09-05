@@ -4,6 +4,18 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-05 — Confirm the context once, then delegate the agreed work
+
+**Conversation evidence — S8, latest follow-up:** The user requests one upfront
+interactive popup with choices and a free-text field, followed by autonomous
+work once context is confirmed. For this MVP, context confirmation precedes an
+HTML mock; mock approval precedes Markdown user stories and implementation handoff.
+
+**Practice — explicit user preference:** Ask about consequential scope and
+assumptions early, reuse the answers, and proceed without interruptions for routine
+choices. Keep the agreed stopping point explicit. Approval of the problem and
+scope does not stand in for approval of an interface the user has not yet seen.
+
 ## 2026-09-05 — Review an HTML mock before frontend implementation
 
 **Conversation evidence — S7, latest follow-up:** The user reports being very

@@ -1,5 +1,18 @@
 # Architecture and learning guide
 
+## Latest MVP design boundary — September 5, 2026
+
+The confirmed MVP uses My manager profile and Competitor teams as its two primary
+views, with ESPN sign-in/refresh supporting historical spend, repeated-selection
+and category-result insights. Reviewed local CSV mappings are setup input; 2027
+participation copied from 2026 is a separate provisional assumption, never an
+imported 2027 team record. The approved viewer composition is now implemented as
+small Angular pages that reuse the existing typed archive read API. A local-only,
+assistant-operated mapping importer parses the private confirmed alias-review CSV
+and calls the existing history service to create append-only assignment revisions;
+it does not expose mapping data, alter provider observations or inspect credentials.
+User stories and delegation follow the user's explicit approval of the mock.
+
 ## UI design gate — September 5, 2026 follow-up
 
 Before frontend implementation, create a lightweight HTML mock with synthetic

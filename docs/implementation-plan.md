@@ -1,5 +1,66 @@
 # Implementation plan
 
+## Latest delivery agreement — September 5, 2026, confirmed MVP context
+
+### UI streamlining — Stories 1–3 implemented
+
+The approved profile-first flow is now the active configured-session shell:
+My profile is the default, and planning, archive administration, rosters and
+snapshot browsing are no longer mounted by the root component. Profile viewing
+loads the existing historical read models without alias or mapping controls.
+
+Competitor teams now lists only other reviewed 2026 identities, excludes My
+profile, displays the provisional 2027-participation assumption, and opens the
+same viewer. The normal viewer leads with draft spending, category results and
+repeated non-keeper selections; roster-derived counters and secondary roster
+analysis are not in the first view. The confirmed private alias-review CSV has
+now been reconciled through a local assistant-operated importer into append-only
+whole-season historical assignments. The viewer requests every imported season,
+so profile and competitor evidence is attributable across the saved archive. The
+next bounded story is shared category detail and compact connection recovery; the
+backlog records clearer evidence language and cross-manager/cross-draft
+auction-spend comparisons.
+
+Focused Angular coverage for the shell, profile viewer and competitor journey
+passes (11 tests). No stored plans, observations, mappings or APIs were removed.
+
+**Now:** the approved mock is being delivered as bounded stories. Story 1 adds
+direct completed-season team comparison; Stories 2 and 3 will add the profile
+insights and connection/refresh support. The historical insights are draft
+spending, repeated selections and category results. Assume the 2026 participants
+return in 2027; use reviewed local CSV identity links without a mapping UI.
+
+The user approved `/private/tmp/manager-mvp-preview.html` on September 5, 2026.
+The upfront context and mock-review gates are complete.
+
+### Three-story delivery — approved flow
+
+> Historical delivery snapshot. This was the September 5 handoff before the
+> profile-first refactor; the latest delivery agreement above is authoritative.
+
+The available implementation window is not sufficient for the whole personal
+manager MVP without compressing important verification. The work is therefore
+bounded into three stories. At that point, Stories 2 and 3 were unstarted.
+
+The approved mock is `/private/tmp/manager-mvp-preview.html` (user approval
+recorded September 5, 2026).
+
+1. **Story 1 — Approved historical category comparison (implemented; frontend test runner blocked):** implement the approved
+   Angular view using the existing FastAPI read model for direct completed-season/team
+   selection, category results, accessible evidence, distribution detail, season
+   reset, missing values and ties. Reuse `LeaguePatterns`; do not refresh ESPN
+   or require identity mappings.
+2. **Story 2 — Profile insights:** make My manager profile
+   the default route and surface sourced historical draft-spend, repeat-selection
+   and category-result summaries. Preserve existing planning and setup destinations
+   without expanding mapping administration.
+3. **Story 3 — Connection and refresh support:** wire the existing local
+   connect/refresh status and useful cancellation/error states into the approved
+   flow, preserving last successful observations on failure.
+
+The prior plan below records earlier sequencing. The current brief in
+[personal-product direction](personal-product-direction.md) takes precedence.
+
 ## Active plan — personal historical analysis, September 5, 2026
 
 The user selected **understand past league results and category strengths**.

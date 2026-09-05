@@ -68,7 +68,9 @@ describe('League-wide historical patterns', () => {
     );
     expect(fixture.componentInstance.data()).toBeNull();
   });
-  it('compares linked teams against the category finish distribution without inferring ownership', () => {
+  it('compares directly selected teams against the category finish distribution without requiring links', () => {
+    fixture.componentRef.setInput('managerData', { managers: [], assignments: [], my_manager_id: null });
+    fixture.detectChanges();
     const points = fixture.componentInstance.distribution(patterns.seasons[0]);
     expect(points.find((point) => point.kind === 'mine')?.row.team_name).toBe(
       'Synthetic North 2026',
@@ -77,8 +79,9 @@ describe('League-wide historical patterns', () => {
       'Synthetic South',
     );
     expect(fixture.nativeElement.querySelectorAll('.team-point').length).toBeGreaterThan(1);
-    expect(fixture.nativeElement.textContent).toContain('Where did these teams finish in PTS?');
-    expect(fixture.nativeElement.textContent).toContain('2026 linked-team category profile');
+    expect(fixture.nativeElement.textContent).toContain('Where did Synthetic North 2026 and Synthetic South finish in PTS?');
+    expect(fixture.nativeElement.textContent).toContain('2026 selected-team category profile');
+    expect(fixture.nativeElement.textContent).toContain('works without a manager mapping');
 
     const comparison = fixture.nativeElement.querySelector(
       '.team-point.comparison',
@@ -87,7 +90,7 @@ describe('League-wide historical patterns', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.selectedResult()?.team_name).toBe('Synthetic South');
     expect(fixture.nativeElement.querySelector('.distribution-selection').textContent).toContain(
-      'team result; management dates unconfirmed',
+      'League team result',
     );
 
     const comparisonFg = fixture.nativeElement.querySelector(
@@ -97,5 +100,14 @@ describe('League-wide historical patterns', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.category()).toBe('FG%');
     expect(fixture.componentInstance.selectedResult()?.team_name).toBe('Synthetic South');
+  });
+  it('resets selected teams and the detail when the completed season changes', () => {
+    fixture.componentInstance.comparisonSeason.set(2025);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.myTeamName()).toBe('Synthetic North 2025');
+    expect(fixture.componentInstance.comparisonTeamName()).toBe('Synthetic South');
+    expect(fixture.componentInstance.selectedResult()?.season).toBe(2025);
+    expect(fixture.componentInstance.headToHead()?.season).toBe(2025);
   });
 });

@@ -1,9 +1,9 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 37](#37-personal-product-first--accepted-scope-amendment-2026-09-05)
-> prioritizes personal historical results and category strengths.
-> **Next step:** [amendment 38](#38-html-mock-review-and-newest-first-records--accepted-workflow-2026-09-05)
-> requires an HTML mock and user UI/UX approval before frontend implementation.
+> **Current scope:** [amendment 40](#40-approved-personal-manager-flow-and-first-delivery-slice--2026-09-05)
+> defines the confirmed My profile / Competitor teams MVP and historical insights.
+> The approved flow is being delivered in three bounded stories; see the
+> [implementation plan](implementation-plan.md).
 > 2026 is completed; 2027 remains the planning target. See the concise
 > [personal-product direction](personal-product-direction.md).
 
@@ -12,6 +12,48 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 40. Approved personal manager flow and first delivery slice — 2026-09-05
+
+The user explicitly approved the reviewed mock at
+`/private/tmp/manager-mvp-preview.html`. The approved journey starts at My
+manager profile, reaches Competitor teams through clear primary navigation, and
+keeps connection/refresh states visible without exposing credentials. Historical
+results remain observational and the 2026-to-2027 participant assumption stays
+separate from imported evidence.
+
+The full MVP is bounded into three stories due to the remaining delivery window.
+Story 1 implements direct selection of two teams in a completed season, their
+category profile, category distribution detail and source evidence. It uses the
+existing local historical read model and does not require manager mappings or an
+ESPN refresh. Stories 2 and 3 cover profile insights, then connection/refresh
+support. The implementation plan retains the detailed stopping points.
+
+The Story 1 source change has focused synthetic coverage, including no-mapping
+and season-reset behavior. Automated Angular execution is pending restoration of
+the local dependency cache; no live ESPN request is used for this verification.
+
+# 39. Personal manager MVP — confirmed context, 2026-09-05
+
+The user confirmed a streamlined first MVP: ESPN authentication and refresh,
+My manager profile as the starting point, and other managers presented as
+Competitor teams. The 2026 participants are assumed to return for 2027, labeled
+as a planning assumption rather than verified participation or reused team IDs.
+Initial insights cover historical draft spending, repeated player selections and
+category results, each with supporting records and explicit evidence limits.
+Reviewed local CSV mappings support setup; no core mapping-administration journey
+is required. Private alias records remain outside Git and mock examples are synthetic.
+
+This updates the comparison-first emphasis of amendment 37. The current UI may
+be ignored when designing the simpler experience; data protections remain intact.
+First review the HTML mock. **Only after user approval** write Markdown user
+stories and hand implementation to another agent. Context confirmation does not
+authorize the interface or implementation. No mappings are imported in this pass.
+
+For new substantial work, front-load consequential choices in one interactive
+popup with options and a free-text field. Once context is confirmed, proceed
+autonomously within the agreed scope and stopping point. Do not repeatedly ask
+about routine choices or bypass the explicit mock-review gate.
 
 # 38. HTML mock review and newest-first records — accepted workflow, 2026-09-05
 

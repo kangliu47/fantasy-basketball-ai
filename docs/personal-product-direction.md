@@ -1,5 +1,29 @@
 # Personal product direction — September 5, 2026
 
+## Latest MVP brief — September 5, 2026, confirmed context
+
+The user confirmed a fresh, simpler MVP journey, unconstrained by the current UI:
+
+- Authenticate with ESPN and refresh saved data through obvious controls.
+- Start on **My manager profile**; place everyone else under **Competitor teams**.
+- Assume the 2026 participants return in 2027, explicitly labeled as a planning
+  assumption. Keep 2027 team IDs and verified participation separate.
+- Answer three historical questions: how the linked teams allocated draft spend,
+  which players they selected repeatedly, and where they finished by category.
+- Use the reviewed local alias CSV as setup input. A confirmed identity link does
+  not establish full-season management dates. Keep private mappings outside Git.
+
+**Approved UI flow:** the user approved the reviewed mock at
+`/private/tmp/manager-mvp-preview.html`. The first implementation slice is the
+direct completed-season team comparison. It works without manager assignments,
+uses saved observations only and preserves the profile-first design for the next
+story. The earlier comparison-first plan below is context; this profile-first
+brief governs the immediate design.
+
+Use one upfront choices-and-free-text confirmation for new substantial work,
+then complete the agreed deliverable autonomously. Keep the mock approval gate
+distinct from that context confirmation.
+
 **Accepted direction:** build for one person's local fantasy basketball workflow.
 **User-selected first outcome:** understand past league results and category
 strengths. 2026 is completed; 2027 remains the future planning target.
@@ -85,8 +109,8 @@ this document, and no complete restoration is claimed.
 
 ## Next delivery boundary
 
-**First:** create and review the HTML mock described above; frontend implementation
-waits for the user's approval of the relevant flow.
+**Completed design gate:** the user reviewed and approved the HTML mock at
+`/private/tmp/manager-mvp-preview.html` on September 5, 2026.
 
 **After approval:** simplify the historical comparison path, reusing the existing
 `LeaguePatterns` category profile and distribution. Allow direct selection of
