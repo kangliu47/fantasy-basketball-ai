@@ -1,5 +1,14 @@
 # Architecture and learning guide
 
+## UI design gate — September 5, 2026 follow-up
+
+Before frontend implementation, create a lightweight HTML mock with synthetic
+data, review navigation and the full user journey with the user, and record their
+approval of the relevant flow. Implement that agreed scope using the existing
+Angular/application/domain boundaries. Material flow changes return to mock review.
+The architecture review explains existing code; it does not replace this UI/UX
+review before coding. See the [working agreement](personal-product-direction.md#latest-working-agreement--september-5-2026-follow-up).
+
 ## Personal-product boundary — September 5, 2026
 
 The current [product direction](personal-product-direction.md) prioritizes

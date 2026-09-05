@@ -10,6 +10,20 @@ milestone lists are context, not an instruction to implement every capability.
 This update changes the plan and engineering guidance; it does not claim that
 the simplified UI or conversational mapping workflow has already been delivered.
 
+## Latest working agreement — September 5, 2026 follow-up
+
+The user reports that the current app is confusing to navigate. **Review an HTML
+mock with the user before writing frontend implementation code.** First agree on
+the entry point, navigation and one useful historical-comparison journey using
+synthetic data. Iterate on the mock and record the approved flow and scope before
+implementing it. The mock review must establish that the user understands how to
+navigate; a render check alone is insufficient.
+
+Feature growth costs user attention and tokens spent implementing, testing and
+reworking it. Keep the approved slice small and reuse existing work. Do not build
+additional screens or flows while awaiting design feedback. Keep dated learnings,
+amendments and delivery records newest-first, including same-day follow-ups.
+
 ## The next useful session
 
 Open the local app and inspect a completed season. Compare the user's selected
@@ -71,7 +85,10 @@ this document, and no complete restoration is claimed.
 
 ## Next delivery boundary
 
-**First:** simplify the historical comparison path, reusing the existing
+**First:** create and review the HTML mock described above; frontend implementation
+waits for the user's approval of the relevant flow.
+
+**After approval:** simplify the historical comparison path, reusing the existing
 `LeaguePatterns` category profile and distribution. Allow direct selection of
 teams in an explicitly selected season without requiring manager creation or
 full-season attribution. Retain reviewed links as optional shortcuts. Give the

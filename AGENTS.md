@@ -18,8 +18,27 @@ is learning FastAPI and Angular; favor conventional, readable examples of each.
   must remain usable without complete manager mappings.
 - Preserve existing observations, assignment revisions and useful features when
   simplifying the journey. Public source does not imply a multi-user product.
-- Append meaningful, sourced project lessons to docs/learnings/; distinguish user
+- Add meaningful, sourced project lessons at the top of docs/learnings/; distinguish user
   decisions from assistant synthesis and exclude private league details.
+
+## Ways of working
+
+- Before writing frontend implementation code, create a lightweight HTML mock
+  with synthetic data and get the user's UI/UX feedback and explicit approval of
+  the relevant flow. This includes navigation changes to the existing app. A broad
+  PRD or permission to continue is not approval of an unreviewed interface.
+- Show the entry point, navigation, main action, result and relevant empty/error
+  states in the mock. Iterate there first; record which mock/flow was approved,
+  then implement only that scope. Reuse that approval for the agreed implementation;
+  return to the mock if the proposed flow or scope materially changes.
+- Treat confusing navigation, feature growth and wasted tokens as delivery costs.
+  Keep one bounded journey in scope, reuse existing work, and avoid speculative
+  frontend code, repeated broad research and unnecessary rebuild/test cycles.
+  Still perform the checks needed for the approved change.
+- Keep learning entries, decision/amendment histories and delivery records newest
+  first, including same-day follow-ups. Keep current guidance above history and
+  preserve older records and stable references below. Technical guides and the
+  original PRD baseline retain their logical structure.
 
 ## Architecture
 

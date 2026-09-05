@@ -12,8 +12,9 @@ about building with an AI coding agent and managing a personal product.
 
 ## How to maintain this journal
 
-Append a dated entry when a conversation changes our understanding, exposes a
-useful failure or establishes a reusable practice. Use this small structure:
+Insert a dated entry at the top of the entries when a conversation changes our
+understanding, exposes a useful failure or establishes a reusable practice. Keep
+newest first, including same-day follow-ups. Use this small structure:
 
 ```text
 Date and lesson title
@@ -23,7 +24,9 @@ Practice: what we will do differently on the next relevant task.
 Follow-up: what remains untested, if anything.
 ```
 
-Keep the original lesson when later experience changes it; append the correction.
+Keep the original lesson when later experience changes it; put the correction
+above it and reference the older lesson. Apply newest-first ordering to decision,
+amendment and delivery tracking records too, with current guidance above history.
 Capture meaningful lessons rather than logging every implementation step. Put
 accepted scope changes in the PRD amendment section and update the active plan;
 the journal explains the reasoning but does not independently authorize features.
@@ -36,12 +39,13 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
-| S1 | Brainstorm fantasy basketball app — September 3, 2026 | Personal league decisions, team-relative player value, conversational data access, and the intention to vibe code a local repository |
-| S2 | Create fantasy basketball repo — September 3–4, 2026 | Browser sign-in and no-terminal use; learning FastAPI/Angular; completed 2026 versus future 2027; decision-oriented navigation; an HTML artifact to review the implementation |
-| S3 | Research HTML architecture reviews — September 4, 2026 | The user's interest in reusing the interactive review format for understanding code and discussing next steps |
-| S4 | Review PRD and plan analytics — September 4, 2026 | Request for a research prompt; historical/live separation; visual analytics for feedback; alias-workflow friction; request to prioritize useful two-team analytics |
-| S5 | Refocus app on personal use — September 5, 2026 | Request to record learnings, reduce nonessential features, resolve a small league's mappings conversationally, and focus on a personal product |
+| S7 | Refocus app on personal use — September 5, 2026, UI/UX follow-up | User reports navigation confusion; requires HTML mock feedback before frontend code; identifies feature growth as token waste; requests newest-first learning and tracking records |
 | S6 | Refocus app on personal use — September 5, 2026, priority reply | The user selected “Understand past league results and category strengths” as the leading outcome |
+| S5 | Refocus app on personal use — September 5, 2026 | Request to record learnings, reduce nonessential features, resolve a small league's mappings conversationally, and focus on a personal product |
+| S4 | Review PRD and plan analytics — September 4, 2026 | Request for a research prompt; historical/live separation; visual analytics for feedback; alias-workflow friction; request to prioritize useful two-team analytics |
+| S3 | Research HTML architecture reviews — September 4, 2026 | The user's interest in reusing the interactive review format for understanding code and discussing next steps |
+| S2 | Create fantasy basketball repo — September 3–4, 2026 | Browser sign-in and no-terminal use; learning FastAPI/Angular; completed 2026 versus future 2027; decision-oriented navigation; an HTML artifact to review the implementation |
+| S1 | Brainstorm fantasy basketball app — September 3, 2026 | Personal league decisions, team-relative player value, conversational data access, and the intention to vibe code a local repository |
 
 The first entries are grounded in these retrieved project conversations and the
 current request. They are not an exhaustive account of other conversations or a
