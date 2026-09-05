@@ -1,0 +1,218 @@
+<section class="historical-insights" aria-labelledby="historical-insights-title">
+  <div class="insights-heading">
+    <div>
+      <p class="eyebrow">Historical analytics</p>
+      <h3 id="historical-insights-title">How has this manager built and finished?</h3>
+      <p>
+        Observed auction purchases and scored outcomes from completed seasons. These describe the
+        past; they do not predict a 2027 bid or prove intent.
+      </p>
+    </div>
+    <span class="scope"
+      >{{ profile().seasons_requested.length }} season{{
+        profile().seasons_requested.length === 1 ? '' : 's'
+      }}
+      shown</span
+    >
+  </div>
+
+  @if (activeAuction(); as auction) {
+    <div class="insight-block">
+      <div class="block-heading">
+        <div>
+          <h4>Auction spending fingerprint</h4>
+          <p>Purchases are ordered from most to least expensive, not by nomination time.</p>
+        </div>
+        @if (profile().auctions.length > 1) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Auction season</mat-label>
+            <mat-select
+              [value]="selectedAuctionSeason()"
+              (selectionChange)="selectedAuctionSeason.set($event.value)"
+            >
+              @for (item of profile().auctions; track item.season) {
+                <mat-option [value]="item.season">{{ item.season }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+      </div>
+      <div class="metric-strip">
+        <div>
+          <span>Top purchase</span><strong>{{ auction.top_one_share | percent: '1.0-1' }}</strong>
+        </div>
+        <div>
+          <span>Top three</span><strong>{{ auction.top_three_share | percent: '1.0-1' }}</strong>
+        </div>
+        <div>
+          <span>Concentration (HHI)</span><strong>{{ auction.hhi | number: '1.3-3' }}</strong>
+        </div>
+        <div>
+          <span>$1–$3 purchases</span><strong>{{ auction.count_one_to_three }}</strong>
+        </div>
+      </div>
+      <figure>
+        <svg viewBox="0 0 600 210" role="img" [attr.aria-labelledby]="'auction-title auction-desc'">
+          <title id="auction-title">
+            {{ alias() }} {{ auction.season }} observed cumulative auction spend
+          </title>
+          <desc id="auction-desc">
+            Cumulative share of the configured {{ auction.budget | number: '1.0-0' }} dollar budget,
+            ordering {{ auction.purchases.length }} observed non-keeper purchases from highest to
+            lowest price.
+          </desc>
+          <line x1="48" y1="36" x2="548" y2="36" class="grid" />
+          <line x1="48" y1="100" x2="548" y2="100" class="grid" />
+          <line x1="48" y1="164" x2="548" y2="164" class="axis" />
+          <text x="10" y="40">100%</text>
+          <text x="16" y="104">50%</text>
+          <text x="28" y="168">0%</text>
+          <path [attr.d]="auctionPath()" class="spend-line" />
+          @for (point of auctionPoints(); track point.purchase.player_id) {
+            <circle [attr.cx]="point.x" [attr.cy]="point.y" r="5">
+              <title>
+                {{ point.purchase.player_name }} · ${{ point.purchase.price | number: '1.0-2' }} ·
+                cumulative {{ point.purchase.cumulative_budget_share | percent: '1.0-1' }}
+              </title>
+            </circle>
+          }
+          <text x="48" y="192">0</text>
+          <text x="548" y="192" text-anchor="end">{{ auction.purchases.length }} purchases</text>
+        </svg>
+        <figcaption>
+          {{ auction.season }} · {{ auction.team_name }} · ${{
+            auction.observed_spend | number: '1.0-2'
+          }}
+          observed of ${{ auction.budget | number: '1.0-0' }} · {{ auction.draft_coverage }} source
+        </figcaption>
+      </figure>
+      <details>
+        <summary>Purchase table and evidence</summary>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Price</th>
+                <th>Budget share</th>
+                <th>Cumulative</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (purchase of auction.purchases; track purchase.player_id) {
+                <tr>
+                  <td>{{ purchase.player_name }}</td>
+                  <td>${{ purchase.price | number: '1.0-2' }}</td>
+                  <td>{{ purchase.budget_share | percent: '1.0-1' }}</td>
+                  <td>{{ purchase.cumulative_budget_share | percent: '1.0-1' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <small>
+          {{ auction.excluded_picks }} keeper, unknown-status, or invalid-price pick{{
+            auction.excluded_picks === 1 ? '' : 's'
+          }}
+          excluded · Retrieved {{ auction.retrieved_at | date: 'medium' }} · Assignment revision
+          {{ auction.assignment_revision }} · Observation {{ auction.observation_id }}
+        </small>
+      </details>
+    </div>
+  } @else {
+    <div class="empty-insight">
+      No attributable non-keeper auction purchases with a valid configured budget are available for
+      this manager and season filter.
+    </div>
+  }
+
+  @if (categoryRows().length) {
+    <div class="insight-block">
+      <h4>Scored category finish history</h4>
+      <p>
+        Darker cells finished closer to first place within that season. Select a cell for the scored
+        value and source. Missing comparisons remain blank.
+      </p>
+      <div class="heatmap-scroll">
+        <table class="heatmap">
+          <thead>
+            <tr>
+              <th>Manager · season</th>
+              @for (code of categoryCodes(); track code) {
+                <th>{{ code }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of categoryRows(); track item.alias + item.season) {
+              <tr>
+                <th>
+                  {{ item.alias }}<small>{{ item.season }}</small>
+                </th>
+                @for (code of categoryCodes(); track code) {
+                  @let row = category(item.profile, item.season, code);
+                  <td>
+                    <button
+                      type="button"
+                      class="finish-cell"
+                      [class.selected]="selectedCategory() === row"
+                      [disabled]="!row"
+                      [attr.aria-label]="
+                        row
+                          ? code +
+                            ' ' +
+                            item.season +
+                            ', rank ' +
+                            (row.rank ?? 'unavailable') +
+                            ' of ' +
+                            row.team_count
+                          : code + ' ' + item.season + ' unavailable'
+                      "
+                      (click)="selectCategory(row)"
+                    >
+                      <span class="finish-fill" [style.opacity]="finishOpacity(row)"></span>
+                      <strong>{{ row?.rank ?? '—' }}</strong>
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="legend"><span>Last</span><i></i><span>First · cell shows rank</span></div>
+      @if (selectedCategory(); as row) {
+        <div class="selection" aria-live="polite">
+          <strong
+            >{{ row.season }} {{ row.category }} · rank {{ row.rank ?? 'unavailable' }} /
+            {{ row.team_count }}</strong
+          >
+          <span
+            >Scored {{ row.value === null ? 'unavailable' : (row.value | number: '1.0-4') }} ·
+            League median
+            {{
+              row.league_median === null ? 'unavailable' : (row.league_median | number: '1.0-4')
+            }}</span
+          >
+          <small>
+            {{ row.team_name }}{{ row.shared_management ? ' · Shared management' : '' }} ·
+            {{
+              row.points_reconcile === null
+                ? 'Points check unavailable'
+                : row.points_reconcile
+                  ? 'Reported points reconcile'
+                  : 'Reported points differ'
+            }}
+            · Assignment revision {{ row.assignment_revision }} · Observation
+            {{ row.observation_id }}
+          </small>
+        </div>
+      }
+    </div>
+  }
+  <p class="boundary">
+    Historical analysis uses completed-season facts. Live-season analysis will use current
+    standings, current availability, dated projections and remaining games through separate use
+    cases.
+  </p>
+</section>

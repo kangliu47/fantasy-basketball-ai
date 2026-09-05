@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 
-from fantasy_ai.domain.history.analysis import aggregate, manager_profile
+from fantasy_ai.domain.history.analysis import aggregate, auction_season, manager_profile
 from fantasy_ai.domain.history.models import Assignment, Category, Dataset, SeasonArchive
 from tests.history_fakes import MANAGER_ID, NOW, OTHER_ID, observation
 
@@ -57,6 +57,49 @@ def test_profile_separates_draft_keepers_roster_and_scored_outcomes() -> None:
     assert fg.roster_value == pytest.approx(81 / 110)
     assert fg.roster_value != (0.8 + 0.1) / 2
     assert all(row.observation_id for row in shooter.evidence)
+    auction = result.auctions[0]
+    assert auction.season == 2026
+    assert auction.observed_spend == 40
+    assert auction.top_one_share == auction.top_three_share == 0.2
+    assert auction.hhi == pytest.approx(0.04)
+    assert auction.count_one_to_three == 0
+    assert auction.excluded_picks == 1  # Keeper selections do not describe auction spending.
+    assert auction.purchases[0].cumulative_budget_share == 0.2
+
+
+def test_auction_summary_requires_auction_rules_and_observed_non_keeper_prices() -> None:
+    source = archive()
+    settings = source.get(Dataset.SETTINGS)
+    draft = source.get(Dataset.DRAFT)
+    assert settings and settings.rules and draft
+    snake = replace(settings, rules=replace(settings.rules, draft_type="SNAKE"))
+    assert (
+        auction_season(
+            replace(
+                source,
+                observations=tuple(
+                    snake if item.dataset == Dataset.SETTINGS else item
+                    for item in source.observations
+                ),
+            ),
+            assignment(),
+        )
+        is None
+    )
+    unknown = replace(draft, picks=(replace(draft.picks[0], keeper=None),))
+    assert (
+        auction_season(
+            replace(
+                source,
+                observations=tuple(
+                    unknown if item.dataset == Dataset.DRAFT else item
+                    for item in source.observations
+                ),
+            ),
+            assignment(),
+        )
+        is None
+    )
 
 
 def test_unknown_attribution_and_missing_years_are_excluded_not_zero() -> None:

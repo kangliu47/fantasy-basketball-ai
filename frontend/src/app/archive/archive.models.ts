@@ -189,6 +189,32 @@ export interface CategoryResult {
   assignment_revision: number;
   shared_management: boolean;
 }
+export interface AuctionPurchase {
+  player_id: string;
+  player_name: string;
+  price: number;
+  budget_share: number;
+  cumulative_budget_share: number;
+}
+export interface ManagerAuctionSeason {
+  season: number;
+  team_name: string;
+  budget: number;
+  purchases: AuctionPurchase[];
+  observed_spend: number;
+  top_one_share: number;
+  top_three_share: number;
+  hhi: number;
+  count_one_to_three: number;
+  median_price: number;
+  max_price: number;
+  excluded_picks: number;
+  draft_coverage: string;
+  observation_id: string;
+  retrieved_at: string;
+  assignment_revision: number;
+  shared_management: boolean;
+}
 export interface Overlap {
   season: number;
   team_name: string;
@@ -214,6 +240,7 @@ export interface Profile {
   drafts_observed: number[];
   players: Frequency[];
   categories: CategoryResult[];
+  auctions: ManagerAuctionSeason[];
   overlaps: Overlap[];
   positions: PositionShare[];
   exclusions: { season: number; team_name: string; reason: string }[];

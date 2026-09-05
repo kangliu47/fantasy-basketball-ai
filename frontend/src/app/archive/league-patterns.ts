@@ -7,7 +7,25 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ArchiveApi } from './archive-api';
 import { archiveError } from './archive-error';
-import { LeaguePatternData, SeasonReference } from './archive.models';
+import { CategoryResult, LeaguePatternData, ManagerData, SeasonReference } from './archive.models';
+
+interface DistributionPoint {
+  row: CategoryResult;
+  x: number;
+  y: number;
+  kind: 'league' | 'mine' | 'comparison' | 'both';
+}
+
+interface HeadToHeadCategory {
+  category: string;
+  mine: CategoryResult;
+  comparison: CategoryResult;
+}
+
+interface HeadToHeadSeason {
+  season: number;
+  categories: HeadToHeadCategory[];
+}
 
 @Component({
   selector: 'app-league-patterns',
@@ -22,11 +40,12 @@ import { LeaguePatternData, SeasonReference } from './archive.models';
     MatProgressBarModule,
   ],
   templateUrl: './league-patterns.html',
-  styleUrl: './detail.scss',
+  styleUrls: ['./detail.scss', './league-patterns.scss'],
 })
 export class LeaguePatterns {
   readonly seasons = input.required<number[]>();
   readonly leagueId = input.required<number>();
+  readonly managerData = input.required<ManagerData>();
   readonly revision = input(0);
   readonly years = signal<number[]>([]);
   readonly data = signal<LeaguePatternData | null>(null);
@@ -34,6 +53,8 @@ export class LeaguePatterns {
   readonly error = signal<string | null>(null);
   readonly query = signal('');
   readonly category = signal('PTS');
+  readonly comparisonManager = signal('');
+  readonly selectedResult = signal<CategoryResult | null>(null);
   readonly limit = signal(30);
   private readonly api = inject(ArchiveApi);
   readonly categories = computed(() => [
@@ -67,6 +88,44 @@ export class LeaguePatterns {
       .map((g) => ({ ...g, years: [...g.seasons].sort() }))
       .sort((a, b) => b.years.length - a.years.length);
   });
+  readonly comparisonChoices = computed(() =>
+    this.managerData().managers.filter(
+      (manager) => manager.id !== this.managerData().my_manager_id,
+    ),
+  );
+  readonly myAlias = computed(
+    () =>
+      this.managerData().managers.find((manager) => manager.id === this.managerData().my_manager_id)
+        ?.alias ?? 'My linked team',
+  );
+  readonly comparisonAlias = computed(
+    () =>
+      this.managerData().managers.find((manager) => manager.id === this.comparisonManager())
+        ?.alias ?? 'Comparison team',
+  );
+  readonly headToHead = computed<HeadToHeadSeason | null>(() => {
+    const myManager = this.managerData().my_manager_id;
+    const comparisonManager = this.comparisonManager();
+    if (!myManager || !comparisonManager) return null;
+    for (const season of [...(this.data()?.seasons ?? [])].sort((a, b) => b.season - a.season)) {
+      const myTeam = this.linkedTeamId(myManager, season.season);
+      const comparisonTeam = this.linkedTeamId(comparisonManager, season.season);
+      if (!myTeam || !comparisonTeam) continue;
+      const categories = (season.rules?.categories ?? [])
+        .map((rule) => {
+          const mine = season.results.find(
+            (row) => row.team_id === myTeam && row.category === rule.code,
+          );
+          const comparison = season.results.find(
+            (row) => row.team_id === comparisonTeam && row.category === rule.code,
+          );
+          return mine && comparison ? { category: rule.code, mine, comparison } : null;
+        })
+        .filter((row): row is HeadToHeadCategory => row !== null);
+      if (categories.length) return { season: season.season, categories };
+    }
+    return null;
+  });
   constructor() {
     effect(() => {
       this.leagueId();
@@ -75,6 +134,11 @@ export class LeaguePatterns {
     effect(() => {
       this.query();
       this.limit.set(30);
+    });
+    effect(() => {
+      const choices = this.comparisonChoices();
+      if (!choices.some((manager) => manager.id === this.comparisonManager()))
+        this.comparisonManager.set(choices[0]?.id ?? '');
     });
     effect((cleanup) => {
       const years = this.years();
@@ -97,6 +161,27 @@ export class LeaguePatterns {
       });
       cleanup(() => request.unsubscribe());
     });
+    effect(() => {
+      const category = this.category();
+      const result = this.data();
+      this.managerData();
+      this.comparisonManager();
+      const rows = result?.seasons.flatMap((season) =>
+        season.results.filter((row) => row.category === category),
+      );
+      const selected = this.selectedResult();
+      if (!rows?.length) {
+        this.selectedResult.set(null);
+        return;
+      }
+      if (!selected || !rows.includes(selected)) {
+        this.selectedResult.set(
+          rows.find((row) => ['mine', 'both'].includes(this.pointKind(row))) ??
+            rows.find((row) => this.pointKind(row) === 'comparison') ??
+            rows[0],
+        );
+      }
+    });
   }
   showMore() {
     this.limit.update((n) => n + 30);
@@ -116,5 +201,85 @@ export class LeaguePatterns {
       rule,
       checked: rows.filter((r) => r.points_reconcile === true).length,
     };
+  }
+  distribution(season: SeasonReference): DistributionPoint[] {
+    return season.results
+      .filter((row) => row.category === this.category() && row.normalized_finish !== null)
+      .sort(
+        (left, right) =>
+          left.normalized_finish! - right.normalized_finish! ||
+          left.team_id.localeCompare(right.team_id),
+      )
+      .map((row, index) => ({
+        row,
+        x: 58 + row.normalized_finish! * 584,
+        y: 48 + (index % 3) * 16,
+        kind: this.pointKind(row),
+      }));
+  }
+  pointKind(row: CategoryResult): DistributionPoint['kind'] {
+    const mine = this.hasManager(row, this.managerData().my_manager_id);
+    const comparison = this.hasManager(row, this.comparisonManager());
+    if (mine && comparison) return 'both';
+    if (mine) return 'mine';
+    if (comparison) return 'comparison';
+    return 'league';
+  }
+  finishOpacity(row: CategoryResult) {
+    return row.normalized_finish === null ? 0 : 0.14 + row.normalized_finish * 0.46;
+  }
+  selectTeamResult(row: CategoryResult) {
+    this.category.set(row.category);
+    this.selectedResult.set(row);
+  }
+  identityNote(row: CategoryResult) {
+    const managerIds = [this.managerData().my_manager_id, this.comparisonManager()].filter(
+      (id): id is string => Boolean(id),
+    );
+    const links = this.managerData().assignments.filter(
+      (assignment) =>
+        assignment.season === row.season &&
+        assignment.team_id === row.team_id &&
+        assignment.manager_ids.some((id) => managerIds.includes(id)),
+    );
+    if (!links.length) return 'League team result';
+    const aliases = [
+      ...new Set(
+        links.flatMap((link) =>
+          link.manager_ids
+            .filter((id) => managerIds.includes(id))
+            .map(
+              (id) => this.managerData().managers.find((manager) => manager.id === id)?.alias ?? id,
+            ),
+        ),
+      ),
+    ];
+    return links.every((link) => link.scope === 'whole_season')
+      ? `${aliases.join(' + ')} · full-season manager link reviewed`
+      : `${aliases.join(' + ')} · team result; management dates unconfirmed`;
+  }
+  private hasManager(row: CategoryResult, managerId: string | null) {
+    return Boolean(
+      managerId &&
+      this.managerData().assignments.some(
+        (assignment) =>
+          assignment.season === row.season &&
+          assignment.team_id === row.team_id &&
+          assignment.manager_ids.includes(managerId),
+      ),
+    );
+  }
+  private linkedTeamId(managerId: string, season: number) {
+    const teamIds = [
+      ...new Set(
+        this.managerData()
+          .assignments.filter(
+            (assignment) =>
+              assignment.season === season && assignment.manager_ids.includes(managerId),
+          )
+          .map((assignment) => assignment.team_id),
+      ),
+    ];
+    return teamIds.length === 1 ? teamIds[0] : null;
   }
 }

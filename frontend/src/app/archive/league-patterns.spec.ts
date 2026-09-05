@@ -2,7 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { LeaguePatterns } from './league-patterns';
-import { patterns } from './testing/fixtures';
+import { managers, patterns } from './testing/fixtures';
 
 describe('League-wide historical patterns', () => {
   let fixture: ComponentFixture<LeaguePatterns>;
@@ -16,6 +16,20 @@ describe('League-wide historical patterns', () => {
     fixture = TestBed.createComponent(LeaguePatterns);
     fixture.componentRef.setInput('seasons', [2026, 2025]);
     fixture.componentRef.setInput('leagueId', 12345);
+    fixture.componentRef.setInput('managerData', {
+      ...managers,
+      my_manager_id: managers.managers[0].id,
+      assignments: [
+        ...managers.assignments,
+        {
+          ...managers.assignments[0],
+          id: '00000000-0000-0000-0000-000000000088',
+          team_id: 'espn:12345:2026:team:2',
+          manager_ids: [managers.managers[1].id],
+          scope: 'unknown',
+        },
+      ],
+    });
     fixture.detectChanges();
     await fixture.whenStable();
     http.expectOne((r) => r.url === '/api/archive/patterns').flush(patterns);
@@ -53,5 +67,35 @@ describe('League-wide historical patterns', () => {
       'temporarily unavailable',
     );
     expect(fixture.componentInstance.data()).toBeNull();
+  });
+  it('compares linked teams against the category finish distribution without inferring ownership', () => {
+    const points = fixture.componentInstance.distribution(patterns.seasons[0]);
+    expect(points.find((point) => point.kind === 'mine')?.row.team_name).toBe(
+      'Synthetic North 2026',
+    );
+    expect(points.find((point) => point.kind === 'comparison')?.row.team_name).toBe(
+      'Synthetic South',
+    );
+    expect(fixture.nativeElement.querySelectorAll('.team-point').length).toBeGreaterThan(1);
+    expect(fixture.nativeElement.textContent).toContain('Where did these teams finish in PTS?');
+    expect(fixture.nativeElement.textContent).toContain('2026 linked-team category profile');
+
+    const comparison = fixture.nativeElement.querySelector(
+      '.team-point.comparison',
+    ) as SVGCircleElement;
+    comparison.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.selectedResult()?.team_name).toBe('Synthetic South');
+    expect(fixture.nativeElement.querySelector('.distribution-selection').textContent).toContain(
+      'team result; management dates unconfirmed',
+    );
+
+    const comparisonFg = fixture.nativeElement.querySelector(
+      'button[aria-label^="Synthetic South FG%"]',
+    ) as HTMLButtonElement;
+    comparisonFg.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.category()).toBe('FG%');
+    expect(fixture.componentInstance.selectedResult()?.team_name).toBe('Synthetic South');
   });
 });

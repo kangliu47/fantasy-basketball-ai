@@ -263,6 +263,49 @@ export const profile: Profile = {
       shared_management: false,
     },
   ],
+  auctions: [
+    {
+      season: 2026,
+      team_name: 'Synthetic North 2026',
+      budget: 200,
+      purchases: [
+        {
+          player_id: 'espn:player:1001',
+          player_name: 'Synthetic Shooter',
+          price: 40,
+          budget_share: 0.2,
+          cumulative_budget_share: 0.2,
+        },
+        {
+          player_id: 'espn:player:1004',
+          player_name: 'Synthetic Guard',
+          price: 24,
+          budget_share: 0.12,
+          cumulative_budget_share: 0.32,
+        },
+        {
+          player_id: 'espn:player:1005',
+          player_name: 'Synthetic Forward',
+          price: 2,
+          budget_share: 0.01,
+          cumulative_budget_share: 0.33,
+        },
+      ],
+      observed_spend: 66,
+      top_one_share: 0.2,
+      top_three_share: 0.33,
+      hhi: 0.0545,
+      count_one_to_three: 1,
+      median_price: 24,
+      max_price: 40,
+      excluded_picks: 1,
+      draft_coverage: 'complete',
+      observation_id: 'b10897bd-16bb-46a8-8eac-ba52c59f389c',
+      retrieved_at: '2026-09-04T00:00:00+00:00',
+      assignment_revision: 1,
+      shared_management: false,
+    },
+  ],
   overlaps: [
     {
       season: 2026,
@@ -400,7 +443,7 @@ export const profile: Profile = {
     'Shared management is team-level evidence. Historical results do not prove intent or a causal winning strategy.',
     'Category ranks use exact reported values and average ties; provider-point reconciliation is displayed. Rules may differ between seasons.',
   ],
-  calculation_version: 'manager-history-1',
+  calculation_version: 'manager-history-2',
 };
 export const patterns: LeaguePatternData = {
   seasons: [

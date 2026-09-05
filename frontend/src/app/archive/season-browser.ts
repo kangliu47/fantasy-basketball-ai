@@ -60,14 +60,23 @@ export class SeasonBrowser {
     () => this.draft().filter((pick) => pick.metadata_source === 'unavailable').length,
   );
   private readonly api = inject(ArchiveApi);
+  private archiveKey = '';
   constructor() {
     effect((cleanup) => {
       const year = this.season();
-      this.leagueId();
+      const league = this.leagueId();
       this.revision();
+      const archiveKey = `${league}:${year}`;
+      if (archiveKey !== this.archiveKey) {
+        this.archiveKey = archiveKey;
+        this.archive.set(null);
+        this.myTeam.set(null);
+        this.results.set([]);
+        this.suggestions.set([]);
+        this.extraSlots.set({});
+      }
       this.loading.set(true);
       this.error.set(null);
-      this.archive.set(null);
       const request = forkJoin({
         archive: this.api.season(year),
         myTeam: this.api.myTeam(year),

@@ -1,16 +1,16 @@
 <h3>Follow the managers behind the teams</h3>
 <p>
-  Create local aliases, then review their team links in
-  <strong>Season records & manager links</strong>. Names can change; reviewed assignments keep the
-  history together.
+  ESPN teams belong to one season, and team names can change. A local manager alias connects the
+  same person across seasons only after you review the team link. It also keeps ESPN owner details
+  out of the UI.
 </p>
-<form (ngSubmit)="create()" class="filters">
+<form (submit)="$event.preventDefault(); create()" class="filters">
   <mat-form-field appearance="outline"
     ><mat-label>New manager alias</mat-label
     ><input matInput [formControl]="alias" maxlength="80" placeholder="A name you recognize"
   /></mat-form-field>
   <button mat-flat-button type="submit" [disabled]="pending() || alias.invalid">
-    Create manager
+    Create alias
   </button>
 </form>
 @if (message()) {
@@ -55,6 +55,7 @@
     <button mat-stroked-button [disabled]="pending()" (click)="chooseMine(selected())">
       This is my manager
     </button>
+    <button mat-stroked-button (click)="reviewLinks.emit()">Review team links</button>
     @if (data().my_manager_id) {
       <button mat-button [disabled]="pending()" (click)="chooseMine(null)">Clear my manager</button>
     }
@@ -62,7 +63,7 @@
   </div>
   <details>
     <summary>Change this manager's alias</summary>
-    <form (ngSubmit)="renameManager()" class="filters">
+    <form (submit)="$event.preventDefault(); renameManager()" class="filters">
       <mat-form-field appearance="outline"
         ><mat-label>Display alias</mat-label
         ><input matInput [formControl]="rename" maxlength="80" /></mat-form-field
@@ -102,6 +103,12 @@
       </p>
     }
   </details>
+  <app-manager-history-insights
+    [profile]="result"
+    [alias]="selectedAlias()"
+    [comparison]="comparison()"
+    [comparisonAlias]="comparisonAlias()"
+  />
   <h3 class="section-title">Repeated players and draft evidence</h3>
   <mat-form-field appearance="outline" class="full"
     ><mat-label>Find a player</mat-label

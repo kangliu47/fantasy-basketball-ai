@@ -20,6 +20,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 import { ArchiveApi } from './archive-api';
 import { archiveError } from './archive-error';
 import { ManagerData, Profile } from './archive.models';
+import { ManagerHistoryInsights } from './manager-history-insights';
 
 @Component({
   selector: 'app-manager-profiles',
@@ -33,6 +34,7 @@ import { ManagerData, Profile } from './archive.models';
     MatInputModule,
     MatSelectModule,
     MatProgressBarModule,
+    ManagerHistoryInsights,
   ],
   templateUrl: './manager-profiles.html',
   styleUrl: './detail.scss',
@@ -42,6 +44,7 @@ export class ManagerProfiles {
   readonly seasons = input.required<number[]>();
   readonly leagueId = input.required<number>();
   readonly changed = output<void>();
+  readonly reviewLinks = output<void>();
   readonly selected = signal('');
   readonly compare = signal('');
   readonly years = signal<number[]>([]);
@@ -77,11 +80,18 @@ export class ManagerProfiles {
   readonly visible = computed(() => this.filtered().slice(0, this.shown()));
   private readonly api = inject(ArchiveApi);
   private readonly destroyRef = inject(DestroyRef);
+  private preferredManagerId: string | null = null;
   constructor() {
     effect(() => {
       const data = this.data();
       const imported = this.seasons();
-      if (!data.managers.some((manager) => manager.id === this.selected()))
+      if (
+        this.preferredManagerId &&
+        data.managers.some((manager) => manager.id === this.preferredManagerId)
+      ) {
+        this.selected.set(this.preferredManagerId);
+        this.preferredManagerId = null;
+      } else if (!data.managers.some((manager) => manager.id === this.selected()))
         this.selected.set(data.my_manager_id ?? data.managers[0]?.id ?? '');
       if (!data.managers.some((manager) => manager.id === this.compare())) this.compare.set('');
       if (!this.years().length || this.years().some((year) => !imported.includes(year)))
@@ -122,15 +132,15 @@ export class ManagerProfiles {
       cleanup(() => request.unsubscribe());
     });
   }
-  private mutate<T>(request: Observable<T>, message: string, success?: () => void) {
+  private mutate<T>(request: Observable<T>, message: string, success?: (value: T) => void) {
     this.pending.set(true);
     this.error.set(null);
     this.message.set(null);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
+      next: (value) => {
         this.pending.set(false);
         this.message.set(message);
-        success?.();
+        success?.(value);
         this.changed.emit();
       },
       error: (error) => {
@@ -144,8 +154,11 @@ export class ManagerProfiles {
     const value = this.alias.value;
     this.mutate(
       this.api.createManager(value),
-      'Manager created. Link their teams in Season records & manager links.',
-      () => this.alias.reset(),
+      'Manager alias created and selected. Review team links to connect a season and team.',
+      (manager) => {
+        this.alias.reset();
+        this.preferredManagerId = manager.id;
+      },
     );
   }
   renameManager() {

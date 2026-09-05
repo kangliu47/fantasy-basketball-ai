@@ -4,6 +4,13 @@ A local, read-only ESPN league workspace built with **FastAPI**, **Angular**, an
 **Angular Material**. Domain Driven Design and Clean Architecture guide the
 boundaries between the fantasy model, use cases, adapters, and UI.
 
+**Current product direction — September 5, 2026:** focus on personal use, starting
+with **past league results and category strengths**. Occasional manager mapping
+belongs in an assisted conversation; it should not gate team-level analysis.
+See the [scope and next delivery](docs/personal-product-direction.md) and
+[project learning journal](docs/learnings/README.md). This is a roadmap update;
+the app workflows below describe the existing implementation.
+
 ## Explore the architecture
 
 **[Open the interactive architecture review](https://kangliu47.github.io/fantasy-basketball-ai/)**
@@ -88,7 +95,9 @@ Open **Explore league history** to investigate supporting evidence:
 - **Player choices & category trends:** search across drafts and compare scored
   category reference values, retaining each season's rules and league size.
 - **Understand managers:** create local aliases, select My manager and compare
-  repeated players, draft costs, category outcomes and archive overlap.
+  repeated players, draft costs, category outcomes and archive overlap. Historical
+  analytics visualize each manager's observed auction-spend concentration and
+  season-by-season category finishes; select a heatmap cell to inspect its evidence.
 - **Season records & manager links:** browse season rosters and draft records;
   explicitly link managers to teams and choose My team. Co-managers, dated
   takeovers and reversible assignment corrections are supported.
@@ -116,6 +125,8 @@ samples do not support churn or holding-period metrics.
   analysis, with coverage, evidence tables and separate legacy 2017 support.
 - Persistent 2027 preparation plans, evidence-linked player shortlists, personal
   category targets and manager watchlists, with a preparation-first UI.
+- Historical manager analytics with auction concentration metrics, a cumulative
+  spend curve and an interactive category-finish heatmap.
 - The original read-only Python probe remains available for developer diagnosis.
 
 Browser sign-in and league refresh have been exercised locally. Offline tests

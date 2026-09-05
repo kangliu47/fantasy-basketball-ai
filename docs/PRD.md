@@ -1,9 +1,17 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current roadmap:** 2026 is completed; 2027 is the upcoming planning season.
+> Current scope: [section 37](#37-personal-product-first--accepted-scope-amendment-2026-09-05)
+> records the September 5 personal-product pivot and supersedes earlier build
+> priorities. The original PRD below remains the baseline. See the concise
+> [personal-product direction](personal-product-direction.md) for the active outcome.
+
+> **Implementation context:** 2026 is completed; 2027 is the upcoming planning season.
 > Milestones 0–3, core 4A–4C archive/manager features and 5A preparation are implemented.
-> Next: 5B, verified 2027 inputs and manual draft rehearsal. [Section 33](#33-history-and-2027-preparation--accepted-priority-update-2026-09-03)
-> is the authoritative forward plan. Sections 28, 30 and 32 retain earlier plans;
+> The first visual historical analytics slices are implemented. Next: simplify
+> historical team comparisons and category exploration for personal use.
+> [Section 35](#35-analytics-visualization--accepted-product-requirement-2026-09-04)
+> records the visualization requirement; sections 33 and 36 retain earlier sequencing.
+> Section 37 is the authoritative current scope. Sections 28, 30 and 32 retain earlier plans;
 > section 31 records the accepted framework, authentication and UI decisions.
 
 ## 1. Product Vision
@@ -1607,8 +1615,9 @@ Architecture, local UI and read-only ESPN constraints.
 **Near-term product question:** “What have the managers in my league actually
 built, drafted and changed over time, and how should that inform my 2027 plan?”
 Implementation update, September 4: the core 4A–4C archive, reviewed manager
-linking and descriptive analysis are available. See section 33.10 for verified
-coverage and remaining conditional capabilities. Milestones 5–7 remain planned.
+linking and descriptive analysis are available. See sections 33.10–33.11 for
+delivered 4A–4C and 5A behavior. Milestones 5B–7 remain planned; section 35 adds
+the visualization requirement for the next analytics work.
 
 ## 33.1 Evidence and season scope at the September 3 planning review
 
@@ -2057,3 +2066,230 @@ This amendment authorizes static documentation hosting. The connected FastAPI ap
 ESPN session, private league archives, manager identities and personal preparation
 plans remain local. Public documentation omits private league acceptance counts.
 See [publication.md](publication.md) for the deployment and privacy checks.
+
+
+# 35. Analytics visualization — accepted product requirement, 2026-09-04
+
+The user requested a review of the implementation and PRD before the next phase,
+and visualizations **inside the product** as analytics becomes available. Visual
+analytics is part of the decision workflow, alongside evidence tables and actions
+that save a reason, investigate a player or review a manager link. An architecture
+diagram or concept preview does not fulfill the in-product requirement.
+
+The [next-phase review](next-phase-review.md) originally recommended category
+visuals inside preparation. The subsequent research review prioritized a manager
+auction fingerprint. The first delivered slice now adds a cumulative observed-spend
+curve and season/category finish heatmap to manager research. Player/league price
+visuals follow using the same historical boundary. Player contribution comparisons
+and draft construction belong to 5B after its input gates; live roto sensitivity
+remains in the live-season track. No projection provider has been selected.
+
+Every chart must identify its season, metric and units, source dates, coverage,
+scoring context and calculation basis. Keep unknown values distinct from zero,
+preserve rule changes and fractional ties, and distinguish scored outcomes from
+retrospective roster profiles. Normalized finish is descriptive, not predictive.
+Show original values and supporting evidence on selection, provide a table
+alternative, and support keyboard use and narrow screens. Keep historical
+references, personal targets and projections visibly separate.
+
+Before adding more chart-to-plan writes, resolve the reviewed edit-base revision
+gap so preserved unsaved text cannot overwrite newer decisions after a refresh.
+When a chart selection is saved as evidence, retain structured source references
+alongside the user's reason, preserving existing plans through the shared
+database migration path. Calculations remain in Python; Angular renders typed
+results and manages local interaction.
+
+The original PRD baseline, local-only/read-only ESPN boundary and 2027 data gates
+remain in force. This amendment records the visualization requirement; the
+review records proposed scope, acceptance criteria and current limitations.
+
+
+# 36. Analytics research and capability tracks — accepted update, 2026-09-04
+
+The user supplied [online analytics research](fantasy_basketball_2027_analytics_product_design.md)
+and requested that it inform the roadmap. Its central distinction is adopted:
+
+```text
+statistical player value
+!= public market price
+!= this league's historical price
+!= value to the current roster
+```
+
+The research assumes a $200 auction without keepers and a separate $100 FAAB
+economy. Treat those as the user's current league context and confirm them against
+the applicable imported season rules. The 2027 rules remain provisional until
+ESPN supplies and the user reviews them. The application stays rule-aware rather
+than encoding one league format into general calculations.
+
+## 36.1 Separate capability families
+
+| Capability | Time basis | Decisions | Inputs | Claims permitted |
+| --- | --- | --- | --- | --- |
+| **Historical league intelligence** | Completed seasons | What has this league paid? How has a manager constructed teams? What outcomes followed? | Archived rules, draft purchases, reviewed manager assignments, scored results and coverage | Observed prices, spend concentration, repeated selections and descriptive category finishes |
+| **Pre-draft 2027 intelligence** | Information captured before or during the upcoming draft | What is my ceiling? What does the current market say? How does a candidate fit my planned construction? | Verified 2027 rules/pool, immutable dated market and projection snapshots, manual draft state | Source-dated comparisons and rule-aware contribution; no future outcome leakage |
+| **Live-season intelligence** | Actual results plus a stated future horizon | Where can I gain roto points? Which available move helps? How should I use FAAB? | Current standings/rosters/free agents, points already earned, verified transactions, dated projections and schedules | Current state and bounded what-if deltas with coverage and horizon |
+
+Historical results may provide a comparison band in later views but must not be
+silently substituted for current availability, projections or team state. Draft
+auction spend and FAAB behavior remain separate aggregates and interfaces.
+
+## 36.2 Revised delivery order
+
+**H1 — Manager historical analytics (delivered first feedback slice).** For an
+explicitly linked manager and selected completed seasons, show raw season category
+finish cells and an auction spending fingerprint. Python calculates top-one and
+top-three budget share, HHI, low-cost purchase count and a price-ordered cumulative
+spend series. The UI discloses coverage, excluded keeper/unknown records, source,
+retrieval date and assignment revision. These are observations, not willingness
+to pay, intent or prediction.
+
+**H2 — Historical player and league price intelligence.** Add a player price
+timeline, normalized prices, buyer evidence, league distributions and sample
+counts. Start with the user's own league; no public benchmark is required. Separate
+players, price tiers and position/category profiles unless a documented comparison
+population supports aggregation.
+
+**H3 — Historical evidence in the 2027 plan.** Bring price ranges, repeated-buyer
+evidence and watched managers into the current shortlist. Preserve immutable
+source references with the user's bid ceiling and reason. Complete the edit-base
+revision fix before new chart-to-plan writes.
+
+**D1 — Dated 2027 inputs and contribution.** Capture public market snapshots
+without overwriting prior observations. Once the eligible pool and projections
+are verified, add eight-category contribution with makes/attempts impacts and a
+per-game/total distinction. Compare market, league history and statistical value
+without merging them into one unexplained rank.
+
+**D2 — Manual auction rehearsal and capture.** Record/undo local purchases,
+remaining budgets and open slots. Capture the real 2027 auction as completely as
+the provider permits, including source timestamps and explicit gaps. Automated
+ESPN drafting remains out of scope.
+
+**L1–L4 — Live season.** First preserve a post-draft anchor and current observations;
+then add scored standings/current-roster views, a verified available-player pool,
+roto sensitivity, and future add/drop scenarios. FAAB analytics follow verified
+waiver/transaction evidence. These use cases live behind dedicated application
+ports and DTOs rather than extending historical profile responses into a mutable
+live model.
+
+Prediction, clustering, Monte Carlo auctions and win-probability optimization
+remain research work until they have opportunity-aware data, chronological
+evaluation and a simple baseline they demonstrably improve upon.
+
+## 36.3 H1 acceptance and implementation
+
+- Only valid, non-keeper auction purchases with a positive configured auction
+  budget enter spend metrics. Other returned picks are counted as exclusions.
+- Budget normalization uses the rules for that historical season. HHI is the sum
+  of squared shares of configured budget; cumulative spend is ordered from highest
+  price to lowest and does not claim nomination chronology.
+- Category heatmap cells show the existing within-season average-tie rank. Color
+  adds magnitude but the numeric rank remains visible and selectable.
+- Selecting a cell exposes the scored value, league median, team count, provider
+  points reconciliation, assignment revision and source observation. The existing
+  detailed table remains the accessible full alternative.
+- Manager comparison adds both managers' season rows to the heatmap. Missing
+  values remain blank. The view explicitly identifies itself as historical and
+  names the future live data required by separate use cases.
+
+H1 extends the existing pure historical analysis and typed manager-profile
+response; it introduces no new persistence, provider request or frontend chart
+dependency. Automated validation uses synthetic auction and category evidence.
+
+## 36.4 H1B linked-team category comparison — 2026-09-04
+
+The next feedback slice completes the first category-distribution recommendation
+from the next-phase review. It compares two reviewed identity links as
+**season-specific team results**, so it remains useful when manager assignment
+dates are unknown and does not claim full-season personal responsibility.
+
+For a selected category, show every team's Python-calculated normalized finish
+within each completed season. Highlight the user's linked team and one comparison
+alias, while preserving the raw scored value, rank, league median, team count and
+identity scope in the selected detail. The comparison alias is selectable and may
+be provisional. Unknown-scope links can identify which archived team to highlight,
+but they cannot populate manager outcome, draft-choice or intention claims.
+
+Also show a linked-team category profile for the latest season in which both
+aliases have exactly one reviewed team link. Its category-by-team rank cells open
+the corresponding league distribution, so the user can move from a broad strength
+or weakness to the full season context without changing views.
+
+The first connected example uses the reviewed 2026 link for the user's team and
+a second provisional alias whose unchanged team name was explicitly selected by
+the user across 2024–2026. Those local names and results are not public product
+fixtures or documentation. Automated coverage remains synthetic.
+
+Acceptance requires keyboard-selectable dots, a visible numeric detail, an
+accessible evidence table, separate season panels and explicit historical-only
+language. No new ESPN request, database writer or predictive calculation is part
+of this slice.
+
+# 37. Personal product first — accepted scope amendment, 2026-09-05
+
+The user requested a pivot toward a focused personal product, identified manager
+mapping administration as nonessential for their small local league, and proposed
+resolving mappings conversationally with reviewed choices. In the priority
+follow-up, the user selected **understand past league results and category
+strengths** as the leading outcome.
+
+This amendment supersedes the delivery priorities in sections 28, 32, 33 and 36
+where they conflict. Earlier implementation records and research remain useful
+context. They do not commit the project to completing every listed feature.
+The original PRD remains the baseline; local-only operation, read-only ESPN,
+FastAPI, Angular Material and trustworthy historical evidence remain requirements.
+
+## 37.1 Active personal outcome
+
+The next useful workflow is to select a completed season, compare the user's
+chosen team with another team across scored categories, and inspect each within
+the league distribution. Reuse the current historical comparison calculations
+and visuals before adding another analytical family. Repeated patterns may be
+described with explicit season/rule context; final outcomes do not prove intent.
+
+The next UI slice should make that workflow prominent and allow direct
+season-team selection without manager creation or full-season responsibility
+reviews. Existing reviewed links can prefill choices. Preserve access to the
+2027 plan, optional manager research and setup tools. A saved plan and complete
+league mapping are not prerequisites for historical team comparison.
+
+Acceptance: saved synthetic data with no assignments supports two-team category
+comparison, a selected category's league distribution, source inspection and
+season switching that clears invalid selections. Ties and missing values match
+Python results. Evidence tables and keyboard interaction remain available. No
+new ESPN request is required, and existing reviewed links and plans still work.
+
+## 37.2 Assisted mapping, preserved records
+
+The assistant can present bounded, sanitized candidate season-team mappings for
+the user to confirm or correct, then persist those choices through existing local
+application operations and verify the saved revisions. Unknown links and dates
+can remain unknown; a name match is only a candidate. No complete mapping is
+required before team-level analysis, and this amendment does not restore mappings.
+
+Stop expanding general identity administration unless a concrete recurring need
+justifies it. Preserve immutable observations, reviewed assignments, reversible
+corrections and the single database owner. Do not introduce an embedded chat
+system, general MCP layer, raw-SQL endpoint or public mapping artifact for setup.
+
+## 37.3 Backlog and learning discipline
+
+Historical results and category comparisons are the active outcome. Player-price
+timelines, market calibration, richer shortlists, draft rehearsal, live move
+analytics and predictive models are outside the active backlog. Reconsider each
+when the user selects a concrete problem requiring it; their data-quality gates
+still apply. Multi-user onboarding and hosted connected operation remain out of
+scope. Existing useful features are preserved rather than deleted in bulk.
+
+The documented edit-base revision issue remains a real personal data-safety
+concern. Resolve it before new chart-to-plan writes; it does not block read-only
+historical analysis. Demonstrate one useful journey and gather feedback before
+expanding the feature set.
+
+The [personal-product direction](personal-product-direction.md) records detailed
+scope and reconsideration triggers. The [learning journal](learnings/README.md)
+captures sourced experiences and product lessons, distinguishing user decisions
+from assistant synthesis and excluding private league details. This delivery
+updates documentation and agent guidance; runtime UI simplification remains the
+next bounded slice.

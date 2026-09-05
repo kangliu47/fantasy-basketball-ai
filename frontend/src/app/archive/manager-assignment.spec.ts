@@ -38,6 +38,15 @@ describe('Reviewed manager assignments', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Assignment saved');
   });
+  it('refreshes the form when a newer assignment revision arrives', () => {
+    fixture.componentRef.setInput('assignment', {
+      ...assignment,
+      revision: assignment.revision + 1,
+      note: 'Reviewed correction',
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.form.controls.note.value).toBe('Reviewed correction');
+  });
   it('restores zoned dates as UTC and retains correction input on a stale-edit error', async () => {
     fixture.componentInstance.restore({
       ...assignment,

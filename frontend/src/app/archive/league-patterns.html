@@ -25,19 +25,193 @@
 }
 @if (data(); as result) {
   <h3 class="section-title">Category reference values</h3>
-  <mat-form-field appearance="outline"
-    ><mat-label>Scored category</mat-label
-    ><mat-select [value]="category()" (selectionChange)="category.set($event.value)">
-      @for (code of categories(); track code) {
-        <mat-option [value]="code">{{ code }}</mat-option>
-      }
-    </mat-select></mat-form-field
-  >
+  <div class="filters">
+    <mat-form-field appearance="outline"
+      ><mat-label>Scored category</mat-label
+      ><mat-select [value]="category()" (selectionChange)="category.set($event.value)">
+        @for (code of categories(); track code) {
+          <mat-option [value]="code">{{ code }}</mat-option>
+        }
+      </mat-select></mat-form-field
+    >
+    @if (comparisonChoices().length) {
+      <mat-form-field appearance="outline"
+        ><mat-label>Compare linked team</mat-label
+        ><mat-select
+          [value]="comparisonManager()"
+          (selectionChange)="comparisonManager.set($event.value)"
+        >
+          @for (manager of comparisonChoices(); track manager.id) {
+            <mat-option [value]="manager.id">{{ manager.alias }}</mat-option>
+          }
+        </mat-select></mat-form-field
+      >
+    }
+  </div>
   <p class="muted">
     Compare seasons with compatible rules. Season length, roster limits and manager activity also
     affect totals. Roto ranks use average ties; incomplete category results have no median or
     best-value reference.
   </p>
+  <section class="distribution-section" aria-labelledby="team-category-comparison">
+    <div class="distribution-heading">
+      <div>
+        <p class="eyebrow">Team-level historical comparison</p>
+        <h3 id="team-category-comparison">Where did these teams finish in {{ category() }}?</h3>
+        <p>
+          Each dot is one team's scored result. Position runs from last to first within that season,
+          using the same Python average-tie ranks as the evidence table.
+        </p>
+      </div>
+      <div class="legend" aria-label="Highlighted teams">
+        <span><i class="mine"></i>{{ myAlias() }}</span>
+        <span><i class="comparison"></i>{{ comparisonAlias() }}</span>
+        <span><i class="league"></i>Other league teams</span>
+      </div>
+    </div>
+    @if (headToHead(); as matchup) {
+      <div class="linked-profile">
+        <div>
+          <h4>{{ matchup.season }} linked-team category profile</h4>
+          <p>
+            Compare both teams across every scored category in their latest shared season. Select a
+            rank to open that category's league distribution below.
+          </p>
+        </div>
+        <div class="heatmap-scroll">
+          <table class="linked-heatmap">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>{{ myAlias() }}</th>
+                <th>{{ comparisonAlias() }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of matchup.categories; track row.category) {
+                <tr>
+                  <th>{{ row.category }}</th>
+                  <td>
+                    <button
+                      type="button"
+                      [class.selected]="selectedResult() === row.mine"
+                      [attr.aria-label]="
+                        myAlias() +
+                        ' ' +
+                        row.category +
+                        ', rank ' +
+                        (row.mine.rank ?? 'unavailable')
+                      "
+                      (click)="selectTeamResult(row.mine)"
+                    >
+                      <span [style.opacity]="finishOpacity(row.mine)"></span>
+                      <strong>{{ row.mine.rank ?? '—' }}</strong>
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      [class.selected]="selectedResult() === row.comparison"
+                      [attr.aria-label]="
+                        comparisonAlias() +
+                        ' ' +
+                        row.category +
+                        ', rank ' +
+                        (row.comparison.rank ?? 'unavailable')
+                      "
+                      (click)="selectTeamResult(row.comparison)"
+                    >
+                      <span [style.opacity]="finishOpacity(row.comparison)"></span>
+                      <strong>{{ row.comparison.rank ?? '—' }}</strong>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+    <div class="distribution-grid">
+      @for (season of result.seasons; track season.season) {
+        @let seasonSummary = summary(season);
+        <article class="distribution-card">
+          <header>
+            <strong>{{ season.season }}</strong>
+            <span>{{ season.team_count }} teams</span>
+          </header>
+          <svg
+            viewBox="0 0 700 112"
+            role="img"
+            [attr.aria-label]="season.season + ' ' + category() + ' category finish distribution'"
+          >
+            <line x1="58" y1="80" x2="642" y2="80" class="distribution-axis" />
+            <line x1="350" y1="24" x2="350" y2="84" class="middle-line" />
+            <text x="58" y="104">Last</text>
+            <text x="350" y="104" text-anchor="middle">Middle finish</text>
+            <text x="642" y="104" text-anchor="end">First</text>
+            @for (point of distribution(season); track point.row.team_id) {
+              <circle
+                role="button"
+                tabindex="0"
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                r="7"
+                [attr.class]="'team-point ' + point.kind"
+                [attr.aria-label]="
+                  point.row.team_name +
+                  ', rank ' +
+                  (point.row.rank ?? 'unavailable') +
+                  ' of ' +
+                  point.row.team_count
+                "
+                (click)="selectedResult.set(point.row)"
+                (keydown.enter)="selectedResult.set(point.row)"
+              >
+                <title>
+                  {{ point.row.team_name }} · rank {{ point.row.rank ?? '—' }} /
+                  {{ point.row.team_count }} · scored
+                  {{
+                    point.row.value === null ? 'unavailable' : (point.row.value | number: '1.0-4')
+                  }}
+                </title>
+              </circle>
+            }
+          </svg>
+          <footer>
+            League median:
+            {{
+              seasonSummary.median === null
+                ? 'Unavailable'
+                : (seasonSummary.median | number: '1.0-4')
+            }}
+          </footer>
+        </article>
+      }
+    </div>
+    @if (selectedResult(); as selectedTeam) {
+      <div class="distribution-selection" aria-live="polite">
+        <strong>
+          {{ selectedTeam.team_name }} · {{ selectedTeam.season }} {{ selectedTeam.category }}
+        </strong>
+        <span>
+          Rank {{ selectedTeam.rank ?? 'unavailable' }} / {{ selectedTeam.team_count }} · Scored
+          {{ selectedTeam.value === null ? 'unavailable' : (selectedTeam.value | number: '1.0-4') }}
+          · League median
+          {{
+            selectedTeam.league_median === null
+              ? 'unavailable'
+              : (selectedTeam.league_median | number: '1.0-4')
+          }}
+        </span>
+        <small>{{ identityNote(selectedTeam) }}</small>
+      </div>
+    }
+    <p class="muted">
+      This comparison uses team results even when manager dates are unknown. It does not attribute a
+      full season to a person or predict 2027 performance.
+    </p>
+  </section>
   <div class="table-scroll">
     <table>
       <thead>

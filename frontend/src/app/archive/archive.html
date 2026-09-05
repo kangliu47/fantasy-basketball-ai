@@ -24,6 +24,7 @@
         <app-league-patterns
           [seasons]="catalog().imported_seasons"
           [leagueId]="leagueId()"
+          [managerData]="managerData()"
           [revision]="revision()"
         /></section></ng-template
   ></mat-tab>
@@ -35,6 +36,7 @@
           [seasons]="catalog().imported_seasons"
           [leagueId]="leagueId()"
           (changed)="reload()"
+          (reviewLinks)="tabIndex.set(2)"
         /></section
     ></ng-template>
   </mat-tab>

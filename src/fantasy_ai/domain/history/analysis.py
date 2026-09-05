@@ -6,7 +6,7 @@ from statistics import median
 
 from .models import Assignment, Category, CoverageStatus, Dataset, SeasonArchive
 
-ANALYSIS_VERSION = "manager-history-1"
+ANALYSIS_VERSION = "manager-history-2"
 
 
 @dataclass(frozen=True)
@@ -63,6 +63,36 @@ class CategoryResult:
 
 
 @dataclass(frozen=True)
+class AuctionPurchase:
+    player_id: str
+    player_name: str
+    price: float
+    budget_share: float
+    cumulative_budget_share: float
+
+
+@dataclass(frozen=True)
+class ManagerAuctionSeason:
+    season: int
+    team_name: str
+    budget: float
+    purchases: tuple[AuctionPurchase, ...]
+    observed_spend: float
+    top_one_share: float
+    top_three_share: float
+    hhi: float
+    count_one_to_three: int
+    median_price: float
+    max_price: float
+    excluded_picks: int
+    draft_coverage: CoverageStatus
+    observation_id: str
+    retrieved_at: datetime
+    assignment_revision: int
+    shared_management: bool
+
+
+@dataclass(frozen=True)
 class DraftOverlap:
     season: int
     team_name: str
@@ -99,6 +129,7 @@ class ManagerProfile:
     drafts_observed: tuple[int, ...]
     players: tuple[PlayerFrequency, ...]
     categories: tuple[CategoryResult, ...]
+    auctions: tuple[ManagerAuctionSeason, ...]
     overlaps: tuple[DraftOverlap, ...]
     positions: tuple[PositionShare, ...]
     exclusions: tuple[Exclusion, ...]
@@ -152,6 +183,67 @@ def position_mix(
         PositionShare(season, team_name, basis, key, value, known, len(positions))
         for key, value in sorted(counts.items())
     ]
+
+
+def auction_season(archive: SeasonArchive, assignment: Assignment) -> ManagerAuctionSeason | None:
+    """Summarize observed non-keeper auction purchases, never unobserved willingness to pay."""
+    rules = archive.rules
+    source = archive.get(Dataset.DRAFT)
+    team = next((item for item in archive.teams if item.id == assignment.team_id), None)
+    if (
+        not rules
+        or rules.draft_type != "AUCTION"
+        or rules.auction_budget is None
+        or rules.auction_budget <= 0
+        or source is None
+        or team is None
+        or not usable(archive, Dataset.DRAFT)
+        or not attributed(assignment, rules.draft_at)
+    ):
+        return None
+    picks = [pick for pick in archive.picks if pick.team_id == assignment.team_id]
+    observed = sorted(
+        (
+            pick
+            for pick in picks
+            if pick.keeper is False
+            and pick.bid is not None
+            and 0 <= pick.bid <= rules.auction_budget
+        ),
+        key=lambda pick: (-float(pick.bid or 0), pick.player_name.casefold()),
+    )
+    if not observed:
+        return None
+    cumulative = 0.0
+    purchases: list[AuctionPurchase] = []
+    for pick in observed:
+        price = float(pick.bid or 0)
+        share = price / rules.auction_budget
+        cumulative += share
+        purchases.append(
+            AuctionPurchase(pick.player_id, pick.player_name, price, share, cumulative)
+        )
+    prices = [row.price for row in purchases]
+    shares = [row.budget_share for row in purchases]
+    return ManagerAuctionSeason(
+        archive.season,
+        team.name,
+        rules.auction_budget,
+        tuple(purchases),
+        sum(prices),
+        shares[0],
+        sum(shares[:3]),
+        sum(share**2 for share in shares),
+        sum(1 <= price <= 3 for price in prices),
+        median(prices),
+        max(prices),
+        len(picks) - len(purchases),
+        source.coverage.status,
+        source.id,
+        source.retrieved_at,
+        assignment.revision,
+        len(assignment.manager_ids) > 1,
+    )
 
 
 def category_results(archive: SeasonArchive, assignment: Assignment) -> list[CategoryResult]:
@@ -242,6 +334,7 @@ def manager_profile(
     roster_covered: set[int] = set()
     draft_covered: set[int] = set()
     categories: list[CategoryResult] = []
+    auctions: list[ManagerAuctionSeason] = []
     overlaps: list[DraftOverlap] = []
     positions: list[PositionShare] = []
     exclusions: list[Exclusion] = []
@@ -324,6 +417,8 @@ def manager_profile(
                 )
             if draft_ok and draft_source:
                 draft_covered.add(archive.season)
+                if summary := auction_season(archive, assignment):
+                    auctions.append(summary)
                 positions.extend(
                     position_mix(
                         archive.season,
@@ -427,6 +522,7 @@ def manager_profile(
         tuple(sorted(draft_covered)),
         tuple(players),
         tuple(categories),
+        tuple(auctions),
         tuple(overlaps),
         tuple(positions),
         tuple(exclusions),

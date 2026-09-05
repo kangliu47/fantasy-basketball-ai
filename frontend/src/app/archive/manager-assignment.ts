@@ -117,7 +117,7 @@ export class ManagerAssignment {
   constructor() {
     effect(() => {
       const assignment = this.assignment();
-      const key = `${this.season()}:${this.teamId()}:${this.slot()}:${assignment?.id}`;
+      const key = `${this.season()}:${this.teamId()}:${this.slot()}:${assignment?.id}:${assignment?.revision}`;
       if (key === this.loadedId) return;
       this.loadedId = key;
       if (assignment) this.restore(assignment);

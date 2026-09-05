@@ -1,5 +1,34 @@
 # Architecture and learning guide
 
+## Personal-product boundary — September 5, 2026
+
+The current [product direction](personal-product-direction.md) prioritizes
+historical scored results and category strengths for one local user. This scope
+update preserves the existing layers and storage; it introduces no new service,
+database migration or delivered UI behavior.
+
+The next interface slice should accept an explicit season and two team selections
+for historical comparison. Reuse the existing Python results and category
+distribution UI; reviewed manager links can prefill selections. Team-level
+analysis must not require a complete identity graph or proof of management dates.
+Cross-season manager attribution still requires reviewed links and known scope.
+
+Occasional identity setup can be operated through conversation: show sanitized
+candidate records, obtain the user's choices, save through existing application
+operations, and verify the resulting revisions. The assistant is an operator of
+the local interface, not a new persistence adapter. Do not add raw SQL/code tools,
+expose internal owner tokens, or start another database writer for this workflow.
+Retain manager revision history and import evidence when reducing UI prominence.
+
+Keep routine inspection and calculations in the app; use conversation for
+interpretation and occasional setup. A new embedded chat surface or general MCP
+layer is not a prerequisite. Before any new chart-to-plan write, address the
+documented edit-base revision issue in the [implementation review](next-phase-review.md).
+That gate does not block a read-only team comparison.
+
+The sections below document the existing architecture and earlier deliveries.
+The [learning journal](learnings/README.md) records the project reasoning separately.
+
 Open the [interactive architecture review](architecture-review.html) for feature-level
 wiring, request walkthroughs, storage guarantees, embedded source evidence and a
 design-decision register. It is a dated snapshot of the implementation, not an
@@ -296,3 +325,51 @@ A browser reload starts from the saved plan; this is not an autosave mechanism.
 A future demo needs a different composition root and read-only interfaces; see
 [deployment-options.md](deployment-options.md). The current app remains one local
 process, and this work introduces no hosted endpoint or external writes.
+
+## Analytics presentation boundary — first slice delivered 2026-09-04
+
+The [next-phase review](next-phase-review.md) proposed visual historical research;
+the research in PRD section 36 moved the first slice to manager research. Python's
+historical domain now produces auction spending summaries alongside category
+ranks, medians and makes/attempts aggregation. FastAPI supplies typed results;
+Angular handles selection, display scales and evidence drill-down without
+recomputing fantasy rankings, auction metrics or ratio aggregation.
+
+The manager profile uses a native SVG cumulative-spend curve and an HTML category
+heatmap, while retaining accessible purchase and category tables. It is lazy-loaded
+with the archive feature and adds no chart dependency. Visuals consume saved
+observations through application ports; they never issue raw SQL, load ESPN
+payloads or open another DuckDB writer. Comparisons retain missingness,
+incompatible rules and historical basis.
+
+The linked-team category distribution reuses the season references returned by
+the same history use case. Python remains authoritative for category values,
+average-tie ranks, normalized finishes and medians. Angular places those immutable
+results on a 0–1 last-to-first scale and uses reviewed manager assignments only to
+highlight teams. An unknown-date assignment is therefore valid navigation context
+for a team-level dot, but it does not become full-season manager attribution.
+
+Before expanding plan actions, store an edit-base revision with unfinished form
+values. The current shared store advances its revision on refresh while dirty
+forms retain older values; a subsequent save can silently overwrite a concurrent
+change. Resolve overlapping edits explicitly while preserving local text and the
+existing same-view category-target merge behavior. Optional evidence references
+on category decisions will need a backward-compatible plan migration through
+the current database owner, with backups and no fabricated references for old notes.
+
+### Historical, pre-draft and live boundaries
+
+Historical analysis stays under the existing history domain/application boundary.
+It accepts completed-season observations and reviewed identity assignments and
+returns immutable descriptive results. It can operate without ESPN access.
+
+Pre-draft analytics combines separate dated market/projection snapshots with a
+verified 2027 pool and provisional-to-verified plan rules. Those future adapters
+must not rewrite historical observations. Draft-state writes remain local plan
+events and never trigger ESPN transactions.
+
+Live analytics will use a dedicated application boundary over current season
+state: scored-to-date standings, current rosters/availability and explicit future
+horizons. It may reference historical thresholds as labeled context, but it does
+not request current decisions through manager-history DTOs. All adapters continue
+to share the single workspace database owner.

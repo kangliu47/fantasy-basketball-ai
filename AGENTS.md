@@ -3,6 +3,24 @@
 Build a local, read-only fantasy basketball intelligence application. The user
 is learning FastAPI and Angular; favor conventional, readable examples of each.
 
+## Personal product scope
+
+- Build for this user's local league. The active outcome is understanding past
+  league results and category strengths; see docs/personal-product-direction.md
+  and PRD amendment 37. Earlier milestone lists and research are context, not a
+  requirement to build every feature.
+- Prioritize a useful historical team/category comparison before expanding draft,
+  live-season or predictive analytics. State the personal question and a concrete
+  acceptance example for each new slice.
+- Treat occasional manager mapping as assistant-guided setup with user-reviewed
+  choices, using existing local application operations. Do not expand identity
+  administration unless an actual recurring need warrants it. Team-level results
+  must remain usable without complete manager mappings.
+- Preserve existing observations, assignment revisions and useful features when
+  simplifying the journey. Public source does not imply a multi-user product.
+- Append meaningful, sourced project lessons to docs/learnings/; distinguish user
+  decisions from assistant synthesis and exclude private league details.
+
 ## Architecture
 
 - Follow Domain Driven Design and Clean Architecture pragmatically. Model the
@@ -67,11 +85,25 @@ is learning FastAPI and Angular; favor conventional, readable examples of each.
   Retain missing values, explicit tie rules, season rules and evidence references.
 - Reuse the single workspace database connection lock. Migrations back up and
   preserve prior schema versions; never run a second writer beside the app.
+- Historical analytics answer retrospective questions from completed-season
+  observations and must work offline. Label observed facts separately from
+  inferred tendencies; do not turn final outcomes into draft-time predictions.
+
+## Live-season intelligence
+
+- Keep live use cases separate from the historical archive and draft research.
+  Live analytics use current 2027 standings, rosters, availability and explicitly
+  dated future inputs over a stated remaining-season horizon.
+- Preserve points already scored and label collection gaps. Historical thresholds
+  may provide context, but they are not current player availability or projections.
+- Keep the configured draft-auction budget and in-season FAAB budget as separate
+  economies with different opportunity sets, evidence and decisions.
 
 ## Preparation experience
 
-- Organize the UI around next-season decisions, not milestone implementation order.
-  Returning users start with Prepare for 2027; connection and imports support it.
+- Organize the UI around the user's selected outcome, not milestone implementation
+  order. Historical results and category comparisons lead the next UI slice;
+  keep Prepare for 2027 accessible, with connection and imports supporting both.
 - Turn evidence into an explicit next action: investigate a player, review a manager
   link, record a category priority or save a reason in the plan.
 - Keep planning assumptions separate from imported observations. Copied rules are

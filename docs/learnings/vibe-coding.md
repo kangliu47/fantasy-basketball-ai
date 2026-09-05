@@ -1,0 +1,89 @@
+# Vibe coding experiences
+
+These are project-specific observations and assistant synthesis, not claims about
+every AI-assisted development workflow. Sources are listed in the
+[journal index](README.md#conversation-sources).
+
+## 2026-09-05 — Delegation still needs a product boundary
+
+**Conversation evidence — S1, S2, S4, S5:** The project began with permission to
+build autonomously from a broad PRD. Later requests asked for substantial batches
+of implementation. The user then asked for analytics to test, encountered manager
+setup friction, and explicitly challenged the value of those workflows today.
+
+**Synthesis:** Autonomy helped produce a substantial implementation, but the
+backlog did not consistently distinguish possible capabilities from immediate
+personal needs. A feature can follow the written plan and still be the wrong use
+of the next development cycle. This history does not establish that autonomy
+alone caused the scope growth.
+
+**Practice:** Before expanding a slice, state the basketball question it answers,
+what existing work can answer it already, and the smallest result the user can
+try. Keep the broader vision as context. Do not interpret a research report or
+permission to continue as a requirement to build every adjacent workflow.
+
+## 2026-09-05 — A working implementation needs a usable entry point
+
+**Conversation evidence — S2, S4:** The user wanted to stop copying cookies and
+running terminal commands, chose browser sign-in and a thin UI, then reported
+slow sign-in loading. Later, the user questioned whether alias creation worked
+and asked for an end-to-end check. The follow-up reported a native form reload
+bug and fixes to feedback and selection behavior.
+
+**Synthesis:** Passing automated checks and exposing an API did not establish
+that the actual user journey was clear or reliable. Setup delays and form
+behavior directly affected whether the user could reach the analytics.
+
+**Practice:** Validate the path from opening the app to one useful result. Keep
+busy, cancellation, error and success states visible. Use synthetic tests for
+behavior and failures, and distinguish reported live acceptance from automated
+evidence. A necessary workflow must work; an unnecessary workflow can be removed
+from the main journey instead of receiving more polish.
+
+## 2026-09-05 — Ask the implementation to explain itself
+
+**Conversation evidence — S2, S3:** The user selected FastAPI and Angular partly
+to learn them, requested DDD and Clean Architecture, and asked for a “show your
+work” HTML artifact to review how layers connect before another design round.
+The user subsequently wanted to reuse that review format with teammates.
+
+**Synthesis:** Understanding the generated system is a separate deliverable from
+getting it to run. A navigable explanation can make implementation review more
+approachable, while source references allow its claims to be checked.
+
+**Practice:** For material changes, explain one relevant request or calculation
+from UI to use case to domain/adapters. Keep the explanation tied to code and
+label delivered behavior separately from proposals. Refresh the existing review
+when needed; do not create a new documentation platform for each feature.
+
+**Follow-up:** The conversations establish that the user found the artifact
+useful. They do not establish measured learning gains or team adoption.
+
+## 2026-09-05 — Small feedback slices reveal the right next task
+
+**Conversation evidence — S4, S5, S6:** The user asked for initial analytics and
+visualizations to provide feedback, then requested a concrete two-team example.
+That experience led to a personal-product pivot and an explicit preference for
+past league results and category strengths.
+
+**Synthesis:** A concrete comparison gave the user something specific to evaluate.
+More implementation breadth would not necessarily have answered the resulting
+product question. Feedback can change the priority, not merely tune the design.
+
+**Practice:** Deliver and evaluate one historical comparison journey before
+adding another analytics family. Record what the user could understand, where
+they needed assistance, and whether the next action was clear.
+
+## 2026-09-05 — Record the reasoning that should survive the conversation
+
+**Conversation evidence — S5:** The user explicitly requested Markdown notes
+covering vibe coding experiences and product management insights.
+
+**Synthesis:** A long conversation contains decisions, experiments and abandoned
+ideas together. Future work needs a small, current set of instructions plus a
+traceable explanation of how we arrived there.
+
+**Practice:** Append sourced lessons to this journal and put accepted scope in
+the PRD and active plan. Label interpretations as synthesis rather than writing
+them as if the user had stated them. Preserve corrections without retaining
+private transcripts in the public repository.

@@ -1,5 +1,46 @@
 # Implementation plan
 
+## Active plan — personal historical analysis, September 5, 2026
+
+The user selected **understand past league results and category strengths**.
+[PRD amendment 37](PRD.md#37-personal-product-first--accepted-scope-amendment-2026-09-05)
+and the [personal-product direction](personal-product-direction.md) supersede the
+older delivery sequences below. This update delivers documentation and learning
+notes; it does not claim runtime UI changes or restored manager mappings.
+
+1. **Simplify the historical comparison journey.** Reuse `LeaguePatterns` and
+   existing Python category results. Offer direct season-team selection for the
+   user's team and a comparison team, with reviewed links as optional shortcuts.
+   Give the comparison a prominent entry point. Keep setup and manager
+   administration secondary and the saved 2027 plan accessible.
+2. **Verify the personal outcome.** With saved synthetic data and no assignments,
+   compare two teams across scored categories, inspect a category distribution,
+   and switch seasons without invalid team selections. Check ties, missing data,
+   source details, keyboard access and existing link/plan compatibility. Then
+   gather user feedback on one real historical question before adding more scope.
+3. **Handle occasional mapping through conversation when needed.** Present
+   candidate choices, save only reviewed links through existing local application
+   operations, and verify revisions. Leave unresolved dates and identities open;
+   a full-league mapping pass is optional, not an analytics prerequisite.
+
+If the next observed need is saving a category insight, resolve the documented
+edit-base revision issue before adding chart-to-plan writes. That issue does not
+block the read-only comparison slice. Keep private data and mapping choices out
+of the [learning journal](learnings/README.md).
+
+### Outside the active backlog
+
+Player price timelines, market calibration, draft simulation, new projection
+integrations, live move analysis and predictive models await a specific user
+decision. Identity administration gets fixes for actual blockers rather than new
+general-purpose workflows. The scope guide records reconsideration triggers.
+Preserve existing useful features, archived observations and assignment history.
+
+## Delivery record
+
+The remaining sections record prior implementation and acceptance, not an
+instruction to continue the old milestone sequence.
+
 ## Completed foundation
 
 The Python probe, uv lockfile, safe JSON snapshots, synthetic fixtures, and
@@ -134,7 +175,7 @@ The build retains the existing non-blocking bundle/style size warnings; Python
 reports two upstream test-client deprecations. The final visual pass could not run
 while the Mac was locked; earlier archive navigation was inspected successfully.
 
-## Immediate user workflow
+## Earlier manager-research workflow — optional after September 5 pivot
 
 1. Open Explore league history and import the available seasons for your league.
 2. Create aliases in Manager profiles and select My manager explicitly.
@@ -145,7 +186,9 @@ while the Mac was locked; earlier archive navigation was inspected successfully.
 5. Read profiles or search Player choices & category trends for supporting records.
 
 No personal alias or assignment was invented during implementation. Team-level
-results and draft browsing are usable before these identity reviews.
+results and draft browsing are usable before these identity reviews. The steps
+above describe the existing UI; complete manager setup is no longer the intended
+entry journey. Use assisted mapping only when the user's question needs it.
 
 ## Delivered: 5A, saved preparation and a user-led journey — 2026-09-04
 
@@ -179,55 +222,72 @@ The local app is rebuilt and checked through its read-only APIs; see the latest
 PRD implementation note for final counts and visual-inspection limitations.
 The user's actual plan and manager selections are left for them to choose.
 
-## Next batch: 5B, qualify 2027 inputs and rehearse draft decisions
+## Delivered: H1 visual manager analytics — 2026-09-04
 
-1. Import and verify actual 2027 settings when ESPN supplies them. Present a
-   before/after rule review against the saved plan's provisional reference.
-2. Establish the eligible player pool, keeper treatment and dated statistical
-   basis. Show source date and coverage; old rosters are research candidates only.
-3. Build a local draft board with shortlist tiers, player comparisons and manual
-   picks/undo. Auction budgets and snake order have distinct scenario rules.
-4. Add explainable category/roster fit once the necessary data and constraints
-   exist. Without projections, label scenarios as historical reference.
-5. Preserve a post-draft anchor and subsequent 2027 observations for future history.
+The September 4 [research](fantasy_basketball_2027_analytics_product_design.md)
+and [implementation review](next-phase-review.md) make completed-season analysis
+the first capability family. The first feedback slice adds to manager research:
 
-Prioritize decision usefulness and a clear next action on each screen. Do not make
-users finish every alias or historical import before drafting a useful plan.
-Keep deeper transaction reconstruction conditional on verified dated evidence.
+- Pure Python auction summaries for observed non-keeper purchases: price-ordered
+  cumulative budget share, top-one/top-three shares, HHI and low-cost counts.
+- A responsive cumulative-spend curve with season selection, evidence details
+  and a purchase table.
+- An interactive season-by-category finish heatmap for the selected manager and
+  optional comparison manager. Cells retain numeric average-tie ranks and expose
+  scored values, medians, reconciliation and provenance on selection.
+- Explicit language separating completed-season description from 2027 prediction
+  and future live-season analysis.
 
-The deployment comparison is saved in [deployment-options.md](deployment-options.md).
-It is research only; implementation continues to bind solely to loopback.
+This reuses manager profiles and saved archives without new ESPN requests,
+persistence or chart dependencies. Synthetic domain and component scenarios cover
+the calculations, rendering and selection behavior.
 
-## 2027 preparation and recording
+Validation: 137 Python tests and 29 Angular tests pass; Ruff formatting/lint and
+strict mypy pass. The production Angular build passes with the existing non-blocking
+initial-bundle and root-stylesheet warnings. The rebuilt loopback app reports
+healthy and exposes the new typed auction profile; connected-data visual review is
+left to the user so private league records do not enter screenshots or test output.
 
-The planning target is explicitly 2027; do not require the user to choose it
-again. My manager/team, draft order or budget, keepers and strategy preferences
-are selected in the UI when their features arrive. Keep the analysis-season
-filter separate from the 2027 target. If ESPN has not opened the new league, save
-local plans with provisional rules copied from an explicitly chosen prior season.
-Reconcile those rules when verified 2027 settings become available.
+## Delivered: H1B linked-team category distribution — 2026-09-04
 
-Ship 5A as soon as the archive and profiles support useful watchlists and category
-references. Add 5B with a 2027 eligible player pool, dated projections or a labeled
-historical basis, and local draft-state controls. Do not equate old free agents
-with draft availability. Predictive manager models are optional later work with
-chronological evaluation and a simple baseline; descriptive evidence comes first.
+The first manager heatmap depends on confirmed assignment coverage. The follow-up
+comparison keeps that evidence rule and adds a team-level path that works while
+management dates remain unknown:
 
-Begin preserving 2027 draft/roster observations once available, without waiting
-for advanced live analytics. Start with UI-triggered captures and expose gaps.
-Opt-in app scheduling can follow when needed; no scheduled task is created by
-this plan. A post-draft anchor and verified changes improve future roster history.
+- Plot every team's within-season normalized category finish using the existing
+  Python average-tie rank, with separate panels for each completed season.
+- Compare the two linked teams across all categories in their latest unambiguous
+  shared season; selecting a rank opens that category's league distribution.
+- Highlight My manager's reviewed team link and a selectable comparison alias.
+  Unknown-scope links select a team for display only; the detail labels the result
+  as team-level and does not attribute full-season outcomes or intent.
+- Show raw scored value, rank/team count and league median when a dot is selected.
+  Keep the existing scored-record table as the complete accessible evidence view.
+- Default the comparison to the other available alias so the first two reviewed
+  examples produce a useful view without extra setup.
 
-Live features then proceed: scored dashboard, current player pool/rankings,
-roto sensitivity, future add/drop. Prior technical requirements remain in PRD
-sections 32.3–32.7, but their old milestone numbers/order are superseded. Projections,
-schedules, all-team baselines and constraints are prerequisites for future move
-claims. Completed 2026 data is for retrospective analysis or labeled replay.
+The connected local workflow created a user-requested provisional alias for one
+exact team name observed in 2024–2026 and saved reviewed unknown-date links for
+those seasons. Private names and values remain outside fixtures and public docs.
+The UI uses saved patterns and identity mappings without a new provider request,
+persistence model or frontend chart dependency.
+
+## Earlier expansion tracks — removed from the active queue
+
+The previous price-intelligence, draft-rehearsal and live-season sequences remain
+recorded in PRD sections 33 and 36 and the analytics research. They are deliberately
+not repeated here as upcoming work. Consult the current scope guide before
+reactivating one. The 2027 planning target and data-quality requirements remain;
+none of those future tracks is a prerequisite for historical team comparison.
+
+The [deployment comparison](deployment-options.md) remains research only.
+Implementation continues to bind solely to loopback.
 
 ## Cross-cutting delivery checks
 
 - Every insight identifies covered seasons, source/effective/retrieval dates,
-  statistical basis, identity mapping, calculation version and missing evidence.
+  statistical basis, calculation version and missing evidence. Include identity
+  mapping scope when an insight attributes results to a manager.
 - Manager preferences are descriptive inferences from fantasy choices. Display
   supporting records and sample counts; do not claim intent, causality or precise
   prediction probabilities from sparse historical observations.
@@ -244,7 +304,7 @@ claims. Completed 2026 data is for retrospective analysis or labeled replay.
   bundle budgets. Handle existing dependency deprecations with relevant updates.
 
 No paid provider, cloud deployment, automated ESPN write or new framework is
-required for the next draft-preparation milestone.
+required for the next historical-comparison slice.
 
 
 ## Public architecture showcase — 2026-09-04
