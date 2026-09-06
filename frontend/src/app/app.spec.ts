@@ -43,10 +43,9 @@ describe('League workspace', () => {
   afterEach(() => http.verify());
 
   it('guides an unconfigured user without inventing league data', () => {
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('A clearer view');
-    expect(button('Connect ESPN').disabled).toBe(true);
-    expect(button('Refresh league').disabled).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Every team and roster will appear here');
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Your league history');
+    expect(button('Refresh data').disabled).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('Connect your league');
   });
 
   it('validates and saves league details through the HTTP interface', async () => {
@@ -92,7 +91,7 @@ describe('League workspace', () => {
     expect(button('Connect ESPN').disabled).toBe(false);
   });
 
-  it('renders a saved snapshot with expandable roster players', async () => {
+  it('opens the analytics profile instead of mounting roster and archive tools', async () => {
     void fixture.componentInstance.store.load();
     http.expectOne('/api/state').flush({
       ...empty,
@@ -116,13 +115,16 @@ describe('League workspace', () => {
         ],
       },
     });
-    await Promise.resolve();
-    fixture.detectChanges();
-    http.expectOne((request) => request.url === '/api/history').flush({ snapshots: [], total: 0 });
+    fixture.componentInstance.section.set('profile');
+    await settle();
+    http.expectOne('/api/archive/managers').flush({ managers: [], assignments: [], my_manager_id: null });
+    http.expectOne('/api/archive/catalog').flush({ candidates: [], imported_seasons: [], job: null });
     await settle();
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Synthetic League');
-    expect(button('Refresh league').disabled).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain('Example Player');
+    expect(button('Refresh data').disabled).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('My profile');
+    expect(fixture.nativeElement.textContent).not.toContain('Example Player');
+    expect(fixture.nativeElement.textContent).not.toContain('Data coverage & imports');
   });
 
   it('shows a recoverable API failure', async () => {

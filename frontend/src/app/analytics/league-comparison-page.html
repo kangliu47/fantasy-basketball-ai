@@ -1,0 +1,17 @@
+<section class="analytics-page">
+  <p class="eyebrow">League context</p>
+  <h2>League comparison</h2>
+  <p class="intro-copy">
+    Compare completed-season auction patterns across the reviewed 2026 competitor cohort.
+  </p>
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
+  @if (!loading() && catalog().imported_seasons.length) {
+    <app-league-auction-overview
+      [seasons]="catalog().imported_seasons"
+      [myManagerId]="data().my_manager_id"
+    />
+  } @else if (!loading()) {
+    <p class="notice">Import completed seasons before comparing league auction patterns.</p>
+  }
+</section>

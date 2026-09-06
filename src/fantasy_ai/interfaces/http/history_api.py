@@ -14,6 +14,8 @@ from fantasy_ai.domain.history.patterns import LeaguePatterns
 from .history_schemas import (
     AliasRequest,
     AssignmentRequest,
+    AuctionOverviewDTO,
+    AuctionPatternsDTO,
     CatalogDTO,
     ImportRequest,
     ManagersDTO,
@@ -76,6 +78,18 @@ def create_history_router(history: HistoryService, workspace: WorkspaceService) 
     @router.get("/seasons/{season}/results", response_model=tuple[CategoryResult, ...])
     async def results(season: int) -> tuple[CategoryResult, ...]:
         return await history.results(selected().league_id, season)
+
+    @router.get("/auction-overview", response_model=AuctionOverviewDTO)
+    async def auction_overview(season: int = Query(ge=2000, le=9999)) -> AuctionOverviewDTO:
+        overview = await history.auction_overview(selected().league_id, season)
+        return AuctionOverviewDTO.from_overview(overview)
+
+    @router.get("/auction-patterns", response_model=AuctionPatternsDTO)
+    async def auction_patterns(
+        seasons: Annotated[list[int], Query(min_length=1, max_length=15)],
+    ) -> AuctionPatternsDTO:
+        patterns = await history.auction_patterns(selected().league_id, tuple(seasons))
+        return AuctionPatternsDTO.from_patterns(patterns)
 
     @router.get("/managers", response_model=ManagersDTO)
     async def managers() -> ManagersDTO:

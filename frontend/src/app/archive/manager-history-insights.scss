@@ -138,14 +138,12 @@ figcaption,
   padding: 0;
 }
 .finish-cell {
-  background: #f5f7f2;
   border: 0;
   border-radius: 5px;
   color: #24382d;
   cursor: pointer;
-  height: 42px;
-  isolation: isolate;
-  min-width: 46px;
+  height: 50px;
+  min-width: 68px;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -158,14 +156,18 @@ figcaption,
   outline: 2px solid #315e92;
   outline-offset: 1px;
 }
-.finish-fill {
-  background: #4c936b;
-  inset: 0;
-  position: absolute;
-  z-index: -1;
-}
 .finish-cell strong {
+  display: block;
   font-variant-numeric: tabular-nums;
+}
+.finish-cell small {
+  display: block;
+  font-size: 0.65rem;
+  margin-top: 0.1rem;
+}
+.finish-cell.heat-dark,
+.finish-cell.heat-dark small {
+  color: #fff;
 }
 .legend {
   align-items: center;
@@ -175,7 +177,18 @@ figcaption,
   margin: 0.2rem 0 0.8rem;
 }
 .legend i {
-  background: linear-gradient(90deg, #e5eee5, #4c936b);
+  background: linear-gradient(
+    90deg,
+    #253494,
+    #225ea8,
+    #1d91c0,
+    #41b6c4,
+    #a1dab4,
+    #ffffbf,
+    #fec44f,
+    #f46d43,
+    #d73027
+  );
   display: inline-block;
   height: 8px;
   width: 80px;

@@ -5,11 +5,17 @@ is learning FastAPI and Angular; favor conventional, readable examples of each.
 
 ## Personal product scope
 
+- Current MVP: authenticate and refresh ESPN data, open on My manager profile,
+  and treat other 2026 participants as competitor teams assumed to return in 2027.
+  That participation assumption is provisional, separate from imported evidence.
+  Focus on historical draft spending, repeated selections and category results.
+  Reviewed local CSV mappings support setup; do not expose mapping administration
+  as a core user journey or commit private aliases and mappings.
 - Build for this user's local league. The active outcome is understanding past
-  league results and category strengths; see docs/personal-product-direction.md
-  and PRD amendment 37. Earlier milestone lists and research are context, not a
+  manager choices and team results; see docs/personal-product-direction.md
+  and PRD amendment 39. Earlier milestone lists and research are context, not a
   requirement to build every feature.
-- Prioritize a useful historical team/category comparison before expanding draft,
+- Prioritize the confirmed personal manager MVP before expanding future draft,
   live-season or predictive analytics. State the personal question and a concrete
   acceptance example for each new slice.
 - Treat occasional manager mapping as assistant-guided setup with user-reviewed
@@ -18,8 +24,35 @@ is learning FastAPI and Angular; favor conventional, readable examples of each.
   must remain usable without complete manager mappings.
 - Preserve existing observations, assignment revisions and useful features when
   simplifying the journey. Public source does not imply a multi-user product.
-- Append meaningful, sourced project lessons to docs/learnings/; distinguish user
+- Add meaningful, sourced project lessons at the top of docs/learnings/; distinguish user
   decisions from assistant synthesis and exclude private league details.
+
+## Ways of working
+
+- Front-load consequential context choices in one concise interactive popup with
+  two or three options and the built-in free-text field. Summarize the proposed
+  outcome, assumptions, scope and stopping point. Reuse answers already given.
+  After confirmation, work autonomously within that scope without repeatedly
+  asking about routine choices. Ask again for material changes or real blockers.
+- Current delivery sequence: confirm MVP context, show the streamlined HTML mock,
+  then wait for user approval before writing Markdown user stories or handing
+  implementation to another agent. Context approval is not mock approval.
+- Before writing frontend implementation code, create a lightweight HTML mock
+  with synthetic data and get the user's UI/UX feedback and explicit approval of
+  the relevant flow. This includes navigation changes to the existing app. A broad
+  PRD or permission to continue is not approval of an unreviewed interface.
+- Show the entry point, navigation, main action, result and relevant empty/error
+  states in the mock. Iterate there first; record which mock/flow was approved,
+  then implement only that scope. Reuse that approval for the agreed implementation;
+  return to the mock if the proposed flow or scope materially changes.
+- Treat confusing navigation, feature growth and wasted tokens as delivery costs.
+  Keep one bounded journey in scope, reuse existing work, and avoid speculative
+  frontend code, repeated broad research and unnecessary rebuild/test cycles.
+  Still perform the checks needed for the approved change.
+- Keep learning entries, decision/amendment histories and delivery records newest
+  first, including same-day follow-ups. Keep current guidance above history and
+  preserve older records and stable references below. Technical guides and the
+  original PRD baseline retain their logical structure.
 
 ## Architecture
 
@@ -102,8 +135,9 @@ is learning FastAPI and Angular; favor conventional, readable examples of each.
 ## Preparation experience
 
 - Organize the UI around the user's selected outcome, not milestone implementation
-  order. Historical results and category comparisons lead the next UI slice;
-  keep Prepare for 2027 accessible, with connection and imports supporting both.
+  order. My manager profile and Competitor teams lead the MVP mock, with connection
+  and refresh supporting both. Existing preparation features need not appear in
+  this simplified MVP navigation; preserve their stored data.
 - Turn evidence into an explicit next action: investigate a player, review a manager
   link, record a category priority or save a reason in the plan.
 - Keep planning assumptions separate from imported observations. Copied rules are

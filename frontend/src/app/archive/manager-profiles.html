@@ -1,3 +1,4 @@
+@if (!viewerOnly()) {
 <h3>Follow the managers behind the teams</h3>
 <p>
   ESPN teams belong to one season, and team names can change. A local manager alias connects the
@@ -13,6 +14,7 @@
     Create alias
   </button>
 </form>
+}
 @if (message()) {
   <p role="status">{{ message() }}</p>
 }
@@ -20,7 +22,7 @@
   <p class="error" role="alert">{{ error() }}</p>
 }
 @if (data().managers.length) {
-  <div class="filters">
+  @if (!viewerOnly()) { <div class="filters">
     <mat-form-field appearance="outline"
       ><mat-label>Manager</mat-label
       ><mat-select [value]="selected()" (selectionChange)="selected.set($event.value)">
@@ -72,12 +74,14 @@
       </button>
     </form>
   </details>
+  }
 }
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" />
 }
 @if (profile(); as result) {
   <h3 class="section-title">{{ selectedAlias() }} · Historical profile</h3>
+  @if (!viewerOnly()) {
   <div class="cards">
     <div class="stat">
       Roster seasons covered<strong>{{ result.roster_seasons_covered.length }}</strong
@@ -92,6 +96,7 @@
       ><small>Draft, keeper and roster evidence separated</small>
     </div>
   </div>
+  }
   <details open>
     <summary>Coverage and interpretation</summary>
     @for (note of result.notes; track note) {
@@ -109,7 +114,12 @@
     [comparison]="comparison()"
     [comparisonAlias]="comparisonAlias()"
   />
-  <h3 class="section-title">Repeated players and draft evidence</h3>
+  @if (showPlayerResearch()) {
+  <details class="supporting-evidence">
+    <summary>More historical evidence</summary>
+    <p class="muted">Repeated player selections are preserved for investigation, but kept out of the normal profile flow.</p>
+    <h3 class="section-title">Repeated selections</h3>
+    <p class="muted">Players with observed non-keeper draft selections. Open a player to see the records that support each result.</p>
   <mat-form-field appearance="outline" class="full"
     ><mat-label>Find a player</mat-label
     ><input matInput [value]="query()" (input)="query.set($any($event.target).value)"
@@ -119,9 +129,13 @@
       <thead>
         <tr>
           <th>Player</th>
-          <th>Archived roster seasons</th>
+          @if (!viewerOnly()) {
+            <th>Archived roster seasons</th>
+          }
           <th>Non-keeper selections</th>
-          <th>Keepers / unknown</th>
+          @if (!viewerOnly()) {
+            <th>Keepers / unknown</th>
+          }
           @if (comparison()) {
             <th>{{ comparisonAlias() }} · selections</th>
           }
@@ -160,6 +174,7 @@
                 }
               </details>
             </td>
+            @if (!viewerOnly()) {
             <td>
               {{ player.roster_seasons.join(', ') || '—'
               }}<small
@@ -167,16 +182,19 @@
                 {{ result.roster_seasons_covered.length }} covered seasons</small
               >
             </td>
+            }
             <td>
               {{ player.draft_seasons.join(', ') || '—'
               }}<small>Observed selections, eligible pool unknown</small>
             </td>
+            @if (!viewerOnly()) {
             <td>
               Keepers: {{ player.keeper_seasons.join(', ') || '—'
               }}<small
                 >Unknown keeper status: {{ player.unknown_keeper_seasons.join(', ') || '—' }}</small
               >
             </td>
+            }
             @if (comparison()) {
               <td>{{ otherDrafts(player.player_id).join(', ') || 'No observed selection' }}</td>
             }
@@ -194,6 +212,9 @@
   @if (visible().length < filtered().length) {
     <button mat-stroked-button (click)="showMore()">Show more players</button>
   }
+  </details>
+  }
+  @if (!viewerOnly()) {
   <h3 class="section-title">Category outcomes and roster profiles</h3>
   <p class="muted">
     Actual team-scored results and the last roster's eventual season totals measure different
@@ -343,4 +364,5 @@
     >Calculation version {{ result.calculation_version }} · Historical descriptions, not predictions
     for 2027.</small
   >
+  }
 }

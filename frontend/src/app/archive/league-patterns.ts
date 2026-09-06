@@ -27,6 +27,11 @@ interface HeadToHeadSeason {
   categories: HeadToHeadCategory[];
 }
 
+interface TeamChoice {
+  id: string;
+  name: string;
+}
+
 @Component({
   selector: 'app-league-patterns',
   imports: [
@@ -53,15 +58,31 @@ export class LeaguePatterns {
   readonly error = signal<string | null>(null);
   readonly query = signal('');
   readonly category = signal('PTS');
-  readonly comparisonManager = signal('');
+  readonly comparisonSeason = signal<number | null>(null);
+  readonly myTeamId = signal('');
+  readonly comparisonTeamId = signal('');
   readonly selectedResult = signal<CategoryResult | null>(null);
   readonly limit = signal(30);
   private readonly api = inject(ArchiveApi);
+  readonly comparisonSeasonData = computed(
+    () => this.data()?.seasons.find((season) => season.season === this.comparisonSeason()) ?? null,
+  );
   readonly categories = computed(() => [
     ...new Set(
-      this.data()?.seasons.flatMap((s) => s.rules?.categories.map((c) => c.code) ?? []) ?? [],
+      this.comparisonSeasonData()?.rules?.categories.map((category) => category.code) ??
+        this.comparisonSeasonData()?.results.map((row) => row.category) ??
+        [],
     ),
   ]);
+  readonly teamChoices = computed<TeamChoice[]>(() => {
+    const teams = new Map<string, string>();
+    for (const row of this.comparisonSeasonData()?.results ?? []) {
+      teams.set(row.team_id, row.team_name);
+    }
+    return [...teams]
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  });
   readonly selected = computed(() =>
     (this.data()?.selections ?? []).filter((row) =>
       row.player_name.toLowerCase().includes(this.query().trim().toLowerCase()),
@@ -88,43 +109,29 @@ export class LeaguePatterns {
       .map((g) => ({ ...g, years: [...g.seasons].sort() }))
       .sort((a, b) => b.years.length - a.years.length);
   });
-  readonly comparisonChoices = computed(() =>
-    this.managerData().managers.filter(
-      (manager) => manager.id !== this.managerData().my_manager_id,
-    ),
+  readonly myTeamName = computed(
+    () => this.teamChoices().find((team) => team.id === this.myTeamId())?.name ?? 'My team',
   );
-  readonly myAlias = computed(
+  readonly comparisonTeamName = computed(
     () =>
-      this.managerData().managers.find((manager) => manager.id === this.managerData().my_manager_id)
-        ?.alias ?? 'My linked team',
-  );
-  readonly comparisonAlias = computed(
-    () =>
-      this.managerData().managers.find((manager) => manager.id === this.comparisonManager())
-        ?.alias ?? 'Comparison team',
+      this.teamChoices().find((team) => team.id === this.comparisonTeamId())?.name ??
+      'Comparison team',
   );
   readonly headToHead = computed<HeadToHeadSeason | null>(() => {
-    const myManager = this.managerData().my_manager_id;
-    const comparisonManager = this.comparisonManager();
-    if (!myManager || !comparisonManager) return null;
-    for (const season of [...(this.data()?.seasons ?? [])].sort((a, b) => b.season - a.season)) {
-      const myTeam = this.linkedTeamId(myManager, season.season);
-      const comparisonTeam = this.linkedTeamId(comparisonManager, season.season);
-      if (!myTeam || !comparisonTeam) continue;
-      const categories = (season.rules?.categories ?? [])
-        .map((rule) => {
-          const mine = season.results.find(
-            (row) => row.team_id === myTeam && row.category === rule.code,
-          );
-          const comparison = season.results.find(
-            (row) => row.team_id === comparisonTeam && row.category === rule.code,
-          );
-          return mine && comparison ? { category: rule.code, mine, comparison } : null;
-        })
-        .filter((row): row is HeadToHeadCategory => row !== null);
-      if (categories.length) return { season: season.season, categories };
-    }
-    return null;
+    const season = this.comparisonSeasonData();
+    const myTeam = this.myTeamId();
+    const comparisonTeam = this.comparisonTeamId();
+    if (!season || !myTeam || !comparisonTeam || myTeam === comparisonTeam) return null;
+    const categories = this.categories()
+      .map((category) => {
+        const mine = season.results.find((row) => row.team_id === myTeam && row.category === category);
+        const comparison = season.results.find(
+          (row) => row.team_id === comparisonTeam && row.category === category,
+        );
+        return mine && comparison ? { category, mine, comparison } : null;
+      })
+      .filter((row): row is HeadToHeadCategory => row !== null);
+    return categories.length ? { season: season.season, categories } : null;
   });
   constructor() {
     effect(() => {
@@ -134,11 +141,6 @@ export class LeaguePatterns {
     effect(() => {
       this.query();
       this.limit.set(30);
-    });
-    effect(() => {
-      const choices = this.comparisonChoices();
-      if (!choices.some((manager) => manager.id === this.comparisonManager()))
-        this.comparisonManager.set(choices[0]?.id ?? '');
     });
     effect((cleanup) => {
       const years = this.years();
@@ -162,13 +164,32 @@ export class LeaguePatterns {
       cleanup(() => request.unsubscribe());
     });
     effect(() => {
-      const category = this.category();
       const result = this.data();
-      this.managerData();
-      this.comparisonManager();
-      const rows = result?.seasons.flatMap((season) =>
-        season.results.filter((row) => row.category === category),
-      );
+      const available = result?.seasons.map((season) => season.season) ?? [];
+      const selectedSeason = this.comparisonSeason();
+      if (available.length && (selectedSeason === null || !available.includes(selectedSeason))) {
+        this.comparisonSeason.set(Math.max(...available));
+      }
+    });
+    effect(() => {
+      const season = this.comparisonSeasonData();
+      const choices = this.teamChoices();
+      const ids = choices.map((team) => team.id);
+      const myManager = this.managerData().my_manager_id;
+      const linkedMyTeam = season && myManager ? this.linkedTeamId(myManager, season.season) : null;
+      if (!ids.includes(this.myTeamId())) {
+        this.myTeamId.set(
+          linkedMyTeam && ids.includes(linkedMyTeam) ? linkedMyTeam : (ids[0] ?? ''),
+        );
+      }
+      if (!ids.includes(this.comparisonTeamId()) || this.comparisonTeamId() === this.myTeamId()) {
+        this.comparisonTeamId.set(ids.find((id) => id !== this.myTeamId()) ?? '');
+      }
+    });
+    effect(() => {
+      const category = this.category();
+      const season = this.comparisonSeasonData();
+      const rows = season?.results.filter((row) => row.category === category);
       const selected = this.selectedResult();
       if (!rows?.length) {
         this.selectedResult.set(null);
@@ -176,8 +197,8 @@ export class LeaguePatterns {
       }
       if (!selected || !rows.includes(selected)) {
         this.selectedResult.set(
-          rows.find((row) => ['mine', 'both'].includes(this.pointKind(row))) ??
-            rows.find((row) => this.pointKind(row) === 'comparison') ??
+          rows.find((row) => row.team_id === this.myTeamId()) ??
+            rows.find((row) => row.team_id === this.comparisonTeamId()) ??
             rows[0],
         );
       }
@@ -218,8 +239,8 @@ export class LeaguePatterns {
       }));
   }
   pointKind(row: CategoryResult): DistributionPoint['kind'] {
-    const mine = this.hasManager(row, this.managerData().my_manager_id);
-    const comparison = this.hasManager(row, this.comparisonManager());
+    const mine = row.team_id === this.myTeamId();
+    const comparison = row.team_id === this.comparisonTeamId();
     if (mine && comparison) return 'both';
     if (mine) return 'mine';
     if (comparison) return 'comparison';
@@ -233,21 +254,17 @@ export class LeaguePatterns {
     this.selectedResult.set(row);
   }
   identityNote(row: CategoryResult) {
-    const managerIds = [this.managerData().my_manager_id, this.comparisonManager()].filter(
-      (id): id is string => Boolean(id),
-    );
     const links = this.managerData().assignments.filter(
       (assignment) =>
         assignment.season === row.season &&
         assignment.team_id === row.team_id &&
-        assignment.manager_ids.some((id) => managerIds.includes(id)),
+        assignment.manager_ids.length > 0,
     );
     if (!links.length) return 'League team result';
     const aliases = [
       ...new Set(
         links.flatMap((link) =>
           link.manager_ids
-            .filter((id) => managerIds.includes(id))
             .map(
               (id) => this.managerData().managers.find((manager) => manager.id === id)?.alias ?? id,
             ),
@@ -257,17 +274,6 @@ export class LeaguePatterns {
     return links.every((link) => link.scope === 'whole_season')
       ? `${aliases.join(' + ')} · full-season manager link reviewed`
       : `${aliases.join(' + ')} · team result; management dates unconfirmed`;
-  }
-  private hasManager(row: CategoryResult, managerId: string | null) {
-    return Boolean(
-      managerId &&
-      this.managerData().assignments.some(
-        (assignment) =>
-          assignment.season === row.season &&
-          assignment.team_id === row.team_id &&
-          assignment.manager_ids.includes(managerId),
-      ),
-    );
   }
   private linkedTeamId(managerId: string, season: number) {
     const teamIds = [

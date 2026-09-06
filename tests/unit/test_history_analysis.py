@@ -4,8 +4,14 @@ from uuid import uuid4
 
 import pytest
 
-from fantasy_ai.domain.history.analysis import aggregate, auction_season, manager_profile
-from fantasy_ai.domain.history.models import Assignment, Category, Dataset, SeasonArchive
+from fantasy_ai.domain.history.analysis import (
+    aggregate,
+    auction_overview,
+    auction_patterns,
+    auction_season,
+    manager_profile,
+)
+from fantasy_ai.domain.history.models import Assignment, Category, Dataset, Manager, SeasonArchive
 from tests.history_fakes import MANAGER_ID, NOW, OTHER_ID, observation
 
 
@@ -100,6 +106,34 @@ def test_auction_summary_requires_auction_rules_and_observed_non_keeper_prices()
         )
         is None
     )
+
+
+def test_auction_overview_excludes_missing_evidence_instead_of_reporting_zero_spend() -> None:
+    result = auction_overview(
+        archive(),
+        (assignment(),),
+        (Manager(MANAGER_ID, "North manager"), Manager(OTHER_ID, "South manager")),
+    )
+    assert result.season == 2026
+    assert result.reviewed_manager_count == 1
+    assert result.observed_manager_count == 1
+    assert result.rows[0].manager_alias == "North manager"
+    assert result.rows[0].hhi == pytest.approx(0.04)
+    assert result.rows[0].observed_spend == 40
+
+
+def test_auction_patterns_returns_only_eligible_manager_season_cells() -> None:
+    result = auction_patterns(
+        (archive(), archive(2025)),
+        (assignment(), assignment(2025)),
+        (Manager(MANAGER_ID, "North manager"), Manager(OTHER_ID, "South manager")),
+    )
+    assert result.seasons == (2026, 2025)
+    assert result.reviewed_manager_count == 1
+    assert [(row.manager_alias, row.season) for row in result.rows] == [
+        ("North manager", 2026),
+        ("North manager", 2025),
+    ]
 
 
 def test_unknown_attribution_and_missing_years_are_excluded_not_zero() -> None:

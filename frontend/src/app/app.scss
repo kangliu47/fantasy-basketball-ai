@@ -51,6 +51,11 @@ main {
   margin: auto;
   padding: 48px 32px 0;
 }
+.analytics-page { margin-top: 1.5rem; }
+.competitor-list { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0 1.5rem; }
+.competitor-list button { display: grid; gap: 0.2rem; text-align: left; }
+.competitor-list small { color: #65776b; }
+.selected-competitor { border-color: #397b54 !important; background: #edf4ef; }
 .intro {
   display: flex;
   justify-content: space-between;

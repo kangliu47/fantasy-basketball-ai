@@ -14,8 +14,12 @@ from fantasy_ai.application.models import (
 )
 from fantasy_ai.application.ports import CredentialStore
 from fantasy_ai.domain.history.analysis import (
+    AuctionOverview,
+    AuctionPatterns,
     CategoryResult,
     ManagerProfile,
+    auction_overview,
+    auction_patterns,
     league_results,
     manager_profile,
 )
@@ -352,6 +356,18 @@ class HistoryService:
     async def results(self, league_id: int, season: int) -> tuple[CategoryResult, ...]:
         archive = await self.archive(league_id, season)
         return await asyncio.to_thread(league_results, archive)
+
+    async def auction_overview(self, league_id: int, season: int) -> AuctionOverview:
+        archive = await self.archive(league_id, season)
+        assignments = await self.assignments(league_id)
+        managers = await self.managers(league_id)
+        return await asyncio.to_thread(auction_overview, archive, assignments, managers)
+
+    async def auction_patterns(self, league_id: int, seasons: tuple[int, ...]) -> AuctionPatterns:
+        archives = await self._analysis_archives(league_id, seasons)
+        assignments = await self.assignments(league_id)
+        managers = await self.managers(league_id)
+        return await asyncio.to_thread(auction_patterns, archives, assignments, managers)
 
     async def _assign(
         self,

@@ -215,6 +215,34 @@ export interface ManagerAuctionSeason {
   assignment_revision: number;
   shared_management: boolean;
 }
+export interface AuctionOverviewRow {
+  manager_id: string;
+  manager_alias: string;
+  season: number;
+  team_name: string;
+  budget: number;
+  observed_spend: number;
+  top_one_share: number;
+  top_three_share: number;
+  hhi: number;
+  count_one_to_three: number;
+  draft_coverage: string;
+  observation_id: string;
+  retrieved_at: string;
+  assignment_revision: number;
+  shared_management: boolean;
+}
+export interface AuctionOverview {
+  season: number;
+  reviewed_manager_count: number;
+  observed_manager_count: number;
+  rows: AuctionOverviewRow[];
+}
+export interface AuctionPatterns {
+  seasons: number[];
+  reviewed_manager_count: number;
+  rows: AuctionOverviewRow[];
+}
 export interface Overlap {
   season: number;
   team_name: string;

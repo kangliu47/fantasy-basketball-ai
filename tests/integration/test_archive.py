@@ -1,6 +1,7 @@
 import asyncio
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from fantasy_ai.domain.history.models import Dataset
@@ -53,6 +54,10 @@ def test_archive_api_links_managers_and_exposes_evidence_without_source_identiti
         body = {"manager_ids": [mid], "scope": "whole_season", "revision": 0}
         assignment_path = "/api/archive/seasons/2026/assignments/espn:12345:2026:team:1"
         assert client.put(assignment_path, json=body, headers=HEADERS).status_code == 200
+        overview = client.get("/api/archive/auction-overview", params={"season": 2026}).json()
+        assert overview["reviewed_manager_count"] == overview["observed_manager_count"] == 1
+        assert overview["rows"][0]["manager_alias"] == "North manager"
+        assert overview["rows"][0]["hhi"] == pytest.approx(0.04)
         assert (
             client.put(assignment_path, json=body, headers=HEADERS).status_code == 400
         )  # stale edit
@@ -67,6 +72,14 @@ def test_archive_api_links_managers_and_exposes_evidence_without_source_identiti
             ).status_code
             == 200
         )
+        patterns = client.get(
+            "/api/archive/auction-patterns", params=[("seasons", 2026), ("seasons", 2025)]
+        ).json()
+        assert patterns["seasons"] == [2026, 2025]
+        assert [(row["manager_alias"], row["season"]) for row in patterns["rows"]] == [
+            ("North manager", 2026),
+            ("North manager", 2025),
+        ]
         profile = client.get(
             f"/api/archive/managers/{mid}/profile", params=[("seasons", 2025), ("seasons", 2026)]
         ).json()

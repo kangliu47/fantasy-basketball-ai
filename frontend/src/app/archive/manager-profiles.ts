@@ -43,6 +43,9 @@ export class ManagerProfiles {
   readonly data = input.required<ManagerData>();
   readonly seasons = input.required<number[]>();
   readonly leagueId = input.required<number>();
+  readonly viewerOnly = input(false);
+  readonly showPlayerResearch = input(false);
+  readonly managerId = input<string | null>(null);
   readonly changed = output<void>();
   readonly reviewLinks = output<void>();
   readonly selected = signal('');
@@ -73,8 +76,10 @@ export class ManagerProfiles {
       this.data().managers.find((manager) => manager.id === this.compare())?.alias ?? 'Comparison',
   );
   readonly filtered = computed(() =>
-    (this.profile()?.players ?? []).filter((player) =>
-      player.player_name.toLowerCase().includes(this.query().toLowerCase()),
+    (this.profile()?.players ?? []).filter(
+      (player) =>
+        (!this.viewerOnly() || player.draft_seasons.length > 1) &&
+        player.player_name.toLowerCase().includes(this.query().toLowerCase()),
     ),
   );
   readonly visible = computed(() => this.filtered().slice(0, this.shown()));
@@ -85,17 +90,22 @@ export class ManagerProfiles {
     effect(() => {
       const data = this.data();
       const imported = this.seasons();
-      if (
+      const requestedManager = this.managerId();
+      if (requestedManager && data.managers.some((manager) => manager.id === requestedManager)) {
+        this.selected.set(requestedManager);
+      } else if (
         this.preferredManagerId &&
         data.managers.some((manager) => manager.id === this.preferredManagerId)
       ) {
         this.selected.set(this.preferredManagerId);
         this.preferredManagerId = null;
-      } else if (!data.managers.some((manager) => manager.id === this.selected()))
+      } else if (!data.managers.some((manager) => manager.id === this.selected())) {
         this.selected.set(data.my_manager_id ?? data.managers[0]?.id ?? '');
+      }
       if (!data.managers.some((manager) => manager.id === this.compare())) this.compare.set('');
-      if (!this.years().length || this.years().some((year) => !imported.includes(year)))
-        this.years.set(imported.filter((year) => year >= 2024 && year <= 2026));
+      if (!this.years().length || this.years().some((year) => !imported.includes(year))) {
+        this.years.set(imported);
+      }
       this.rename.setValue(
         data.managers.find((manager) => manager.id === this.selected())?.alias ?? '',
       );

@@ -130,8 +130,9 @@
     <div class="insight-block">
       <h4>Scored category finish history</h4>
       <p>
-        Darker cells finished closer to first place within that season. Select a cell for the scored
-        value and source. Missing comparisons remain blank.
+        Each cell shows rank / league size and a last-to-first percentile, so seasons with different
+        league sizes remain comparable. Select a cell for the scored value and source. Missing
+        comparisons remain blank.
       </p>
       <div class="heatmap-scroll">
         <table class="heatmap">
@@ -156,7 +157,9 @@
                       type="button"
                       class="finish-cell"
                       [class.selected]="selectedCategory() === row"
+                      [class.heat-dark]="finishIsDark(row)"
                       [disabled]="!row"
+                      [style.background]="finishColor(row)"
                       [attr.aria-label]="
                         row
                           ? code +
@@ -164,14 +167,13 @@
                             item.season +
                             ', rank ' +
                             (row.rank ?? 'unavailable') +
-                            ' of ' +
-                            row.team_count
+                            ' of ' + row.team_count + ', ' + finishPercentile(row)
                           : code + ' ' + item.season + ' unavailable'
                       "
                       (click)="selectCategory(row)"
                     >
-                      <span class="finish-fill" [style.opacity]="finishOpacity(row)"></span>
-                      <strong>{{ row?.rank ?? '—' }}</strong>
+                      <strong>{{ finishRank(row) }}</strong>
+                      <small>{{ finishPercentile(row) }}</small>
                     </button>
                   </td>
                 }
@@ -180,12 +182,12 @@
           </tbody>
         </table>
       </div>
-      <div class="legend"><span>Last</span><i></i><span>First · cell shows rank</span></div>
+      <div class="legend"><span>Last</span><i></i><span>First · rank / teams + percentile</span></div>
       @if (selectedCategory(); as row) {
         <div class="selection" aria-live="polite">
           <strong
             >{{ row.season }} {{ row.category }} · rank {{ row.rank ?? 'unavailable' }} /
-            {{ row.team_count }}</strong
+            {{ row.team_count }} · {{ finishPercentile(row) }}</strong
           >
           <span
             >Scored {{ row.value === null ? 'unavailable' : (row.value | number: '1.0-4') }} ·

@@ -1,48 +1,32 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { WorkspaceStore } from './core/workspace-store';
 import { LeagueSetup } from './league-setup/league-setup';
-import { LeagueRoster } from './league-roster/league-roster';
-import { LeagueHistory } from './league-history/league-history';
-import { Archive } from './archive/archive';
-import { Preparation } from './preparation/preparation';
-import { ExploreDestination } from './preparation/preparation.models';
+import { MyProfilePage } from './analytics/my-profile-page';
+import { CompetitorTeamsPage } from './analytics/competitor-teams-page';
+import { LeagueComparisonPage } from './analytics/league-comparison-page';
 
 @Component({
   selector: 'app-root',
   imports: [
-    DatePipe,
     MatButtonModule,
-    MatCardModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatExpansionModule,
     LeagueSetup,
-    LeagueRoster,
-    LeagueHistory,
-    Archive,
-    Preparation,
+    MyProfilePage,
+    CompetitorTeamsPage,
+    LeagueComparisonPage,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
-  readonly section = signal<'prepare' | 'archive' | 'connection'>('prepare');
+  readonly section = signal<'profile' | 'competitors' | 'league' | 'connection'>('profile');
   readonly activeSection = computed(() =>
     this.store.state()?.selection ? this.section() : 'connection',
   );
-  readonly archiveView = signal<ExploreDestination>('patterns');
-  explore(destination: ExploreDestination) {
-    this.archiveView.set(destination);
-    this.section.set('archive');
-  }
-
-  readonly archiveBusy = signal(false);
   readonly store = inject(WorkspaceStore);
   readonly connectionLabel = computed(
     () =>
@@ -57,9 +41,7 @@ export class App implements OnInit {
     const state = this.store.state();
     return (
       !!state?.selection &&
-      ['saved', 'connected'].includes(state.connection) &&
-      !this.store.busy() &&
-      !this.archiveBusy()
+      ['saved', 'connected'].includes(state.connection) && !this.store.busy()
     );
   });
   ngOnInit() {

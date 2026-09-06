@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from fantasy_ai.application.history.models import ImportJob, SeasonCandidate
 from fantasy_ai.application.history.service import Suggestion
+from fantasy_ai.domain.history.analysis import AuctionOverview, AuctionPatterns
 from fantasy_ai.domain.history.models import (
     ArchiveRoster,
     Assignment,
@@ -87,6 +88,48 @@ class ManagersDTO(BaseModel):
 
 class SuggestionsDTO(BaseModel):
     suggestions: tuple[Suggestion, ...]
+
+
+class AuctionOverviewRowDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    manager_id: str
+    manager_alias: str
+    season: int
+    team_name: str
+    budget: float
+    observed_spend: float
+    top_one_share: float
+    top_three_share: float
+    hhi: float
+    count_one_to_three: int
+    draft_coverage: str
+    observation_id: str
+    retrieved_at: datetime
+    assignment_revision: int
+    shared_management: bool
+
+
+class AuctionOverviewDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    reviewed_manager_count: int
+    observed_manager_count: int
+    rows: tuple[AuctionOverviewRowDTO, ...]
+
+    @classmethod
+    def from_overview(cls, overview: AuctionOverview) -> "AuctionOverviewDTO":
+        return cls.model_validate(overview)
+
+
+class AuctionPatternsDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    seasons: tuple[int, ...]
+    reviewed_manager_count: int
+    rows: tuple[AuctionOverviewRowDTO, ...]
+
+    @classmethod
+    def from_patterns(cls, patterns: AuctionPatterns) -> "AuctionPatternsDTO":
+        return cls.model_validate(patterns)
 
 
 class ImportRequest(BaseModel):

@@ -4,6 +4,46 @@ Evidence refers to the [conversation source register](README.md#conversation-sou
 The interpretations and practices below are assistant synthesis; the personal
 pivot and historical-results priority are explicit user decisions.
 
+## 2026-09-05 — Reset the journey around one person and a few questions
+
+**Conversation evidence — S8, latest follow-up:** The user says the existing app
+is too complicated and permits a fresh MVP design. They want their profile first,
+other participants treated as competitors, ESPN authentication/refresh, and
+insights about past behavior. They confirmed draft spend, repeated selections and
+category results as the three initial areas.
+
+**Synthesis:** The existing feature inventory should not dictate the next
+navigation design. Reviewed mapping data can support the experience without
+becoming another management screen. A small set of questions gives the mock a
+clear boundary and the later implementation agent a concrete scope.
+
+**Practice:** Review that focused journey before writing user stories. Keep the
+2027 return of the 2026 participants as an explicit user assumption, separate from
+provider facts, and preserve uncertainty about behavior and management dates.
+
+## 2026-09-05 — Validate navigation before paying to implement it
+
+**Conversation evidence — S7, latest follow-up:** The user is confused by the
+current app's navigation and explicitly wants to shape UI/UX through HTML mocks
+before frontend implementation. They connect feature explosion with token waste.
+
+**Synthesis:** The cost of a feature includes the user's attention and the tokens
+spent building, testing, explaining and reworking it. A technically complete
+feature can have negative personal value if it makes the useful path harder to
+find. This is a product concern, not simply a request for visual polish.
+
+**Practice — accepted workflow:** Agree on one user question and review its entire
+path in a lightweight HTML mock: entry, navigation, action and useful result.
+Explicit user approval of that flow precedes frontend implementation. Defer extra
+screens and variants unless feedback shows they solve a real problem. Reuse
+existing calculations and components after approval; avoid building speculative
+features merely because the agent can continue working.
+
+**Acceptance for the mock review:** The user can identify where to start, how to
+reach the comparison, what the result means and how to return without a narrated
+tour. Confirm that with the user; do not infer it from the mock simply rendering.
+Keep the latest feedback and decisions at the top of the tracking record.
+
 ## 2026-09-05 — Personal usefulness is the scope test
 
 **Conversation evidence — S1, S5, S6:** The original aim was a personal fantasy

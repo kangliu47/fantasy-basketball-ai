@@ -4,6 +4,53 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-05 — Confirm the context once, then delegate the agreed work
+
+**Conversation evidence — S8, latest follow-up:** The user requests one upfront
+interactive popup with choices and a free-text field, followed by autonomous
+work once context is confirmed. For this MVP, context confirmation precedes an
+HTML mock; mock approval precedes Markdown user stories and implementation handoff.
+
+**Practice — explicit user preference:** Ask about consequential scope and
+assumptions early, reuse the answers, and proceed without interruptions for routine
+choices. Keep the agreed stopping point explicit. Approval of the problem and
+scope does not stand in for approval of an interface the user has not yet seen.
+
+## 2026-09-05 — Review an HTML mock before frontend implementation
+
+**Conversation evidence — S7, latest follow-up:** The user reports being very
+confused by the current app and unable to navigate it confidently. Their stated
+lesson is to provide UI/UX input through HTML mocks before the agent writes any
+frontend implementation code. They also identify feature explosion as token waste
+that their ways of working need to prevent.
+
+**Synthesis:** Feedback after implementation arrives too late to cheaply correct
+the overall journey. Functioning screens can still form an incoherent app, and
+each unreviewed feature adds code to inspect, debug, explain and possibly discard.
+This conversation establishes the user's concern; token waste has not been measured.
+
+**Practice — explicit user direction:** First create a lightweight, clickable HTML
+mock with synthetic data. Show where the user starts, how navigation works, the
+main action and result, and relevant empty/error states. Incorporate the user's
+feedback and obtain approval of that flow before writing production frontend code.
+Record the approved mock and scope, then implement that bounded journey. A changed
+flow goes back to the mock; implementing the approved flow needs no repeated approval.
+
+**Immediate consequence:** The historical-comparison UI is now a mock-and-review
+task before it is an Angular implementation task. An architecture review of code
+already built does not replace this earlier product-design review.
+
+## 2026-09-05 — Put the newest learning where the reader starts
+
+**Conversation evidence — S7:** The user requests recent learnings at the top,
+with older entries pushed down, and the same ordering for tracking records read
+by users or developers.
+
+**Practice — explicit user direction:** Insert new dated entries before existing
+entries, including later updates on the same day. Put corrections above the older
+lesson and reference it without erasing the history. Keep current guidance above
+reverse-chronological records so readers can find the latest decision quickly.
+
 ## 2026-09-05 — Delegation still needs a product boundary
 
 **Conversation evidence — S1, S2, S4, S5:** The project began with permission to
@@ -83,7 +130,7 @@ covering vibe coding experiences and product management insights.
 ideas together. Future work needs a small, current set of instructions plus a
 traceable explanation of how we arrived there.
 
-**Practice:** Append sourced lessons to this journal and put accepted scope in
+**Practice:** Add sourced lessons at the top of this journal and put accepted scope in
 the PRD and active plan. Label interpretations as synthesis rather than writing
 them as if the user had stated them. Preserve corrections without retaining
 private transcripts in the public repository.

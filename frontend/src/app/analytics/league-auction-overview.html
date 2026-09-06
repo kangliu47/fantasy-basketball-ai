@@ -1,0 +1,201 @@
+<section class="auction-overview" aria-labelledby="auction-overview-title">
+  <div class="overview-heading">
+    <div>
+      <p class="eyebrow">League context</p>
+      <h3 id="auction-overview-title">Auction concentration across managers</h3>
+      <p>
+        Compare the observed non-keeper auction spend that is attributable to reviewed manager links.
+        Missing or ineligible evidence is excluded, never counted as zero spending.
+      </p>
+    </div>
+    @if (seasons().length > 1) {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Completed season</mat-label>
+        <mat-select
+          [value]="selectedSeason()"
+          (selectionChange)="selectedSeason.set($event.value)"
+        >
+          @for (season of seasons(); track season) {
+            <mat-option [value]="season">{{ season }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </div>
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
+  @if (overview(); as data) {
+    <p class="coverage" aria-live="polite">
+      {{ data.observed_manager_count }} of {{ data.reviewed_manager_count }} reviewed manager{{
+        data.reviewed_manager_count === 1 ? '' : 's'
+      }} have a valid attributable auction summary for {{ data.season }}.
+    </p>
+    @if (data.rows.length) {
+      <div class="comparison-grid">
+        <article>
+          <span>Your observed HHI</span>
+          <strong>{{ mine()?.hhi ?? null | number: '1.3-3' }}</strong>
+          <small>{{ mine() ? mine()!.manager_alias + ' · ' + mine()!.team_name : 'No eligible summary' }}</small>
+        </article>
+        <article>
+          <span>Comparison HHI</span>
+          <strong>{{ comparison()?.hhi ?? null | number: '1.3-3' }}</strong>
+          <small>
+            {{ comparison() ? comparison()!.manager_alias + ' · ' + comparison()!.team_name : 'Choose a manager below' }}
+          </small>
+        </article>
+        <article>
+          <span>Top-three budget share</span>
+          <strong>{{ comparison()?.top_three_share ?? null | percent: '1.0-1' }}</strong>
+          <small>Selected manager's observed top three purchases</small>
+        </article>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Manager</th>
+              <th>HHI</th>
+              <th>Top one</th>
+              <th>Top three</th>
+              <th>Observed spend</th>
+              <th>Draft coverage</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.rows; track row.manager_id) {
+              <tr [class.selected]="row.manager_id === selectedManagerId()">
+                <th>
+                  <button mat-button type="button" (click)="chooseManager(row.manager_id)">
+                    {{ row.manager_alias }}{{ row.manager_id === myManagerId() ? ' · Me' : '' }}
+                  </button>
+                  <small>{{ row.team_name }}{{ row.shared_management ? ' · Shared management' : '' }}</small>
+                </th>
+                <td>{{ row.hhi | number: '1.3-3' }}</td>
+                <td>{{ row.top_one_share | percent: '1.0-1' }}</td>
+                <td>{{ row.top_three_share | percent: '1.0-1' }}</td>
+                <td>{{ row.observed_spend | currency: 'USD' : 'symbol' : '1.0-2' }} / {{ row.budget | currency: 'USD' : 'symbol' : '1.0-0' }}</td>
+                <td>
+                  {{ row.draft_coverage }}
+                  <small>Assignment revision {{ row.assignment_revision }}</small>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (comparison(); as row) {
+        <p class="evidence">
+          {{ row.manager_alias }}'s HHI sums squared shares of the configured budget across observed
+          non-keeper purchases. Observation {{ row.observation_id }} · retrieved {{ row.retrieved_at | date: 'medium' }}.
+        </p>
+      }
+    } @else {
+      <p class="notice">No reviewed manager has attributable non-keeper auction purchases with a valid configured budget for this season.</p>
+    }
+  }
+
+  <section class="pattern-heatmap" aria-labelledby="auction-pattern-title">
+    <div class="pattern-heading">
+      <div>
+        <p class="eyebrow">League pattern</p>
+        <h3 id="auction-pattern-title">Auction patterns over time</h3>
+        <p>
+          Compare one observed metric across reviewed managers and completed seasons. Striped cells
+          are unavailable summaries, not zero spending.
+        </p>
+      </div>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Metric</mat-label>
+        <mat-select
+          [value]="selectedMetric()"
+          (selectionChange)="selectedMetric.set($event.value)"
+        >
+          <mat-option value="hhi">Concentration (HHI)</mat-option>
+          <mat-option value="top_three_share">Top-three budget share</mat-option>
+          <mat-option value="top_one_share">Top purchase budget share</mat-option>
+          <mat-option value="count_one_to_three">&#36;1–&#36;3 purchase count</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <p class="metric-explanation">{{ metricExplanation() }}</p>
+    @if (patternsLoading()) { <mat-progress-bar mode="indeterminate" /> }
+    @if (patternsError()) { <p class="notice error" role="alert">{{ patternsError() }}</p> }
+    @if (patterns(); as data) {
+      <p class="coverage">
+        {{ data.reviewed_manager_count }} reviewed manager{{
+          data.reviewed_manager_count === 1 ? '' : 's'
+        }} across {{ data.seasons.length }} completed season{{
+          data.seasons.length === 1 ? '' : 's'
+        }}. Populated cells have eligible attributable auction evidence.
+      </p>
+      @if (patternManagers().length) {
+        <div class="table-scroll">
+          <table class="heatmap">
+            <thead>
+              <tr>
+                <th>Manager</th>
+                @for (season of data.seasons; track season) {
+                  <th>{{ season }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (manager of patternManagers(); track manager.managerId) {
+                <tr>
+                  <th>{{ manager.alias }}{{ manager.managerId === myManagerId() ? ' · Me' : '' }}</th>
+                  @for (row of manager.cells; track $index) {
+                    <td>
+                      @if (row) {
+                        <button
+                          type="button"
+                          class="heat-cell"
+                          [class.heat-dark]="heatIsDark(row)"
+                          [class.selected]="selectedPattern() === row"
+                          [style.background]="heatColor(row)"
+                          [attr.aria-label]="
+                            manager.alias +
+                            ' ' +
+                            row.season +
+                            ', ' +
+                            metricLabel() +
+                            ' ' +
+                            metricDisplay(row) +
+                            ', ' +
+                            row.draft_coverage +
+                            ' source'
+                          "
+                          (click)="selectPattern(row)"
+                        >
+                          <strong>{{ metricDisplay(row) }}</strong>
+                          <small>{{ row.draft_coverage }}</small>
+                        </button>
+                      } @else {
+                        <span class="heat-cell unavailable" aria-label="No attributable auction summary">—<small>Unavailable</small></span>
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="legend"><span>Lower</span><i></i><span>Higher</span></div>
+        @if (selectedPattern(); as row) {
+          <p class="pattern-detail" aria-live="polite">
+            <strong>{{ row.manager_alias }} · {{ row.season }} · {{ metricLabel() }}:
+              {{ metricDisplay(row) }}</strong>
+            <span>
+              &#36;{{ row.observed_spend | number: '1.0-2' }} observed of &#36;{{
+                row.budget | number: '1.0-0'
+              }} · {{ row.draft_coverage }} source · Assignment revision
+              {{ row.assignment_revision }} · Observation {{ row.observation_id }}
+            </span>
+          </p>
+        }
+      } @else {
+        <p class="notice">No reviewed manager has eligible auction evidence in the selected completed seasons.</p>
+      }
+    }
+  </section>
+</section>

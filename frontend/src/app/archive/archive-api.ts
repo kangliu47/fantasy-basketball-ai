@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import {
   Assignment,
   AssignmentInput,
+  AuctionOverview,
+  AuctionPatterns,
   Candidate,
   Catalog,
   CategoryResult,
@@ -56,6 +58,14 @@ export class ArchiveApi {
   }
   results(season: number) {
     return this.http.get<CategoryResult[]>(`/api/archive/seasons/${season}/results`);
+  }
+  auctionOverview(season: number) {
+    return this.http.get<AuctionOverview>('/api/archive/auction-overview', { params: { season } });
+  }
+  auctionPatterns(seasons: number[]) {
+    return this.http.get<AuctionPatterns>('/api/archive/auction-patterns', {
+      params: { seasons },
+    });
   }
   myTeam(season: number) {
     return this.http.get<{ team_id: string | null }>(`/api/archive/seasons/${season}/my-team`);
