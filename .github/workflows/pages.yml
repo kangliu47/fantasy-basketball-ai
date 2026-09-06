@@ -24,6 +24,8 @@ jobs:
           persist-credentials: false
       - name: Check public file boundaries
         run: python3 -m tools.check_publication
+      - name: Check architecture review freshness
+        run: python3 -m tools.architecture_review
       - name: Scan Git history for secrets
         env:
           GITLEAKS_VERSION: 8.30.1

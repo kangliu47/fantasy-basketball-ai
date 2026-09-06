@@ -1,5 +1,30 @@
 # Implementation plan
 
+## Source-backed MCP architecture showcase — September 6, 2026
+
+**Learning question:** Can a public, static architecture review explain the
+completed local MCP proof while making drift between its claims and the repository
+detectable?
+
+The Architecture Review now opens on the local STDIO MCP thin slice, adds a
+source-traced Codex → FastMCP → application services → saved evidence feature map
+and request flow, records the accepted two-tool/read-only boundary, and embeds the
+current server, DTO, composition-root and synthetic contract-test sources. The
+Learning Laboratory homepage and curated changelog identify this as the latest
+architecture update.
+
+The source ledger was refreshed from the September 4 baseline to the current
+implementation inventory. `tools/architecture_review.py` detects changed, added
+or removed application source, and a showcase regression test prevents publishing
+an architecture snapshot that silently drifts again. This is documentation and
+publication work only; it adds no MCP capability or application runtime behavior.
+
+**Architecture gate before remote transport:** the current local process builds
+the full `ApplicationServices` bundle even though the tool surface is read-only.
+Before Streamable HTTP, define a narrower MCP read-service composition or facade
+so credential, provider, browser-login and planning capabilities are not merely
+unused but absent from the remote-facing process boundary.
+
 ## Learning laboratory showcase — September 6, 2026
 
 **Personal question:** Can the public showcase explain one personally useful
@@ -32,9 +57,10 @@ fields. Synthetic FastMCP-client contract coverage and a fresh local Codex CLI
 session both discovered and invoked the tools over STDIO. No port, tunnel, UI,
 write tool, refresh or import behavior was added.
 
-**Later migration:** retain the tool layer, create services once in the FastAPI
-process, and mount FastMCP's Streamable HTTP app under `/mcp`. Do not add that
-transport until multi-client or remote access is actually needed.
+**Later migration:** retain the tool layer, narrow its process-level service
+capabilities, then mount FastMCP's Streamable HTTP app under `/mcp` in the FastAPI
+process. Do not add that transport until multi-client or remote access is actually
+needed.
 
 ## UI consistency correction — September 6, 2026
 

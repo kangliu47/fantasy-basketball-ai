@@ -24,7 +24,8 @@ an approved design direction, not a claim that its analytics are implemented.
 The architecture review's diagrams, request flows, source viewer and decision
 forms run in the browser without an API. Review notes use browser-local storage
 and a JSON export; collaborators do not automatically share notes. Its source
-fingerprint identifies the reviewed version.
+fingerprint identifies the reviewed version. The current review demonstrates the
+local STDIO MCP thin slice without exposing or running that server on Pages.
 
 The Pages workflow copies only the selected static showcase files into its deployment
 artifact. It does not start FastAPI, connect to ESPN or provision an application
@@ -55,10 +56,12 @@ is safe: review each proposed diff before pushing, including screenshots and dat
    The installed pre-commit hook runs this same check against staged blobs.
 4. Run Gitleaks against the complete proposed Git history before pushing. Use
    `gitleaks git . --log-opts=--all --redact=100 --no-banner` after committing.
-5. Push `main` to publish the synthetic showcase. GitHub Actions repeats the
+5. Run `.venv/bin/python -m tools.architecture_review`. If it reports drift,
+   refresh and review the static architecture snapshot before publishing.
+6. Push `main` to publish the synthetic showcase. GitHub Actions repeats the
    privacy/history checks, then publishes the checked-in showcase pages and
-   shared stylesheet. It does not regenerate the source snapshot inside the HTML;
-   update and verify that artifact when reviewing a changed architecture.
+   shared stylesheet. The showcase test rejects a stale source inventory; it does
+   not rewrite architecture claims automatically.
 
 CI is a second check after upload, not a substitute for the local pre-push audit.
 Never bypass a privacy finding by broadly allowlisting real credentials or data.

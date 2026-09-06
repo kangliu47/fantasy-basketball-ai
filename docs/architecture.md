@@ -16,6 +16,20 @@ mount the same FastMCP tool definitions beneath FastAPI and reuse the same servi
 bundle; only transport and lifespan composition should change. See
 [the thin-slice design](local-mcp-thin-slice-poc.md) for the migration boundary.
 
+The public [interactive architecture review](architecture-review.html) now opens
+on this implemented MCP path and embeds the server, DTO, shared composition-root
+and synthetic contract-test source. Its source inventory is checked by
+`tools/architecture_review.py`; implementation changes must refresh and review
+the static snapshot before it can continue to claim current evidence.
+
+One review qualification matters before that future transport change: the current
+`build_services()` call constructs the full local bundle, including credential,
+provider, browser-login and planning-capable objects that these two tools do not
+use. The exposed tool contract is read-only, but the process is not yet a strict
+least-privilege boundary. That is acceptable for the local STDIO proof. Before
+remote MCP, introduce a narrow read-service composition or facade while retaining
+the same tool definitions and application-owned calculations.
+
 ## Latest MVP design boundary — September 5, 2026
 
 The confirmed MVP uses My manager profile and Competitor teams as its two primary

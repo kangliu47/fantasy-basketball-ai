@@ -4,6 +4,23 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-06 — Static architecture evidence needs a freshness contract
+
+**Conversation evidence — S13:** After the local STDIO MCP thin slice was built,
+the user asked to publish it in the Learning Laboratory and specifically questioned
+whether the existing static architecture page had drifted from the repository.
+The review confirmed that its September 4 source ledger predated both the MCP
+adapter and the streamlined analytics shell.
+
+**Synthesis:** Embedding source makes an architecture artifact inspectable, but it
+does not make it self-updating. Calling a static page “current” without detecting
+repository drift turns good provenance into misleading confidence.
+
+**Practice:** Keep an explicit source inventory and fingerprint with a source-backed
+review, fail a delivery check when tracked implementation files change, and refresh
+the narrative and embedded evidence together. Automation should detect drift; a
+human or agent still reviews whether the architectural explanation itself changed.
+
 ## 2026-09-06 — A real agent integration needs a deliberately small proof
 
 **Conversation evidence — S11:** The user provided a concrete local MCP design

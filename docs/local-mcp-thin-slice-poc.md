@@ -1,11 +1,36 @@
 # Local MCP Thin-Slice POC for Fantasy Basketball AI
 
-**Status:** Implementation-ready POC design
+**Status:** Implemented and verified local POC
 **Target:** Local Mac mini + Codex CLI + FastMCP
 **Primary transport for this POC:** **STDIO**
 **Future transport:** Streamable HTTP, using the same MCP tool definitions
 **Repository:** `kangliu47/fantasy-basketball-ai`
 **Date:** 2026-09-06
+
+---
+
+## Implementation result — 2026-09-06
+
+The thin slice is complete. `interfaces/mcp/server.py` exposes exactly
+`get_fantasy_context` and `get_season_results` over local STDIO. Both tools use
+the shared `ApplicationServices` composition root and saved application behavior;
+neither calls REST, SQL directly, ESPN refresh/import operations or planning
+writes. Explicit frozen response models keep the public tool contract compact and
+credential-free.
+
+Synthetic FastMCP-client coverage verifies discovery, structured results and the
+absence of provider calls. A fresh Codex client smoke test also discovered and
+invoked the configured local server. The POC stops here: Streamable HTTP, remote
+access, authentication, additional tools and all mutations remain deferred.
+
+The current source-backed walkthrough is published in the
+[architecture review](architecture-review.html).
+
+**Review qualification:** `build_services()` currently creates the complete local
+service bundle even though the MCP closure uses only read behavior from Workspace
+and History. The tool contract is narrow; the process capability set is broader.
+Keep that compromise for this local POC, but require a least-privilege read bundle
+or facade before exposing a future Streamable HTTP server.
 
 ---
 
@@ -918,22 +943,22 @@ This is the key POC moment.
 
 The POC is complete when all of the following are true:
 
-- [ ] FastMCP is a locked project dependency.
-- [ ] Existing FastAPI/Angular behavior is unchanged.
-- [ ] Concrete application-service wiring has one source of truth.
-- [ ] A local MCP module runs over STDIO.
-- [ ] `get_fantasy_context` is discoverable.
-- [ ] `get_season_results` is discoverable.
-- [ ] Both tools use application services, not REST and not direct SQL.
-- [ ] Tools expose no credentials or raw ESPN payloads.
-- [ ] Tools do not trigger network refresh/import behavior.
-- [ ] Automated MCP contract tests pass with synthetic/local test data.
-- [ ] Existing pytest/ruff/mypy checks pass.
-- [ ] `codex mcp list` shows the configured local server.
-- [ ] `/mcp` in a fresh Codex session shows both tools.
-- [ ] Codex successfully calls at least one tool and answers a fantasy question from its result.
-- [ ] No HTTP port or tunnel is needed for the POC.
-- [ ] A short note documents the later Streamable HTTP migration.
+- [x] FastMCP is a locked project dependency.
+- [x] Existing FastAPI/Angular behavior is unchanged.
+- [x] Concrete application-service wiring has one source of truth.
+- [x] A local MCP module runs over STDIO.
+- [x] `get_fantasy_context` is discoverable.
+- [x] `get_season_results` is discoverable.
+- [x] Both tools use application services, not REST and not direct SQL.
+- [x] Tools expose no credentials or raw ESPN payloads.
+- [x] Tools do not trigger network refresh/import behavior.
+- [x] Automated MCP contract tests pass with synthetic/local test data.
+- [x] Existing pytest/ruff/mypy checks pass.
+- [x] `codex mcp list` shows the configured local server.
+- [x] `/mcp` in a fresh Codex session shows both tools.
+- [x] Codex successfully calls at least one tool and answers a fantasy question from its result.
+- [x] No HTTP port or tunnel is needed for the POC.
+- [x] A short note documents the later Streamable HTTP migration.
 
 Stop implementation once these conditions are met.
 

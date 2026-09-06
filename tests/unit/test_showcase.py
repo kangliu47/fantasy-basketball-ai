@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from tools.architecture_review import review_drift
+
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 
@@ -38,8 +40,17 @@ def test_product_showcase_pages_share_the_repository_style_baseline() -> None:
     assert "<iframe" not in analytics_review
 
 
+def test_architecture_review_source_snapshot_has_not_drifted() -> None:
+    assert review_drift() == []
+    review = (DOCS / "architecture-review.html").read_text(encoding="utf-8")
+    assert "Local MCP thin slice" in review
+    assert "get_fantasy_context" in review
+    assert "get_season_results" in review
+
+
 def test_pages_workflow_stages_only_the_explicit_showcase_pages() -> None:
     workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    assert "python3 -m tools.architecture_review" in workflow
     expected_copies = {
         "cp docs/index.html _site/index.html",
         "cp docs/showcase-theme.css _site/showcase-theme.css",

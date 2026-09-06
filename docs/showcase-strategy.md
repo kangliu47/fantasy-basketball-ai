@@ -43,6 +43,15 @@ curated public changes are in [product-changelog.md](product-changelog.md).
 Product-facing pages follow the repository's
 [UI style guide](ui-style-guide.md) and shared `showcase-theme.css` primitives.
 
+## Current architecture story — September 6, 2026
+
+The **Understand** path now demonstrates the completed local STDIO MCP thin slice
+alongside the browser architecture. It must show that both interfaces reuse the
+same application services while keeping the MCP boundary limited to two read-only
+tools and saved evidence. A repository drift check protects the review's embedded
+source ledger; a page labeled current must be refreshed when implementation source
+changes.
+
 ## Published information architecture
 
 | Route | Purpose | Status language |
@@ -89,12 +98,14 @@ says otherwise.
 1. Identify whether a change updates the current application preview, proposes a
    future UI direction or reviews the architecture.
 2. Keep all examples synthetic and label the artifact's status in visible copy.
-3. Review the proposed diff, run the working-tree publication audit and verify
+3. Run `python -m tools.architecture_review`; refresh and inspect the static
+   review when it reports source drift.
+4. Review the proposed diff, run the working-tree publication audit and verify
    every published link.
-4. Stage the intended files and rerun the staged publication audit.
-5. Push `main`; the Pages workflow publishes the four explicit HTML files and
+5. Stage the intended files and rerun the staged publication audit.
+6. Push `main`; the Pages workflow publishes the four explicit HTML files and
    their shared product stylesheet only.
-6. Check the deployed home page and each linked section after the workflow
+7. Check the deployed home page and each linked section after the workflow
    finishes.
 
 The detailed privacy and release checks remain in

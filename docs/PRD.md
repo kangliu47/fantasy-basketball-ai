@@ -1,7 +1,9 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 44](#44-showcase-learning-laboratory--accepted-public-extension-2026-09-06)
-> extends the synthetic public showcase into a learning laboratory while retaining
+> **Current scope:** [amendment 45](#45-source-backed-mcp-architecture-showcase--accepted-public-update-2026-09-06)
+> brings the completed local STDIO MCP thin slice into the public architecture
+> review and adds an explicit source-drift check. Amendment 44 extends the
+> synthetic public showcase into a learning laboratory while retaining
 > its three visitor paths and strict local/private boundary. [Amendment 43](#43-repository-native-ui-mocks--accepted-consistency-rule-2026-09-06)
 > makes the repository's current product style the required baseline for future
 > UI mocks and public previews. Amendment 42 publishes the approved historical
@@ -19,6 +21,33 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 45. Source-backed MCP architecture showcase — accepted public update, 2026-09-06
+
+The user confirmed that “thin sliced” means the implemented local STDIO MCP proof
+of concept and requested that the public Learning Laboratory show its current
+architecture. The Architecture Review now leads with the MCP slice, traces a
+Codex request through FastMCP, the shared application services and local saved
+evidence, and embeds the exact MCP server, DTO, composition-root and contract-test
+source behind those claims.
+
+The public explanation must keep the completed boundary precise: two read-only
+tools, no HTTP listener, no REST loopback, no MCP-specific database, no ESPN
+refresh/import and no planning or mapping writes. Streamable HTTP remains a later
+option only when a concrete remote or multi-client use case appears.
+
+The architecture review also records one forward gate: `build_services()` creates
+the full credential-, provider-, browser-login- and planning-capable local bundle,
+although the two MCP tools do not use those capabilities. That is acceptable for
+the local STDIO proof, but a future remote transport must first narrow the process
+composition rather than relying only on tool annotations and instructions.
+
+The prior static review had drifted from the working tree: its September 4 source
+ledger predated the streamlined analytics shell and the MCP adapter. The refreshed
+review fingerprints the current `src/fantasy_ai` and `frontend/src/app` inventory,
+and `tools/architecture_review.py` plus the showcase test now fail when those
+sources change without refreshing the embedded snapshot. The static page remains
+an audited, offline educational artifact and never reads private runtime data.
 
 # 44. Showcase learning laboratory — accepted public extension, 2026-09-06
 

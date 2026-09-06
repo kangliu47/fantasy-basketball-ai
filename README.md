@@ -19,7 +19,8 @@ Choose the synthetic [application preview](https://kangliu47.github.io/fantasy-b
 the approved [analytics UI review](https://kangliu47.github.io/fantasy-basketball-ai/analytics-ui-review.html),
 or the source-backed [architecture review](https://kangliu47.github.io/fantasy-basketball-ai/architecture-review.html).
 Together they show the current product experience, the next proposed analytics
-interaction and the implementation boundaries. The accepted organization and
+interaction and the implementation boundaries, including the completed local
+STDIO MCP thin slice. The accepted organization and
 maintenance rules are in the [showcase strategy](docs/showcase-strategy.md).
 New product mocks and public previews must start from the repository's
 [UI style guide](docs/ui-style-guide.md), not a generator's default theme.
@@ -143,8 +144,10 @@ manual draft rehearsal are the next milestone.
 ## Learn the architecture
 
 Explore the [interactive architecture review](docs/architecture-review.html) for
-layer connections, source-backed request flows and design decisions. The HTML is
-self-contained and opens directly in a browser; review notes can be exported.
+layer connections, the Codex-to-FastMCP request flow, source-backed evidence and
+design decisions. The HTML is self-contained and opens directly in a browser;
+review notes can be exported. Run `.venv/bin/python -m tools.architecture_review`
+to detect drift between its embedded source ledger and the current implementation.
 
 For the text guide, start with [the architecture guide](docs/architecture.md).
 A useful reading path:
@@ -152,7 +155,8 @@ A useful reading path:
 1. `src/fantasy_ai/domain/league.py` — framework-independent League, Team, Player.
 2. `src/fantasy_ai/application/ports.py` and `workspace.py` — workflows and ports.
 3. `src/fantasy_ai/infrastructure/` — provider mapping and DuckDB persistence.
-4. `src/fantasy_ai/interfaces/http/` and `bootstrap.py` — FastAPI and composition.
+4. `src/fantasy_ai/interfaces/http/`, `interfaces/mcp/` and `bootstrap.py` — the
+   FastAPI and local STDIO presentation adapters over shared service wiring.
 5. `frontend/src/app/` — standalone components, signals, forms, and typed HTTP.
 
 The [PRD amendment](docs/PRD.md) records the approved framework and UX changes.

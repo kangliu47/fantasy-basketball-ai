@@ -39,6 +39,7 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S13 | Publish the MCP architecture in the Learning Laboratory — September 6, 2026 | User clarifies the local server is a thin-sliced STDIO POC and asks for a current public architecture review plus an explicit check for drift from its earlier static snapshot |
 | S12 | Learning laboratory showcase — September 6, 2026 | User provides the Learning Lab strategy, approves the homepage mock, and asks for the static public implementation |
 | S11 | Local MCP thin-slice POC — September 6, 2026 | User supplies an implementation-ready two-tool STDIO design and requests delivery only through its Definition of Done |
 | S10 | Align the public analytics UI review — September 6, 2026 | User identifies visual inconsistency across published pages and requires future UI mocks to start from the repository's current components and style |

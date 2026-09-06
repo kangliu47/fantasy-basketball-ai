@@ -3,6 +3,29 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-06 — Published the local MCP thin-slice architecture
+
+**Why**
+
+The MCP proof was implemented after the original architecture page was generated,
+so the public technical story no longer matched the repository.
+
+**Changed**
+
+- Added a source-backed MCP feature map and request walkthrough to the Architecture
+  Review.
+- Made the two read-only tools, shared application-service wiring and deferred
+  Streamable HTTP boundary explicit.
+- Recorded the least-privilege gate: narrow the full local service bundle before
+  any future remote MCP transport.
+- Refreshed the embedded implementation ledger and added a check that detects
+  future source drift before publication.
+
+**Learning**
+
+A static architecture page is trustworthy only when its snapshot date and source
+fingerprint are maintained as part of delivery, not treated as permanent truth.
+
 ## 2026-09-06 — Made the showcase a learning laboratory
 
 **Why**

@@ -1,9 +1,22 @@
 # Fantasy Basketball AI Showcase as a Learning Laboratory
 
-**Status:** Proposed strategy and implementation brief
+**Status:** Accepted strategy; initial public laboratory implemented
 **Date:** 2026-09-06
 **Audience:** Future Codex / GPT implementation agents, repository collaborators, and the project owner
 **Primary repository:** `kangliu47/fantasy-basketball-ai`
+
+## Delivery update — 2026-09-06
+
+The public Learning Laboratory now includes the completed local MCP thin slice as
+its newest architecture lesson. The existing **Understand** path opens a refreshed
+source-backed review showing how a Codex client launches FastMCP over STDIO and
+reuses the same Workspace and History application services as the local web app.
+
+This is intentionally presented as a bounded proof: two read-only tools, saved
+historical evidence, no HTTP listener, no provider refresh and no write surface.
+The architecture source ledger is now checked against the repository so a later
+implementation change cannot silently leave the public review claiming that it
+is current.
 
 ## 1. Executive summary
 
