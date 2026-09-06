@@ -1,11 +1,19 @@
 # Fantasy Basketball AI Showcase as a Learning Laboratory
 
-**Status:** Accepted strategy; initial public laboratory implemented
+**Status:** Accepted strategy; dedicated Learning Lab implemented
 **Date:** 2026-09-06
 **Audience:** Future Codex / GPT implementation agents, repository collaborators, and the project owner
 **Primary repository:** `kangliu47/fantasy-basketball-ai`
 
 ## Delivery update — 2026-09-06
+
+The approved product-first refactor is now implemented. The homepage leads with
+the product question, the **Explore / Review / Understand** destinations, product
+heartbeat and product feedback. It offers one deliberately quieter Learning Lab
+entry at the bottom. The dedicated `/learning-lab.html` route now carries the
+five learning tracks, product experiment, curated evolution, current lessons and
+product-changelog connection. This reduces homepage card density without changing
+the synthetic-only public boundary or adding a documentation framework.
 
 The public Learning Laboratory now includes the completed local MCP thin slice as
 its newest architecture lesson. The existing **Understand** path opens a refreshed

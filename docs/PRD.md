@@ -1,6 +1,10 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 45](#45-source-backed-mcp-architecture-showcase--accepted-public-update-2026-09-06)
+> **Current scope:** [amendment 47](#47-product-first-showcase-and-dedicated-learning-lab--accepted-public-update-2026-09-06)
+> makes the public homepage product-first and moves detailed learning content to
+> a dedicated Learning Lab route. [Amendment 46](#46-hashtag-free-projection-ingestion-poc--accepted-boundary-2026-09-06)
+> records the completed local-only Hashtag free projection ingestion POC and its
+> premium purchase gate. [Amendment 45](#45-source-backed-mcp-architecture-showcase--accepted-public-update-2026-09-06)
 > brings the completed local STDIO MCP thin slice into the public architecture
 > review and adds an explicit source-drift check. Amendment 44 extends the
 > synthetic public showcase into a learning laboratory while retaining
@@ -21,6 +25,39 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 47. Product-first showcase and dedicated Learning Lab — accepted public update, 2026-09-06
+
+The user approved a reviewed static refactor that makes the public homepage
+product-first. **Explore**, **Review** and **Understand** remain the equal primary
+showcase paths. The homepage keeps the current product question, compact
+Now / Next / Later heartbeat and one product-focused feedback exit. Its only
+learning destination is a quieter Learning Lab entry placed after that product
+content.
+
+The dedicated `/learning-lab.html` route is the secondary place for the five
+learning tracks, current product experiment, curated evolution, current lessons
+and curated product changelog. It is a living case study rather than a fourth
+product capability or generic documentation index. The Pages workflow publishes
+it through the existing explicit whitelist. No public runtime, feedback backend,
+private league evidence, credential, mapping or framework was added.
+
+# 46. Hashtag free projection ingestion POC — accepted boundary, 2026-09-06
+
+The user requested implementation of the Hashtag Basketball free projection
+ingestion plan. The completed backend-only POC uses the current unauthenticated
+public table to prove acquisition, semantic parsing, typed normalization and
+local snapshot validation before any premium purchase. It has no Angular or
+FastAPI change, no player identity matching, no valuation, no DuckDB migration
+and no scheduled refresh.
+
+Provider HTML and normalized values remain local-only. The probe writes its
+snapshot beneath ignored local storage; tests use fictional HTML and fabricated
+statistics. Provider display names and IDs are external evidence, and provider
+rank/TOTAL are metadata rather than application valuation. The next permitted
+step is the user's normal premium purchase followed by an authenticated local
+browser acquisition test using the same parser and contract. It does not
+automate purchase, Patreon or sign-in.
 
 # 45. Source-backed MCP architecture showcase — accepted public update, 2026-09-06
 

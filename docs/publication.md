@@ -4,17 +4,19 @@ The [GitHub repository](https://github.com/kangliu47/fantasy-basketball-ai) cont
 the application source, dependency locks, synthetic tests and documentation.
 The [public showcase](https://kangliu47.github.io/fantasy-basketball-ai/) is a
 directory for the synthetic application preview, the approved analytics UI
-review and the self-contained architecture review. The accepted presentation
-strategy is recorded in [showcase-strategy.md](showcase-strategy.md).
+review, the self-contained architecture review and a dedicated Learning Lab.
+The accepted presentation strategy is recorded in
+[showcase-strategy.md](showcase-strategy.md).
 
 ## What is published
 
-GitHub Pages publishes four explicit static documents and one shared stylesheet:
+GitHub Pages publishes five explicit static documents and one shared stylesheet:
 
 - `docs/index.html` as the showcase home at `/`;
 - `docs/app-preview.html` at `/app-preview.html`;
 - `docs/analytics-ui-review.html` at `/analytics-ui-review.html`;
-- `docs/architecture-review.html` at `/architecture-review.html`; and
+- `docs/architecture-review.html` at `/architecture-review.html`;
+- `docs/learning-lab.html` at `/learning-lab.html`; and
 - `docs/showcase-theme.css` at `/showcase-theme.css`, which supplies the shared visual
   primitives for public product previews.
 

@@ -5,6 +5,21 @@ The interpretations and practices below are assistant synthesis; the personal
 pivot, historical-results priority and public showcase structure are explicit
 user decisions.
 
+## 2026-09-06 — Hierarchy is a product decision
+
+**Conversation evidence — S15:** The user reviewed a product-first showcase mock,
+asked for the product heartbeat to move above the Learning Lab, then approved the
+revised flow for implementation.
+
+**Synthesis:** Making all valuable information visible at once can reduce clarity.
+Card density became a usability signal: the primary visitor job is understanding
+the product, while the valuable process case study belongs in a deliberate
+secondary space.
+
+**Practice:** Keep the homepage product-first, move secondary context into an
+intentional subspace, and review hierarchy—not merely whether every section is
+correct—before publishing a case study.
+
 ## 2026-09-06 — Make the learning agenda serve one product story
 
 **Conversation evidence — S12:** The user supplied a strategy that frames this

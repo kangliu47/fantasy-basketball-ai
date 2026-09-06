@@ -1,5 +1,24 @@
 # Architecture and learning guide
 
+## Hashtag Basketball projection ingestion POC — September 6, 2026
+
+The completed free POC adds a new provider boundary for upcoming-season
+projection facts without changing the application UI, FastAPI API, DuckDB schema
+or historical-player identity. Provider-neutral immutable models live in
+domain/projections; the application defines a minimal ProjectionSource port; and
+the Hashtag HTTP acquisition plus semantic HTML parser stay in
+infrastructure/projections. The parser receives an HTML string, finds a table by
+its required headers rather than a provider table ID or fixed columns, and
+preserves percentage makes/attempts alongside ratios.
+
+The manual developer probe acquires only the public visible page with a
+conservative HTTP request, validates the resulting snapshot and writes JSON to
+ignored local storage. It neither authenticates nor bypasses premium access.
+Provider display names and IDs remain external evidence, while rank and TOTAL
+stay provider metadata rather than an application valuation. The next boundary
+is user-authorized premium acquisition through a dedicated local browser; player
+identity, persistence and draft valuation remain separate future slices.
+
 ## Local MCP thin slice — September 6, 2026
 
 The local MCP proof of concept adds a second, read-only presentation adapter

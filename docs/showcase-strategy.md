@@ -16,24 +16,23 @@ views instead of presenting one artifact as the whole product:
 3. **Architecture review** explains how the working implementation is organized,
    where its boundaries sit and what source evidence supports the review.
 
-The home page acts as a small directory for these views. It should help a viewer
-choose whether they want to explore the product, review a design direction or
-understand the implementation. The public site is an educational showcase, not
-a hosted version of the connected application.
+The home page is product-first: it should help a viewer explore the product,
+review a design direction or understand the implementation before offering any
+process material. The public site is an educational showcase, not a hosted
+version of the connected application.
 
 ## Learning laboratory extension — accepted September 6, 2026
 
-The homepage now acts as the coherence layer for the same personal product and
-the project's deliberate learning tracks. It retains the three primary visitor
-actions—**Explore**, **Review** and **Understand**—and adds a lightweight,
-non-navigational layer below them:
+The homepage retains the three primary visitor actions—**Explore**, **Review**
+and **Understand**—then keeps the product question, a curated Now / Next / Later
+heartbeat and one contextual feedback prompt. Learning material is no longer a
+competing homepage layer: it lives on the dedicated Learning Lab route, reached
+through one quieter entry after the product feedback.
 
-- the active product question and current experiment;
-- a curated Now / Next / Later product heartbeat;
-- five concise learning lenses: product management, architecture, engineering,
+- the Learning Lab's five lenses: product management, architecture, engineering,
   agentic engineering and GitHub workflow;
-- a selected product-evolution timeline;
-- the latest curated product update and one contextual feedback question.
+- the product experiment, selected evolution and current learning lessons; and
+- links to curated product changes and source notes.
 
 The homepage is not a documentation index, a live project-management dashboard
 or a hosted application. The maintained details are in
@@ -60,6 +59,7 @@ changes.
 | `/app-preview.html` | Current synthetic application preview | Current demo |
 | `/analytics-ui-review.html` | Approved manager-category-pattern interface concept | Approved direction; not a claim of implementation |
 | `/architecture-review.html` | Source-backed implementation and architecture review | Technical evidence for the reviewed snapshot |
+| `/learning-lab.html` | Process, experiments and durable project lessons | Living case study |
 
 Each page should link back to the showcase home. The home page should describe
 the difference between a current demo, an approved design direction and a
@@ -103,7 +103,7 @@ says otherwise.
 4. Review the proposed diff, run the working-tree publication audit and verify
    every published link.
 5. Stage the intended files and rerun the staged publication audit.
-6. Push `main`; the Pages workflow publishes the four explicit HTML files and
+6. Push `main`; the Pages workflow publishes the five explicit HTML files and
    their shared product stylesheet only.
 7. Check the deployed home page and each linked section after the workflow
    finishes.

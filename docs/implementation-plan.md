@@ -1,5 +1,38 @@
 # Implementation plan
 
+## Product-first showcase and dedicated Learning Lab — September 6, 2026
+
+**Personal question:** Can a first-time visitor quickly understand the fantasy
+basketball product while still finding the process and learning case study?
+
+**Result:** Complete. The approved responsive mock is implemented as a static,
+synthetic-only Pages refactor. The homepage now leads with the product question,
+the three Explore / Review / Understand destinations, a compact product heartbeat
+and product feedback. A single quieter Learning Lab entry follows those product
+sections. The published `/learning-lab.html` route holds the five learning tracks,
+product experiment, curated evolution, current lessons and changelog connection.
+
+**Deliberately not built:** a new frontend framework, documentation platform,
+CMS, feedback backend, runtime integration, analytics dashboard or public private
+data. Pages continues to use an explicit static-file whitelist.
+
+## Hashtag Basketball free projection POC — September 6, 2026
+
+**POC question:** Can the public Hashtag table become a validated,
+provider-neutral local projection snapshot before any premium purchase?
+
+**Result:** Complete. Direct HTTP acquired the current public page without
+authentication. A semantic parser handled the repeated provider header rows,
+validated the 30 visible records, preserved field-goal and free-throw volume,
+and captured provider IDs where present. The probe saves its normalized JSON
+only in ignored local storage; no provider content enters source control.
+
+**Purchase gate:** Ready to purchase premium through Hashtag's normal user flow.
+The next experiment is limited to proving normal authenticated acquisition with
+the same parser and contract. Do not add player identity, DuckDB persistence,
+valuation, FastAPI, Angular or scheduled refresh work until that experiment
+passes.
+
 ## Source-backed MCP architecture showcase — September 6, 2026
 
 **Learning question:** Can a public, static architecture review explain the

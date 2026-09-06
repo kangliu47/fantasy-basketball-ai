@@ -4,6 +4,36 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-06 — Correct content is not correct emphasis
+
+**Conversation evidence — S15:** The user approved a product-first showcase mock
+only after moving the product heartbeat ahead of the Learning Lab and pushing the
+learning entry to the bottom of the homepage.
+
+**Synthesis:** A capable implementation agent can faithfully cover a broad brief
+and still make an interface too dense. Correct content is not equivalent to
+correct emphasis; product hierarchy still needs human review.
+
+**Practice:** Use mock/review cycles for hierarchy as well as functionality. Keep
+the agent's implementation bounded by the approved order and stopping point.
+
+## 2026-09-06 — Public data can test a provider boundary without becoming a fixture
+
+**Conversation evidence — S14:** The user supplied a narrow Hashtag Basketball
+projection-ingestion plan that required a parser-first implementation, a single
+public-page validation, local-only output and an explicit stop before premium
+access, identity matching or product integration.
+
+**Synthesis:** A live source can be a useful contract-test environment without
+being a versioned fixture or a production dependency. Synthetic markup lets the
+parser test schema changes deterministically; one live probe then tests the
+acquisition and real page shape while keeping provider data out of the repository.
+
+**Practice:** Separate HTML acquisition from parsing, validate semantic headers
+and raw statistic primitives, and report only structural results. Treat a
+successful free tier as a purchase gate for the next narrowly defined
+authenticated-acquisition experiment—not permission to build valuation or UI.
+
 ## 2026-09-06 — Static architecture evidence needs a freshness contract
 
 **Conversation evidence — S13:** After the local STDIO MCP thin slice was built,

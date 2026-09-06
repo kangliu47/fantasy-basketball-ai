@@ -3,6 +3,26 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-06 — Simplified the homepage around the product
+
+**Why**
+
+The Learning Laboratory was conceptually useful but gave too many sections equal
+visual emphasis on the homepage.
+
+**Changed**
+
+- Returned the product to the dominant homepage position.
+- Moved learning tracks, product evolution and process lessons to a dedicated
+  Learning Lab page.
+- Kept one quieter Learning Lab entry after product feedback.
+- Retained the product heartbeat and contextual product feedback on the homepage.
+
+**Learning**
+
+Multiple project purposes can coexist without receiving equal prominence in the
+same interface.
+
 ## 2026-09-06 — Published the local MCP thin-slice architecture
 
 **Why**

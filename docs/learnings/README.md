@@ -39,6 +39,8 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S15 | Product-first showcase and dedicated Learning Lab — September 6, 2026 | User approves the revised static mock after moving product heartbeat above and Learning Lab below product feedback, then requests implementation |
+| S14 | Hashtag Basketball free projection POC — September 6, 2026 | User provides a backend-only POC plan and asks for implementation; public-page acquisition, semantic parsing and private local persistence are verified before premium purchase |
 | S13 | Publish the MCP architecture in the Learning Laboratory — September 6, 2026 | User clarifies the local server is a thin-sliced STDIO POC and asks for a current public architecture review plus an explicit check for drift from its earlier static snapshot |
 | S12 | Learning laboratory showcase — September 6, 2026 | User provides the Learning Lab strategy, approves the homepage mock, and asks for the static public implementation |
 | S11 | Local MCP thin-slice POC — September 6, 2026 | User supplies an implementation-ready two-tool STDIO design and requests delivery only through its Definition of Done |

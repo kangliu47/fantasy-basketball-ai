@@ -59,6 +59,14 @@ def review_drift(root: Path = ROOT, review: Path = REVIEW) -> list[str]:
         for path in sorted(expected.keys() & actual_paths.keys())
         if _digest(actual_paths[path]) != expected[path]
     )
+    for path, source in sorted(data["sources"].items()):
+        candidate = root / path
+        if path in expected:
+            continue
+        if not candidate.is_file():
+            findings.append(f"removed embedded source: {path}")
+        elif _digest(candidate) != source["sha"]:
+            findings.append(f"changed embedded source: {path}")
     return findings
 
 
@@ -411,6 +419,165 @@ def _mcp_content(data: dict[str, Any]) -> None:
     )
 
 
+def _projection_poc_content(data: dict[str, Any]) -> None:
+    models = "src/fantasy_ai/domain/projections/models.py"
+    port = "src/fantasy_ai/application/projections/ports.py"
+    parser = "src/fantasy_ai/infrastructure/projections/hashtag_parser.py"
+    adapter = "src/fantasy_ai/infrastructure/projections/hashtag.py"
+    probe = "tools/hashtag_projection_probe.py"
+    refs = {
+        "projection-models": _add_ref(data, models, 8, 104),
+        "projection-port": _add_ref(data, port, 8, 10),
+        "projection-parser": _add_ref(data, parser, 31, 110),
+        "projection-table": _add_ref(data, parser, 54, 70),
+        "projection-http": _add_ref(data, adapter, 12, 36),
+        "projection-probe": _add_ref(data, probe, 15, 74),
+    }
+    data["nodes"].update(
+        {
+            "projection-source": {
+                "id": "projection-source",
+                "title": "Public projection page",
+                "layer": "External provider",
+                "role": "The free Hashtag Basketball table is the current contract-test source for a local upcoming-season snapshot.",
+                "contract": "Only ordinary unauthenticated HTTP acquisition is used; premium access and private endpoints are outside the POC.",
+                "guarantee": "No provider HTML, values, credentials or browser state enters the repository or public site.",
+                "limit": "The public player count is volatile provider policy, not a domain invariant.",
+                "refs": [refs["projection-http"]],
+            },
+            "projection-adapter": {
+                "id": "projection-adapter",
+                "title": "Hashtag source adapter",
+                "layer": "Infrastructure / provider boundary",
+                "role": "Acquires one visible page with a conservative timeout and passes only its HTML to a semantic parser.",
+                "contract": "Provider table IDs, headers, links and HTTP behavior stay outside the domain and application port.",
+                "guarantee": "A network failure produces a bounded local error rather than a silent empty snapshot.",
+                "limit": "This POC deliberately has no browser fallback or authenticated premium session.",
+                "refs": [refs["projection-http"], refs["projection-parser"]],
+            },
+            "projection-parser": {
+                "id": "projection-parser",
+                "title": "Semantic projection parser",
+                "layer": "Infrastructure / normalization",
+                "role": "Selects a table by required headers, maps cells by labels and preserves percentage makes and attempts.",
+                "contract": "Unexpected required schema or numeric values fail loudly; optional provider metadata can remain absent.",
+                "guarantee": "Repeated headers, column reorder and unknown columns do not become silent data corruption.",
+                "limit": "It preserves provider display names and IDs without creating canonical player identity.",
+                "refs": [refs["projection-parser"], refs["projection-table"]],
+            },
+            "projection-domain": {
+                "id": "projection-domain",
+                "title": "Projection snapshot facts",
+                "layer": "Domain / provider-neutral facts",
+                "role": "Immutable snapshot and player-projection values retain raw stat primitives and provider provenance.",
+                "contract": "FG/FT makes and attempts accompany ratios; rank and TOTAL remain provider metadata.",
+                "guarantee": "Validation rejects impossible ratios, duplicate rows and non-finite numeric data.",
+                "limit": "No valuation, ESPN matching, persistence or product recommendation belongs in this POC.",
+                "refs": [refs["projection-models"], refs["projection-port"]],
+            },
+            "projection-probe": {
+                "id": "projection-probe",
+                "title": "Local POC probe",
+                "layer": "Developer entry point",
+                "role": "Runs acquisition, parsing and validation, then saves a timestamped normalized JSON artifact under ignored local storage.",
+                "contract": "The CLI reports counts and structural validation only; it does not print player records.",
+                "guarantee": "Real provider content stays on the owner's machine and outside Git.",
+                "limit": "It is an on-demand contract test, not a scheduled refresh or application endpoint.",
+                "refs": [refs["projection-probe"]],
+            },
+        }
+    )
+    data["features"] = [item for item in data["features"] if item["id"] != "projection-poc"]
+    data["features"].insert(
+        0,
+        {
+            "id": "projection-poc",
+            "name": "Projection ingestion POC",
+            "question": "Can public provider projections become a local typed snapshot before premium purchase?",
+            "nodes": [
+                "projection-source",
+                "projection-adapter",
+                "projection-parser",
+                "projection-domain",
+                "projection-probe",
+            ],
+            "domain": "projection-domain",
+            "calls": [
+                "HTTP GET",
+                "Parses visible table",
+                "Builds immutable facts",
+                "Writes ignored JSON",
+            ],
+            "note": "A local developer command proves acquisition and normalization using the public tier. It does not authenticate, publish data, calculate value or change the application UI.",
+        },
+    )
+    data["flows"] = [item for item in data["flows"] if item["id"] != "projection-poc"]
+    data["flows"].insert(
+        0,
+        {
+            "id": "projection-poc",
+            "title": "Normalize a public projection snapshot",
+            "summary": "Local developer path · public free tier · local-only artifact",
+            "steps": [
+                {
+                    "actor": "Developer probe",
+                    "title": "Request the visible public page",
+                    "text": "The on-demand command uses a descriptive user agent and conservative timeout. It does not create a browser profile or submit credentials.",
+                    "ref": refs["projection-probe"],
+                },
+                {
+                    "actor": "Source adapter",
+                    "title": "Keep acquisition at the provider edge",
+                    "text": "HTTP behavior and the provider URL remain in infrastructure; a failed request returns a useful local error.",
+                    "ref": refs["projection-http"],
+                },
+                {
+                    "actor": "Semantic parser",
+                    "title": "Find and normalize the table",
+                    "text": "Required headers select the correct table, dynamic labels map cells, and repeated headers are ignored.",
+                    "ref": refs["projection-table"],
+                },
+                {
+                    "actor": "Projection domain",
+                    "title": "Validate raw projection facts",
+                    "text": "The snapshot retains ratio volume and provenance while rejecting impossible numeric relationships.",
+                    "ref": refs["projection-models"],
+                },
+                {
+                    "actor": "Local storage",
+                    "title": "Write an ignored snapshot",
+                    "text": "Only the normalized JSON artifact is saved locally. No source HTML, player records or credentials are added to Git.",
+                    "ref": refs["projection-probe"],
+                },
+            ],
+            "failure": "A missing required table or malformed raw statistic fails the probe with a bounded error. The next action is to inspect a provider schema change, not to silently coerce data or bypass access controls.",
+            "refs": [refs["projection-parser"], refs["projection-probe"]],
+        },
+    )
+    data["decisions"] = [item for item in data["decisions"] if item["id"] != "D10"]
+    data["decisions"].insert(
+        0,
+        {
+            "id": "D10",
+            "title": "Use the free tier as a projection contract test",
+            "kind": "Accepted POC boundary",
+            "priority": "Before premium purchase",
+            "observed": "The public table can be acquired, semantically parsed and validated into a local provider-neutral snapshot.",
+            "scenario": "Coupling player identity, valuation, persistence and premium authentication to the first ingestion attempt would make a provider change hard to diagnose.",
+            "proposal": "Keep the same parser and normalized model; after normal user premium purchase, test only authenticated acquisition and full-pool coverage.",
+            "tradeoff": "The POC intentionally leaves the product without a projection UI or league-specific draft value.",
+            "refs": [refs["projection-parser"], refs["projection-probe"]],
+        },
+    )
+    data["evidence"].update(
+        {
+            "projectionmodels": refs["projection-models"],
+            "projectionparser": refs["projection-parser"],
+            "projectionprobe": refs["projection-probe"],
+        }
+    )
+
+
 def refresh_review(root: Path = ROOT, review: Path = REVIEW) -> None:
     html, data = load_review(review)
     old_sources = data["sources"]
@@ -424,6 +591,7 @@ def refresh_review(root: Path = ROOT, review: Path = REVIEW) -> None:
         ref["end"] = max(ref["start"], _mapped_line(old, new, ref["end"]))
 
     _mcp_content(data)
+    _projection_poc_content(data)
     embedded_paths = {ref["path"] for ref in data["refs"].values()}
     data["sources"] = {
         path: {
