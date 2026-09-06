@@ -1,7 +1,7 @@
 # UI streamlining recommendation: historical analytics MVP
 
 **Date:** September 5, 2026
-**Status:** In progress — Stories 1–3 implemented September 5, 2026
+**Status:** In progress — Stories 1–6 implemented September 5, 2026
 **Decision:** The visible product should focus on historical analytics for My profile and Competitor teams. Hide 2027 planning and administrative workflows for now; preserve their data and code until the streamlined flow is accepted in production.
 
 ## Recommendation in one sentence
@@ -13,6 +13,14 @@ Replace the current preparation/archive/connection workspace switcher with a sma
 The repository working agreement in [`../AGENTS.md`](../AGENTS.md#ways-of-working) is part of this handoff. For a substantial follow-up, the implementing agent must first use one concise interactive options popup with two or three choices and the built-in free-text field. The popup must summarize the proposed outcome, assumptions, scope and stopping point. Do not replace it with a series of chat questions. If the popup capability is genuinely unavailable, ask one concise text question as the documented fallback.
 
 The navigation and profile-first flow were already approved in the synthetic HTML mock at `/private/tmp/manager-mvp-preview.html`. Reuse that approval if the implementation stays within the flow described here. If an agent proposes a materially different entry point, navigation model or journey, it must return to an HTML mock and obtain explicit UI approval before changing production Angular code.
+
+The Story 6 competitor-comparison refinement was separately approved in
+`/private/tmp/story6-aligned-competitor-comparison-preview.html`. Its single,
+paired comparison board keeps My profile and the selected competitor on matching
+horizontal bands for auction metrics, spending curves and scored category results.
+The further approved `/private/tmp/story6-overlay-chart-heatmap-preview.html`
+refinement overlays the two auction curves on one scale and keeps each profile's
+category history as a separate, same-dimension year-by-category heatmap.
 
 ## Product question and stopping point
 
@@ -207,7 +215,55 @@ It does **not** mean applying CSS concealment, deleting data, dropping tables, r
 
 ### Delivery status — newest first
 
-1. **Follow-on backlog — user feedback (September 5, 2026):**
+1. **Story 6 — League comparison and side-by-side competitor focus (implemented):**
+   - A separate primary destination now owns league-wide cross-manager and
+     cross-year auction-pattern comparison. It owns the HHI, top-one, top-three
+     and low-cost-purchase heatmap; it does not appear inside Competitor teams.
+   - Competitor teams now focuses on choosing one reviewed competitor and comparing
+     that manager directly with My profile, side by side, using the shared
+     historical insight layout and coverage context.
+   - Repeated-player selections and player search are absent from the routine UI.
+     Preserve historical evidence and API calculations for future assistant-guided
+     research; do not delete observations or domain behavior.
+   - Personal question: *How does one selected competitor compare with my completed
+     history, and how do broader league spending patterns differ over time?*
+     Acceptance example: choose a competitor to see aligned My-profile and
+     competitor insights, or switch to League comparison for the all-manager
+     auction heatmap. The approved mock is saved with the Story 6 delivery record.
+2. **Story 5 — Cross-manager, cross-year auction pattern heatmap (implemented):**
+   - Select HHI, top-one share, top-three share or observed $1–$3 purchase count,
+     then compare reviewed managers across every selected completed season.
+   - The bounded historical read model emits eligible manager-season summaries only.
+     The UI renders unavailable evidence as a striped cell, never an observed zero,
+     and selection opens the source, budget, spend and assignment context.
+   - Personal question: *Which manager spending patterns persist, change, or stand
+     out against the league over time?* Acceptance example: choose HHI and compare
+     each reviewed 2026 manager with their prior completed drafts without claiming
+     a missing draft is a low-concentration strategy.
+   - The initial placement in Competitor teams and the collapsed repeated-selection
+     disclosure were useful review steps; Story 6 supersedes that placement and
+     removes repeated selections from the routine UI at the user's request.
+3. **Story 4 — Comparable category finishes and league-wide auction overview (implemented):**
+   - Make the scored-category heatmap more legible across changing league sizes:
+     retain exact average-tie rank, display it as `rank / teams`, and also expose
+     the existing last-to-first percentile. The underlying Python normalization is
+     already league-size-aware; this story makes that context visible rather than
+     replacing the calculation.
+   - The approved high-contrast, jet-inspired heatmap now renders rank / teams
+     and percentile in every populated cell, with an accessible text label and
+     selected-cell evidence. The palette preserves a clear last-to-first direction.
+   - The My profile page now adds a season-selectable league auction overview with
+     top-one share, top-three share, HHI, observed spend and coverage. It supports
+     a focused My-manager/selected-manager comparison and excludes missing draft
+     evidence rather than converting it to zero spend.
+   - Personal question: *How did each completed-season manager distribute observed auction
+     spend, and how does my historical concentration compare with a competitor and
+     the league?* Acceptance example: select 2026 and see all managers with valid
+     observed auction evidence ranked by HHI, then compare two managers with their
+     coverage labels intact.
+4. **Follow-on backlog — user feedback (September 5, 2026):**
+   - Reuse the main app's visual tokens and CSS where practical in future synthetic
+     mock previews, so approval reflects the production visual hierarchy more closely.
    - Make roster-derived evidence language plainer wherever it remains available;
      it must explain what was observed and why it matters before using archive terms.
    - Add an auction-spending comparison that can compare managers and compare one
@@ -216,7 +272,7 @@ It does **not** mean applying CSS concealment, deleting data, dropping tables, r
    - After mapping reconciliation, improve the auction empty state to distinguish
      missing draft records, non-auction rules, incomplete sources and unavailable
      manager attribution. Do not collapse those conditions into one generic message.
-2. **Story 3 — Reviewed historical manager mapping (implemented):** the local,
+5. **Story 3 — Reviewed historical manager mapping (implemented):** the local,
    assistant-operated importer read the existing private alias-review CSV, used
    only confirmed rows, and created/reused aliases plus append-only whole-season
    assignments through the application service. It stopped on missing archive
@@ -224,15 +280,15 @@ It does **not** mean applying CSS concealment, deleting data, dropping tables, r
    now requests every imported season, so historical auction, draft and category
    evidence is not truncated to 2024–2026. Mapping administration remains absent
    from the normal UI. Category detail and compact connection recovery follow.
-3. **Story 2 — Competitor teams (implemented):** other reviewed 2026 manager
+6. **Story 2 — Competitor teams (implemented):** other reviewed 2026 manager
    identities exclude My profile, show their reviewed-evidence seasons, and open
    the same viewer with the provisional 2027-participation label.
-4. **Story 1 — Analytics shell and My profile (implemented):** the root now
+7. **Story 1 — Analytics shell and My profile (implemented):** the root now
    defaults configured sessions to My profile, mounts neither planning nor the
    archive administration shell, and loads profile analytics through a small
    profile page. The existing profile component runs in viewer-only mode so alias,
    mapping and link-review controls are absent from the normal journey.
-5. **Follow-on Story — Category detail and compact connection recovery (next):** move
+8. **Later follow-on — Category detail and compact connection recovery:** move
    the existing direct-team distribution/evidence view behind profile category
    results and complete the contextual reconnect/offline/recovery surface.
 

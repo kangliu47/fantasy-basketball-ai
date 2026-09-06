@@ -114,8 +114,12 @@
     [comparison]="comparison()"
     [comparisonAlias]="comparisonAlias()"
   />
-  <h3 class="section-title">Repeated selections</h3>
-  <p class="muted">Players with observed non-keeper draft selections. Open a player to see the records that support each result.</p>
+  @if (showPlayerResearch()) {
+  <details class="supporting-evidence">
+    <summary>More historical evidence</summary>
+    <p class="muted">Repeated player selections are preserved for investigation, but kept out of the normal profile flow.</p>
+    <h3 class="section-title">Repeated selections</h3>
+    <p class="muted">Players with observed non-keeper draft selections. Open a player to see the records that support each result.</p>
   <mat-form-field appearance="outline" class="full"
     ><mat-label>Find a player</mat-label
     ><input matInput [value]="query()" (input)="query.set($any($event.target).value)"
@@ -207,6 +211,8 @@
   </div>
   @if (visible().length < filtered().length) {
     <button mat-stroked-button (click)="showMore()">Show more players</button>
+  }
+  </details>
   }
   @if (!viewerOnly()) {
   <h3 class="section-title">Category outcomes and roster profiles</h3>

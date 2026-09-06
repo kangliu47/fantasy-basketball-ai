@@ -23,7 +23,7 @@ describe('CompetitorTeamsPage', () => {
     http.verify();
   });
 
-  it('excludes My profile and opens a reviewed 2026 competitor in the shared viewer', async () => {
+  it('aligns My profile with a selected reviewed 2026 competitor', async () => {
     fixture.detectChanges();
     http.expectOne('/api/archive/managers').flush({
       ...managers,
@@ -42,6 +42,9 @@ describe('CompetitorTeamsPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     http
+      .expectOne((request) => request.url.includes(managers.managers[0].id) && request.url.endsWith('/profile'))
+      .flush({ ...profile, manager_id: managers.managers[0].id });
+    http
       .expectOne((request) => request.url.includes(managers.managers[1].id) && request.url.endsWith('/profile'))
       .flush({ ...profile, manager_id: managers.managers[1].id });
     await fixture.whenStable();
@@ -52,6 +55,11 @@ describe('CompetitorTeamsPage', () => {
     expect(text).toContain('Synthetic South');
     expect(text).not.toContain('Synthetic North\n      Reviewed evidence');
     expect(fixture.componentInstance.selected()).toBe(managers.managers[1].id);
+    expect(fixture.nativeElement.querySelectorAll('app-competitor-comparison-board')).toHaveLength(1);
+    expect(text).toContain('Matched historical measures appear on the same row');
+    expect(text).toContain('Top purchase budget share');
+    expect(text).not.toContain('Auction patterns over time');
+    expect(text).not.toContain('Repeated selections');
     expect(text).not.toContain('Archived roster seasons');
   });
 });

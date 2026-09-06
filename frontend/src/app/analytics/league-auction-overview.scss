@@ -1,0 +1,239 @@
+:host {
+  display: block;
+}
+.auction-overview {
+  border-top: 1px solid #dce3d7;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+.overview-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 1.25rem;
+  justify-content: space-between;
+}
+.overview-heading h3 {
+  margin: 0.2rem 0 0.45rem;
+}
+.overview-heading p {
+  margin: 0;
+}
+.overview-heading mat-form-field {
+  min-width: 160px;
+}
+.eyebrow {
+  color: #397050;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.coverage,
+.evidence,
+small {
+  color: #63766a;
+}
+.coverage {
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+.comparison-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0.9rem 0 1.1rem;
+}
+.comparison-grid article {
+  background: #f0f5ed;
+  border-radius: 9px;
+  padding: 0.8rem;
+}
+.comparison-grid span,
+.comparison-grid strong,
+.comparison-grid small,
+th small,
+td small {
+  display: block;
+}
+.comparison-grid span,
+th small,
+td small {
+  font-size: 0.75rem;
+}
+.comparison-grid strong {
+  font-size: 1.25rem;
+  margin: 0.25rem 0;
+}
+.table-scroll {
+  overflow: auto;
+}
+table {
+  border-collapse: collapse;
+  min-width: 650px;
+  width: 100%;
+}
+th,
+td {
+  border-bottom: 1px solid #dce3d7;
+  padding: 0.65rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+thead th {
+  color: #566a5d;
+  font-size: 0.78rem;
+}
+tbody tr.selected {
+  background: #edf5ef;
+}
+th button {
+  margin-left: -0.5rem;
+  min-width: 0;
+  padding: 0 0.5rem;
+}
+.evidence {
+  font-size: 0.78rem;
+  margin: 0.9rem 0 0;
+}
+.pattern-heatmap {
+  border-top: 1px solid #dce3d7;
+  margin-top: 1.7rem;
+  padding-top: 1.5rem;
+}
+.pattern-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 1.25rem;
+  justify-content: space-between;
+}
+.pattern-heading h3 {
+  margin: 0.2rem 0 0.45rem;
+}
+.pattern-heading p {
+  margin: 0;
+}
+.pattern-heading mat-form-field {
+  min-width: 190px;
+}
+.metric-explanation {
+  color: #63766a;
+  font-size: 0.82rem;
+  margin: 0.8rem 0 0;
+}
+.heatmap {
+  border-collapse: separate;
+  border-spacing: 5px;
+  min-width: 700px;
+}
+.heatmap th {
+  border: 0;
+  font-size: 0.78rem;
+  padding: 0.25rem;
+  text-align: center;
+}
+.heatmap th:first-child {
+  min-width: 130px;
+  text-align: left;
+}
+.heatmap td {
+  border: 0;
+  padding: 0;
+}
+.heat-cell {
+  border: 0;
+  border-radius: 6px;
+  color: #132735;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  height: 52px;
+  min-width: 80px;
+  padding: 4px;
+  text-align: center;
+  width: 100%;
+}
+.heat-cell strong,
+.heat-cell small {
+  display: block;
+}
+.heat-cell strong {
+  font-variant-numeric: tabular-nums;
+}
+.heat-cell small {
+  color: inherit;
+  font-size: 0.65rem;
+  margin-top: 0.1rem;
+}
+.heat-cell.heat-dark,
+.heat-cell.heat-dark small {
+  color: #fff;
+}
+.heat-cell.selected {
+  outline: 3px solid #315e92;
+  outline-offset: 1px;
+}
+.heat-cell.unavailable {
+  background: repeating-linear-gradient(135deg, #f1f3ef, #f1f3ef 6px, #e2e8e0 6px, #e2e8e0 12px);
+  color: #63766a;
+  cursor: default;
+  line-height: 1.1;
+  padding-top: 11px;
+}
+.legend {
+  align-items: center;
+  color: #63766a;
+  display: flex;
+  font-size: 0.78rem;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  margin: 0.2rem 0 0.8rem;
+}
+.legend i {
+  background: linear-gradient(
+    90deg,
+    #253494,
+    #225ea8,
+    #1d91c0,
+    #41b6c4,
+    #a1dab4,
+    #ffffbf,
+    #fec44f,
+    #f46d43,
+    #d73027
+  );
+  display: inline-block;
+  height: 8px;
+  width: 100px;
+}
+.pattern-detail {
+  background: #f0f5ed;
+  border-radius: 9px;
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.9rem 0 0;
+  padding: 0.9rem 1rem;
+}
+.pattern-detail span {
+  color: #63766a;
+  font-size: 0.78rem;
+}
+.notice {
+  background: #f5f7f2;
+  border-radius: 9px;
+  color: #63766a;
+  padding: 1rem;
+}
+.error {
+  color: #a13b30;
+}
+@media (max-width: 700px) {
+  .overview-heading {
+    flex-direction: column;
+  }
+  .pattern-heading {
+    flex-direction: column;
+  }
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}

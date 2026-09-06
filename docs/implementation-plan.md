@@ -2,7 +2,7 @@
 
 ## Latest delivery agreement — September 5, 2026, confirmed MVP context
 
-### UI streamlining — Stories 1–3 implemented
+### UI streamlining — Stories 1–6 implemented
 
 The approved profile-first flow is now the active configured-session shell:
 My profile is the default, and planning, archive administration, rosters and
@@ -11,18 +11,51 @@ loads the existing historical read models without alias or mapping controls.
 
 Competitor teams now lists only other reviewed 2026 identities, excludes My
 profile, displays the provisional 2027-participation assumption, and opens the
-same viewer. The normal viewer leads with draft spending, category results and
-repeated non-keeper selections; roster-derived counters and secondary roster
-analysis are not in the first view. The confirmed private alias-review CSV has
+same viewer. The normal viewer leads with draft spending and category results;
+repeated player selections are retained as supporting evidence rather than a
+routine list. Roster-derived counters and secondary roster analysis are not in
+the first view. The confirmed private alias-review CSV has
 now been reconciled through a local assistant-operated importer into append-only
 whole-season historical assignments. The viewer requests every imported season,
-so profile and competitor evidence is attributable across the saved archive. The
-next bounded story is shared category detail and compact connection recovery; the
-backlog records clearer evidence language and cross-manager/cross-draft
-auction-spend comparisons.
+so profile and competitor evidence is attributable across the saved archive.
 
-Focused Angular coverage for the shell, profile viewer and competitor journey
-passes (11 tests). No stored plans, observations, mappings or APIs were removed.
+Story 4 adds rank/team-count and last-to-first percentile labels to the scored
+category heatmap, using the approved high-contrast palette without changing the
+existing average-tie calculation. It also adds a bounded auction-overview read
+model and My profile comparison view: HHI, top-one/top-three share, observed
+spend and source coverage for each reviewed manager with eligible evidence. Missing
+or ineligible evidence remains excluded rather than being represented as zero
+spending.
+
+Story 5 adds the approved cross-manager, cross-year auction pattern heatmap.
+Users select top-one share, top-three share, HHI or observed $1–$3 purchase
+count, then compare reviewed managers across completed seasons. Each cell
+preserves data coverage and distinguishes unavailable evidence from an observed
+zero; selecting a populated cell reveals its spend, source and assignment context.
+Following user review, the heatmap is composed in Competitor teams and repeated
+player selections are collapsed under supporting evidence on individual profiles.
+The UI also defines top purchase budget share in plain language.
+
+Story 6 implements the approved League comparison destination and removes the
+league-wide auction heatmap from Competitor teams. Following the approved
+`/private/tmp/story6-aligned-competitor-comparison-preview.html` refinement,
+Competitor teams now uses one paired comparison board: My profile stays left,
+the selected competitor stays right, and auction metrics align horizontally. The
+approved follow-up comparison visualization overlays both spending curves on the
+same budget-share graph (My profile green, competitor red) and renders two
+same-shape category-by-year heatmaps side by side. On small screens, the paired
+heatmaps scroll horizontally rather than collapsing into a misleading single
+column. Comparison heatmap cells use compact rank/team-size labels (for example,
+`7/13`) without visible percentile text, while accessible labels retain the
+percentile context. Repeated
+selections and search are absent from the routine UI while the historical records
+and API calculations remain preserved.
+
+**Next priority:** shared category detail and compact connection recovery.
+
+Focused Angular coverage for the shell, profile viewer, competitor journey and
+auction overview passes (35 tests). No stored plans, observations, mappings or
+APIs were removed.
 
 **Now:** the approved mock is being delivered as bounded stories. Story 1 adds
 direct completed-season team comparison; Stories 2 and 3 will add the profile

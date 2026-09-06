@@ -20,9 +20,10 @@
     @if (!state.selection) {
       <section class="setup-grid"><div class="setup-card"><h2>Connect your league</h2><p>Save league details, then sign in through the dedicated ESPN browser.</p><app-league-setup [selection]="state.selection" [busy]="store.busy()" (saved)="store.save($event)" /></div></section>
     } @else {
-      <nav class="workspace-nav" aria-label="Analytics navigation"><button mat-button [class.nav-active]="activeSection() === 'profile'" (click)="section.set('profile')">My profile</button><button mat-button [class.nav-active]="activeSection() === 'competitors'" (click)="section.set('competitors')">Competitor teams</button></nav>
+      <nav class="workspace-nav" aria-label="Analytics navigation"><button mat-button [class.nav-active]="activeSection() === 'profile'" (click)="section.set('profile')">My profile</button><button mat-button [class.nav-active]="activeSection() === 'competitors'" (click)="section.set('competitors')">Competitor teams</button><button mat-button [class.nav-active]="activeSection() === 'league'" (click)="section.set('league')">League comparison</button></nav>
       @if (activeSection() === 'profile') { <app-my-profile-page [leagueId]="state.selection.league_id" /> }
       @if (activeSection() === 'competitors') { <app-competitor-teams-page [leagueId]="state.selection.league_id" /> }
+      @if (activeSection() === 'league') { <app-league-comparison-page [leagueId]="state.selection.league_id" /> }
       @if (activeSection() === 'connection') { <section class="setup-grid"><div class="connection-card"><h2>{{ connectionLabel() }}</h2><p>Saved analytics stays available on this Mac. Sign in only when reconnecting or refreshing.</p><button mat-flat-button [disabled]="store.busy()" (click)="store.connect()">{{ state.connection === 'disconnected' ? 'Connect ESPN' : 'Reconnect ESPN' }}</button></div></section> }
     }
   }

@@ -4,7 +4,11 @@
 
 The confirmed MVP uses My manager profile and Competitor teams as its two primary
 views, with ESPN sign-in/refresh supporting historical spend, repeated-selection
-and category-result insights. Reviewed local CSV mappings are setup input; 2027
+and category-result insights. The Competitor teams page composes two profile read
+models into one presentational comparison board; it aligns equivalent auction
+measures in an overlaid two-line graph and category results in two same-dimension
+heatmaps without introducing a new API or calculation layer.
+Reviewed local CSV mappings are setup input; 2027
 participation copied from 2026 is a separate provisional assumption, never an
 imported 2027 team record. The approved viewer composition is now implemented as
 small Angular pages that reuse the existing typed archive read API. A local-only,
@@ -223,13 +227,14 @@ now extend the observation model. The original snapshot tables remain intact.
 | Module | Domain meaning | Application responsibilities |
 | --- | --- | --- |
 | `domain/history/models.py` | SeasonArchive, Observation, Coverage, Rules, Team, Player, DraftPick, Manager, Assignment | No provider, framework or storage dependencies |
-| `domain/history/analysis.py` | Player frequency, category results, overlap, position mix and evidence | Pure functions apply coverage and reviewed attribution |
+| `domain/history/analysis.py` | Player frequency, category results, auction concentration, overlap, position mix and evidence | Pure functions apply coverage and reviewed attribution |
 | `domain/history/patterns.py` | Season references and league-wide selection evidence | Keep seasons/rules separate; show unresolved identities |
 | `application/history/` | Import jobs and archival selection | Discover/start/cancel/resume, select saved data, review identities, recompute profiles |
 | `infrastructure/history_*` | ESPN translation and DuckDB implementation | Validate identities/stat context, tokenize references, persist checkpoints and revisions |
 | `infrastructure/legacy_history.py` | Separate 2017 leagueHistory response contract | Select the matching league/year; bounded player metadata reads |
-| `interfaces/http/history_*` | Typed archive routes/DTOs | Validate bounded inputs, omit private identity tokens, expose safe errors |
-| `frontend/src/app/archive/` | Lazy Material archive workspace | Import progress, seasons, manager forms, evidence and league patterns |
+| `interfaces/http/history_*` | Typed archive routes/DTOs, including bounded auction overview | Validate bounded inputs, omit private identity tokens, expose safe errors |
+| `frontend/src/app/archive/` | Historical profile components and typed API client | Profiles and sourced evidence remain separate from app navigation |
+| `frontend/src/app/analytics/` | Visible MVP destinations | My profile, side-by-side competitor comparison and league-wide auction patterns |
 
 These are modules inside one local app. Draft planning is described in the final
 section below.
@@ -357,9 +362,12 @@ ranks, medians and makes/attempts aggregation. FastAPI supplies typed results;
 Angular handles selection, display scales and evidence drill-down without
 recomputing fantasy rankings, auction metrics or ratio aggregation.
 
-The manager profile uses a native SVG cumulative-spend curve and an HTML category
-heatmap, while retaining accessible purchase and category tables. It is lazy-loaded
-with the archive feature and adds no chart dependency. Visuals consume saved
+The manager profile uses a native SVG cumulative-spend curve, a high-contrast HTML
+category heatmap with rank/team-count and percentile context, a bounded league-wide
+auction-concentration table, and a cross-manager/cross-year auction heatmap.
+The latter requests one bounded historical read model and represents missing eligible
+evidence as unavailable rather than zero. The profile retains accessible purchase and
+category tables, consumes saved observations only, and adds no chart dependency. Visuals consume saved
 observations through application ports; they never issue raw SQL, load ESPN
 payloads or open another DuckDB writer. Comparisons retain missingness,
 incompatible rules and historical basis.

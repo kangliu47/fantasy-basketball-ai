@@ -6,6 +6,7 @@ import { WorkspaceStore } from './core/workspace-store';
 import { LeagueSetup } from './league-setup/league-setup';
 import { MyProfilePage } from './analytics/my-profile-page';
 import { CompetitorTeamsPage } from './analytics/competitor-teams-page';
+import { LeagueComparisonPage } from './analytics/league-comparison-page';
 
 @Component({
   selector: 'app-root',
@@ -16,12 +17,13 @@ import { CompetitorTeamsPage } from './analytics/competitor-teams-page';
     LeagueSetup,
     MyProfilePage,
     CompetitorTeamsPage,
+    LeagueComparisonPage,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
-  readonly section = signal<'profile' | 'competitors' | 'connection'>('profile');
+  readonly section = signal<'profile' | 'competitors' | 'league' | 'connection'>('profile');
   readonly activeSection = computed(() =>
     this.store.state()?.selection ? this.section() : 'connection',
   );

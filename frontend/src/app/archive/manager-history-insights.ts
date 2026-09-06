@@ -82,10 +82,46 @@ export class ManagerHistoryInsights {
     return profile.categories.find((row) => row.season === season && row.category === category);
   }
 
-  finishOpacity(row: CategoryResult | undefined) {
-    return row?.normalized_finish === null || row?.normalized_finish === undefined
-      ? 0
-      : 0.14 + row.normalized_finish * 0.46;
+  finishColor(row: CategoryResult | undefined) {
+    const colors = [
+      '#253494',
+      '#225ea8',
+      '#1d91c0',
+      '#41b6c4',
+      '#a1dab4',
+      '#ffffbf',
+      '#fec44f',
+      '#f46d43',
+      '#d73027',
+    ];
+    if (row?.normalized_finish === null || row?.normalized_finish === undefined) return '#f5f7f2';
+    return colors[Math.round(row.normalized_finish * (colors.length - 1))];
+  }
+
+  finishIsDark(row: CategoryResult | undefined) {
+    const normalized = row?.normalized_finish;
+    return normalized !== null && normalized !== undefined && (normalized < 0.25 || normalized > 0.8);
+  }
+
+  finishRank(row: CategoryResult | undefined) {
+    if (!row || row.rank === null) return '—';
+    return (Number.isInteger(row.rank) ? row.rank.toFixed(0) : row.rank) + ' / ' + row.team_count;
+  }
+
+  finishPercentile(row: CategoryResult | undefined) {
+    if (!row || row.normalized_finish === null) return 'Unavailable';
+    const value = Math.round(row.normalized_finish * 100);
+    const suffix =
+      value % 100 >= 11 && value % 100 <= 13
+        ? 'th'
+        : value % 10 === 1
+          ? 'st'
+          : value % 10 === 2
+            ? 'nd'
+            : value % 10 === 3
+              ? 'rd'
+              : 'th';
+    return value + suffix + ' percentile';
   }
 
   selectCategory(row: CategoryResult | undefined) {

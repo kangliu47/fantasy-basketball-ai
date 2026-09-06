@@ -13,6 +13,13 @@
         </button>
       }
     </div>
-    <app-manager-profiles [data]="data()" [seasons]="catalog().imported_seasons" [leagueId]="leagueId()" [managerId]="selected()" [viewerOnly]="true" />
+    @if (data().my_manager_id && selected()) {
+      <app-competitor-comparison-board
+        [data]="data()"
+        [seasons]="catalog().imported_seasons"
+        [myManagerId]="data().my_manager_id!"
+        [competitorId]="selected()"
+      />
+    }
   }
 </section>

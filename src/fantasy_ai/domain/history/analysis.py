@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from statistics import median
 
-from .models import Assignment, Category, CoverageStatus, Dataset, SeasonArchive
+from .models import Assignment, Category, CoverageStatus, Dataset, Manager, SeasonArchive
 
 ANALYSIS_VERSION = "manager-history-2"
 
@@ -90,6 +90,42 @@ class ManagerAuctionSeason:
     retrieved_at: datetime
     assignment_revision: int
     shared_management: bool
+
+
+@dataclass(frozen=True)
+class AuctionOverviewRow:
+    """One manager's attributable observed auction spend for a single season."""
+
+    manager_id: str
+    manager_alias: str
+    season: int
+    team_name: str
+    budget: float
+    observed_spend: float
+    top_one_share: float
+    top_three_share: float
+    hhi: float
+    count_one_to_three: int
+    draft_coverage: CoverageStatus
+    observation_id: str
+    retrieved_at: datetime
+    assignment_revision: int
+    shared_management: bool
+
+
+@dataclass(frozen=True)
+class AuctionOverview:
+    season: int
+    reviewed_manager_count: int
+    observed_manager_count: int
+    rows: tuple[AuctionOverviewRow, ...]
+
+
+@dataclass(frozen=True)
+class AuctionPatterns:
+    seasons: tuple[int, ...]
+    reviewed_manager_count: int
+    rows: tuple[AuctionOverviewRow, ...]
 
 
 @dataclass(frozen=True)
@@ -243,6 +279,83 @@ def auction_season(archive: SeasonArchive, assignment: Assignment) -> ManagerAuc
         source.retrieved_at,
         assignment.revision,
         len(assignment.manager_ids) > 1,
+    )
+
+
+def auction_overview(
+    archive: SeasonArchive,
+    assignments: tuple[Assignment, ...],
+    managers: tuple[Manager, ...],
+) -> AuctionOverview:
+    """Compare reviewed managers without treating missing draft evidence as zero spend."""
+    aliases = {manager.id: manager.alias for manager in managers}
+    rows: list[AuctionOverviewRow] = []
+    represented: set[str] = set()
+    reviewed = {
+        manager_id
+        for assignment in assignments
+        if assignment.league_id == archive.league_id and assignment.season == archive.season
+        for manager_id in assignment.manager_ids
+        if manager_id in aliases
+    }
+    for assignment in assignments:
+        if assignment.league_id != archive.league_id or assignment.season != archive.season:
+            continue
+        summary = auction_season(archive, assignment)
+        if summary is None:
+            continue
+        for manager_id in assignment.manager_ids:
+            alias = aliases.get(manager_id)
+            if alias is None or manager_id in represented:
+                continue
+            represented.add(manager_id)
+            rows.append(
+                AuctionOverviewRow(
+                    manager_id,
+                    alias,
+                    summary.season,
+                    summary.team_name,
+                    summary.budget,
+                    summary.observed_spend,
+                    summary.top_one_share,
+                    summary.top_three_share,
+                    summary.hhi,
+                    summary.count_one_to_three,
+                    summary.draft_coverage,
+                    summary.observation_id,
+                    summary.retrieved_at,
+                    summary.assignment_revision,
+                    summary.shared_management,
+                )
+            )
+    rows.sort(key=lambda row: (-row.hhi, row.manager_alias.casefold()))
+    return AuctionOverview(archive.season, len(reviewed), len(rows), tuple(rows))
+
+
+def auction_patterns(
+    archives: tuple[SeasonArchive, ...],
+    assignments: tuple[Assignment, ...],
+    managers: tuple[Manager, ...],
+) -> AuctionPatterns:
+    """Compare the most-recent reviewed manager cohort across historical seasons."""
+    if not archives:
+        return AuctionPatterns((), 0, ())
+    reference = archives[0]
+    reviewed = {
+        manager_id
+        for assignment in assignments
+        if assignment.league_id == reference.league_id and assignment.season == reference.season
+        for manager_id in assignment.manager_ids
+    }
+    rows: list[AuctionOverviewRow] = []
+    for archive in archives:
+        overview = auction_overview(archive, assignments, managers)
+        rows.extend(row for row in overview.rows if row.manager_id in reviewed)
+    rows.sort(key=lambda row: (row.manager_alias.casefold(), -row.season))
+    return AuctionPatterns(
+        tuple(archive.season for archive in archives),
+        len(reviewed),
+        tuple(rows),
     )
 
 

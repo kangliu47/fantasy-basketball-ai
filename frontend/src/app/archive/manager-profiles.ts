@@ -44,6 +44,7 @@ export class ManagerProfiles {
   readonly seasons = input.required<number[]>();
   readonly leagueId = input.required<number>();
   readonly viewerOnly = input(false);
+  readonly showPlayerResearch = input(false);
   readonly managerId = input<string | null>(null);
   readonly changed = output<void>();
   readonly reviewLinks = output<void>();

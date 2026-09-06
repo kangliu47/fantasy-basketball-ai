@@ -1,0 +1,68 @@
+<section class="comparison-board" aria-labelledby="comparison-title">
+  <div class="board-heading">
+    <div>
+      <p class="eyebrow">Selected comparison</p>
+      <h3 id="comparison-title">{{ myAlias() }} and {{ competitorAlias() }}</h3>
+      <p>Matched historical measures appear on the same row. They describe completed seasons, not a 2027 prediction.</p>
+    </div>
+    <div class="profile-headings" aria-hidden="true">
+      <span>My profile</span><span>{{ competitorAlias() }}</span>
+    </div>
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
+
+  @if (mine() && competitor()) {
+    <section class="comparison-section" aria-labelledby="auction-comparison-title">
+      <div class="section-heading">
+        <div>
+          <h4 id="auction-comparison-title">Auction spending</h4>
+          <p>Each curve orders non-keeper purchases from most to least expensive.</p>
+        </div>
+        @if (auctionSeasons().length > 1) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Auction season</mat-label>
+            <mat-select [value]="selectedAuctionSeason()" (selectionChange)="selectedAuctionSeason.set($event.value)">
+              @for (season of auctionSeasons(); track season) { <mat-option [value]="season">{{ season }}</mat-option> }
+            </mat-select>
+          </mat-form-field>
+        }
+      </div>
+      <div class="auction-legend"><span><i class="mine-key"></i>{{ myAlias() }} · my profile</span><span><i class="competitor-key"></i>{{ competitorAlias() }}</span></div>
+      <div class="paired-columns metrics-only">
+        <article class="profile-column mine-column"><h5>My profile · {{ myAlias() }}</h5>@if (myAuction(); as auction) { <div class="metric-grid"><div><span>Top purchase</span><strong>{{ auction.top_one_share | percent: '1.0-1' }}</strong></div><div><span>Top three</span><strong>{{ auction.top_three_share | percent: '1.0-1' }}</strong></div><div><span>Concentration (HHI)</span><strong>{{ auction.hhi | number: '1.3-3' }}</strong></div></div> } @else { <p class="empty">No attributable auction purchases are available for this season.</p> }</article>
+        <article class="profile-column competitor-column"><h5>{{ competitorAlias() }}</h5>@if (competitorAuction(); as auction) { <div class="metric-grid"><div><span>Top purchase</span><strong>{{ auction.top_one_share | percent: '1.0-1' }}</strong></div><div><span>Top three</span><strong>{{ auction.top_three_share | percent: '1.0-1' }}</strong></div><div><span>Concentration (HHI)</span><strong>{{ auction.hhi | number: '1.3-3' }}</strong></div></div> } @else { <p class="empty">No attributable auction purchases are available for this season.</p> }</article>
+      </div>
+      @if (myAuction() || competitorAuction()) {
+        <figure class="overlay-curve">
+          <svg viewBox="0 0 720 245" role="img" [attr.aria-label]="myAlias() + ' and ' + competitorAlias() + ' observed cumulative auction spend'">
+            <line x1="50" y1="35" x2="675" y2="35" class="grid" /><line x1="50" y1="110" x2="675" y2="110" class="grid" /><line x1="50" y1="185" x2="675" y2="185" class="axis" />
+            <text x="8" y="40">100%</text><text x="15" y="115">50%</text><text x="28" y="190">0%</text>
+            @if (myAuction(); as auction) { <path [attr.d]="curvePath(auction)" class="spend-line mine-line" /> @for (point of curvePoints(auction); track point.purchase.player_id) { <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" class="mine-point"><title>{{ myAlias() }} · {{ point.purchase.player_name }} · ${{ point.purchase.price | number: '1.0-2' }}</title></circle> } }
+            @if (competitorAuction(); as auction) { <path [attr.d]="curvePath(auction)" class="spend-line competitor-line" /> @for (point of curvePoints(auction); track point.purchase.player_id) { <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" class="competitor-point"><title>{{ competitorAlias() }} · {{ point.purchase.player_name }} · ${{ point.purchase.price | number: '1.0-2' }}</title></circle> } }
+            <text x="50" y="215">0</text><text x="675" y="215" text-anchor="end">purchases, highest price → lowest price</text>
+          </svg>
+          <figcaption>{{ selectedAuctionSeason() }} · both lines use the same 0–100% configured-budget scale.</figcaption>
+        </figure>
+      }
+      <p class="metric-explainer"><strong>Top purchase budget share</strong> is the portion of the configured auction budget spent on the most expensive observed non-keeper purchase. Top three is the combined share of the three most expensive purchases; HHI shows how concentrated all observed spending was.</p>
+    </section>
+
+    @if (categoryCodes().length && categorySeasons().length) {
+      <section class="comparison-section" aria-labelledby="category-comparison-title">
+        <div class="section-heading">
+          <div>
+            <h4 id="category-comparison-title">Scored category finish history</h4>
+            <p>Each compact cell shows rank/league size. Matching cells share the same season and category.</p>
+          </div>
+        </div>
+        <div class="category-scroll"><div class="heatmap-pair">
+          <article class="heatmap-card"><h5>My profile · {{ myAlias() }}</h5><table class="category-heatmap"><thead><tr><th>Year</th>@for (code of categoryCodes(); track code) { <th>{{ code }}</th> }</tr></thead><tbody>@for (season of categorySeasons(); track season) { <tr><th>{{ season }}</th>@for (code of categoryCodes(); track code) { @let row = category(mine(), season, code); <td><span class="finish-cell" [class.heat-dark]="finishIsDark(row)" [style.background]="finishColor(row)" [attr.aria-label]="code + ' ' + season + ', rank ' + finishRank(row) + ', ' + finishPercentile(row)"><strong>{{ finishRank(row) }}</strong></span></td> }</tr> }</tbody></table></article>
+          <article class="heatmap-card"><h5>{{ competitorAlias() }}</h5><table class="category-heatmap"><thead><tr><th>Year</th>@for (code of categoryCodes(); track code) { <th>{{ code }}</th> }</tr></thead><tbody>@for (season of categorySeasons(); track season) { <tr><th>{{ season }}</th>@for (code of categoryCodes(); track code) { @let row = category(competitor(), season, code); <td><span class="finish-cell" [class.heat-dark]="finishIsDark(row)" [style.background]="finishColor(row)" [attr.aria-label]="code + ' ' + season + ', rank ' + finishRank(row) + ', ' + finishPercentile(row)"><strong>{{ finishRank(row) }}</strong></span></td> }</tr> }</tbody></table></article>
+        </div></div>
+        <div class="legend"><span>Last</span><i></i><span>First · rank/teams</span></div>
+      </section>
+    }
+  }
+</section>

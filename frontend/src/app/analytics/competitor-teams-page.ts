@@ -5,11 +5,11 @@ import { forkJoin } from 'rxjs';
 import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import { Catalog, ManagerData } from '../archive/archive.models';
-import { ManagerProfiles } from '../archive/manager-profiles';
+import { CompetitorComparisonBoard } from './competitor-comparison-board';
 
 @Component({
   selector: 'app-competitor-teams-page',
-  imports: [MatButtonModule, MatProgressBarModule, ManagerProfiles],
+  imports: [MatButtonModule, MatProgressBarModule, CompetitorComparisonBoard],
   templateUrl: './competitor-teams-page.html',
 })
 export class CompetitorTeamsPage {
