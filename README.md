@@ -11,13 +11,16 @@ See the [scope and next delivery](docs/personal-product-direction.md) and
 [project learning journal](docs/learnings/README.md). This is a roadmap update;
 the app workflows below describe the existing implementation.
 
-## Explore the architecture
+## Explore the public showcase
 
-**[Open the interactive architecture review](https://kangliu47.github.io/fantasy-basketball-ai/)**
+**[Open the Fantasy Basketball Intelligence showcase](https://kangliu47.github.io/fantasy-basketball-ai/)**
 
-Explore layer connections, request flows, source evidence and design decisions.
-The page runs entirely in your browser. Review notes stay in that browser and can
-be exported as JSON; they are not shared with the repository owner.
+Choose the synthetic [application preview](https://kangliu47.github.io/fantasy-basketball-ai/app-preview.html),
+the approved [analytics UI review](https://kangliu47.github.io/fantasy-basketball-ai/analytics-ui-review.html),
+or the source-backed [architecture review](https://kangliu47.github.io/fantasy-basketball-ai/architecture-review.html).
+Together they show the current product experience, the next proposed analytics
+interaction and the implementation boundaries. The accepted organization and
+maintenance rules are in the [showcase strategy](docs/showcase-strategy.md).
 
 This public repository contains application code and synthetic test fixtures.
 Each fresh clone starts without league data, credentials or personal plans.
@@ -158,8 +161,8 @@ the delivered 2027 preparation workspace and follow its links into historical
 evidence and reviewed manager profiles. Live standings and move scenarios follow
 new-season data readiness. The [implementation plan](docs/implementation-plan.md) records acceptance
 and the next batch. [Deployment options and ROI](docs/deployment-options.md)
-compare a future single-league application demo. GitHub Pages publishes the static
-architecture review; the connected application continues to run locally.
+compare a future single-league application demo. GitHub Pages publishes the
+static project showcase; the connected application continues to run locally.
 
 ## Developer setup
 

@@ -1,9 +1,12 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 40](#40-approved-personal-manager-flow-and-first-delivery-slice--2026-09-05)
-> defines the confirmed My profile / Competitor teams MVP and historical insights.
-> The approved flow is being delivered in three bounded stories; see the
-> [implementation plan](implementation-plan.md).
+> **Current scope:** [amendment 42](#42-three-part-public-showcase--accepted-publication-direction-2026-09-06)
+> publishes the approved historical category-pattern mock as a clearly labeled UI
+> review beside the current app preview and architecture review. Amendment 41
+> defines the documentation-only analytics design for manager category patterns
+> and league category pressure. See the
+> [historical category patterns design](historical-category-patterns-design.md)
+> and [implementation plan](implementation-plan.md).
 > 2026 is completed; 2027 remains the planning target. See the concise
 > [personal-product direction](personal-product-direction.md).
 
@@ -12,6 +15,44 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 42. Three-part public showcase — accepted publication direction, 2026-09-06
+
+The user approved the historical category-pattern mock and chose to publish it
+from `main` for teammate review and education. GitHub Pages should now open on a
+small showcase directory with three distinct destinations: the current synthetic
+application preview, the approved analytics UI review and the source-backed
+architecture review.
+
+The pages must distinguish what is currently demonstrated, what is an approved
+future direction and what reflects the reviewed implementation. Publishing the
+mock does not authorize or claim production analytics implementation. All public
+examples remain synthetic and the connected application, league data, manager
+mappings, credentials and personal plans remain local. The maintained information
+architecture and release rules are in
+[showcase-strategy.md](showcase-strategy.md).
+
+# 41. Historical category patterns — confirmed design boundary, 2026-09-05
+
+The user confirmed that 2027 projections and a verified future player pool will
+be added later. The next analytical design therefore remains descriptive and
+uses completed-season evidence only. It should explain each reviewed manager's
+category outcome level and relative emphasis, the historical separation between
+league ranks, and recurring category relationships or trade-offs.
+
+The design deliberately distinguishes historical category pressure from true
+player-pool scarcity. Final results do not prove draft intent, a deliberate punt,
+future production or acquisition cost. Historical findings may generate questions
+for a later draft strategy, but they do not produce an optimal category target or
+2027 recommendation without dated projections, a verified pool, replacement
+levels and draft-state constraints.
+
+The detailed metrics, evidence rules, proposed report contract, user experience,
+future delivery sequence and acceptance examples are in the
+[historical category patterns design](historical-category-patterns-design.md).
+This amendment and report contain no runtime implementation. A later frontend
+request must use the required upfront interactive confirmation and HTML mock
+review before production UI changes.
 
 # 40. Approved personal manager flow and first delivery slice — 2026-09-05
 

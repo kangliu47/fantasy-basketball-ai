@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Fantasy Basketball Intelligence showcase: application preview, analytics UI review, and architecture review." />
+  <meta name="color-scheme" content="light" />
+  <title>Fantasy Basketball Intelligence · Showcase</title>
+  <style>
+    :root {
+      color: #17372f;
+      background: #f3f6f1;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --ink: #17372f;
+      --muted: #60736a;
+      --line: #d7e0d9;
+      --paper: #ffffff;
+      --soft: #e8f0ea;
+      --accent: #c75f2a;
+      --green: #2c6b53;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    a { color: inherit; }
+    a:focus-visible { outline: 3px solid #24765a; outline-offset: 4px; }
+    .topbar {
+      align-items: center;
+      background: rgba(255, 255, 255, .94);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      padding: 18px max(5vw, 22px);
+    }
+    .brand { font-size: 17px; font-weight: 760; letter-spacing: -.02em; }
+    .brand small { color: var(--muted); display: block; font-size: 11px; font-weight: 600; letter-spacing: .09em; margin-top: 2px; text-transform: uppercase; }
+    .repo { color: var(--green); font-size: 14px; font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+    main { margin: 0 auto; max-width: 1180px; padding: 64px max(5vw, 22px) 76px; }
+    .eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .13em; margin: 0 0 12px; text-transform: uppercase; }
+    h1 { font-size: clamp(36px, 6vw, 68px); letter-spacing: -.055em; line-height: 1.01; margin: 0; max-width: 900px; }
+    .intro { color: var(--muted); font-size: clamp(17px, 2.1vw, 21px); line-height: 1.6; margin: 24px 0 42px; max-width: 790px; }
+    .routes { display: grid; gap: 18px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .route {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 360px;
+      padding: 25px;
+      text-decoration: none;
+      transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+    }
+    .route:hover { border-color: #9bb1a3; box-shadow: 0 12px 34px rgba(35, 63, 50, .08); transform: translateY(-3px); }
+    .route-number { color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+    h2 { font-size: 26px; letter-spacing: -.035em; line-height: 1.12; margin: 18px 0 12px; }
+    .route p { color: var(--muted); font-size: 15px; line-height: 1.55; margin: 0; }
+    .route ul { color: var(--ink); font-size: 14px; line-height: 1.5; margin: 21px 0 26px; padding-left: 19px; }
+    .route li { margin: 7px 0; }
+    .route-footer { align-items: center; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: space-between; margin-top: auto; padding-top: 17px; }
+    .status { background: var(--soft); border-radius: 999px; color: var(--green); font-size: 11px; font-weight: 750; padding: 6px 9px; }
+    .open { color: var(--green); font-size: 14px; font-weight: 800; }
+    .boundary { border-top: 1px solid var(--line); display: grid; gap: 28px; grid-template-columns: .9fr 2fr; margin-top: 50px; padding-top: 30px; }
+    .boundary h2 { font-size: 20px; margin: 0; }
+    .boundary p { color: var(--muted); line-height: 1.65; margin: 0; }
+    footer { color: var(--muted); font-size: 12px; margin-top: 46px; }
+    @media (max-width: 880px) {
+      main { padding-top: 48px; }
+      .routes { grid-template-columns: 1fr; }
+      .route { min-height: 0; }
+      .boundary { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { .route { transition: none; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Fantasy Basketball Intelligence<small>Project showcase</small></div>
+    <a class="repo" href="https://github.com/kangliu47/fantasy-basketball-ai">GitHub repository</a>
+  </header>
+  <main>
+    <p class="eyebrow">Explore · Review · Understand</p>
+    <h1>One analytics product, shown at three levels.</h1>
+    <p class="intro">Use the working preview to experience the current direction, the UI review to discuss the next analytics slice, and the architecture review to learn how the local-first system protects its boundaries.</p>
+
+    <section class="routes" aria-label="Showcase sections">
+      <a class="route" href="app-preview.html">
+        <span class="route-number">01 · EXPLORE</span>
+        <h2>Application preview</h2>
+        <p>Experience the streamlined, read-only historical analytics journey with realistic synthetic examples.</p>
+        <ul>
+          <li>My historical manager profile</li>
+          <li>Competitor comparison</li>
+          <li>League-wide auction patterns</li>
+        </ul>
+        <span class="route-footer"><span class="status">Current demo</span><span class="open">Open preview →</span></span>
+      </a>
+
+      <a class="route" href="analytics-ui-review.html">
+        <span class="route-number">02 · REVIEW</span>
+        <h2>Analytics UI review</h2>
+        <p>Review the approved concept for explaining manager category tendencies and historical category pressure.</p>
+        <ul>
+          <li>Scan manager patterns</li>
+          <li>Inspect season evidence</li>
+          <li>Compare historical category pressure</li>
+        </ul>
+        <span class="route-footer"><span class="status">Approved direction</span><span class="open">Open review →</span></span>
+      </a>
+
+      <a class="route" href="architecture-review.html">
+        <span class="route-number">03 · UNDERSTAND</span>
+        <h2>Architecture review</h2>
+        <p>Study the application layers, request flows, source evidence, safeguards, and recorded design decisions.</p>
+        <ul>
+          <li>Interactive feature maps</li>
+          <li>Source-backed request flows</li>
+          <li>Local-first privacy boundaries</li>
+        </ul>
+        <span class="route-footer"><span class="status">Technical evidence</span><span class="open">Open review →</span></span>
+      </a>
+    </section>
+
+    <section class="boundary" aria-labelledby="public-boundary-title">
+      <h2 id="public-boundary-title">Public showcase boundary</h2>
+      <p>These pages are static teaching and review artifacts. They use synthetic data and do not connect to ESPN, expose a database, or contain local manager mappings, credentials, private league records, or personal planning notes. The connected application continues to run only on the owner’s computer.</p>
+    </section>
+    <footer>Updated September 2026 · Static pages with no login, tracking, or application API.</footer>
+  </main>
+</body>
+</html>

@@ -2,7 +2,25 @@
 
 Evidence refers to the [conversation source register](README.md#conversation-sources).
 The interpretations and practices below are assistant synthesis; the personal
-pivot and historical-results priority are explicit user decisions.
+pivot, historical-results priority and public showcase structure are explicit
+user decisions.
+
+## 2026-09-06 — Show the product at distinct levels
+
+**Conversation evidence — S9:** After approving the historical category-pattern
+mock, the user chose to publish it on `main` and organize GitHub Pages into an
+application preview, a UI review and an architecture review for teammates and
+educational use.
+
+**Synthesis:** A single public artifact cannot clearly communicate current
+behavior, a proposed interaction and implementation evidence at the same time.
+Giving each a separate destination makes their status legible and lets a viewer
+choose the depth appropriate to their question.
+
+**Practice — accepted showcase:** Use a small directory page organized around
+**explore, review and understand**. Label current demos, approved concepts and
+technical snapshots distinctly. Keep future mockups separate from the current
+application preview and retain the synthetic-only public boundary.
 
 ## 2026-09-05 — Reset the journey around one person and a few questions
 

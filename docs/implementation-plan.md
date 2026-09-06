@@ -1,5 +1,35 @@
 # Implementation plan
 
+## Public showcase delivery — September 6, 2026
+
+The user approved the historical category-pattern mock for public design review.
+Publish a three-part GitHub Pages showcase from `main`: a synthetic current-app
+preview, the approved analytics UI concept and the source-backed architecture
+review. The site root is the directory for those destinations. Status language
+must keep proposed UI separate from implemented behavior, and publication remains
+limited to audited static HTML and synthetic data. See
+[showcase-strategy.md](showcase-strategy.md) and PRD amendment 42.
+
+This publication is documentation and review infrastructure. It does not
+implement the historical category metrics in the local application.
+
+## Next confirmed design boundary — September 5, 2026
+
+The next product question is historical and descriptive: summarize each reviewed
+manager's category outcome level and relative emphasis, measure historical league
+rank-gap pressure, and show recurring category relationships across completed
+seasons. The user confirmed that 2027 projections and true player-pool scarcity
+belong to a later phase.
+
+The design is documented in
+[historical category patterns](historical-category-patterns-design.md) and PRD
+amendment 41. No implementation is authorized by that documentation pass. Before
+production frontend work, use the required interactive context confirmation and
+review a synthetic HTML mock of the bounded League comparison journey. The prior
+next-priority note about shared category detail remains useful implementation
+context, but this confirmed analytical boundary governs what that detail should
+explain.
+
 ## Latest delivery agreement — September 5, 2026, confirmed MVP context
 
 ### UI streamlining — Stories 1–6 implemented

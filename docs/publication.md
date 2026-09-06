@@ -1,24 +1,28 @@
-# Public repository and architecture review
+# Public repository and project showcase
 
 The [GitHub repository](https://github.com/kangliu47/fantasy-basketball-ai) contains
 the application source, dependency locks, synthetic tests and documentation.
-The [interactive review](https://kangliu47.github.io/fantasy-basketball-ai/) is a
-self-contained HTML snapshot of the architecture and selected source evidence.
+The [public showcase](https://kangliu47.github.io/fantasy-basketball-ai/) is a
+directory for the synthetic application preview, the approved analytics UI
+review and the self-contained architecture review. The accepted presentation
+strategy is recorded in [showcase-strategy.md](showcase-strategy.md).
 
 ## What is published
 
-GitHub Pages serves `docs/architecture-review.html` as both `/index.html` and
-`/architecture-review.html` beneath the repository's site URL. Its diagrams,
-request flows, source viewer and decision forms run in the browser without an API.
-Review notes use browser-local storage and a JSON export; collaborators do not
-automatically share notes. The source fingerprint identifies the reviewed version.
+GitHub Pages publishes four explicit static documents:
 
-GitHub Pages publishes `docs/feedback-demo.html` as the root page for review.
-That self-contained
-feedback site is explicitly synthetic: it contains invented aliases, auction
-budgets, purchase distributions, category finishes and league patterns. It does
-not load local records, call an API, or ship an exported database. The architecture
-review remains available as `/architecture-review.html`.
+- `docs/index.html` as the showcase home at `/`;
+- `docs/app-preview.html` at `/app-preview.html`;
+- `docs/analytics-ui-review.html` at `/analytics-ui-review.html`; and
+- `docs/architecture-review.html` at `/architecture-review.html`.
+
+The application preview and UI review use invented aliases, auction budgets,
+purchase distributions, category finishes and league patterns. The UI review is
+an approved design direction, not a claim that its analytics are implemented.
+The architecture review's diagrams, request flows, source viewer and decision
+forms run in the browser without an API. Review notes use browser-local storage
+and a JSON export; collaborators do not automatically share notes. Its source
+fingerprint identifies the reviewed version.
 
 The Pages workflow copies only the selected static HTML into its deployment
 artifact. It does not start FastAPI, connect to ESPN or provision an application
@@ -49,9 +53,10 @@ is safe: review each proposed diff before pushing, including screenshots and dat
    The installed pre-commit hook runs this same check against staged blobs.
 4. Run Gitleaks against the complete proposed Git history before pushing. Use
    `gitleaks git . --log-opts=--all --redact=100 --no-banner` after committing.
-5. Push `main` to publish the synthetic demo. GitHub Actions repeats the
-   privacy/history checks, then publishes the checked-in HTML. It does not regenerate the source snapshot inside the HTML;
-   update and verify that artifact when reviewing a changed architecture.
+5. Push `main` to publish the synthetic showcase. GitHub Actions repeats the
+   privacy/history checks, then publishes the four checked-in HTML files. It does
+   not regenerate the source snapshot inside the HTML; update and verify that
+   artifact when reviewing a changed architecture.
 
 CI is a second check after upload, not a substitute for the local pre-push audit.
 Never bypass a privacy finding by broadly allowlisting real credentials or data.
@@ -66,5 +71,5 @@ or ESPN credential is required. Pull requests run the audit without deployment.
 GitHub documents the configuration in
 [custom Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 The connected application still follows the local-only constraints in AGENTS.md.
-The [deployment comparison](deployment-options.md) concerns a future application
-demo and is separate from this static architecture showcase.
+The [deployment comparison](deployment-options.md) concerns a future connected
+application demo and is separate from this static project showcase.
