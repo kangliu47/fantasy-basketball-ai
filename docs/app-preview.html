@@ -1,17 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-ui-style="fantasy-analytics-v1">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Synthetic preview of the streamlined fantasy basketball analytics application." />
   <title>Fantasy Basketball · Historical analytics demo</title>
+  <link rel="stylesheet" href="showcase-theme.css" />
   <style>
-    :root { color:#24382d; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f7f9f6; }
-    * { box-sizing:border-box; } body { margin:0; } button,textarea { font:inherit; }
-    header { align-items:center; background:#fcfdfb; border-bottom:1px solid #e1e8e2; display:flex; justify-content:space-between; padding:20px max(5vw,22px); }
-    .brand { color:#203c34; font-size:17px; font-weight:750; } .brand small { color:#748278; display:block; font-size:10px; font-weight:500; letter-spacing:.08em; margin-top:3px; text-transform:uppercase; }
-    .local { color:#50685b; font-size:12px; } .local i { background:#5a9575; border-radius:50%; display:inline-block; height:7px; margin-right:7px; width:7px; }
-    main { margin:auto; max-width:1180px; padding:42px 26px 70px; } .eyebrow { color:#397050; font-size:11px; font-weight:750; letter-spacing:.12em; margin:0 0 8px; text-transform:uppercase; }
+    .eyebrow { color:#397050; font-size:11px; font-weight:750; letter-spacing:.12em; margin:0 0 8px; text-transform:uppercase; }
     h1 { color:#183c30; font-size:clamp(31px,4vw,45px); letter-spacing:-.05em; line-height:1.1; margin:0 0 13px; } h2 { color:#244437; font-size:22px; letter-spacing:-.03em; margin:0 0 5px; } h3 { color:#244437; font-size:16px; margin:0 0 6px; } p { line-height:1.55; } .intro { color:#63766a; margin:0; max-width:680px; }
     nav { display:flex; flex-wrap:wrap; gap:8px; margin:27px 0 24px; } button { background:#fff; border:1px solid #cfdcd0; border-radius:8px; color:#315e43; cursor:pointer; padding:9px 14px; } button:hover { background:#f2f7f1; } button.active { background:#e8f0ff; border-color:#99b8e4; color:#28599d; font-weight:700; }
     .banner { background:#fff7e9; border:1px solid #f0d8aa; border-radius:9px; color:#6f592d; font-size:13px; margin:0 0 20px; padding:11px 14px; } .view { display:none; } .view.active { display:block; }
@@ -29,15 +25,15 @@
     .league-grid { display:grid; gap:13px; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:16px; } .league-tile { background:#fbfcfa; border:1px solid #e1e8e2; border-radius:9px; padding:13px; } .league-tile strong { color:#244437; display:block; font-size:24px; }.league-tile span { color:#63766a; font-size:12px; }
     .feedback { display:grid; gap:10px; grid-template-columns:1fr auto; margin-top:18px; } textarea { border:1px solid #cfdcd0; border-radius:8px; min-height:74px; padding:10px; resize:vertical; } .copied { color:#397050; font-size:12px; min-height:18px; }
     footer { color:#718076; font-size:12px; margin-top:25px; text-align:center; } footer a { color:#397050; }
-    @media (max-width:760px) { header { padding:17px 20px; } main { padding:31px 18px 55px; } .heading { flex-direction:column; } .metrics { grid-template-columns:repeat(2,1fr); } .paired-metrics { min-width:640px; } .feedback { grid-template-columns:1fr; } .scope { white-space:normal; } }
+    @media (max-width:760px) { .heading { flex-direction:column; } .metrics { grid-template-columns:repeat(2,1fr); } .paired-metrics { min-width:640px; } .feedback { grid-template-columns:1fr; } .scope { white-space:normal; } }
   </style>
 </head>
 <body>
-  <header><div class="brand">Fantasy Basketball<small>Historical analytics</small></div><div class="local"><i></i>Static feedback demo</div></header>
-  <main>
+  <header class="showcase-header"><div class="showcase-brand">Fantasy Basketball<small>Historical analytics</small></div><div class="showcase-status"><i></i>Static feedback demo</div></header>
+  <main class="showcase-page">
     <p class="eyebrow">Completed-season evidence</p><h1>Historical manager analytics</h1><p class="intro">A shareable, read-only preview of the local app’s manager and competitor analysis. It uses entirely synthetic data designed to resemble realistic multi-season auction and category patterns.</p>
-    <div class="banner"><strong>Synthetic demo.</strong> Names, teams, purchases, budgets, and results below are invented. This site never connects to ESPN or publishes local league data.</div>
-    <nav aria-label="Analytics navigation"><button class="active" data-view="profile">My profile</button><button data-view="competitors">Competitor teams</button><button data-view="league">League comparison</button></nav>
+    <div class="banner showcase-banner"><strong>Synthetic demo.</strong> Names, teams, purchases, budgets, and results below are invented. This site never connects to ESPN or publishes local league data.</div>
+    <nav aria-label="Analytics navigation"><button class="showcase-button active" data-view="profile">My profile</button><button class="showcase-button" data-view="competitors">Competitor teams</button><button class="showcase-button" data-view="league">League comparison</button></nav>
 
     <section id="profile" class="view active">
       <div class="card"><div class="heading"><div><p class="eyebrow">My historical profile</p><h2>Avery</h2><p>See completed-season auction concentration and category finishes before planning the next draft.</p></div><span class="scope">6 completed seasons</span></div>
@@ -58,7 +54,7 @@
     <section id="league" class="view"><div class="card"><div class="heading"><div><p class="eyebrow">League pattern</p><h2>Auction patterns over time</h2><p>Compare a selected auction-concentration measure across synthetic managers and completed seasons.</p></div><span class="scope">Synthetic example</span></div><div class="league-grid"><div class="league-tile"><span>Median top-three share</span><strong>51%</strong><small>2026 auction snapshot</small></div><div class="league-tile"><span>Highest HHI</span><strong>0.214</strong><small>Manager concentration example</small></div><div class="league-tile"><span>Observed managers</span><strong>12 / 13</strong><small>Draft coverage example</small></div></div><div class="section"><h3>Top-three budget share</h3><p>Higher values indicate that a larger portion of observed auction spend was concentrated in each manager’s three most expensive purchases.</p><div class="scroll"><div id="leagueHeatmap"></div></div></div></div></section>
 
     <section class="card" style="margin-top:22px"><h2>Feedback</h2><p class="intro">What feels useful, unclear, or missing? This note stays in your browser until you copy it to send back.</p><div class="feedback"><textarea id="feedbackText" placeholder="For example: I can compare Avery and Blake’s early auction concentration, but I want a season selector here."></textarea><button id="copyFeedback">Copy feedback</button></div><div class="copied" id="copyStatus" aria-live="polite"></div></section>
-    <footer>Static synthetic demo · <a href="index.html">Showcase home</a> · <a href="analytics-ui-review.html">Analytics UI review</a> · <a href="architecture-review.html">Architecture review</a> · No login, tracking, or external API requests.</footer>
+    <footer class="showcase-footer">Static synthetic demo · <a href="index.html">Showcase home</a> · <a href="analytics-ui-review.html">Analytics UI review</a> · <a href="architecture-review.html">Architecture review</a> · No login, tracking, or external API requests.</footer>
   </main>
   <script>
     const categories=['3PM','AST','BLK','FG%','FT%','PTS','REB','STL'];

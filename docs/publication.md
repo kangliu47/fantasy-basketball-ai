@@ -9,12 +9,14 @@ strategy is recorded in [showcase-strategy.md](showcase-strategy.md).
 
 ## What is published
 
-GitHub Pages publishes four explicit static documents:
+GitHub Pages publishes four explicit static documents and one shared stylesheet:
 
 - `docs/index.html` as the showcase home at `/`;
 - `docs/app-preview.html` at `/app-preview.html`;
-- `docs/analytics-ui-review.html` at `/analytics-ui-review.html`; and
-- `docs/architecture-review.html` at `/architecture-review.html`.
+- `docs/analytics-ui-review.html` at `/analytics-ui-review.html`;
+- `docs/architecture-review.html` at `/architecture-review.html`; and
+- `docs/showcase-theme.css` at `/showcase-theme.css`, which supplies the shared visual
+  primitives for public product previews.
 
 The application preview and UI review use invented aliases, auction budgets,
 purchase distributions, category finishes and league patterns. The UI review is
@@ -24,7 +26,7 @@ forms run in the browser without an API. Review notes use browser-local storage
 and a JSON export; collaborators do not automatically share notes. Its source
 fingerprint identifies the reviewed version.
 
-The Pages workflow copies only the selected static HTML into its deployment
+The Pages workflow copies only the selected static showcase files into its deployment
 artifact. It does not start FastAPI, connect to ESPN or provision an application
 database. A fresh clone must be set up locally and connected to its own league
 before using the app.
@@ -54,9 +56,9 @@ is safe: review each proposed diff before pushing, including screenshots and dat
 4. Run Gitleaks against the complete proposed Git history before pushing. Use
    `gitleaks git . --log-opts=--all --redact=100 --no-banner` after committing.
 5. Push `main` to publish the synthetic showcase. GitHub Actions repeats the
-   privacy/history checks, then publishes the four checked-in HTML files. It does
-   not regenerate the source snapshot inside the HTML; update and verify that
-   artifact when reviewing a changed architecture.
+   privacy/history checks, then publishes the checked-in showcase pages and
+   shared stylesheet. It does not regenerate the source snapshot inside the HTML;
+   update and verify that artifact when reviewing a changed architecture.
 
 CI is a second check after upload, not a substitute for the local pre-push audit.
 Never bypass a privacy finding by broadly allowlisting real credentials or data.

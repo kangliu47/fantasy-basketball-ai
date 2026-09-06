@@ -5,6 +5,23 @@ The interpretations and practices below are assistant synthesis; the personal
 pivot, historical-results priority and public showcase structure are explicit
 user decisions.
 
+## 2026-09-06 — A mock belongs to the product's design system
+
+**Conversation evidence — S10:** After seeing the three public pages together,
+the user identified that the Analytics UI Review felt unrelated to the
+Application Preview and Showcase. They asked for both an immediate correction and
+a repository instruction that directs future agents to the existing UI style.
+
+**Synthesis:** Flow approval does not automatically establish visual consistency.
+A mock generator can preserve the right tasks while importing its own shell,
+palette and components. That makes the review less credible and creates an
+ambiguous handoff for implementation.
+
+**Practice — accepted workflow:** Before generating a mock, inspect the current
+shell and closest feature, then reuse the repository style guide and shared
+tokens. Review navigation and visual fit together. Treat a new visual language as
+a consequential product choice requiring explicit approval.
+
 ## 2026-09-06 — Show the product at distinct levels
 
 **Conversation evidence — S9:** After approving the historical category-pattern

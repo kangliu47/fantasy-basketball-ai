@@ -1,5 +1,17 @@
 # Implementation plan
 
+## UI consistency correction — September 6, 2026
+
+Align the published Analytics UI Review with the current Application Preview and
+Showcase rather than the visualization renderer's independent theme. Reuse the
+shared static product primitives in `docs/showcase-theme.css`, keep the approved
+scan → inspect → pressure interaction intact, and retain explicit proposed-versus-
+implemented language.
+
+Future UI mocks must begin with `docs/ui-style-guide.md`, the current Angular
+shell and the closest existing feature. `AGENTS.md` now makes that inspection and
+reuse mandatory before mock creation or product-facing HTML changes.
+
 ## Public showcase delivery — September 6, 2026
 
 The user approved the historical category-pattern mock for public design review.

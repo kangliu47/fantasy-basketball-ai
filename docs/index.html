@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-ui-style="fantasy-analytics-v1">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Fantasy Basketball Intelligence showcase: application preview, analytics UI review, and architecture review." />
   <meta name="color-scheme" content="light" />
   <title>Fantasy Basketball Intelligence · Showcase</title>
+  <link rel="stylesheet" href="showcase-theme.css" />
   <style>
     :root {
       color: #17372f;
@@ -73,11 +74,11 @@
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">Fantasy Basketball Intelligence<small>Project showcase</small></div>
+  <header class="showcase-header topbar">
+    <div class="brand showcase-brand">Fantasy Basketball Intelligence<small>Project showcase</small></div>
     <a class="repo" href="https://github.com/kangliu47/fantasy-basketball-ai">GitHub repository</a>
   </header>
-  <main>
+  <main class="showcase-page">
     <p class="eyebrow">Explore · Review · Understand</p>
     <h1>One analytics product, shown at three levels.</h1>
     <p class="intro">Use the working preview to experience the current direction, the UI review to discuss the next analytics slice, and the architecture review to learn how the local-first system protects its boundaries.</p>
@@ -124,7 +125,7 @@
       <h2 id="public-boundary-title">Public showcase boundary</h2>
       <p>These pages are static teaching and review artifacts. They use synthetic data and do not connect to ESPN, expose a database, or contain local manager mappings, credentials, private league records, or personal planning notes. The connected application continues to run only on the owner’s computer.</p>
     </section>
-    <footer>Updated September 2026 · Static pages with no login, tracking, or application API.</footer>
+    <footer class="showcase-footer">Updated September 2026 · Static pages with no login, tracking, or application API.</footer>
   </main>
 </body>
 </html>

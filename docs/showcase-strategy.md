@@ -21,6 +21,9 @@ choose whether they want to explore the product, review a design direction or
 understand the implementation. The public site is an educational showcase, not
 a hosted version of the connected application.
 
+Product-facing pages follow the repository's
+[UI style guide](ui-style-guide.md) and shared `showcase-theme.css` primitives.
+
 ## Published information architecture
 
 | Route | Purpose | Status language |
@@ -37,6 +40,8 @@ reviewed implementation so that viewers do not confuse them.
 ## Presentation principles
 
 - Organize around what the visitor wants to do: **explore, review or understand**.
+- Start product mocks from the current repository UI and the closest existing
+  feature, not from a generator's standalone theme.
 - Keep the current application preview separate from future-facing UI concepts.
 - Use interactive, inspectable HTML for product and architecture education.
 - Prefer one direct explanation of the public/private boundary over repeated
@@ -68,7 +73,8 @@ says otherwise.
 3. Review the proposed diff, run the working-tree publication audit and verify
    every published link.
 4. Stage the intended files and rerun the staged publication audit.
-5. Push `main`; the Pages workflow publishes the four explicit HTML files only.
+5. Push `main`; the Pages workflow publishes the four explicit HTML files and
+   their shared product stylesheet only.
 6. Check the deployed home page and each linked section after the workflow
    finishes.
 

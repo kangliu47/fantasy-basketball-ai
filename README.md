@@ -21,6 +21,8 @@ or the source-backed [architecture review](https://kangliu47.github.io/fantasy-b
 Together they show the current product experience, the next proposed analytics
 interaction and the implementation boundaries. The accepted organization and
 maintenance rules are in the [showcase strategy](docs/showcase-strategy.md).
+New product mocks and public previews must start from the repository's
+[UI style guide](docs/ui-style-guide.md), not a generator's default theme.
 
 This public repository contains application code and synthetic test fixtures.
 Each fresh clone starts without league data, credentials or personal plans.

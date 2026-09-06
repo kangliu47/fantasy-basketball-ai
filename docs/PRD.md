@@ -1,8 +1,10 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 42](#42-three-part-public-showcase--accepted-publication-direction-2026-09-06)
-> publishes the approved historical category-pattern mock as a clearly labeled UI
-> review beside the current app preview and architecture review. Amendment 41
+> **Current scope:** [amendment 43](#43-repository-native-ui-mocks--accepted-consistency-rule-2026-09-06)
+> makes the repository's current product style the required baseline for future
+> UI mocks and public previews. Amendment 42 publishes the approved historical
+> category-pattern mock as a clearly labeled UI review beside the current app
+> preview and architecture review. Amendment 41
 > defines the documentation-only analytics design for manager category patterns
 > and league category pressure. See the
 > [historical category patterns design](historical-category-patterns-design.md)
@@ -15,6 +17,26 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 43. Repository-native UI mocks — accepted consistency rule, 2026-09-06
+
+The user observed that the published Analytics UI Review did not feel like the
+Application Preview or Showcase. The page had retained an independent renderer
+theme instead of treating the repository's current UI as its visual baseline.
+
+Before creating or materially changing a UI mock, future agents must inspect the
+current Angular shell, the closest implemented feature and
+[ui-style-guide.md](ui-style-guide.md). Public product mocks reuse
+`showcase-theme.css` and its `fantasy-analytics-v1` marker. Generator defaults do
+not override repository typography, density, colors, navigation or component
+language. An intentionally different visual system requires explicit user
+approval before review.
+
+The Analytics UI Review is corrected to use the same fixed-light historical
+analytics header, controls, cards, status treatments and public navigation as the
+Application Preview while preserving its approved three-story interaction. This
+is a presentation correction, not production implementation of the proposed
+analytics.
 
 # 42. Three-part public showcase — accepted publication direction, 2026-09-06
 

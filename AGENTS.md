@@ -41,6 +41,16 @@ is learning FastAPI and Angular; favor conventional, readable examples of each.
   with synthetic data and get the user's UI/UX feedback and explicit approval of
   the relevant flow. This includes navigation changes to the existing app. A broad
   PRD or permission to continue is not approval of an unreviewed interface.
+- Before creating that mock or materially changing any product-facing HTML, read
+  `docs/ui-style-guide.md`, inspect the current Angular shell and the closest
+  existing feature, and reuse the repository's established tokens and component
+  language. Repository style overrides a visualization or site generator's
+  default theme. Do not introduce an independent mock design system unless the
+  user explicitly approves that departure.
+- Public product mocks and previews must use `docs/showcase-theme.css` and the
+  `fantasy-analytics-v1` style marker described in the guide. Feature-specific
+  charts may add local styles, but headers, typography, controls, cards, status
+  treatments and core colors should come from the shared source of truth.
 - Show the entry point, navigation, main action, result and relevant empty/error
   states in the mock. Iterate there first; record which mock/flow was approved,
   then implement only that scope. Reuse that approval for the agreed implementation;

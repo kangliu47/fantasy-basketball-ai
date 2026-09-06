@@ -53,6 +53,7 @@ jobs:
         run: |
           mkdir _site
           cp docs/index.html _site/index.html
+          cp docs/showcase-theme.css _site/showcase-theme.css
           cp docs/app-preview.html _site/app-preview.html
           cp docs/analytics-ui-review.html _site/analytics-ui-review.html
           cp docs/architecture-review.html _site/architecture-review.html

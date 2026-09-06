@@ -39,6 +39,7 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S10 | Align the public analytics UI review — September 6, 2026 | User identifies visual inconsistency across published pages and requires future UI mocks to start from the repository's current components and style |
 | S9 | Review and publish the analytics mock — September 6, 2026 | User approves the historical category-pattern design and chooses a three-part GitHub Pages showcase for product exploration, UI review and architecture education |
 | S8 | Refocus app on personal use — September 5, 2026, MVP reset and context confirmation | User requests a fresh profile-first MVP using local CSV mappings, assumes 2026 participants return in 2027, confirms three historical insight areas, and prefers upfront choices followed by autonomous work |
 | S7 | Refocus app on personal use — September 5, 2026, UI/UX follow-up | User reports navigation confusion; requires HTML mock feedback before frontend code; identifies feature growth as token waste; requests newest-first learning and tracking records |
