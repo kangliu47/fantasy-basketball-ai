@@ -2,7 +2,7 @@ name: Public source checks and architecture review
 
 on:
   push:
-    branches: [main]
+    branches: [main, in-depth-analytics]
   pull_request:
   workflow_dispatch:
 
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: review-${{ github.ref }}
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
           "$RUNNER_TEMP/gitleaks" git . --log-opts=--all --redact=100 --no-banner --no-color
 
   build:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/in-depth-analytics') && github.event_name != 'pull_request'
     needs: audit
     runs-on: ubuntu-latest
     steps:
@@ -49,10 +49,10 @@ jobs:
           persist-credentials: false
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-      - name: Stage only the architecture review
+      - name: Stage the static public demo
         run: |
           mkdir _site
-          cp docs/architecture-review.html _site/index.html
+          cp docs/feedback-demo.html _site/index.html
           cp docs/architecture-review.html _site/architecture-review.html
       - name: Upload static review
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
@@ -69,6 +69,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Publish architecture review
+      - name: Publish static site
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
