@@ -1,6 +1,8 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 43](#43-repository-native-ui-mocks--accepted-consistency-rule-2026-09-06)
+> **Current scope:** [amendment 44](#44-showcase-learning-laboratory--accepted-public-extension-2026-09-06)
+> extends the synthetic public showcase into a learning laboratory while retaining
+> its three visitor paths and strict local/private boundary. [Amendment 43](#43-repository-native-ui-mocks--accepted-consistency-rule-2026-09-06)
 > makes the repository's current product style the required baseline for future
 > UI mocks and public previews. Amendment 42 publishes the approved historical
 > category-pattern mock as a clearly labeled UI review beside the current app
@@ -17,6 +19,24 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 44. Showcase learning laboratory — accepted public extension, 2026-09-06
+
+The user approved the reviewed Learning Lab homepage mock and requested the
+public static implementation. The existing **Explore / Review / Understand**
+paths remain the primary information architecture. The homepage adds a compact
+secondary layer that makes the active product question, outcome/experiment,
+Now / Next / Later direction, learning tracks, selected product evolution,
+latest update and contextual feedback request visible without creating a
+documentation portal or a live project-management dashboard.
+
+All public content remains synthetic, static and separate from the connected
+local application. The extension adds no public runtime API, private league
+data, credentials, mappings, feedback backend or new Pages route. It reuses the
+repository's existing shared showcase style and the explicit publication
+whitelist. The detailed strategy is in
+[showcase-learning-lab-strategy.md](showcase-learning-lab-strategy.md); curated
+visitor-facing changes are recorded in [product-changelog.md](product-changelog.md).
 
 # 43. Repository-native UI mocks — accepted consistency rule, 2026-09-06
 

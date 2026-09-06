@@ -15,6 +15,18 @@ def test_showcase_home_links_every_published_section() -> None:
         assert f'href="{page}"' in home
 
 
+def test_showcase_home_makes_the_learning_lab_and_product_statuses_explicit() -> None:
+    home = (DOCS / "index.html").read_text(encoding="utf-8")
+    assert "Current product question" in home
+    assert "Product heartbeat" in home
+    assert "Learning laboratory" in home
+    assert "Current demo" in home
+    assert "Approved direction" in home
+    assert "Technical evidence" in home
+    assert "product-changelog.md" in home
+    assert (DOCS / "product-changelog.md").is_file()
+
+
 def test_product_showcase_pages_share_the_repository_style_baseline() -> None:
     for page in ("index.html", "app-preview.html", "analytics-ui-review.html"):
         html = (DOCS / page).read_text(encoding="utf-8")

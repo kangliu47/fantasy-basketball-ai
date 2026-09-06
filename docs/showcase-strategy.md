@@ -21,6 +21,25 @@ choose whether they want to explore the product, review a design direction or
 understand the implementation. The public site is an educational showcase, not
 a hosted version of the connected application.
 
+## Learning laboratory extension — accepted September 6, 2026
+
+The homepage now acts as the coherence layer for the same personal product and
+the project's deliberate learning tracks. It retains the three primary visitor
+actions—**Explore**, **Review** and **Understand**—and adds a lightweight,
+non-navigational layer below them:
+
+- the active product question and current experiment;
+- a curated Now / Next / Later product heartbeat;
+- five concise learning lenses: product management, architecture, engineering,
+  agentic engineering and GitHub workflow;
+- a selected product-evolution timeline;
+- the latest curated product update and one contextual feedback question.
+
+The homepage is not a documentation index, a live project-management dashboard
+or a hosted application. The maintained details are in
+[showcase-learning-lab-strategy.md](showcase-learning-lab-strategy.md) and the
+curated public changes are in [product-changelog.md](product-changelog.md).
+
 Product-facing pages follow the repository's
 [UI style guide](ui-style-guide.md) and shared `showcase-theme.css` primitives.
 

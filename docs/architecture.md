@@ -1,5 +1,21 @@
 # Architecture and learning guide
 
+## Local MCP thin slice — September 6, 2026
+
+The local MCP proof of concept adds a second, read-only presentation adapter
+alongside FastAPI. `fantasy_ai.bootstrap.build_services()` is the single concrete
+composition root used by both adapters. The STDIO FastMCP server in
+`interfaces/mcp` initializes those services and exposes only
+`get_fantasy_context` and `get_season_results`; it calls application services
+directly, never REST or SQL. Responses project saved local state and category
+results into compact credential-free DTOs. No refresh, import, planning, manager
+or provider action is exposed.
+
+STDIO is intentionally a one-client local POC. A later Streamable HTTP slice can
+mount the same FastMCP tool definitions beneath FastAPI and reuse the same service
+bundle; only transport and lifespan composition should change. See
+[the thin-slice design](local-mcp-thin-slice-poc.md) for the migration boundary.
+
 ## Latest MVP design boundary — September 5, 2026
 
 The confirmed MVP uses My manager profile and Competitor teams as its two primary

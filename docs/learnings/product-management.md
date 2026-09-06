@@ -5,6 +5,23 @@ The interpretations and practices below are assistant synthesis; the personal
 pivot, historical-results priority and public showcase structure are explicit
 user decisions.
 
+## 2026-09-06 — Make the learning agenda serve one product story
+
+**Conversation evidence — S12:** The user supplied a strategy that frames this
+repository as a learning laboratory, then approved a bounded homepage mock that
+keeps Explore / Review / Understand primary and puts product heartbeat, learning
+tracks, product evolution and a contextual feedback request below those paths.
+
+**Synthesis:** The project can teach several disciplines without becoming several
+products. The useful constraint is to keep one current decision question visible
+and make every public learning section explain that work, its status or a durable
+practice.
+
+**Practice:** Extend the existing showcase before creating navigation or a
+documentation platform. Curate Now / Next / Later manually, distinguish a
+current demo from an approved direction and technical evidence, and use a
+specific feedback question instead of a generic invitation.
+
 ## 2026-09-06 — A mock belongs to the product's design system
 
 **Conversation evidence — S10:** After seeing the three public pages together,

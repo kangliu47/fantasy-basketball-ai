@@ -1,5 +1,41 @@
 # Implementation plan
 
+## Learning laboratory showcase — September 6, 2026
+
+**Personal question:** Can the public showcase explain one personally useful
+historical-analytics product while making the project's learning practices useful
+for feedback and reflection?
+
+The approved homepage flow is implemented as a bounded static extension of the
+existing Explore / Review / Understand directory. It adds the active product
+question, outcome and experiment, Now / Next / Later heartbeat, five learning
+tracks, curated product evolution, latest product update and contextual feedback
+exit. It reuses `showcase-theme.css`, ships no new framework or route, and keeps
+the existing GitHub Pages whitelist and synthetic-only boundary intact.
+
+**Deliberately not built:** a manifest/build system, documentation portal,
+feedback backend, public runtime data, project-metric dashboard or new top-level
+navigation tree. The product changelog stays a small repository document rather
+than a fifth Pages artifact.
+
+## Local MCP thin slice — September 6, 2026
+
+**Personal question:** What saved league and historical category evidence can a
+local Codex conversation inspect without refreshing ESPN or receiving any
+credentials?
+
+The STDIO POC is complete: FastMCP v3 is locked, the FastAPI and MCP adapters
+share one `build_services()` composition root, and exactly two read-only tools
+are available: `get_fantasy_context` and `get_season_results`. Their compact
+DTOs omit provider payloads, credentials, filesystem paths and internal evidence
+fields. Synthetic FastMCP-client contract coverage and a fresh local Codex CLI
+session both discovered and invoked the tools over STDIO. No port, tunnel, UI,
+write tool, refresh or import behavior was added.
+
+**Later migration:** retain the tool layer, create services once in the FastAPI
+process, and mount FastMCP's Streamable HTTP app under `/mcp`. Do not add that
+transport until multi-client or remote access is actually needed.
+
 ## UI consistency correction — September 6, 2026
 
 Align the published Analytics UI Review with the current Application Preview and

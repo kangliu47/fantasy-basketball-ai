@@ -4,6 +4,24 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-06 — A real agent integration needs a deliberately small proof
+
+**Conversation evidence — S11:** The user provided a concrete local MCP design
+with exactly two read-only tools, a STDIO transport, shared application-service
+wiring, contract tests and a real-client smoke test. The requested stopping point
+was its explicit Definition of Done, not a general agent platform.
+
+**Synthesis:** The useful proof is not that a server can start; it is that a
+fresh client can discover a small semantic tool surface and answer from saved
+evidence without bypassing the application boundary. Keeping the transport and
+tool count small makes failures attributable and the next HTTP migration
+reversible.
+
+**Practice:** Start local agent integrations with one context tool and one
+parameterized evidence tool. Prove discovery, service invocation and a real
+client answer before adding mutations, provider calls, HTTP transport or a broad
+catalog.
+
 ## 2026-09-05 — Confirm the context once, then delegate the agreed work
 
 **Conversation evidence — S8, latest follow-up:** The user requests one upfront
