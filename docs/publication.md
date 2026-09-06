@@ -13,8 +13,8 @@ request flows, source viewer and decision forms run in the browser without an AP
 Review notes use browser-local storage and a JSON export; collaborators do not
 automatically share notes. The source fingerprint identifies the reviewed version.
 
-The `in-depth-analytics` feature branch can temporarily publish
-`docs/feedback-demo.html` as the root page for review. That self-contained
+GitHub Pages publishes `docs/feedback-demo.html` as the root page for review.
+That self-contained
 feedback site is explicitly synthetic: it contains invented aliases, auction
 budgets, purchase distributions, category finishes and league patterns. It does
 not load local records, call an API, or ship an exported database. The architecture
@@ -49,9 +49,8 @@ is safe: review each proposed diff before pushing, including screenshots and dat
    The installed pre-commit hook runs this same check against staged blobs.
 4. Run Gitleaks against the complete proposed Git history before pushing. Use
    `gitleaks git . --log-opts=--all --redact=100 --no-banner` after committing.
-5. Push `main` for the architecture review, or the explicitly audited
-   `in-depth-analytics` branch for the temporary synthetic demo. GitHub Actions
-   repeats the privacy/history checks, then publishes the checked-in HTML. It does not regenerate the source snapshot inside the HTML;
+5. Push `main` to publish the synthetic demo. GitHub Actions repeats the
+   privacy/history checks, then publishes the checked-in HTML. It does not regenerate the source snapshot inside the HTML;
    update and verify that artifact when reviewing a changed architecture.
 
 CI is a second check after upload, not a substitute for the local pre-push audit.
