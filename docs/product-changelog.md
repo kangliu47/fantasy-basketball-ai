@@ -3,6 +3,33 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-06 — Corrected the projection POC architecture map
+
+**Why**
+
+The source snapshot was current, but the Layer Explorer forced the new
+developer-only projection probe into the existing six-layer application diagram.
+That duplicated its domain node, invented composition-root wiring and labeled the
+MCP STDIO edge as HTTP.
+
+**Changed**
+
+- Gave the projection POC its own source-backed topology: developer probe,
+  provider adapter, public page, semantic parser, domain facts and ignored local
+  output.
+- Made the absence of application-service, bootstrap, FastAPI, MCP, Angular and
+  DuckDB integration explicit.
+- Rendered relationship labels from feature data and added regression checks for
+  duplicate or invented feature-map nodes.
+- Rechecked every published page, local link, browser console and publication
+  boundary.
+
+**Learning**
+
+Source freshness proves that a page matches files; it does not prove that the
+page explains their relationships correctly. Architecture reviews need topology
+checks and a visual pass as well as source fingerprints.
+
 ## 2026-09-06 — Simplified the homepage around the product
 
 **Why**

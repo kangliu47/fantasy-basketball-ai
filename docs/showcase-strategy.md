@@ -51,6 +51,13 @@ tools and saved evidence. A repository drift check protects the review's embedde
 source ledger; a page labeled current must be refreshed when implementation source
 changes.
 
+The same review also shows the Hashtag projection-ingestion POC as a deliberately
+separate developer path: probe → infrastructure adapter → parser → domain facts,
+with public HTTP acquisition and an ignored local JSON output. It must not imply
+that this POC is wired through bootstrap, an application service, FastAPI, MCP,
+Angular or DuckDB. Feature-map topology checks complement source freshness so a
+current source snapshot cannot be rendered through the wrong architectural shape.
+
 ## Published information architecture
 
 | Route | Purpose | Status language |

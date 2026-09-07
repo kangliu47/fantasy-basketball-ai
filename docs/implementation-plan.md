@@ -1,5 +1,25 @@
 # Implementation plan
 
+## Showcase architecture correction — September 6, 2026
+
+**Review question:** Does each public architecture map describe the relationships
+that actually exist in the current source, without forcing unlike experiments
+through one visual template?
+
+**Result:** Complete. The Layer Explorer now renders the application-backed
+features from their feature-specific relationship labels and gives the
+developer-only projection POC an explicit topology. The POC begins at its local
+probe, branches to the public provider page, passes HTML through the semantic
+parser, builds domain facts and writes an ignored local JSON artifact. It no
+longer duplicates the domain, claims composition-root wiring or labels MCP STDIO
+as HTTP. Regression tests reject duplicate/invented map nodes, while the existing
+source-freshness and publication checks remain in place.
+
+**Stopping point:** No runtime projection code, application service, FastAPI/MCP
+surface, Angular flow or DuckDB persistence was added. The review also covered
+all five published pages, their local links, shared style markers and browser
+console output.
+
 ## Product-first showcase and dedicated Learning Lab — September 6, 2026
 
 **Personal question:** Can a first-time visitor quickly understand the fantasy

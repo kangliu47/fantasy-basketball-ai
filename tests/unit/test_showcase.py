@@ -1,9 +1,21 @@
+import json
+import re
 from pathlib import Path
+from typing import Any, cast
 
 from tools.architecture_review import review_drift
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
+
+
+def architecture_review_data() -> dict[str, Any]:
+    review = (DOCS / "architecture-review.html").read_text(encoding="utf-8")
+    match = re.search(
+        r'<script id="review-data" type="application/json">(.*?)</script>', review, re.S
+    )
+    assert match is not None
+    return cast(dict[str, Any], json.loads(match.group(1)))
 
 
 def test_showcase_home_links_every_published_section() -> None:
@@ -67,6 +79,39 @@ def test_architecture_review_source_snapshot_has_not_drifted() -> None:
     assert "get_season_results" in review
     assert "Projection ingestion POC" in review
     assert "free tier as a projection contract test" in review
+
+
+def test_architecture_feature_maps_do_not_invent_or_duplicate_layers() -> None:
+    data = architecture_review_data()
+    for feature in data["features"]:
+        assert len(feature["nodes"]) == len(set(feature["nodes"]))
+        assert set(feature["nodes"]).issubset(data["nodes"])
+        if domain := feature.get("domain"):
+            assert domain not in feature["nodes"]
+        if diagram := feature.get("diagram"):
+            diagram_nodes = [node["id"] for node in diagram["nodes"]]
+            assert len(diagram_nodes) == len(set(diagram_nodes))
+            assert set(diagram_nodes) == set(feature["nodes"])
+
+    projection = next(item for item in data["features"] if item["id"] == "projection-poc")
+    assert projection["nodes"][0] == "projection-probe"
+    assert projection["focus"] == "projection-adapter"
+    assert "domain" not in projection
+    assert "bootstrap" not in projection["nodes"]
+    assert {edge["label"] for edge in projection["diagram"]["edges"]} == {
+        "invokes",
+        "HTTP GET",
+        "passes HTML",
+        "builds typed facts",
+        "writes after success",
+    }
+
+
+def test_layer_explorer_uses_feature_relationship_labels() -> None:
+    review = (DOCS / "architecture-review.html").read_text(encoding="utf-8")
+    assert "label:f.calls[i]" in review
+    assert "diagram=f.diagram||layeredDiagram(f)" in review
+    assert "i===0?'HTTP'" not in review
 
 
 def test_pages_workflow_stages_only_the_explicit_showcase_pages() -> None:
