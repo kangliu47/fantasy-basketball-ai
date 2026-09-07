@@ -5,6 +5,9 @@ about building with an AI coding agent and managing a personal product.
 
 - [Vibe coding experiences](vibe-coding.md): delegation, feedback, verification
   and learning the implementation.
+- [Codex agent orchestration](../CODEX_AGENT_ORCHESTRATION_V3_1.md): route
+  consequential decisions to specialist reasoning, substantial settled work to
+  engineering, and bounded work locally.
 - [Product management insights](product-management.md): scope, user journeys,
   assisted workflows and deciding what deserves a feature.
 - [Current personal-product direction](../personal-product-direction.md): the
@@ -39,6 +42,9 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S18 | Correct League comparison season eligibility — September 7, 2026 | User notices the four-season ceiling under Last 5 and All history, requests a completeness check before another ESPN pull, then authorizes the calculation fix after the archive proves complete |
+| S17 | Refine League comparison recency and interaction — September 7, 2026 | User reports the category-pressure interaction regression, approves recent-history windows and 2026-rank ordering with legacy managers last, removes delivery labels, requests full local archive coverage, and requires interactive pressure dots |
+| S16 | Implement the approved historical category-pattern journey — September 6, 2026 | User asks to deliver scan managers, inspect one pattern and check league context in one pass using real archives and reviewed mappings, while retaining auction history and stopping before correlations |
 | S15 | Product-first showcase and dedicated Learning Lab — September 6, 2026 | User approves the revised static mock after moving product heartbeat above and Learning Lab below product feedback, then requests implementation |
 | S14 | Hashtag Basketball free projection POC — September 6, 2026 | User provides a backend-only POC plan and asks for implementation; public-page acquisition, semantic parsing and private local persistence are verified before premium purchase |
 | S13 | Publish the MCP architecture in the Learning Laboratory — September 6, 2026 | User clarifies the local server is a thin-sliced STDIO POC and asks for a current public architecture review plus an explicit check for drift from its earlier static snapshot |

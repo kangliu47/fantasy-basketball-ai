@@ -17,6 +17,7 @@ from .history_schemas import (
     AuctionOverviewDTO,
     AuctionPatternsDTO,
     CatalogDTO,
+    HistoricalCategoryPatternReportDTO,
     ImportRequest,
     ManagersDTO,
     MyManagerRequest,
@@ -90,6 +91,13 @@ def create_history_router(history: HistoryService, workspace: WorkspaceService) 
     ) -> AuctionPatternsDTO:
         patterns = await history.auction_patterns(selected().league_id, tuple(seasons))
         return AuctionPatternsDTO.from_patterns(patterns)
+
+    @router.get("/category-pattern-report", response_model=HistoricalCategoryPatternReportDTO)
+    async def category_pattern_report(
+        seasons: Annotated[list[int], Query(min_length=1, max_length=15)],
+    ) -> HistoricalCategoryPatternReportDTO:
+        report = await history.category_pattern_report(selected().league_id, tuple(seasons))
+        return HistoricalCategoryPatternReportDTO.from_report(report)
 
     @router.get("/managers", response_model=ManagersDTO)
     async def managers() -> ManagersDTO:

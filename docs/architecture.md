@@ -1,5 +1,70 @@
 # Architecture and learning guide
 
+## League comparison compatibility boundaries — September 7, 2026
+
+The category-pattern domain now separates semantic compatibility from raw-value
+scale compatibility. Completed seasons with the same supported category code,
+direction, weight and ratio definition can contribute normalized manager finishes
+and per-season pressure distributions even when their ESPN final-period calendar
+endpoints differ.
+
+Raw percentage gaps remain comparable across those seasons. Raw counting-stat
+gaps and thresholds use only seasons whose final-period endpoint is within five
+percent of the newest selected reference season; normalized pressure, ties,
+leaders and individual distributions still use every semantically compatible
+completed season. The response exposes both the distribution season count and
+the raw-summary subset count so Angular can explain the difference.
+
+This remains a pure on-demand read from existing DuckDB observations. No archive
+schema, provider request or second database writer was introduced.
+
+## League comparison filtered read model — September 7, 2026
+
+The League comparison remains an on-demand read from the local DuckDB archive;
+the new Last year, Last 3, Last 5 and All controls send explicit imported-season
+lists through the existing category-pattern endpoint. No cached aggregate table,
+background calculation service or database migration is involved. Auction
+analytics receives the same selected season list so one page has one history
+scope.
+
+Manager rows now carry credential-free reference-season presentation facts: the
+reviewed team name and archived final rank. The domain orders managers with a
+reviewed assignment in the newest selected season by final rank, then places
+managers found only in older reviewed assignments afterward. This does not infer
+identity from team name or provider team ID.
+
+Pressure dots remain team-level evidence. Angular owns their pointer/keyboard
+selection and renders the already-public team value, rank, reviewed aliases and
+observation metadata; no owner token or new provider data crosses the DTO.
+
+## Historical category-pattern read model — September 6, 2026
+
+The League comparison page now consumes one purpose-built historical category
+pattern report through a typed read-only FastAPI endpoint. The domain calculation
+derives manager/category summaries and league pressure from existing season
+archives, assignments and managers. The application service validates
+imported-season selection and orchestrates the repository reads; the HTTP layer
+projects an explicit credential-free DTO; and Angular owns selection, progressive
+detail, loading, retry and empty-state presentation.
+
+The request path is League comparison to FastAPI to HistoryService to saved
+archives and reviewed assignments, followed by a pure-domain calculation of
+manager relative emphasis, outcome level and team-level historical pressure.
+
+No database migration or new writer is involved. Personal cells require exactly
+one reviewed whole-season manager assignment and exclude shared or partial
+management; the same underlying team result can still participate in
+league-pressure distributions. This keeps identity claims stricter than
+team-level league context. Raw values, average-tie ranks, source observation IDs,
+retrieval dates, mapper versions and assignment revisions stay available in
+progressive evidence detail.
+
+The first calculation version uses two virtual league-average seasons for visual
+shrinkage and fixed linear quantiles for robust ranges and thresholds. It treats
+historical pressure as completed-season rank separation, not future player-pool
+scarcity. Category relationships, projections and plan writes remain outside
+this read model.
+
 ## Hashtag Basketball projection ingestion POC — September 6, 2026
 
 The completed free POC adds a new provider boundary for upcoming-season

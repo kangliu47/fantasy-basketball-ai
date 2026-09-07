@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from fantasy_ai.application.history.models import ImportJob, SeasonCandidate
 from fantasy_ai.application.history.service import Suggestion
 from fantasy_ai.domain.history.analysis import AuctionOverview, AuctionPatterns
+from fantasy_ai.domain.history.category_patterns import HistoricalCategoryPatternReport
 from fantasy_ai.domain.history.models import (
     ArchiveRoster,
     Assignment,
@@ -130,6 +131,111 @@ class AuctionPatternsDTO(BaseModel):
     @classmethod
     def from_patterns(cls, patterns: AuctionPatterns) -> "AuctionPatternsDTO":
         return cls.model_validate(patterns)
+
+
+class PatternSeasonEvidenceDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    team_id: str
+    team_name: str
+    value: float
+    rank: float
+    team_count: int
+    normalized_finish: float
+    season_baseline: float
+    relative_emphasis: float
+    observation_id: str
+    retrieved_at: datetime
+    mapper_version: str
+    assignment_revision: int
+
+
+class ManagerCategoryPatternDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    category: str
+    eligible_seasons: int
+    excluded_seasons: int
+    raw_outcome_level: float | None
+    shrunken_outcome_level: float | None
+    raw_relative_emphasis: float | None
+    shrunken_relative_emphasis: float | None
+    direction_repeat_count: int
+    consistency: str
+    seasons: tuple[PatternSeasonEvidenceDTO, ...]
+
+
+class ManagerPatternRowDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    manager_id: str
+    manager_alias: str
+    is_me: bool
+    reference_team_name: str | None
+    reference_final_rank: float | None
+    patterns: tuple[ManagerCategoryPatternDTO, ...]
+
+
+class PressureDistributionPointDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    team_id: str
+    team_name: str
+    value: float
+    rank: float
+    normalized_finish: float
+    manager_aliases: tuple[str, ...]
+    is_my_team: bool
+
+
+class PressureSeasonDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    team_count: int
+    raw_median_gap: float
+    normalized_median_gap: float | None
+    normalized_upper_quartile_gap: float | None
+    top_quartile_threshold: float
+    tie_share: float
+    distribution: tuple[PressureDistributionPointDTO, ...]
+    observation_id: str
+    retrieved_at: datetime
+    mapper_version: str
+
+
+class LeagueCategoryPressureDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    category: str
+    higher_is_better: bool
+    percentage: bool
+    eligible_seasons: int
+    excluded_seasons: int
+    raw_summary_seasons: int
+    raw_summary_excluded_seasons: int
+    typical_raw_gap: float | None
+    typical_normalized_gap: float | None
+    upper_quartile_normalized_gap: float | None
+    typical_top_quartile_threshold: float | None
+    typical_tie_share: float | None
+    leader_repeat_count: int
+    leader_comparisons: int
+    seasons: tuple[PressureSeasonDTO, ...]
+
+
+class HistoricalCategoryPatternReportDTO(BaseModel):
+    """Validated public DTO; the domain report contains no ownership tokens."""
+
+    model_config = ConfigDict(from_attributes=True)
+    calculation_version: str
+    seasons_requested: tuple[int, ...]
+    categories: tuple[str, ...]
+    reviewed_manager_count: int
+    managers: tuple[ManagerPatternRowDTO, ...]
+    league_pressure: tuple[LeagueCategoryPressureDTO, ...]
+    notes: tuple[str, ...]
+
+    @classmethod
+    def from_report(
+        cls, report: HistoricalCategoryPatternReport
+    ) -> "HistoricalCategoryPatternReportDTO":
+        return cls.model_validate(report)
 
 
 class ImportRequest(BaseModel):

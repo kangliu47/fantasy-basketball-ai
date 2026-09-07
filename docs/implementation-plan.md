@@ -1,5 +1,82 @@
 # Implementation plan
 
+## League comparison season-eligibility correction — September 7, 2026
+
+**Personal question:** When five years or all history is selected, does the
+category journey use every compatible completed season rather than only seasons
+whose ESPN calendar endpoint happens to match 2026?
+
+**Result:** Corrected the category-pattern compatibility boundary. Normalized
+manager summaries and league-pressure distributions now include every completed
+season with matching category semantics, complete team values and the required
+reviewed manager attribution. The ESPN final-period calendar endpoint no longer
+excludes otherwise comparable normalized results.
+
+Raw counting-stat gaps and top-quarter thresholds retain a separate scale guard:
+they summarize only seasons whose calendar endpoint is within five percent of
+the selected reference season. Ratio categories remain directly comparable.
+The UI states when dots cover more completed seasons than the raw summary.
+
+The saved archive was audited before changing the calculation. All supported
+seasons already contain complete category standings and reviewed mappings, so no
+provider refresh or database write was needed. The oldest legacy season remains
+excluded because its completion phase is unknown.
+
+**Stopping point:** No category correlations, projections, live calculation
+service, schema migration or ESPN import was added.
+
+## League comparison history controls and evidence interaction — September 7, 2026
+
+**Personal question:** Can recent seasons lead the comparison while older manager
+history stays available, and can every league-pressure mark explain the archived
+team evidence behind it?
+
+**Result:** Implemented the approved iteration on the existing League comparison
+journey. Last 3 years is the default, with Last year, Last 5 years and All history
+options. Each change reruns the existing offline report against only the selected
+saved archives and scopes the retained auction history to the same window. The
+manager table orders reviewed 2026 participants by archived final rank, then
+keeps legacy managers below them with explicit unavailable cells where needed.
+
+The entire category-pressure row now supports pointer and keyboard selection.
+Each distribution dot is a focusable control whose selected detail shows season,
+team, value, rank, reviewed manager aliases and observation metadata. The old
+Story 1/2/3 delivery labels were removed from analysis cards; the concise journey
+navigation remains.
+
+**Data readiness:** The existing local resumable import was run for every
+supported season and all six archive datasets. Existing complete observations
+were reused; additional available transaction and period-roster evidence was
+saved. Unsupported legacy datasets retain explicit unavailable coverage.
+
+**Stopping point:** No live calculation service, schema migration, category
+correlations, projection, scarcity estimate or plan mutation was added.
+
+## Historical category-pattern journey — September 6, 2026
+
+**Personal question:** Across completed seasons, where did each reviewed manager's
+teams repeatedly finish above or below that manager's own category baseline, and
+what league separation sits behind one selected pattern?
+
+**Result:** Implemented the approved three-story League comparison journey in one
+bounded read-only slice. Story 1 scans all reviewed managers in a category
+heatmap and toggles between shrunken relative emphasis and outcome level. Story 2
+opens the selected manager/category cell into season rows, raw ranks, baselines,
+assignment revisions and source metadata. Story 3 shows direction-aware raw
+neighboring-rank gaps, top-quarter thresholds, ties, reviewed leader continuity
+and season distributions. Team-level pressure remains available when manager
+attribution is absent.
+
+The report is derived on demand from immutable saved archives and reviewed
+assignments. It requires no schema migration, persistence write or ESPN request.
+Shared, dated, ambiguous, incomplete and rule-incompatible evidence is excluded
+from personal aggregation rather than treated as zero. The existing auction
+analytics remains below the three-story journey as secondary historical evidence.
+
+**Stopping point:** No category-correlation matrix, 2027 player pool, projection,
+scarcity claim, draft recommendation or plan mutation was added. The next product
+gate is interpretation with real local history, not automatic expansion.
+
 ## Showcase architecture correction — September 6, 2026
 
 **Review question:** Does each public architecture map describe the relationships

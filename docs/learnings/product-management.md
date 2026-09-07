@@ -5,6 +5,55 @@ The interpretations and practices below are assistant synthesis; the personal
 pivot, historical-results priority and public showcase structure are explicit
 user decisions.
 
+## 2026-09-07 — Separate semantic compatibility from measurement scale
+
+**Conversation evidence — S18:** The user found that Last 5 and All history
+stopped at four eligible seasons and asked whether the archive needed another
+ESPN pull. The archive already contained complete category distributions and
+reviewed mappings; an exact calendar-endpoint comparison caused the exclusion.
+
+**Synthesis:** One broad “compatible” predicate can hide a valid history window
+when different outputs need different evidence rules. Within-season normalized
+ranks need stable category meaning and complete distributions. Raw counting
+totals additionally need comparable season length.
+
+**Practice:** Audit each evidence layer before refreshing external data, name
+separate compatibility boundaries in the domain, and disclose when an aggregate
+uses a narrower subset than the interactive evidence shown beside it.
+
+## 2026-09-07 — Interaction means the visible target, not a hidden child control
+
+**Conversation evidence — S17:** The user found that league context had stopped
+feeling interactive, asked to prioritize selectable recent-history windows,
+ordered active managers by the latest completed-season rank and required the
+pressure dots themselves to be interactive.
+
+**Synthesis:** A technically clickable label inside a row does not preserve a
+row-level interaction promised by a mock. Likewise, hover-only dots expose less
+evidence on touch and keyboard paths. Recency controls also need to change the
+calculation scope, not merely relabel a fixed result.
+
+**Practice:** Test the complete visible hit target and keyboard path, expose a
+persistent selected-mark detail, and make one explicit season selection drive all
+historical calculations on the page. Keep legacy evidence available but visually
+subordinate to the active cohort.
+
+## 2026-09-06 — One page can carry a sequence without becoming one score
+
+**Conversation evidence — S16:** The user approved implementing three connected
+stories in one go: scan managers, inspect one selected pattern and then check the
+league context, while explicitly stopping before category correlations.
+
+**Synthesis:** A bounded journey can combine several analytical levels when each
+level answers a distinct question and selection carries context forward. The
+heatmap, evidence detail and league distribution belong together, but relative
+emphasis and outcome level should remain separately named measures rather than
+being collapsed into a more impressive-looking opaque score.
+
+**Practice:** Build one read model that preserves the raw season evidence behind
+each summary, keep personal attribution stricter than team-level context, and
+stop at the approved interpretive boundary before adding adjacent analytics.
+
 ## 2026-09-06 — Hierarchy is a product decision
 
 **Conversation evidence — S15:** The user reviewed a product-first showcase mock,

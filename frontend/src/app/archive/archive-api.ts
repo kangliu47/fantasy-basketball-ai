@@ -9,6 +9,7 @@ import {
   Catalog,
   CategoryResult,
   Job,
+  HistoricalCategoryPatternReport,
   Manager,
   ManagerData,
   Profile,
@@ -64,6 +65,11 @@ export class ArchiveApi {
   }
   auctionPatterns(seasons: number[]) {
     return this.http.get<AuctionPatterns>('/api/archive/auction-patterns', {
+      params: { seasons },
+    });
+  }
+  categoryPatternReport(seasons: number[]) {
+    return this.http.get<HistoricalCategoryPatternReport>('/api/archive/category-pattern-report', {
       params: { seasons },
     });
   }

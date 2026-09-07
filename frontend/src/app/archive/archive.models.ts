@@ -243,6 +243,89 @@ export interface AuctionPatterns {
   reviewed_manager_count: number;
   rows: AuctionOverviewRow[];
 }
+export interface PatternSeasonEvidence {
+  season: number;
+  team_id: string;
+  team_name: string;
+  value: number;
+  rank: number;
+  team_count: number;
+  normalized_finish: number;
+  season_baseline: number;
+  relative_emphasis: number;
+  observation_id: string;
+  retrieved_at: string;
+  mapper_version: string;
+  assignment_revision: number;
+}
+export interface ManagerCategoryPattern {
+  category: string;
+  eligible_seasons: number;
+  excluded_seasons: number;
+  raw_outcome_level: number | null;
+  shrunken_outcome_level: number | null;
+  raw_relative_emphasis: number | null;
+  shrunken_relative_emphasis: number | null;
+  direction_repeat_count: number;
+  consistency: string;
+  seasons: PatternSeasonEvidence[];
+}
+export interface ManagerPatternRow {
+  manager_id: string;
+  manager_alias: string;
+  is_me: boolean;
+  reference_team_name: string | null;
+  reference_final_rank: number | null;
+  patterns: ManagerCategoryPattern[];
+}
+export interface PressureDistributionPoint {
+  team_id: string;
+  team_name: string;
+  value: number;
+  rank: number;
+  normalized_finish: number;
+  manager_aliases: string[];
+  is_my_team: boolean;
+}
+export interface PressureSeason {
+  season: number;
+  team_count: number;
+  raw_median_gap: number;
+  normalized_median_gap: number | null;
+  normalized_upper_quartile_gap: number | null;
+  top_quartile_threshold: number;
+  tie_share: number;
+  distribution: PressureDistributionPoint[];
+  observation_id: string;
+  retrieved_at: string;
+  mapper_version: string;
+}
+export interface LeagueCategoryPressure {
+  category: string;
+  higher_is_better: boolean;
+  percentage: boolean;
+  eligible_seasons: number;
+  excluded_seasons: number;
+  raw_summary_seasons: number;
+  raw_summary_excluded_seasons: number;
+  typical_raw_gap: number | null;
+  typical_normalized_gap: number | null;
+  upper_quartile_normalized_gap: number | null;
+  typical_top_quartile_threshold: number | null;
+  typical_tie_share: number | null;
+  leader_repeat_count: number;
+  leader_comparisons: number;
+  seasons: PressureSeason[];
+}
+export interface HistoricalCategoryPatternReport {
+  calculation_version: string;
+  seasons_requested: number[];
+  categories: string[];
+  reviewed_manager_count: number;
+  managers: ManagerPatternRow[];
+  league_pressure: LeagueCategoryPressure[];
+  notes: string[];
+}
 export interface Overlap {
   season: number;
   team_name: string;

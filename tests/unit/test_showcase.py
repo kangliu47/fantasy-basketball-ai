@@ -36,7 +36,7 @@ def test_showcase_home_is_product_first_with_a_secondary_learning_lab() -> None:
     assert "Product heartbeat" in home
     assert 'href="learning-lab.html"' in home
     assert "Current demo" in home
-    assert "Approved direction" in home
+    assert "Implemented flow" in home
     assert "Technical evidence" in home
     assert home.index("Product heartbeat") < home.index("Learning Lab")
     assert "Five lenses on one evolving product" not in home

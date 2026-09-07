@@ -88,6 +88,18 @@ def test_archive_api_links_managers_and_exposes_evidence_without_source_identiti
         assert len(patterns["selections"]) == 4
         assert patterns["selections"][0]["manager_aliases"] == ["North manager"]
         assert "owner_tokens" not in str(patterns)
+        category_report = client.get(
+            "/api/archive/category-pattern-report?seasons=2025&seasons=2026"
+        ).json()
+        assert category_report["calculation_version"].startswith("historical-category-patterns-2")
+        assert category_report["reviewed_manager_count"] == 1
+        assert category_report["managers"][0]["manager_alias"] == "North manager"
+        assert category_report["managers"][0]["reference_team_name"] == "Synthetic North 2026"
+        assert category_report["managers"][0]["reference_final_rank"] == 2
+        assert category_report["managers"][0]["patterns"][0]["eligible_seasons"] == 2
+        assert category_report["league_pressure"][0]["eligible_seasons"] == 2
+        assert category_report["league_pressure"][0]["raw_summary_seasons"] == 2
+        assert "owner_tokens" not in str(category_report)
         assert profile["players"][0]["draft_seasons"] == [2025, 2026]
         assert profile["players"][0]["evidence"][0]["observation_id"]
         cleared = {**body, "manager_ids": [], "revision": 1}

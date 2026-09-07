@@ -11,8 +11,8 @@ views instead of presenting one artifact as the whole product:
 
 1. **Application preview** lets a viewer experience the current streamlined
    historical-analytics journey.
-2. **Analytics UI review** makes a proposed interaction concrete enough for
-   product and design discussion before implementation.
+2. **Analytics UI review** preserves the approved synthetic interaction reference
+   now implemented in the local product.
 3. **Architecture review** explains how the working implementation is organized,
    where its boundaries sit and what source evidence supports the review.
 
@@ -64,7 +64,7 @@ current source snapshot cannot be rendered through the wrong architectural shape
 | --- | --- | --- |
 | `/` | Showcase home and orientation | Project showcase |
 | `/app-preview.html` | Current synthetic application preview | Current demo |
-| `/analytics-ui-review.html` | Approved manager-category-pattern interface concept | Approved direction; not a claim of implementation |
+| `/analytics-ui-review.html` | Implemented manager-category-pattern interaction reference | Synthetic public evidence; implemented in the local product |
 | `/architecture-review.html` | Source-backed implementation and architecture review | Technical evidence for the reviewed snapshot |
 | `/learning-lab.html` | Process, experiments and durable project lessons | Living case study |
 

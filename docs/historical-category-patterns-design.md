@@ -1,10 +1,39 @@
 # Historical category patterns: analytics design
 
 **Date:** September 5, 2026
-**Status:** Confirmed design direction and approved UI review; no application implementation in this change
+**Status:** Implemented; season-eligibility correction delivered September 7, 2026
 **Scope:** Completed-season descriptive analytics for manager category patterns and league category pressure
 
 ## Executive recommendation
+
+### Eligibility correction — September 7, 2026
+
+Completed-season category semantics and complete team values now govern
+normalized manager patterns and per-season pressure distributions. ESPN's
+final-period calendar endpoint is no longer treated as category identity. Raw
+counting gaps and thresholds keep a separate five-percent calendar-scale guard,
+and the UI discloses when that raw subset is smaller than the displayed
+distribution history. The oldest legacy season remains excluded while its
+completion phase is unknown.
+
+### Interaction update — September 7, 2026
+
+The approved follow-up makes recent history the default without discarding older
+evidence. Last year, Last 3, Last 5 and All history use the existing offline
+calculation with explicit season lists. Reviewed 2026 participants are ordered by
+their archived final rank; managers without a reviewed 2026 team stay below them.
+Category-pressure rows and individual team dots are interactive, and dot detail
+preserves source metadata. Delivery-tracking story labels no longer appear on the
+analysis cards.
+
+### Implementation update — September 6, 2026
+
+The approved scan-manager, inspect-pattern and check-league-pressure journey is
+now implemented in the local League comparison page using saved archive evidence.
+The application stops before the category-relationship matrix described later in
+this design. Existing auction analytics remains below the new journey. The
+original design record below is preserved as the source for analytical rules and
+deferred scope.
 
 The user approved the synthetic interface mock on September 6, 2026. It is
 published as the **Analytics UI review** section of the project showcase so that

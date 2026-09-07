@@ -3,6 +3,215 @@
 Build a local, read-only fantasy basketball intelligence application. The user
 is learning FastAPI and Angular; favor conventional, readable examples of each.
 
+## Codex Orchestration V3.1
+
+### Purpose
+
+Use the cheapest model that can safely own the current decision.
+
+The main session runs on Luna and acts as:
+- dispatcher
+- bounded executor
+- context packager
+- evidence collector
+
+The root is not the project's senior architect.
+
+### Default behavior
+
+Do not delegate merely because subagents are available.
+Use a single model when a single model is sufficient.
+
+### Routing order
+
+For each request:
+
+1. Check whether it contains an unresolved consequential decision.
+2. If yes, route directly to `scientist_architect`.
+3. Otherwise, check whether behavior is settled but engineering work is substantial.
+4. If yes, route directly to `engineer`.
+5. Otherwise, execute directly on Luna.
+6. Escalate only when observed evidence reveals a stronger decision boundary.
+
+### Direct to scientist_architect
+
+Delegate directly when WHAT the system should do is unresolved in a consequential way, including:
+- architecture
+- domain semantics
+- public contract meaning
+- mathematical/statistical methodology
+- analytics formulation
+- ranking/valuation methodology
+- uncertainty
+- optimization
+- simulation
+- data sufficiency
+- validation/backtesting methodology
+- cross-cutting product assumptions
+
+Do not route based on keywords.
+
+"Add a Monte Carlo button" is not automatically a Sol task if Monte Carlo behavior already exists.
+
+"Add scarcity adjustment" may be a Sol task even if it sounds simple when the definition of scarcity is unresolved.
+
+### Direct to engineer
+
+Delegate directly when:
+- intended behavior is sufficiently specified
+- relevant scientific/architecture decisions are settled
+- implementation is substantial
+- work crosses modules/layers
+- integration work is involved
+- debugging has unknown cause
+- regression risk is meaningful
+
+### Luna direct execution
+
+Keep work on Luna when:
+- behavior is clear
+- scope is bounded
+- change is reversible
+- failure cost is limited
+- output can be objectively verified
+- methodology/architecture is already settled
+
+### Escalation
+
+Luna -> engineer when objective evidence shows the task is broader than expected.
+
+Engineer -> root -> scientist_architect when implementation exposes an unresolved consequential decision.
+
+Do not force a cheap first attempt when the request obviously belongs to Sol or Terra.
+
+### No nested orchestration
+
+Only the root should normally spawn project specialists.
+Specialists return status/results to the root.
+Avoid agent trees deeper than one level.
+
+### Work packets
+
+When delegating, pass a bounded WORK PACKET rather than a conversational transcript.
+
+The packet must contain:
+
+GOAL:
+<what outcome is required>
+
+APPROVED_DECISIONS:
+<relevant decisions already made>
+
+PROJECT_INVARIANTS:
+<only relevant stable constraints>
+
+MUTABLE_SCOPE:
+<files/modules/areas that may be changed>
+
+DO_NOT_DECIDE:
+<decisions outside this agent's authority>
+
+ACCEPTANCE_CRITERIA:
+<objective and semantic checks>
+
+ESCALATE_WHEN:
+<specific conditions>
+
+EXPECTED_OUTPUT:
+<what the agent must return>
+
+Do not summarize away a scientist_architect decision contract.
+Pass the implementation contract and semantic acceptance criteria intact.
+
+### Verification
+
+There are two verification classes.
+
+Execution verification:
+- tests
+- types
+- lint
+- schema validation
+- known fixtures
+- observed runtime behavior
+
+Semantic verification:
+- implementation matches approved methodology
+- populations and units are correct
+- assumptions remain intact
+- edge cases preserve intended interpretation
+- no hidden modeling assumption was introduced
+
+Passing execution tests does not prove an analytical method is conceptually correct.
+
+### Closure levels
+
+LOW RISK
+- Luna executes
+- focused deterministic verification
+- done
+
+MEDIUM RISK
+- Terra executes
+- deterministic and relevant semantic verification
+- root reports evidence
+- done
+
+HIGH SCIENTIFIC / ARCHITECTURAL RISK
+- Sol produces decision contract
+- Terra implements
+- Terra proves contract compliance where possible
+- invoke Sol again ONLY if:
+  - implementation deviated from the contract
+  - new consequential assumptions appeared
+  - acceptance criteria cannot establish semantic correctness
+  - failure cost warrants explicit specialist review
+
+Do not invoke Sol twice by default.
+
+### Parallelism
+
+Parallelize independent read-heavy work when useful.
+Prefer sequential execution for write-heavy work.
+Do not have multiple agents edit overlapping files concurrently without explicit disjoint ownership.
+
+### Cost discipline
+
+Do not equate multi-agent with efficiency.
+Delegation has context and token overhead.
+
+Prefer:
+- Luna once
+- Terra once
+- or Sol decision -> Terra implementation
+
+over long agent chains.
+
+### Escalation loop limit
+
+If the same task crosses the decision/execution boundary more than twice, stop autonomous ping-pong and surface the unresolved issue to the user.
+
+### Final reporting during the experiment
+
+For substantial tasks, briefly report:
+
+ROUTE:
+<models/roles used>
+
+WHY:
+<why this routing was chosen>
+
+ESCALATIONS:
+<none or summary>
+
+KEY_DECISIONS:
+<only consequential decisions>
+
+EVIDENCE:
+<tests/validation>
+
+This observability is for the initial orchestration experiment and may be reduced later.
+
 ## Personal product scope
 
 - Current MVP: authenticate and refresh ESPN data, open on My manager profile,

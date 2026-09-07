@@ -3,6 +3,74 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-07 — Corrected completed-season eligibility
+
+**Why**
+
+Last 5 and All history could display at most four eligible seasons because the
+calculation treated an ESPN calendar endpoint as part of category identity.
+
+**Changed**
+
+- Include every completed season with matching category definitions in normalized
+  manager patterns and interactive pressure distributions.
+- Keep raw counting-stat gap and threshold summaries limited to materially
+  comparable season lengths.
+- Explain when the visible dots cover more seasons than the raw summary.
+- Confirm the local archive was complete; no ESPN refresh was necessary.
+
+**Learning**
+
+Evidence compatibility has multiple dimensions. Category meaning, completion
+status and data completeness decide normalized rank eligibility, while raw
+counting totals need a separate season-length scale guard.
+
+## 2026-09-07 — Prioritized recent history and made league evidence inspectable
+
+**Why**
+
+The first implementation made only category labels clickable in the pressure
+table, defaulted to all history and left manager order unrelated to the current
+league cohort.
+
+**Changed**
+
+- Added Last year, Last 3, Last 5 and All history windows, defaulting to Last 3.
+- Recalculate category and auction views from the same selected archived seasons.
+- Order reviewed 2026 managers by archived final rank and retain legacy managers
+  afterward.
+- Made full pressure rows and individual team dots accessible controls with
+  selected evidence detail.
+- Removed delivery-oriented Story 1/2/3 labels from analysis cards.
+
+**Learning**
+
+An evidence-first chart still needs explicit selection feedback: a tooltip alone
+does not make a dense visual inspectable by pointer, keyboard or touch.
+
+## 2026-09-06 — Brought the historical category-pattern review into the app
+
+**Why**
+
+The approved showcase explained how to scan manager tendencies, inspect the
+seasons behind one cell and check the corresponding league pressure, but the
+connected application still exposed only the older auction comparison.
+
+**Changed**
+
+- Added a source-backed manager-by-category heatmap with separate relative
+  emphasis and outcome-level measures.
+- Added season evidence for each selected pattern, including ranks, baselines and
+  source metadata.
+- Added team-level category gaps, thresholds, ties, continuity and distributions.
+- Kept auction patterns below the new journey and kept pressure usable when
+  manager attribution is incomplete.
+
+**Learning**
+
+Progressive detail can connect a summary to its evidence without weakening the
+boundary between observed history and future strategy.
+
 ## 2026-09-06 — Corrected the projection POC architecture map
 
 **Why**

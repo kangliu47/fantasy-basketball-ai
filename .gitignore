@@ -46,7 +46,12 @@ frontend/dist/
 .DS_Store
 
 # Personal tooling, credential exports and architecture review notes
-.codex/
+.codex/*
+!.codex/config.toml
+!.codex/agents/
+.codex/agents/*
+!.codex/agents/scientist-architect.toml
+!.codex/agents/engineer.toml
 .agents/
 *.har
 *.pem

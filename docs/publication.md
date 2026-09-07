@@ -40,6 +40,13 @@ Excluded files include environment files other than the empty `.env.example`,
 Keychain credentials, the dedicated browser profile, `.local/` workspace state,
 DuckDB databases and backups, raw/processed league captures, generated launchers,
 local logs, tooling caches, HAR/key exports and exported architecture review notes.
+The only public Codex reproducibility artifacts are `.codex/config.toml`,
+`.codex/agents/scientist-architect.toml`, and `.codex/agents/engineer.toml`.
+All other `.codex` paths remain private. The publication audit parses those three
+files, accepts only their narrow configuration schema, rejects hooks, MCP,
+environment, credential, path and network configuration, and requires the
+scientist architect to stay read-only. They remain subject to the same personal
+path, email and Gitleaks checks as every other public file.
 Private league acceptance counts were removed from the public documentation;
 structural findings and synthetic test evidence remain.
 
@@ -67,6 +74,8 @@ is safe: review each proposed diff before pushing, including screenshots and dat
 
 CI is a second check after upload, not a substitute for the local pre-push audit.
 Never bypass a privacy finding by broadly allowlisting real credentials or data.
+The Pages artifact is deliberately static-only: the workflow copies an explicit
+list of showcase files and never copies `.codex` content.
 
 ## Hosting configuration
 

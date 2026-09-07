@@ -23,6 +23,10 @@ from fantasy_ai.domain.history.analysis import (
     league_results,
     manager_profile,
 )
+from fantasy_ai.domain.history.category_patterns import (
+    HistoricalCategoryPatternReport,
+    historical_category_pattern_report,
+)
 from fantasy_ai.domain.history.models import (
     Assignment,
     CoverageStatus,
@@ -368,6 +372,21 @@ class HistoryService:
         assignments = await self.assignments(league_id)
         managers = await self.managers(league_id)
         return await asyncio.to_thread(auction_patterns, archives, assignments, managers)
+
+    async def category_pattern_report(
+        self, league_id: int, seasons: tuple[int, ...]
+    ) -> HistoricalCategoryPatternReport:
+        archives = await self._analysis_archives(league_id, seasons)
+        assignments = await self.assignments(league_id)
+        managers = await self.managers(league_id)
+        my_manager_id = await self.my_manager(league_id)
+        return await asyncio.to_thread(
+            historical_category_pattern_report,
+            archives,
+            assignments,
+            managers,
+            my_manager_id,
+        )
 
     async def _assign(
         self,

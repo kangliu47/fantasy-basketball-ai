@@ -34,7 +34,7 @@
     .analysis-grid { align-items:start; display:grid; gap:15px; grid-template-columns:minmax(0,1.55fr) minmax(290px,.75fr); }
     .panel-heading { align-items:flex-start; display:flex; gap:18px; justify-content:space-between; }
     .panel-heading p { color:var(--showcase-muted); font-size:13px; margin:3px 0 0; max-width:620px; }
-    .story { color:var(--showcase-orange); font-size:11px; font-weight:800; letter-spacing:.1em; margin:0 0 7px; text-transform:uppercase; }
+    .manager-label small { color:var(--showcase-muted); display:block; font-size:9px; font-weight:500; margin-top:3px; }
     .segmented { display:flex; flex-shrink:0; gap:5px; }
     .segmented .showcase-button { font-size:12px; padding:7px 10px; }
     .table-scroll { margin-top:16px; overflow-x:auto; }
@@ -74,6 +74,7 @@
     .pressure-table td { border-bottom:1px solid var(--showcase-line); color:var(--showcase-muted); font-size:12px; padding:9px; }
     .pressure-row { cursor:pointer; }
     .pressure-row:hover, .pressure-row.selected { background:#f2f7f1; }
+    .pressure-row:focus-visible { outline:2px solid var(--showcase-blue); outline-offset:-2px; }
     .pressure-row th { color:var(--showcase-ink); font-size:12px; }
     .pressure-row button { background:transparent; border:0; color:inherit; cursor:pointer; font:inherit; font-weight:750; padding:0; }
     .distribution { border-left:1px solid var(--showcase-line); padding-left:20px; }
@@ -113,7 +114,7 @@
 <body>
   <header class="showcase-header">
     <div class="showcase-brand">Fantasy Basketball<small>Historical analytics</small></div>
-    <div class="showcase-status"><i></i>Approved UI review</div>
+    <div class="showcase-status"><i></i>Implemented interaction reference</div>
   </header>
   <main class="showcase-page">
     <section class="page-heading">
@@ -128,7 +129,7 @@
       </div>
     </section>
 
-    <div class="showcase-banner"><strong>Approved synthetic UI review.</strong> This is a proposed analytics experience, not implemented functionality. Names, values, results and evidence below are invented.</div>
+    <div class="showcase-banner"><strong>Implemented interaction reference.</strong> The local application follows this approved history-window, ranked-manager and interactive-pressure flow. This public page remains synthetic: names, values, results and evidence are invented.</div>
 
     <nav class="app-tabs" aria-label="Analytics navigation">
       <a class="showcase-button" href="app-preview.html">My profile</a>
@@ -146,9 +147,10 @@
       </div>
       <label class="history-field">History to explore
         <select id="history" aria-label="History to explore">
-          <option value="five">2022–2026 · 5 seasons</option>
-          <option value="three">2024–2026 · 3 seasons</option>
-          <option value="empty">No attributable manager history</option>
+          <option value="one">Last year · 2026</option>
+          <option value="three" selected>Last 3 years · 2024–2026</option>
+          <option value="five">Last 5 years · 2022–2026</option>
+          <option value="all">All history · 2021–2026</option>
         </select>
       </label>
     </section>
@@ -169,9 +171,8 @@
       <section class="showcase-card" id="patterns" aria-labelledby="patterns-title">
         <header class="panel-heading">
           <div>
-            <p class="story">Story 1 · Scan all managers</p>
             <h3 id="patterns-title">Manager category patterns</h3>
-            <p>Positive means the category finished above that manager’s typical category in the same season.</p>
+            <p>Active managers follow their 2026 final ranking; managers without a 2026 team remain at the bottom.</p>
           </div>
           <div class="segmented" role="group" aria-label="Pattern measure">
             <button class="showcase-button" type="button" data-metric="relative" aria-pressed="true">Relative emphasis</button>
@@ -190,7 +191,6 @@
       <aside class="showcase-card" id="detail" aria-labelledby="detail-title">
         <header class="panel-heading">
           <div>
-            <p class="story">Story 2 · Inspect one pattern</p>
             <h3 id="detail-title"></h3>
           </div>
           <span class="evidence-tag" id="consistency"></span>
@@ -213,7 +213,6 @@
     <section class="showcase-card pressure" id="pressure" aria-labelledby="pressure-title">
       <header class="panel-heading">
         <div>
-          <p class="story">Story 3 · Check league context</p>
           <h3 id="pressure-title">Historical category pressure</h3>
           <p>Pressure uses raw gaps between neighboring ranks. It is not projected player-pool scarcity.</p>
         </div>
@@ -244,100 +243,139 @@
   <script>
     (() => {
       const categories = ['FG%', 'FT%', '3PM', 'PTS', 'REB', 'AST', 'STL', 'BLK'];
+      const historyWindows = {
+        one:[2026],
+        three:[2026,2025,2024],
+        five:[2026,2025,2024,2023,2022],
+        all:[2026,2025,2024,2023,2022,2021]
+      };
       const managers = [
-        { id:'me', name:'My profile', seasons:5, relative:[.04,-.11,-.03,.02,.18,-.07,.06,.14], outcome:[.58,.42,.51,.55,.72,.46,.61,.68] },
-        { id:'north', name:'North Star', seasons:5, relative:[-.08,.16,.12,.06,-.11,.15,.01,-.13], outcome:[.43,.75,.68,.59,.39,.72,.53,.35] },
-        { id:'corner', name:'Corner Three', seasons:4, relative:[-.04,.09,.21,.14,-.08,.02,-.12,-.17], outcome:[.48,.64,.81,.73,.44,.57,.38,.31] },
-        { id:'paint', name:'Paint Control', seasons:5, relative:[.13,-.18,-.09,-.05,.16,-.10,.02,.19], outcome:[.69,.31,.42,.46,.74,.40,.55,.78] },
-        { id:'balance', name:'Balanced Books', seasons:3, relative:[.02,.04,-.01,.05,-.02,.01,-.03,-.06], outcome:[.56,.60,.53,.62,.51,.55,.49,.45] }
+        { id:'north', name:'North Star', rank2026:1, years:[2026,2025,2024,2023,2022,2021], relative:[-.08,.16,.12,.06,-.11,.15,.01,-.13], outcome:[.43,.75,.68,.59,.39,.72,.53,.35] },
+        { id:'me', name:'My profile', rank2026:2, years:[2026,2025,2024,2023,2022,2021], relative:[.04,-.11,-.03,.02,.18,-.07,.06,.14], outcome:[.58,.42,.51,.55,.72,.46,.61,.68] },
+        { id:'corner', name:'Corner Three', rank2026:3, years:[2026,2025,2024,2023], relative:[-.04,.09,.21,.14,-.08,.02,-.12,-.17], outcome:[.48,.64,.81,.73,.44,.57,.38,.31] },
+        { id:'paint', name:'Paint Control', rank2026:4, years:[2026,2025,2024,2023,2022], relative:[.13,-.18,-.09,-.05,.16,-.10,.02,.19], outcome:[.69,.31,.42,.46,.74,.40,.55,.78] },
+        { id:'balance', name:'Balanced Books', rank2026:5, years:[2026,2025,2024], relative:[.02,.04,-.01,.05,-.02,.01,-.03,-.06], outcome:[.56,.60,.53,.62,.51,.55,.49,.45] },
+        { id:'legacy', name:'Legacy Bench', rank2026:null, years:[2025,2024,2023,2022,2021], relative:[-.01,.12,.08,-.04,.09,.16,-.08,.03], outcome:[.51,.66,.61,.45,.63,.71,.39,.54] }
       ];
       const pressure = [
-        { code:'FG%', gap:'0.7 pp', threshold:'48.9%', continuity:'2 of 4 repeated', note:'Tight upper ranks', question:'Would a modest future efficiency gain be enough once 2027 shot volume and prices exist?' },
-        { code:'FT%', gap:'1.1 pp', threshold:'81.0%', continuity:'1 of 4 repeated', note:'Leaders rotated', question:'Keep this flexible until 2027 attempts, prices and roster construction are known.' },
-        { code:'3PM', gap:'41', threshold:'1,020', continuity:'2 of 4 repeated', note:'Moderate pressure', question:'Later, test whether the future market makes this production expensive or replaceable.' },
-        { code:'PTS', gap:'388', threshold:'15,840', continuity:'3 of 4 repeated', note:'Stable leaders', question:'Historical standings alone cannot tell whether paying to close this gap is efficient.' },
-        { code:'REB', gap:'176', threshold:'6,420', continuity:'3 of 4 repeated', note:'Wide upper gaps', question:'You repeatedly emphasized REB. Is this an identity to preserve once future acquisition cost is visible?' },
-        { code:'AST', gap:'132', threshold:'3,940', continuity:'2 of 4 repeated', note:'Crowded middle', question:'Your AST history was weaker while neighboring ranks stayed close. This is a candidate to investigate, not yet a target.' },
-        { code:'STL', gap:'27', threshold:'712', continuity:'1 of 4 repeated', note:'Tight and rotating', question:'Small gaps and rotating leaders suggest flexibility, but 2027 availability is still unknown.' },
-        { code:'BLK', gap:'38', threshold:'548', continuity:'3 of 4 repeated', note:'Separated tiers', question:'BLK and REB were repeated strengths. Later, check whether one construction supplies both without overpaying.' }
+        { code:'FG%', gap:.007, threshold:.489, percentage:true, note:'Tight upper ranks', question:'Would a modest future efficiency gain be enough once 2027 shot volume and prices exist?' },
+        { code:'FT%', gap:.011, threshold:.810, percentage:true, note:'Leaders rotated', question:'Keep this flexible until 2027 attempts, prices and roster construction are known.' },
+        { code:'3PM', gap:41, threshold:1020, note:'Moderate pressure', question:'Later, test whether the future market makes this production expensive or replaceable.' },
+        { code:'PTS', gap:388, threshold:15840, note:'Stable leaders', question:'Historical standings alone cannot tell whether paying to close this gap is efficient.' },
+        { code:'REB', gap:176, threshold:6420, note:'Wide upper gaps', question:'You repeatedly emphasized REB. Is this an identity to preserve once future acquisition cost is visible?' },
+        { code:'AST', gap:132, threshold:3940, note:'Crowded middle', question:'Your AST history was weaker while neighboring ranks stayed close. This is a candidate to investigate, not yet a target.' },
+        { code:'STL', gap:27, threshold:712, note:'Tight and rotating', question:'Small gaps and rotating leaders suggest flexibility, but 2027 availability is still unknown.' },
+        { code:'BLK', gap:38, threshold:548, note:'Separated tiers', question:'BLK and REB were repeated strengths. Later, check whether one construction supplies both without overpaying.' }
       ];
-      const seasonValues = {
-        'me:REB':[.12,.21,.17,.20,.11],
-        'me:AST':[-.03,-.09,-.05,-.12,-.07],
-        'north:FT%':[.11,.18,.14,.20,.17]
-      };
+      let historyWindow = 'three';
       let metric = 'relative';
       let selectedManager = 'me';
       let selectedCategory = 'REB';
       let selectedPressure = 'REB';
       const byId = id => document.getElementById(id);
+      const selectedYears = () => historyWindows[historyWindow];
+      const average = values => values.reduce((total,value) => total + value, 0) / values.length;
+      const eligibleYears = manager => selectedYears().filter(year => manager.years.includes(year));
+      const seasonSeries = (manager, categoryIndex, measure) => eligibleYears(manager).map(year => {
+        const managerIndex = managers.indexOf(manager);
+        const variation = (((managerIndex + 1) * (categoryIndex + 2) + (2026 - year) * 3) % 7 - 3) * .012;
+        const value = manager[measure][categoryIndex] + variation;
+        return { year, value:measure === 'outcome' ? Math.max(.03,Math.min(.97,value)) : value };
+      });
+      const summary = (manager, categoryIndex, measure) => {
+        const series = seasonSeries(manager, categoryIndex, measure);
+        if (!series.length) return { value:null, series };
+        const raw = average(series.map(item => item.value));
+        return { value:measure === 'relative' ? raw * series.length / (series.length + 2) : (raw * series.length + 1) / (series.length + 2), series };
+      };
       const valueLabel = value => metric === 'relative' ? (value >= 0 ? '+' : '') + value.toFixed(2) : Math.round(value * 100) + '%';
+      const ordinal = value => { const n=Math.round(value*100), r=n%100; const suffix=r>=11&&r<=13?'th':({1:'st',2:'nd',3:'rd'}[n%10]||'th'); return n+suffix+' pct'; };
       const cellColor = value => {
-        if (metric === 'outcome') {
-          const strength = Math.abs(value - .5) * 2;
-          return value >= .5 ? 'rgba(57,112,80,' + (.10 + strength * .38) + ')' : 'rgba(184,78,70,' + (.08 + strength * .28) + ')';
-        }
-        const strength = Math.min(1, Math.abs(value) / .22);
-        return value >= 0 ? 'rgba(57,112,80,' + (.08 + strength * .38) + ')' : 'rgba(184,78,70,' + (.07 + strength * .29) + ')';
+        const centered = metric === 'relative' ? value : value - .5;
+        const strength = Math.min(1,Math.abs(centered) / (metric === 'relative' ? .22 : .5));
+        return centered >= 0 ? 'rgba(57,112,80,' + (.08 + strength * .38) + ')' : 'rgba(184,78,70,' + (.07 + strength * .29) + ')';
       };
       function renderHeatmap() {
         byId('heat-head').innerHTML = '<th>Manager</th>' + categories.map(code => '<th>' + code + '</th>').join('');
-        byId('heat-body').innerHTML = managers.map((manager, managerIndex) => {
+        byId('heat-body').innerHTML = managers.map(manager => {
           const cells = categories.map((code, categoryIndex) => {
-            const missing = managerIndex === 4 && categoryIndex === 7;
-            if (missing) return '<td><button class="heat-cell missing" type="button" aria-label="Unavailable evidence" disabled><strong>—</strong><small>Unavailable</small></button></td>';
-            const value = manager[metric][categoryIndex];
+            const result = summary(manager, categoryIndex, metric);
+            if (result.value === null) return '<td><button class="heat-cell missing" type="button" aria-label="Unavailable evidence" disabled><strong>—</strong><small>Unavailable</small></button></td>';
             const selected = manager.id === selectedManager && code === selectedCategory ? ' selected' : '';
-            return '<td><button class="heat-cell' + selected + '" type="button" data-manager="' + manager.id + '" data-category="' + code + '" style="background:' + cellColor(value) + '" aria-label="' + manager.name + ', ' + code + ', ' + valueLabel(value) + ', ' + manager.seasons + ' seasons"><strong>' + valueLabel(value) + '</strong><small>' + manager.seasons + ' seasons</small></button></td>';
+            const seasons = result.series.length;
+            return '<td><button class="heat-cell' + selected + '" type="button" data-manager="' + manager.id + '" data-category="' + code + '" style="background:' + cellColor(result.value) + '" aria-label="' + manager.name + ', ' + code + ', ' + valueLabel(result.value) + ', ' + seasons + ' eligible seasons"><strong>' + valueLabel(result.value) + '</strong><small>' + seasons + (seasons === 1 ? ' season' : ' seasons') + '</small></button></td>';
           }).join('');
-          return '<tr><th>' + manager.name + '</th>' + cells + '</tr>';
+          const managerContext = manager.rank2026 === null ? 'Legacy · no 2026 team' : '2026 rank #' + manager.rank2026;
+          return '<tr><th class="manager-label">' + manager.name + '<small>' + managerContext + '</small></th>' + cells + '</tr>';
         }).join('');
-        document.querySelectorAll('[data-manager]').forEach(button => {
-          button.addEventListener('click', () => {
-            selectedManager = button.dataset.manager;
-            selectedCategory = button.dataset.category;
-            renderHeatmap();
-            renderDetail();
-          });
-        });
+        document.querySelectorAll('[data-manager]').forEach(button => button.addEventListener('click', () => {
+          selectedManager = button.dataset.manager;
+          selectedCategory = button.dataset.category;
+          renderHeatmap();
+          renderDetail();
+        }));
       }
       function renderDetail() {
-        const manager = managers.find(item => item.id === selectedManager);
+        let manager = managers.find(item => item.id === selectedManager);
         const index = categories.indexOf(selectedCategory);
-        const relative = manager.relative[index];
-        const outcome = manager.outcome[index];
-        const series = seasonValues[selectedManager + ':' + selectedCategory] || [relative - .05, relative + .03, relative - .02, relative + .04, relative];
+        let relative = summary(manager,index,'relative');
+        if (!relative.series.length) {
+          selectedManager = managers.find(item => summary(item,index,'relative').series.length).id;
+          manager = managers.find(item => item.id === selectedManager);
+          relative = summary(manager,index,'relative');
+        }
+        const outcome = summary(manager,index,'outcome');
+        const rawDirection = Math.sign(average(relative.series.map(item => item.value)));
         byId('detail-title').textContent = manager.name + ' · ' + selectedCategory;
-        byId('consistency').textContent = Math.abs(relative) >= .12 && manager.seasons >= 4 ? 'Repeated pattern' : 'Mixed evidence';
-        byId('shrunken').textContent = (relative >= 0 ? '+' : '') + (relative * .72).toFixed(2);
-        byId('repeat').textContent = series.filter(value => Math.sign(value) === Math.sign(relative)).length + ' of ' + series.length;
-        byId('outcome').textContent = Math.round(outcome * 100) + 'th pct';
-        byId('evidence-copy').textContent = manager.seasons + ' eligible whole-season assignments. Missing and shared-management seasons are excluded rather than counted as zero.';
-        byId('season-list').innerHTML = series.map((value, indexValue) => {
-          const width = Math.min(50, Math.abs(value) * 180);
-          const klass = value >= 0 ? 'positive' : 'negative';
-          return '<div class="season-row"><span>' + (2022 + indexValue) + '</span><div class="season-bar"><i class="' + klass + '" style="width:' + width + '%"></i></div><strong>' + (value >= 0 ? '+' : '') + value.toFixed(2) + '</strong></div>';
+        byId('consistency').textContent = Math.abs(relative.value) >= .08 && relative.series.length >= 3 ? 'Repeated pattern' : 'Mixed evidence';
+        byId('shrunken').textContent = (relative.value >= 0 ? '+' : '') + relative.value.toFixed(2);
+        byId('repeat').textContent = relative.series.filter(item => Math.sign(item.value) === rawDirection).length + ' of ' + relative.series.length;
+        byId('outcome').textContent = ordinal(average(outcome.series.map(item => item.value)));
+        byId('evidence-copy').textContent = relative.series.length + ' eligible whole-season assignment' + (relative.series.length === 1 ? '' : 's') + ' in the selected history. Missing and shared-management seasons are excluded rather than counted as zero.';
+        byId('season-list').innerHTML = relative.series.map(item => {
+          const width = Math.min(50,Math.abs(item.value) * 180);
+          const klass = item.value >= 0 ? 'positive' : 'negative';
+          return '<div class="season-row"><span>' + item.year + '</span><div class="season-bar"><i class="' + klass + '" style="width:' + width + '%"></i></div><strong>' + (item.value >= 0 ? '+' : '') + item.value.toFixed(2) + '</strong></div>';
         }).join('');
+      }
+      const pressureValues = item => {
+        const count = selectedYears().length;
+        const multiplier = 1 + (6 - count) * .025;
+        const gap = item.gap * multiplier;
+        const threshold = item.threshold * (1 - (6 - count) * .002);
+        const comparisons = Math.max(0,count - 1);
+        const repeats = Math.min(comparisons,Math.max(0,Math.round(comparisons * (.45 + categories.indexOf(item.code)%4*.12))));
+        return { gap, threshold, comparisons, repeats };
+      };
+      const formatPressure = (value,percentage) => percentage ? (value*100).toFixed(1)+' pp' : Math.round(value).toLocaleString();
+      const formatThreshold = (value,percentage) => percentage ? (value*100).toFixed(1)+'%' : Math.round(value).toLocaleString();
+      function choosePressure(code) {
+        selectedPressure = code;
+        renderPressure();
+        renderDistribution();
       }
       function renderPressure() {
         byId('pressure-body').innerHTML = pressure.map(item => {
           const selected = item.code === selectedPressure ? ' selected' : '';
-          return '<tr class="pressure-row' + selected + '" data-pressure="' + item.code + '"><th><button type="button">' + item.code + '</button></th><td>' + item.gap + '</td><td>' + item.threshold + '</td><td>' + item.continuity + '</td></tr>';
+          const values = pressureValues(item);
+          return '<tr class="pressure-row' + selected + '" data-pressure="' + item.code + '" tabindex="0" role="button" aria-pressed="' + (item.code === selectedPressure) + '"><th>' + item.code + '</th><td>' + formatPressure(values.gap,item.percentage) + '</td><td>' + formatThreshold(values.threshold,item.percentage) + '</td><td>' + values.repeats + ' of ' + values.comparisons + ' transitions</td></tr>';
         }).join('');
-        document.querySelectorAll('[data-pressure]').forEach(row => row.addEventListener('click', () => {
-          selectedPressure = row.dataset.pressure;
-          renderPressure();
-          renderDistribution();
-        }));
+        document.querySelectorAll('[data-pressure]').forEach(row => {
+          row.addEventListener('click', () => choosePressure(row.dataset.pressure));
+          row.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choosePressure(row.dataset.pressure); }
+          });
+        });
       }
       function renderDistribution() {
         const item = pressure.find(entry => entry.code === selectedPressure);
+        const years = selectedYears();
         byId('pressure-code').textContent = item.code;
-        byId('pressure-name').textContent = 'Four completed seasons';
+        byId('pressure-name').textContent = years.length + ' completed season' + (years.length === 1 ? '' : 's');
         byId('pressure-note').textContent = item.note;
         byId('pressure-question').textContent = item.question;
-        byId('distribution-rows').innerHTML = [2026,2025,2024,2023].map((year, yearIndex) => {
-          const positions = [14,25,33,42,50,58,66,73,81,89].map((position, index) => {
+        byId('distribution-rows').innerHTML = years.map((year,yearIndex) => {
+          const positions = [14,25,33,42,50,58,66,73,81,89].map((position,index) => {
             const mine = index === (4 + yearIndex) % 8 ? ' class="mine"' : '';
             return '<i' + mine + ' style="left:' + position + '%"></i>';
           }).join('');
@@ -346,21 +384,23 @@
       }
       document.querySelectorAll('[data-metric]').forEach(button => button.addEventListener('click', () => {
         metric = button.dataset.metric;
-        document.querySelectorAll('[data-metric]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        document.querySelectorAll('[data-metric]').forEach(item => item.setAttribute('aria-pressed',String(item === button)));
         renderHeatmap();
       }));
-      document.querySelectorAll('[data-jump]').forEach(button => button.addEventListener('click', () => {
-        byId(button.dataset.jump).scrollIntoView({ behavior:'smooth', block:'start' });
-      }));
+      document.querySelectorAll('[data-jump]').forEach(button => button.addEventListener('click', () => byId(button.dataset.jump).scrollIntoView({ behavior:'smooth', block:'start' })));
       byId('history').addEventListener('change', event => {
-        const empty = event.target.value === 'empty';
-        byId('empty').hidden = !empty;
-        byId('manager-area').hidden = empty;
-      });
-      byId('open-pressure').addEventListener('click', () => {
-        selectedPressure = selectedCategory;
+        historyWindow = event.target.value;
+        renderHeatmap();
+        renderDetail();
         renderPressure();
         renderDistribution();
+        const status = byId('status');
+        status.hidden = false;
+        status.className = 'status';
+        status.textContent = 'Recalculated from ' + selectedYears().join(', ') + ' archived evidence.';
+      });
+      byId('open-pressure').addEventListener('click', () => {
+        choosePressure(selectedCategory);
         byId('pressure').scrollIntoView({ behavior:'smooth', block:'start' });
       });
       byId('connection').addEventListener('click', () => {

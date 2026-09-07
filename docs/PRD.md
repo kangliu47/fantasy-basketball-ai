@@ -1,6 +1,12 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 47](#47-product-first-showcase-and-dedicated-learning-lab--accepted-public-update-2026-09-06)
+> **Current scope:** [amendment 50](#50-league-comparison-season-eligibility--accepted-correction-2026-09-07)
+> separates normalized completed-season eligibility from raw counting-stat
+> scale compatibility. [Amendment 49](#49-league-comparison-recency-and-interaction--accepted-iteration-2026-09-07)
+> prioritizes recent history, orders the active 2026 cohort by final rank and
+> makes league-pressure rows and dots inspectable. [Amendment 48](#48-historical-category-pattern-journey--accepted-implementation-2026-09-06)
+> implements the original three-part League comparison review using saved
+> completed-season evidence and reviewed manager mappings. [Amendment 47](#47-product-first-showcase-and-dedicated-learning-lab--accepted-public-update-2026-09-06)
 > makes the public homepage product-first and moves detailed learning content to
 > a dedicated Learning Lab route. [Amendment 46](#46-hashtag-free-projection-ingestion-poc--accepted-boundary-2026-09-06)
 > records the completed local-only Hashtag free projection ingestion POC and its
@@ -25,6 +31,70 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 50. League comparison season eligibility — accepted correction, 2026-09-07
+
+The user reported that Last 5 and All history never produced more than four
+eligible category seasons and asked for a local-data completeness check before
+any ESPN refresh. The archive audit found complete category standings and
+reviewed manager mappings across every supported saved season. No provider pull
+is required.
+
+Normalized manager patterns and per-season league-pressure distributions now
+include every completed season with matching category code, direction, weight,
+ratio definition and complete team values. An ESPN final-period calendar endpoint
+is not category identity and no longer excludes those normalized results.
+
+Raw counting-stat gaps and top-quarter thresholds remain protected from
+materially different season lengths. Their summary uses seasons whose calendar
+endpoint is within five percent of the newest selected reference season; ratio
+categories remain directly comparable. The response and UI disclose the
+raw-summary subset while keeping every eligible season's interactive dots. The
+oldest legacy season remains excluded because its completion phase is unknown.
+Category correlations and future predictions remain deferred.
+
+# 49. League comparison recency and interaction — accepted iteration, 2026-09-07
+
+The user approved the revised `analytics-ui-review.html` flow. League comparison
+opens on the latest three imported completed seasons and offers Last year, Last
+3, Last 5 and All history. Each choice supplies an explicit saved-season list to
+the existing offline calculation; it does not introduce a live calculation
+service. Auction analytics below the category journey follows the same selection.
+
+Manager rows retain every reviewed identity in the league. Managers with one
+reviewed whole-season assignment in 2026 appear first in ascending archived final
+rank; identities found only in older reviewed seasons remain at the bottom. This
+is presentation order, not a prediction of 2027 participation.
+
+The full historical-pressure row is pointer and keyboard selectable. Each team
+distribution dot is also a focusable control and reveals team, season, value,
+rank, reviewed manager alias and source observation metadata. Delivery-tracking
+Story 1/2/3 labels are removed from cards while the three-step navigation remains.
+The existing missing, loading, error and evidence rules remain unchanged. Category
+correlations and future projections stay outside this amendment.
+
+# 48. Historical category-pattern journey — accepted implementation, 2026-09-06
+
+The user explicitly approved implementation of the three-story League comparison
+showcase in one pass: scan all managers, inspect one manager/category pattern and
+check its league context. The application now reproduces that bounded flow with
+real saved archives and reviewed local manager assignments. Existing auction
+analytics remains available below it rather than competing with the primary
+journey.
+
+Manager summaries use completed-season normalized finishes, a weighted
+within-season baseline and two virtual league-average seasons for display
+shrinkage. Personal evidence requires one reviewed whole-season assignment;
+shared, dated, ambiguous, incomplete and incompatible seasons are excluded
+rather than counted as zero. League pressure remains team-level and therefore
+continues to work without complete manager mappings. Evidence detail retains
+season, raw value, rank/team count, observation, retrieval date, mapper version
+and assignment revision without exposing owner tokens or credentials.
+
+The accepted stopping point excludes category correlations, 2027 projections,
+player-pool scarcity, plan mutations and draft recommendations. Historical
+questions may guide later research, but the app does not turn completed-season
+outcomes into future claims.
 
 # 47. Product-first showcase and dedicated Learning Lab — accepted public update, 2026-09-06
 

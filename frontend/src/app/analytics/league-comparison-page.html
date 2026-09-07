@@ -1,17 +1,440 @@
 <section class="analytics-page">
-  <p class="eyebrow">League context</p>
-  <h2>League comparison</h2>
-  <p class="intro-copy">
-    Compare completed-season auction patterns across the reviewed 2026 competitor cohort.
-  </p>
-  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
-  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
+  <div class="intro-row">
+    <div>
+      <p class="eyebrow">Historical category patterns</p>
+      <h2>Where did each manager repeatedly lean?</h2>
+      <p class="intro-copy">
+        Compare category outcomes with each manager’s own season baseline, then inspect the league
+        context behind a pattern.
+      </p>
+    </div>
+    @if (catalog().imported_seasons.length) {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>History to explore</mat-label>
+        <mat-select [value]="historyWindow()" (selectionChange)="historyWindow.set($event.value)">
+          <mat-option value="recent-1">{{ historyLabel('recent-1') }}</mat-option>
+          <mat-option value="recent-3">{{ historyLabel('recent-3') }}</mat-option>
+          <mat-option value="recent-5">{{ historyLabel('recent-5') }}</mat-option>
+          <mat-option value="all">{{ historyLabel('all') }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    }
+  </div>
+
+  <ol class="review-path" aria-label="Historical analytics journey">
+    <li>
+      <button type="button" (click)="jumpTo('manager-patterns')">
+        <span>1</span><strong>Scan managers</strong><small>Find repeated tilts</small>
+      </button>
+    </li>
+    <li>
+      <button type="button" (click)="jumpTo('pattern-detail')">
+        <span>2</span><strong>Inspect a pattern</strong><small>Review seasons and evidence</small>
+      </button>
+    </li>
+    <li>
+      <button type="button" (click)="jumpTo('category-pressure')">
+        <span>3</span><strong>Check league pressure</strong><small>See gaps and thresholds</small>
+      </button>
+    </li>
+  </ol>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading league history" />
+  }
+  @if (error()) {
+    <p class="notice error" role="alert">
+      {{ error() }} <button mat-button type="button" (click)="retryPage()">Retry</button>
+    </p>
+  }
+  @if (!loading() && !error() && !catalog().imported_seasons.length) {
+    <section class="empty-state">
+      <p class="eyebrow">No completed-season evidence</p>
+      <h3>Import a completed season before comparing historical patterns.</h3>
+      <p>Connection and refresh controls remain available above this page.</p>
+    </section>
+  }
+  @if (reportLoading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Calculating historical category patterns" />
+    <p class="loading-copy">
+      Calculating manager patterns and league pressure from saved observations…
+    </p>
+  }
+  @if (reportError()) {
+    <p class="notice error" role="alert">
+      {{ reportError() }}
+      <button mat-button type="button" (click)="retryReport()">Retry analysis</button>
+    </p>
+  }
+
+  @if (report(); as analysis) {
+    @if (!eligiblePatternCount()) {
+      <section class="empty-state">
+        <p class="eyebrow">No comparable manager history</p>
+        <h3>Category patterns need reviewed whole-season links.</h3>
+        <p>
+          Team-level league pressure remains available below, but manager patterns stay empty until
+          the evidence is attributable. Shared and dated assignments are not counted as zero.
+        </p>
+      </section>
+    } @else {
+      <div class="analysis-grid">
+        <section class="analysis-card" id="manager-patterns" aria-labelledby="patterns-title">
+          <header class="panel-heading">
+            <div>
+              <h3 id="patterns-title">Manager category patterns</h3>
+              <p>
+                Active managers follow their {{ analysis.seasons_requested[0] }} final ranking;
+                managers without a team that season remain at the bottom.
+              </p>
+            </div>
+            <div class="segmented" role="group" aria-label="Pattern measure">
+              <button
+                mat-button
+                type="button"
+                [class.active]="metric() === 'relative'"
+                [attr.aria-pressed]="metric() === 'relative'"
+                (click)="metric.set('relative')"
+              >
+                Relative emphasis
+              </button>
+              <button
+                mat-button
+                type="button"
+                [class.active]="metric() === 'outcome'"
+                [attr.aria-pressed]="metric() === 'outcome'"
+                (click)="metric.set('outcome')"
+              >
+                Outcome level
+              </button>
+            </div>
+          </header>
+          <div class="table-scroll">
+            <table class="heatmap">
+              <thead>
+                <tr>
+                  <th>Manager</th>
+                  @for (category of analysis.categories; track category) {
+                    <th>{{ category }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (manager of analysis.managers; track manager.manager_id) {
+                  <tr>
+                    <th class="manager-label">
+                      <span>{{ manager.manager_alias }}{{ manager.is_me ? ' · Me' : '' }}</span>
+                      <small>
+                        @if (manager.reference_team_name) {
+                          {{ analysis.seasons_requested[0] }} rank
+                          {{
+                            manager.reference_final_rank === null
+                              ? 'unavailable'
+                              : '#' + number(manager.reference_final_rank)
+                          }}
+                        } @else {
+                          Legacy · no {{ analysis.seasons_requested[0] }} team
+                        }
+                      </small>
+                    </th>
+                    @for (pattern of manager.patterns; track pattern.category) {
+                      <td>
+                        <button
+                          type="button"
+                          class="heat-cell"
+                          [class.selected]="
+                            selectedPatternKey() ===
+                            patternKey(manager.manager_id, pattern.category)
+                          "
+                          [class.unavailable]="!pattern.eligible_seasons"
+                          [disabled]="!pattern.eligible_seasons"
+                          [style.background]="patternColor(pattern)"
+                          [attr.aria-label]="
+                            manager.manager_alias +
+                            ', ' +
+                            pattern.category +
+                            ', ' +
+                            patternDisplay(pattern) +
+                            ', ' +
+                            pattern.eligible_seasons +
+                            ' eligible seasons'
+                          "
+                          (click)="selectPattern(manager.manager_id, pattern)"
+                        >
+                          <strong>{{ patternDisplay(pattern) }}</strong>
+                          <small>
+                            {{
+                              pattern.eligible_seasons
+                                ? pattern.eligible_seasons + ' seasons'
+                                : 'Unavailable'
+                            }}
+                          </small>
+                        </button>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="legend">
+            <span>{{ metric() === 'relative' ? 'Below baseline' : 'Lower outcome' }}</span>
+            <i></i>
+            <span>{{ metric() === 'relative' ? 'Above baseline' : 'Higher outcome' }}</span>
+            <small>Shrunken value · eligible seasons</small>
+          </div>
+        </section>
+
+        <aside class="analysis-card" id="pattern-detail" aria-labelledby="detail-title">
+          @if (selectedPattern(); as selected) {
+            <header class="panel-heading">
+              <div>
+                <h3 id="detail-title">
+                  {{ selected.manager.manager_alias }} · {{ selected.pattern.category }}
+                </h3>
+              </div>
+              <span class="evidence-tag">{{ selected.pattern.consistency }}</span>
+            </header>
+            <div class="detail-metrics">
+              <div>
+                <span>Shrunken emphasis</span>
+                <strong>{{ signed(selected.pattern.shrunken_relative_emphasis) }}</strong>
+              </div>
+              <div>
+                <span>Direction repeated</span>
+                <strong>
+                  {{ selected.pattern.direction_repeat_count }} of
+                  {{ selected.pattern.eligible_seasons }}
+                </strong>
+              </div>
+              <div>
+                <span>Outcome level</span>
+                <strong>{{ percentile(selected.pattern.raw_outcome_level) }}</strong>
+              </div>
+            </div>
+            <div class="season-list">
+              @for (season of selected.pattern.seasons; track season.season) {
+                <div class="season-row">
+                  <span>{{ season.season }}</span>
+                  <div class="season-bar" aria-hidden="true">
+                    <i
+                      [class.positive]="season.relative_emphasis >= 0"
+                      [class.negative]="season.relative_emphasis < 0"
+                      [style.width.%]="emphasisWidth(season.relative_emphasis)"
+                    ></i>
+                  </div>
+                  <strong>{{ signed(season.relative_emphasis) }}</strong>
+                </div>
+              }
+            </div>
+            <details>
+              <summary>Calculation and evidence</summary>
+              <p>
+                Relative emphasis is the normalized category finish minus the manager’s weighted
+                season baseline. Two league-average virtual seasons reduce single-year noise.
+              </p>
+              @for (season of selected.pattern.seasons; track season.season) {
+                <p class="evidence-line">
+                  <strong>{{ season.season }} · {{ season.team_name }}</strong
+                  ><br />
+                  Rank {{ season.rank }}/{{ season.team_count }} · outcome
+                  {{ percentile(season.normalized_finish) }} · baseline
+                  {{ percentile(season.season_baseline) }} · assignment revision
+                  {{ season.assignment_revision }}<br />
+                  Observation {{ season.observation_id }} ·
+                  {{ season.retrieved_at | date: 'medium' }} · mapper {{ season.mapper_version }}
+                </p>
+              }
+              @if (selected.pattern.excluded_seasons) {
+                <p>
+                  {{ selected.pattern.excluded_seasons }} selected season{{
+                    selected.pattern.excluded_seasons === 1 ? '' : 's'
+                  }}
+                  excluded because attribution, category coverage, or rule compatibility was
+                  insufficient.
+                </p>
+              }
+            </details>
+            <button class="text-action" type="button" (click)="openPatternPressure()">
+              View this category’s league pressure →
+            </button>
+          }
+        </aside>
+      </div>
+    }
+
+    <section class="analysis-card pressure" id="category-pressure" aria-labelledby="pressure-title">
+      <header class="panel-heading">
+        <div>
+          <h3 id="pressure-title">Historical category pressure</h3>
+          <p>
+            Pressure uses within-season rank distributions. Raw summaries combine only
+            comparable-length seasons; this is not projected player-pool scarcity.
+          </p>
+        </div>
+        <span class="scope-tag">Completed seasons only</span>
+      </header>
+      @if (analysis.league_pressure.length) {
+        <div class="pressure-layout">
+          <div class="table-scroll">
+            <table class="pressure-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Typical rank gap</th>
+                  <th>Top-quarter threshold</th>
+                  <th>Leader continuity</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (pressure of analysis.league_pressure; track pressure.category) {
+                  <tr
+                    class="pressure-row"
+                    [class.selected]="pressure.category === selectedPressureCode()"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-pressed]="pressure.category === selectedPressureCode()"
+                    [attr.aria-label]="
+                      'Inspect ' + pressure.category + ' historical league pressure'
+                    "
+                    (click)="selectPressure(pressure.category)"
+                    (keydown.enter)="selectPressure(pressure.category)"
+                    (keydown.space)="selectPressure(pressure.category); $event.preventDefault()"
+                  >
+                    <th>{{ pressure.category }}</th>
+                    <td>{{ pressureGap(pressure) }}</td>
+                    <td>{{ pressureThreshold(pressure) }}</td>
+                    <td>
+                      {{ pressure.leader_repeat_count }} of {{ pressure.leader_comparisons }}
+                      transitions
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (selectedPressure(); as pressure) {
+            <div class="distribution" aria-live="polite">
+              <div class="distribution-head">
+                <div>
+                  <p>{{ pressure.category }}</p>
+                  <h4>
+                    {{ pressure.eligible_seasons }} completed season{{
+                      pressure.eligible_seasons === 1 ? '' : 's'
+                    }}
+                  </h4>
+                </div>
+                <span>{{ pressureNote(pressure) }}</span>
+              </div>
+              @if (pressure.raw_summary_excluded_seasons) {
+                <p class="raw-summary-scope">
+                  Dots show all {{ pressure.eligible_seasons }} completed seasons. Raw gap and
+                  threshold summarize {{ pressure.raw_summary_seasons }} comparable-length season{{
+                    pressure.raw_summary_seasons === 1 ? '' : 's'
+                  }}.
+                </p>
+              }
+              @for (season of pressure.seasons; track season.season) {
+                <div class="dist-row">
+                  <strong>{{ season.season }}</strong>
+                  <div class="dot-track">
+                    @for (point of season.distribution; track point.team_id) {
+                      <button
+                        type="button"
+                        class="pressure-dot"
+                        [class.mine]="point.is_my_team"
+                        [class.selected]="
+                          selectedPressurePointKey() ===
+                          pressurePointKey(season.season, point.team_id)
+                        "
+                        [style.left.%]="point.normalized_finish * 100"
+                        [attr.aria-label]="
+                          point.team_name +
+                          ' · ' +
+                          pointLabel(point, pressure) +
+                          ' · rank ' +
+                          point.rank +
+                          '/' +
+                          season.team_count +
+                          ' · ' +
+                          pointManagers(point)
+                        "
+                        (click)="selectPressurePoint(season, point)"
+                      ></button>
+                    }
+                  </div>
+                </div>
+              }
+              <div class="dot-legend">
+                <span><i class="mine-dot"></i>My team</span>
+                <span><i class="other-dot"></i>Other teams</span>
+                <span>Better →</span>
+              </div>
+              @if (selectedPressurePoint(); as selectedPoint) {
+                <div class="point-detail" aria-live="polite">
+                  <strong>{{ selectedPoint.point.team_name }}</strong>
+                  <span>
+                    {{ selectedPoint.season.season }} · {{ pointManagers(selectedPoint.point) }} ·
+                    {{ pointLabel(selectedPoint.point, pressure) }} · rank
+                    {{ selectedPoint.point.rank }}/{{ selectedPoint.season.team_count }}
+                  </span>
+                  <small>
+                    Observation {{ selectedPoint.season.observation_id }} ·
+                    {{ selectedPoint.season.retrieved_at | date: 'medium' }} · mapper
+                    {{ selectedPoint.season.mapper_version }}
+                  </small>
+                </div>
+              }
+              <p class="pressure-question">{{ pressureQuestion(pressure) }}</p>
+              @if (pressure.seasons[0]; as latest) {
+                <details>
+                  <summary>Latest distribution evidence</summary>
+                  <p>
+                    {{ latest.season }} · {{ latest.team_count }} complete team values · median
+                    adjacent gap
+                    {{
+                      pressure.percentage
+                        ? (latest.raw_median_gap * 100).toFixed(2) + ' pp'
+                        : number(latest.raw_median_gap)
+                    }}
+                    · tie share {{ (latest.tie_share * 100).toFixed(0) }}%.
+                  </p>
+                  <p>
+                    Observation {{ latest.observation_id }} ·
+                    {{ latest.retrieved_at | date: 'medium' }} · mapper {{ latest.mapper_version }}
+                  </p>
+                </details>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="notice">
+          League pressure needs complete comparable team values for a supported rotisserie category.
+        </p>
+      }
+    </section>
+
+    <details class="method-notes">
+      <summary>Scope and calculation notes</summary>
+      @for (note of analysis.notes; track note) {
+        <p>{{ note }}</p>
+      }
+      <p>Calculation version {{ analysis.calculation_version }}.</p>
+    </details>
+  }
+
   @if (!loading() && catalog().imported_seasons.length) {
-    <app-league-auction-overview
-      [seasons]="catalog().imported_seasons"
-      [myManagerId]="data().my_manager_id"
-    />
-  } @else if (!loading()) {
-    <p class="notice">Import completed seasons before comparing league auction patterns.</p>
+    <section class="auction-history" aria-labelledby="auction-history-title">
+      <p class="eyebrow">Additional historical evidence</p>
+      <h2 id="auction-history-title">Auction patterns</h2>
+      <p class="intro-copy">
+        The existing completed-season auction analysis remains available after the category journey.
+      </p>
+      <app-league-auction-overview
+        [seasons]="selectedSeasons()"
+        [myManagerId]="data().my_manager_id"
+      />
+    </section>
   }
 </section>
