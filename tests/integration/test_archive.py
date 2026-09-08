@@ -100,6 +100,13 @@ def test_archive_api_links_managers_and_exposes_evidence_without_source_identiti
         assert category_report["league_pressure"][0]["eligible_seasons"] == 2
         assert category_report["league_pressure"][0]["raw_summary_seasons"] == 2
         assert "owner_tokens" not in str(category_report)
+        strategy_map = client.get(
+            "/api/archive/category-strategy-map?seasons=2025&seasons=2026"
+        ).json()
+        assert strategy_map["calculation_version"].startswith("category-strategy-map-v1")
+        assert strategy_map["categories"][0]["eligible_seasons"] == 2
+        assert strategy_map["categories"][0]["seasons"][0]["tiers"]
+        assert "owner_tokens" not in str(strategy_map)
         assert profile["players"][0]["draft_seasons"] == [2025, 2026]
         assert profile["players"][0]["evidence"][0]["observation_id"]
         cleared = {**body, "manager_ids": [], "revision": 1}

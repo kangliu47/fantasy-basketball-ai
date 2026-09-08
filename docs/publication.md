@@ -10,19 +10,21 @@ The accepted presentation strategy is recorded in
 
 ## What is published
 
-GitHub Pages publishes five explicit static documents and one shared stylesheet:
+GitHub Pages publishes six explicit static documents and one shared stylesheet:
 
 - `docs/index.html` as the showcase home at `/`;
 - `docs/app-preview.html` at `/app-preview.html`;
 - `docs/analytics-ui-review.html` at `/analytics-ui-review.html`;
 - `docs/architecture-review.html` at `/architecture-review.html`;
 - `docs/learning-lab.html` at `/learning-lab.html`; and
+- `docs/category-strategy-map-preview.html` at `/category-strategy-map-preview.html`; and
 - `docs/showcase-theme.css` at `/showcase-theme.css`, which supplies the shared visual
   primitives for public product previews.
 
-The application preview and UI review use invented aliases, auction budgets,
-purchase distributions, category finishes and league patterns. The UI review is
-an approved design direction, not a claim that its analytics are implemented.
+The application preview and archived UI review use invented aliases, category
+finishes and league patterns. The application preview is the canonical public
+demo; the UI review is retained as implementation history, not a second product
+direction.
 The architecture review's diagrams, request flows, source viewer and decision
 forms run in the browser without an API. Review notes use browser-local storage
 and a JSON export; collaborators do not automatically share notes. Its source

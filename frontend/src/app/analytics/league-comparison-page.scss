@@ -385,6 +385,152 @@ details p {
   margin-top: 1rem;
 }
 
+.strategy-map {
+  margin-top: 1rem;
+}
+
+.strategy-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.15fr) minmax(290px, 0.85fr);
+  margin-top: 1rem;
+}
+
+.strategy-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.strategy-list button {
+  background: #f5f7f2;
+  border: 1px solid #dce5dc;
+  border-radius: 8px;
+  color: #294237;
+  cursor: pointer;
+  min-width: 84px;
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+}
+
+.strategy-list button.selected {
+  background: #e8f0fb;
+  border-color: #99b8e4;
+  color: #315e92;
+}
+
+.strategy-list strong,
+.strategy-list small {
+  display: block;
+}
+
+.strategy-list small {
+  font-size: 0.58rem;
+  margin-top: 0.15rem;
+}
+
+.zone-curve {
+  align-items: end;
+  border-bottom: 1px solid #dce5dc;
+  border-left: 1px solid #dce5dc;
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-height: 190px;
+  padding: 0.7rem 0.45rem 0;
+}
+
+.zone-bar {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.zone-bar > strong {
+  color: #294237;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.3rem;
+}
+
+.bar-track {
+  align-items: end;
+  background: #f0f4ee;
+  display: flex;
+  height: 110px;
+  width: 65%;
+}
+
+.bar-track i {
+  background: #7bb08a;
+  border-radius: 5px 5px 0 0;
+  display: block;
+  width: 100%;
+}
+
+.zone-bar:nth-child(-n + 2) .bar-track i {
+  background: #a7c9ae;
+}
+
+.zone-bar span,
+.zone-bar small {
+  color: #63766a;
+  font-size: 0.6rem;
+  line-height: 1.2;
+  margin-top: 0.35rem;
+  text-align: center;
+}
+
+.zone-bar small {
+  color: #7c8b81;
+  margin-top: 0.12rem;
+}
+
+.curve-caption,
+.strategy-detail > p {
+  color: #63766a;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.strategy-detail {
+  background: #f5f7f2;
+  border-radius: 10px;
+  padding: 0.9rem;
+}
+
+.strategy-detail .eyebrow {
+  margin: 0;
+}
+
+.strategy-detail h4 {
+  margin-top: 0.25rem;
+}
+
+.strategy-metrics {
+  margin: 0.75rem 0;
+}
+
+.strategy-metrics strong {
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.strategy-evidence,
+.strategy-transitions {
+  border-top: 1px solid #dce5dc;
+  font-size: 0.68rem !important;
+  overflow-wrap: anywhere;
+  padding-top: 0.5rem;
+}
+
+.strategy-transitions {
+  color: #63766a;
+  font-variant-numeric: tabular-nums;
+}
+
 .pressure-layout {
   display: grid;
   gap: 1.25rem;
@@ -564,7 +710,7 @@ details p {
   overflow-wrap: anywhere;
 }
 
-.pressure-question {
+.pressure-next-action {
   background: #f5f7f2;
   border-left: 3px solid #cf7045;
   color: #294237;
@@ -601,7 +747,8 @@ details p {
   }
 
   .analysis-grid,
-  .pressure-layout {
+  .pressure-layout,
+  .strategy-layout {
     grid-template-columns: 1fr;
   }
 

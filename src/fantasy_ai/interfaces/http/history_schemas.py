@@ -11,6 +11,7 @@ from fantasy_ai.application.history.models import ImportJob, SeasonCandidate
 from fantasy_ai.application.history.service import Suggestion
 from fantasy_ai.domain.history.analysis import AuctionOverview, AuctionPatterns
 from fantasy_ai.domain.history.category_patterns import HistoricalCategoryPatternReport
+from fantasy_ai.domain.history.category_strategy import CategoryStrategyMapReport
 from fantasy_ai.domain.history.models import (
     ArchiveRoster,
     Assignment,
@@ -235,6 +236,140 @@ class HistoricalCategoryPatternReportDTO(BaseModel):
     def from_report(
         cls, report: HistoricalCategoryPatternReport
     ) -> "HistoricalCategoryPatternReportDTO":
+        return cls.model_validate(report)
+
+
+class StrategyTierDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    value: float
+    oriented_value: float
+    rank: float
+    team_ids: tuple[str, ...]
+    team_names: tuple[str, ...]
+
+
+class RankTransitionDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    worse_rank: float
+    better_rank: float
+    raw_gain_gap: float
+    required_native_delta: float
+    normalized_gap: float | None
+    transition_percentile: float
+    zone: str
+    worse_tier_size: int
+    better_tier_size: int
+    worse_team_ids: tuple[str, ...]
+    better_team_ids: tuple[str, ...]
+    observation_id: str
+    retrieved_at: datetime
+    mapper_version: str
+
+
+class SeasonZoneGapDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    zone: str
+    median_normalized_gap: float | None
+    transition_count: int
+
+
+class StrategySeasonCurveDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    team_count: int
+    higher_is_better: bool
+    percentage: bool
+    robust_range: float
+    tie_share: float
+    source_observation_id: str
+    retrieved_at: datetime
+    mapper_version: str
+    tiers: tuple[StrategyTierDTO, ...]
+    transitions: tuple[RankTransitionDTO, ...]
+    zone_gaps: tuple[SeasonZoneGapDTO, ...]
+
+
+class StrategySeasonExclusionDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    reason: str
+
+
+class StrategyZoneSummaryDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    zone: str
+    median_normalized_gap: float | None
+    normalized_gap_iqr: float | None
+    observed_seasons: tuple[int, ...]
+    excluded_seasons: tuple[int, ...]
+    season_gaps: tuple[SeasonZoneGapDTO, ...]
+
+
+class KneeEvidenceDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    entry_gap: float
+    advance_gap: float
+    effect: float
+    supports_boundary: bool
+
+
+class StrategyKneeDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    advance_zone: str
+    entry_zone: str
+    evaluable_seasons: int
+    supporting_seasons: int
+    support_fraction: float | None
+    median_effect: float | None
+    q1_effect: float | None
+    effect_iqr: float | None
+    leave_one_season_out_stable: bool
+    label: str
+    evidence: tuple[KneeEvidenceDTO, ...]
+
+
+class CategoryStrategyDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    category: str
+    higher_is_better: bool
+    percentage: bool
+    eligible_seasons: int
+    excluded_seasons: int
+    zones: tuple[StrategyZoneSummaryDTO, ...]
+    knees: tuple[StrategyKneeDTO, ...]
+    classification: str
+    stopping_boundary: str | None
+    narrative: str
+    seasons: tuple[StrategySeasonCurveDTO, ...]
+    exclusions: tuple[StrategySeasonExclusionDTO, ...]
+
+
+class KneeRuleDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    effect_formula: str
+    effect_threshold: float
+    minimum_evaluable_seasons: int
+    minimum_supporting_seasons: int
+    minimum_support_fraction: float
+    minimum_median_effect: float
+    q1_effect_must_be_positive: bool
+    cap_minimum_evaluable_seasons: int
+    requires_leave_one_season_out_stability: bool
+    requires_exactly_one_qualifying_boundary: bool
+
+
+class CategoryStrategyMapReportDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    calculation_version: str
+    seasons_requested: tuple[int, ...]
+    zone_width: float
+    knee_rule: KneeRuleDTO
+    categories: tuple[CategoryStrategyDTO, ...]
+    notes: tuple[str, ...]
+
+    @classmethod
+    def from_report(cls, report: CategoryStrategyMapReport) -> "CategoryStrategyMapReportDTO":
         return cls.model_validate(report)
 
 

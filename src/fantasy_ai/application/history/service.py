@@ -27,6 +27,10 @@ from fantasy_ai.domain.history.category_patterns import (
     HistoricalCategoryPatternReport,
     historical_category_pattern_report,
 )
+from fantasy_ai.domain.history.category_strategy import (
+    CategoryStrategyMapReport,
+    category_strategy_map_report,
+)
 from fantasy_ai.domain.history.models import (
     Assignment,
     CoverageStatus,
@@ -387,6 +391,12 @@ class HistoryService:
             managers,
             my_manager_id,
         )
+
+    async def category_strategy_map(
+        self, league_id: int, seasons: tuple[int, ...]
+    ) -> CategoryStrategyMapReport:
+        archives = await self._analysis_archives(league_id, seasons)
+        return await asyncio.to_thread(category_strategy_map_report, archives)
 
     async def _assign(
         self,

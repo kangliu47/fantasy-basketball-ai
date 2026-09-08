@@ -20,25 +20,21 @@ def architecture_review_data() -> dict[str, Any]:
 
 def test_showcase_home_links_every_published_section() -> None:
     home = (DOCS / "index.html").read_text(encoding="utf-8")
-    for page in (
-        "app-preview.html",
-        "analytics-ui-review.html",
-        "architecture-review.html",
-        "learning-lab.html",
-    ):
+    for page in ("app-preview.html", "architecture-review.html", "learning-lab.html"):
         assert (DOCS / page).is_file()
         assert f'href="{page}"' in home
 
 
 def test_showcase_home_is_product_first_with_a_secondary_learning_lab() -> None:
     home = (DOCS / "index.html").read_text(encoding="utf-8")
-    assert "Current product question" in home
+    assert "Turn historical league evidence into focused draft questions." in home
     assert "Product heartbeat" in home
     assert 'href="learning-lab.html"' in home
     assert "Current demo" in home
-    assert "Implemented flow" in home
-    assert "Technical evidence" in home
-    assert home.index("Product heartbeat") < home.index("Learning Lab")
+    assert "Case study" in home
+    assert "Technical detail" in home
+    assert 'href="analytics-ui-review.html"' not in home
+    assert home.index("Application preview") < home.index("Learning Lab")
     assert "Five lenses on one evolving product" not in home
 
 
@@ -79,6 +75,7 @@ def test_architecture_review_source_snapshot_has_not_drifted() -> None:
     assert "get_season_results" in review
     assert "Projection ingestion POC" in review
     assert "free tier as a projection contract test" in review
+    assert "A local, read-only product built around saved evidence." in review
 
 
 def test_architecture_feature_maps_do_not_invent_or_duplicate_layers() -> None:
@@ -124,6 +121,7 @@ def test_pages_workflow_stages_only_the_explicit_showcase_pages() -> None:
         "cp docs/analytics-ui-review.html _site/analytics-ui-review.html",
         "cp docs/architecture-review.html _site/architecture-review.html",
         "cp docs/learning-lab.html _site/learning-lab.html",
+        "cp docs/category-strategy-map-preview.html _site/category-strategy-map-preview.html",
     }
     actual_copies = {
         line.strip() for line in workflow.splitlines() if line.strip().startswith("cp docs/")

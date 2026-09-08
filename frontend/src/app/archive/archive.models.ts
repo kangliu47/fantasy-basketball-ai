@@ -326,6 +326,113 @@ export interface HistoricalCategoryPatternReport {
   league_pressure: LeagueCategoryPressure[];
   notes: string[];
 }
+export interface StrategyTier {
+  value: number;
+  oriented_value: number;
+  rank: number;
+  team_ids: string[];
+  team_names: string[];
+}
+export interface RankTransition {
+  worse_rank: number;
+  better_rank: number;
+  raw_gain_gap: number;
+  required_native_delta: number;
+  normalized_gap: number | null;
+  transition_percentile: number;
+  zone: string;
+  worse_tier_size: number;
+  better_tier_size: number;
+  worse_team_ids: string[];
+  better_team_ids: string[];
+  observation_id: string;
+  retrieved_at: string;
+  mapper_version: string;
+}
+export interface SeasonZoneGap {
+  zone: string;
+  median_normalized_gap: number | null;
+  transition_count: number;
+}
+export interface StrategySeasonCurve {
+  season: number;
+  team_count: number;
+  higher_is_better: boolean;
+  percentage: boolean;
+  robust_range: number;
+  tie_share: number;
+  source_observation_id: string;
+  retrieved_at: string;
+  mapper_version: string;
+  tiers: StrategyTier[];
+  transitions: RankTransition[];
+  zone_gaps: SeasonZoneGap[];
+}
+export interface StrategySeasonExclusion {
+  season: number;
+  reason: string;
+}
+export interface StrategyZoneSummary {
+  zone: string;
+  median_normalized_gap: number | null;
+  normalized_gap_iqr: number | null;
+  observed_seasons: number[];
+  excluded_seasons: number[];
+  season_gaps: SeasonZoneGap[];
+}
+export interface KneeEvidence {
+  season: number;
+  entry_gap: number;
+  advance_gap: number;
+  effect: number;
+  supports_boundary: boolean;
+}
+export interface StrategyKnee {
+  advance_zone: string;
+  entry_zone: string;
+  evaluable_seasons: number;
+  supporting_seasons: number;
+  support_fraction: number | null;
+  median_effect: number | null;
+  q1_effect: number | null;
+  effect_iqr: number | null;
+  leave_one_season_out_stable: boolean;
+  label: string;
+  evidence: KneeEvidence[];
+}
+export interface CategoryStrategy {
+  category: string;
+  higher_is_better: boolean;
+  percentage: boolean;
+  eligible_seasons: number;
+  excluded_seasons: number;
+  zones: StrategyZoneSummary[];
+  knees: StrategyKnee[];
+  classification: string;
+  stopping_boundary: string | null;
+  narrative: string;
+  seasons: StrategySeasonCurve[];
+  exclusions: StrategySeasonExclusion[];
+}
+export interface CategoryStrategyMapReport {
+  calculation_version: string;
+  seasons_requested: number[];
+  zone_width: number;
+  knee_rule: {
+    effect_formula: string;
+    effect_threshold: number;
+    minimum_evaluable_seasons: number;
+    minimum_supporting_seasons: number;
+    minimum_support_fraction: number;
+    minimum_median_effect: number;
+    q1_effect_must_be_positive: boolean;
+    cap_minimum_evaluable_seasons: number;
+    requires_leave_one_season_out_stability: boolean;
+    requires_exactly_one_qualifying_boundary: boolean;
+  };
+  categories: CategoryStrategy[];
+  notes: string[];
+}
 export interface Overlap {
   season: number;
   team_name: string;

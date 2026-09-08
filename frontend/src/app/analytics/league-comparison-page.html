@@ -2,7 +2,7 @@
   <div class="intro-row">
     <div>
       <p class="eyebrow">Historical category patterns</p>
-      <h2>Where did each manager repeatedly lean?</h2>
+      <h2>How did each manager finish relative to their own baseline?</h2>
       <p class="intro-copy">
         Compare category outcomes with each manager’s own season baseline, then inspect the league
         context behind a pattern.
@@ -10,7 +10,7 @@
     </div>
     @if (catalog().imported_seasons.length) {
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-label>History to explore</mat-label>
+        <mat-label>Seasons</mat-label>
         <mat-select [value]="historyWindow()" (selectionChange)="historyWindow.set($event.value)">
           <mat-option value="recent-1">{{ historyLabel('recent-1') }}</mat-option>
           <mat-option value="recent-3">{{ historyLabel('recent-3') }}</mat-option>
@@ -24,17 +24,17 @@
   <ol class="review-path" aria-label="Historical analytics journey">
     <li>
       <button type="button" (click)="jumpTo('manager-patterns')">
-        <span>1</span><strong>Scan managers</strong><small>Find repeated tilts</small>
-      </button>
-    </li>
-    <li>
-      <button type="button" (click)="jumpTo('pattern-detail')">
-        <span>2</span><strong>Inspect a pattern</strong><small>Review seasons and evidence</small>
+        <span>1</span><strong>Manager patterns</strong><small>Compare to each baseline</small>
       </button>
     </li>
     <li>
       <button type="button" (click)="jumpTo('category-pressure')">
-        <span>3</span><strong>Check league pressure</strong><small>See gaps and thresholds</small>
+        <span>2</span><strong>League pressure</strong><small>Compare standings gaps</small>
+      </button>
+    </li>
+    <li>
+      <button type="button" (click)="jumpTo('category-strategy-map')">
+        <span>3</span><strong>Category gap map</strong><small>Inspect adjacent tiers</small>
       </button>
     </li>
   </ol>
@@ -96,7 +96,7 @@
                 [attr.aria-pressed]="metric() === 'relative'"
                 (click)="metric.set('relative')"
               >
-                Relative emphasis
+                Vs own baseline
               </button>
               <button
                 mat-button
@@ -105,7 +105,7 @@
                 [attr.aria-pressed]="metric() === 'outcome'"
                 (click)="metric.set('outcome')"
               >
-                Outcome level
+                Category finish
               </button>
             </div>
           </header>
@@ -156,17 +156,15 @@
                             ', ' +
                             patternDisplay(pattern) +
                             ', ' +
-                            pattern.eligible_seasons +
-                            ' eligible seasons'
+                            seasonCount(pattern.eligible_seasons) +
+                            ' eligible'
                           "
                           (click)="selectPattern(manager.manager_id, pattern)"
                         >
                           <strong>{{ patternDisplay(pattern) }}</strong>
                           <small>
                             {{
-                              pattern.eligible_seasons
-                                ? pattern.eligible_seasons + ' seasons'
-                                : 'Unavailable'
+                              pattern.eligible_seasons ? seasonCount(pattern.eligible_seasons) : 'Unavailable'
                             }}
                           </small>
                         </button>
@@ -181,7 +179,7 @@
             <span>{{ metric() === 'relative' ? 'Below baseline' : 'Lower outcome' }}</span>
             <i></i>
             <span>{{ metric() === 'relative' ? 'Above baseline' : 'Higher outcome' }}</span>
-            <small>Shrunken value · eligible seasons</small>
+            <small>Adjusted vs baseline · eligible seasons</small>
           </div>
         </section>
 
@@ -197,18 +195,18 @@
             </header>
             <div class="detail-metrics">
               <div>
-                <span>Shrunken emphasis</span>
+                <span>Adjusted vs baseline</span>
                 <strong>{{ signed(selected.pattern.shrunken_relative_emphasis) }}</strong>
               </div>
               <div>
-                <span>Direction repeated</span>
+                <span>Same direction</span>
                 <strong>
                   {{ selected.pattern.direction_repeat_count }} of
                   {{ selected.pattern.eligible_seasons }}
                 </strong>
               </div>
               <div>
-                <span>Outcome level</span>
+                <span>Category finish</span>
                 <strong>{{ percentile(selected.pattern.raw_outcome_level) }}</strong>
               </div>
             </div>
@@ -228,11 +226,14 @@
               }
             </div>
             <details>
-              <summary>Calculation and evidence</summary>
+              <summary>How this is calculated</summary>
               <p>
                 Relative emphasis is the normalized category finish minus the manager’s weighted
                 season baseline. Two league-average virtual seasons reduce single-year noise.
               </p>
+            </details>
+            <details>
+              <summary>Sources and exclusions</summary>
               @for (season of selected.pattern.seasons; track season.season) {
                 <p class="evidence-line">
                   <strong>{{ season.season }} · {{ season.team_name }}</strong
@@ -266,11 +267,8 @@
     <section class="analysis-card pressure" id="category-pressure" aria-labelledby="pressure-title">
       <header class="panel-heading">
         <div>
-          <h3 id="pressure-title">Historical category pressure</h3>
-          <p>
-            Pressure uses within-season rank distributions. Raw summaries combine only
-            comparable-length seasons; this is not projected player-pool scarcity.
-          </p>
+          <h3 id="pressure-title">Historical league pressure</h3>
+          <p>Standings gaps, not player scarcity.</p>
         </div>
         <span class="scope-tag">Completed seasons only</span>
       </header>
@@ -281,9 +279,9 @@
               <thead>
                 <tr>
                   <th>Category</th>
-                  <th>Typical rank gap</th>
-                  <th>Top-quarter threshold</th>
-                  <th>Leader continuity</th>
+                  <th>Typical gap</th>
+                  <th>Top-quarter level</th>
+                  <th>Repeated leader</th>
                 </tr>
               </thead>
               <tbody>
@@ -326,14 +324,9 @@
                 </div>
                 <span>{{ pressureNote(pressure) }}</span>
               </div>
-              @if (pressure.raw_summary_excluded_seasons) {
-                <p class="raw-summary-scope">
-                  Dots show all {{ pressure.eligible_seasons }} completed seasons. Raw gap and
-                  threshold summarize {{ pressure.raw_summary_seasons }} comparable-length season{{
-                    pressure.raw_summary_seasons === 1 ? '' : 's'
-                  }}.
-                </p>
-              }
+              <p class="raw-summary-scope">
+                {{ seasonCount(pressure.eligible_seasons) }} eligible. Dots show completed seasons.
+              </p>
               @for (season of pressure.seasons; track season.season) {
                 <div class="dist-row">
                   <strong>{{ season.season }}</strong>
@@ -378,17 +371,14 @@
                     {{ pointLabel(selectedPoint.point, pressure) }} · rank
                     {{ selectedPoint.point.rank }}/{{ selectedPoint.season.team_count }}
                   </span>
-                  <small>
-                    Observation {{ selectedPoint.season.observation_id }} ·
-                    {{ selectedPoint.season.retrieved_at | date: 'medium' }} · mapper
-                    {{ selectedPoint.season.mapper_version }}
-                  </small>
                 </div>
               }
-              <p class="pressure-question">{{ pressureQuestion(pressure) }}</p>
+              <p class="pressure-next-action">
+                Next: choose {{ pressure.category }} in Manager patterns to compare it with this pressure.
+              </p>
               @if (pressure.seasons[0]; as latest) {
                 <details>
-                  <summary>Latest distribution evidence</summary>
+                  <summary>How this is calculated</summary>
                   <p>
                     {{ latest.season }} · {{ latest.team_count }} complete team values · median
                     adjacent gap
@@ -398,6 +388,13 @@
                         : number(latest.raw_median_gap)
                     }}
                     · tie share {{ (latest.tie_share * 100).toFixed(0) }}%.
+                  </p>
+                </details>
+                <details>
+                  <summary>Sources and exclusions</summary>
+                  <p>
+                    {{ seasonCount(pressure.eligible_seasons) }} eligible; raw summaries use
+                    {{ seasonCount(pressure.raw_summary_seasons) }} with comparable team counts.
                   </p>
                   <p>
                     Observation {{ latest.observation_id }} ·
@@ -415,26 +412,137 @@
       }
     </section>
 
+    <section
+      class="analysis-card strategy-map"
+      id="category-strategy-map"
+      aria-labelledby="strategy-map-title"
+    >
+      <header class="panel-heading">
+        <div>
+          <h3 id="strategy-map-title">Historical Category Gap Map</h3>
+          <p>Compare normalized gaps between adjacent standings tiers.</p>
+        </div>
+        <span class="scope-tag">Completed seasons</span>
+      </header>
+      @if (strategyLoading()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Calculating category strategy map" />
+      }
+      @if (strategyError()) {
+        <p class="notice error" role="alert">
+          {{ strategyError() }}
+          <button mat-button type="button" (click)="retryStrategy()">Retry map</button>
+        </p>
+      }
+      @if (strategyMap(); as map) {
+        @if (!map.categories.length) {
+          <p class="notice">
+            The map needs complete compatible rotisserie team values for a supported category.
+          </p>
+        } @else {
+          <div class="strategy-layout">
+            <div>
+              <div class="strategy-list" role="tablist" aria-label="Historical category gap curves">
+                @for (strategy of map.categories; track strategy.category) {
+                  <button
+                    type="button"
+                    [class.selected]="strategy.category === selectedStrategyCode()"
+                    [attr.aria-selected]="strategy.category === selectedStrategyCode()"
+                    (click)="selectStrategy(strategy.category)"
+                  >
+                    <strong>{{ strategy.category }}</strong>
+                    <small>{{ strategyStatus(strategy) }}</small>
+                  </button>
+                }
+              </div>
+              @if (selectedStrategy(); as strategy) {
+                <div class="zone-curve" aria-label="Median normalized transition gap by zone">
+                  @for (zone of strategy.zones; track zone.zone) {
+                    <div class="zone-bar">
+                      <strong>{{ normalized(zone.median_normalized_gap) }}</strong>
+                      <div class="bar-track">
+                        <i [style.height.%]="strategyHeight(strategy, zone.median_normalized_gap)"></i>
+                      </div>
+                      <span>{{ zoneLabel(zone.zone) }}</span>
+                      <small>{{ seasonCount(zone.observed_seasons.length) }}</small>
+                    </div>
+                  }
+                </div>
+                <p class="curve-caption">
+                  Larger bars show larger normalized gaps between adjacent standings tiers.
+                </p>
+              }
+            </div>
+            @if (selectedStrategy(); as strategy) {
+              <aside class="strategy-detail" aria-live="polite">
+                <p class="eyebrow">Selected category · {{ strategy.category }}</p>
+                <h4>{{ strategyStatus(strategy) }}</h4>
+                <p>{{ strategyNarrative(strategy) }}</p>
+                <div class="detail-metrics strategy-metrics">
+                  <div>
+                    <span>Eligible seasons</span>
+                    <strong>{{ seasonCount(strategy.eligible_seasons) }}</strong>
+                  </div>
+                  <div>
+                    <span>Evidence checks</span>
+                    <strong>{{ strategy.knees.length || 'None' }}</strong>
+                  </div>
+                  <div>
+                    <span>Excluded seasons</span>
+                    <strong>{{ strategy.excluded_seasons }}</strong>
+                  </div>
+                </div>
+                <details>
+                  <summary>How this is calculated</summary>
+                  <p class="strategy-evidence">
+                    Gaps are normalized within each completed season, then summarized equally
+                    across eligible seasons.
+                  </p>
+                  @for (knee of strategy.knees; track knee.advance_zone + knee.entry_zone) {
+                    <p class="strategy-evidence">
+                      <strong>{{ zoneLabel(knee.entry_zone) }} → {{ zoneLabel(knee.advance_zone) }}</strong>
+                      · {{ knee.supporting_seasons }} of {{ knee.evaluable_seasons }} season checks
+                      support a larger gap.
+                    </p>
+                  }
+                </details>
+                <details>
+                  <summary>Sources and exclusions</summary>
+                  @for (season of strategy.seasons; track season.season) {
+                    <p class="strategy-evidence">
+                      <strong>{{ season.season }}</strong> · {{ season.team_count }} teams · ties
+                      {{ (season.tie_share * 100).toFixed(0) }}%<br />
+                      Observation {{ season.source_observation_id }} ·
+                      {{ season.retrieved_at | date: 'medium' }} · mapper {{ season.mapper_version }}
+                    </p>
+                  }
+                  @for (exclusion of strategy.exclusions; track exclusion.season) {
+                    <p class="strategy-evidence"><strong>{{ exclusion.season }}</strong> excluded · {{ exclusion.reason }}</p>
+                  }
+                </details>
+              </aside>
+            }
+          </div>
+        }
+      }
+    </section>
+
     <details class="method-notes">
-      <summary>Scope and calculation notes</summary>
+      <summary>How this is calculated</summary>
       @for (note of analysis.notes; track note) {
         <p>{{ note }}</p>
       }
+    </details>
+    <details class="method-notes">
+      <summary>Sources and exclusions</summary>
       <p>Calculation version {{ analysis.calculation_version }}.</p>
     </details>
   }
 
   @if (!loading() && catalog().imported_seasons.length) {
-    <section class="auction-history" aria-labelledby="auction-history-title">
-      <p class="eyebrow">Additional historical evidence</p>
-      <h2 id="auction-history-title">Auction patterns</h2>
-      <p class="intro-copy">
-        The existing completed-season auction analysis remains available after the category journey.
-      </p>
-      <app-league-auction-overview
-        [seasons]="selectedSeasons()"
-        [myManagerId]="data().my_manager_id"
-      />
-    </section>
+    <details class="auction-history">
+      <summary>Additional auction analysis</summary>
+      <p class="intro-copy">Completed-season auction evidence remains available after the category journey.</p>
+      <app-league-auction-overview [seasons]="selectedSeasons()" [myManagerId]="data().my_manager_id" />
+    </details>
   }
 </section>

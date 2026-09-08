@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 127.0.0.1 --proxy-config proxy.conf.json",
-    "build": "ng build",
+    "build": "NG_BUILD_CACHE_STORE=sqlite ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

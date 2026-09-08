@@ -2,7 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { vi } from 'vitest';
-import { HistoricalCategoryPatternReport } from '../archive/archive.models';
+import {
+  CategoryStrategyMapReport,
+  HistoricalCategoryPatternReport,
+} from '../archive/archive.models';
 import { managers } from '../archive/testing/fixtures';
 import { LeagueComparisonPage } from './league-comparison-page';
 
@@ -106,6 +109,63 @@ const report: HistoricalCategoryPatternReport = {
   notes: ['Completed seasons only.'],
 };
 
+const strategyMap: CategoryStrategyMapReport = {
+  calculation_version: 'category-strategy-map-v1-tiergap-p90p10-fivezone-knee05-loo',
+  seasons_requested: [2026, 2025],
+  zone_width: 0.2,
+  knee_rule: {
+    effect_formula: '(advance_gap / entry_gap) - 1',
+    effect_threshold: 0.5,
+    minimum_evaluable_seasons: 3,
+    minimum_supporting_seasons: 3,
+    minimum_support_fraction: 2 / 3,
+    minimum_median_effect: 0.5,
+    q1_effect_must_be_positive: true,
+    cap_minimum_evaluable_seasons: 4,
+    requires_leave_one_season_out_stability: true,
+    requires_exactly_one_qualifying_boundary: true,
+  },
+  categories: [
+    {
+      category: 'PTS',
+      higher_is_better: true,
+      percentage: false,
+      eligible_seasons: 2,
+      excluded_seasons: 0,
+      classification: 'UNCLASSIFIED',
+      stopping_boundary: null,
+      narrative: 'No repeated historical transition boundary met the conservative stopping-zone rule.',
+      zones: ['top', 'upper_middle', 'middle', 'lower_middle', 'bottom'].map((zone) => ({
+        zone,
+        median_normalized_gap: 0.2,
+        normalized_gap_iqr: 0,
+        observed_seasons: [2026, 2025],
+        excluded_seasons: [],
+        season_gaps: [{ zone, median_normalized_gap: 0.2, transition_count: 1 }],
+      })),
+      knees: [],
+      seasons: [
+        {
+          season: 2026,
+          team_count: 2,
+          higher_is_better: true,
+          percentage: false,
+          robust_range: 50,
+          tie_share: 0,
+          source_observation_id: 'strategy-observation-2026',
+          retrieved_at: '2026-09-06T12:00:00Z',
+          mapper_version: 'test-1',
+          tiers: [],
+          transitions: [],
+          zone_gaps: [],
+        },
+      ],
+      exclusions: [],
+    },
+  ],
+  notes: ['Completed-season evidence only.'],
+};
+
 describe('LeagueComparisonPage', () => {
   let fixture: ComponentFixture<LeagueComparisonPage>;
   let http: HttpTestingController;
@@ -139,6 +199,11 @@ describe('LeagueComparisonPage', () => {
     );
     expect(reportRequest.request.params.getAll('seasons')).toEqual(['2026', '2025', '2024']);
     reportRequest.flush({ ...report, seasons_requested: [2026, 2025, 2024] });
+    const strategyRequest = http.expectOne((request) =>
+      request.url.endsWith('/category-strategy-map'),
+    );
+    expect(strategyRequest.request.params.getAll('seasons')).toEqual(['2026', '2025', '2024']);
+    strategyRequest.flush({ ...strategyMap, seasons_requested: [2026, 2025, 2024] });
     http
       .expectOne((request) => request.url.endsWith('/auction-overview'))
       .flush({
@@ -157,18 +222,31 @@ describe('LeagueComparisonPage', () => {
     fixture.detectChanges();
   }
 
-  it('renders the approved journey with source evidence and retained auctions', () => {
+  it('renders the three-stage hierarchy with closed details and secondary auctions', () => {
     flushShell();
 
     const content = fixture.nativeElement.textContent;
     expect(content).not.toContain('Story 1');
+    expect(content).toContain('Manager patterns');
+    expect(content).toContain('League pressure');
+    expect(content).toContain('Category gap map');
+    expect(content).not.toContain('Inspect a pattern');
+    expect(content).toContain('Vs own baseline');
+    expect(content).toContain('Category finish');
+    expect(content).toContain('Adjusted vs baseline');
+    expect(content).toContain('Same direction');
+    expect(content).toContain('Historical league pressure');
+    expect(content).toContain('Standings gaps, not player scarcity.');
     expect(content).toContain('2026 rank #2');
-    expect(content).toContain('Observation observation-2026');
-    expect(content).toContain('Raw gap and threshold summarize 1 comparable-length season');
-    expect(content).toContain('Auction patterns over time');
+    expect(content).toContain('Additional auction analysis');
+    expect(
+      [...fixture.nativeElement.querySelectorAll('details')].every(
+        (detail: HTMLDetailsElement) => !detail.open,
+      ),
+    ).toBe(true);
 
     const outcomeButton = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (button: HTMLButtonElement) => button.textContent?.includes('Outcome level'),
+      (button: HTMLButtonElement) => button.textContent?.includes('Category finish'),
     ) as HTMLButtonElement;
     outcomeButton.click();
     fixture.detectChanges();
@@ -176,6 +254,14 @@ describe('LeagueComparisonPage', () => {
     expect(fixture.componentInstance.percentile(0.61)).toBe('61st pct');
     expect(fixture.componentInstance.percentile(0.82)).toBe('82nd pct');
     expect(fixture.componentInstance.percentile(0.93)).toBe('93rd pct');
+  });
+
+  it('uses singular seasons and suppresses rounded negative zero', () => {
+    flushShell();
+
+    expect(fixture.componentInstance.seasonCount(1)).toBe('1 season');
+    expect(fixture.componentInstance.seasonCount(2)).toBe('2 seasons');
+    expect(fixture.componentInstance.signed(-0.0001)).toBe('0.00');
   });
 
   it('recalculates from the selected history window', () => {
@@ -186,6 +272,9 @@ describe('LeagueComparisonPage', () => {
     const analysis = http.expectOne((request) => request.url.endsWith('/category-pattern-report'));
     expect(analysis.request.params.getAll('seasons')).toEqual(['2026']);
     analysis.flush({ ...report, seasons_requested: [2026] });
+    const strategy = http.expectOne((request) => request.url.endsWith('/category-strategy-map'));
+    expect(strategy.request.params.getAll('seasons')).toEqual(['2026']);
+    strategy.flush({ ...strategyMap, seasons_requested: [2026] });
     const auctions = http.expectOne((request) => request.url.endsWith('/auction-patterns'));
     expect(auctions.request.params.getAll('seasons')).toEqual(['2026']);
     auctions.flush({ seasons: [2026], reviewed_manager_count: 1, rows: [] });
@@ -238,6 +327,7 @@ describe('LeagueComparisonPage', () => {
     });
     fixture.detectChanges();
     http.expectOne((request) => request.url.endsWith('/category-pattern-report')).flush(empty);
+    http.expectOne((request) => request.url.endsWith('/category-strategy-map')).flush(strategyMap);
     http
       .expectOne((request) => request.url.endsWith('/auction-overview'))
       .flush({
@@ -258,7 +348,7 @@ describe('LeagueComparisonPage', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Category patterns need reviewed whole-season links.',
     );
-    expect(fixture.nativeElement.textContent).toContain('Historical category pressure');
+    expect(fixture.nativeElement.textContent).toContain('Historical league pressure');
   });
 
   it('shows a retryable analysis error without discarding the secondary auction view', () => {
@@ -273,6 +363,7 @@ describe('LeagueComparisonPage', () => {
     http
       .expectOne((request) => request.url.endsWith('/category-pattern-report'))
       .flush({ message: 'Synthetic analysis failure' }, { status: 500, statusText: 'Error' });
+    http.expectOne((request) => request.url.endsWith('/category-strategy-map')).flush(strategyMap);
     http
       .expectOne((request) => request.url.endsWith('/auction-overview'))
       .flush({
@@ -293,5 +384,39 @@ describe('LeagueComparisonPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Synthetic analysis failure');
     expect(fixture.nativeElement.textContent).toContain('Retry analysis');
     expect(fixture.nativeElement.textContent).toContain('Auction patterns over time');
+  });
+
+  it('renders a synchronized historical category gap map without raw classifications', () => {
+    flushShell();
+
+    const content = fixture.nativeElement.textContent;
+    expect(content).toContain('Historical Category Gap Map');
+    expect(content).toContain('No stable boundary found');
+    expect(content).toContain('No transition met the stability rule.');
+    expect(content).not.toContain('CAP_CANDIDATE');
+    expect(content).not.toContain('Stopping boundary');
+    expect(fixture.componentInstance.strategyStatus({
+      ...strategyMap.categories[0],
+      classification: 'CAP_CANDIDATE',
+    })).toBe('Stable historical boundary');
+    expect(fixture.componentInstance.strategyStatus({
+      ...strategyMap.categories[0],
+      knees: [
+        {
+          advance_zone: 'middle',
+          entry_zone: 'lower_middle',
+          evaluable_seasons: 3,
+          supporting_seasons: 3,
+          support_fraction: 1,
+          median_effect: 0.5,
+          q1_effect: 0.1,
+          effect_iqr: 0,
+          leave_one_season_out_stable: false,
+          label: 'SUGGESTIVE',
+          evidence: [],
+        },
+      ],
+    })).toBe('Possible boundary; stability not met');
+    expect(fixture.componentInstance.zoneLabel('upper_middle')).toBe('Upper middle');
   });
 });

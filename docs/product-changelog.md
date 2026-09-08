@@ -3,6 +3,29 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-07 — Added conservative historical Category Strategy Maps
+
+**Why**
+
+A single category median gap hid whether historical roto transitions were smooth,
+tied, crowded or steepened at a particular part of the standings.
+
+**Changed**
+
+- Added source-backed exact tiers and next-distinct-better transitions for each
+  compatible completed season, with five-zone equal-weight summaries and IQRs.
+- Added explicit season evidence, exclusions, direction-aware native deltas and
+  percentage-point display units to the League comparison view.
+- Added a deliberately strict `CAP_CANDIDATE` threshold: a unique qualifying
+  boundary, four evaluable seasons and leave-one-season-out stability. Three-season
+  evidence is visible as suggestive but remains unclassified.
+
+**Learning**
+
+Interpretation should become stricter as a view becomes more actionable. Showing
+every tier, transition, threshold and exclusion lets a descriptive label remain
+auditable without turning historical standings into a future draft recommendation.
+
 ## 2026-09-07 — Corrected completed-season eligibility
 
 **Why**

@@ -10,6 +10,7 @@ import {
   CategoryResult,
   Job,
   HistoricalCategoryPatternReport,
+  CategoryStrategyMapReport,
   Manager,
   ManagerData,
   Profile,
@@ -70,6 +71,11 @@ export class ArchiveApi {
   }
   categoryPatternReport(seasons: number[]) {
     return this.http.get<HistoricalCategoryPatternReport>('/api/archive/category-pattern-report', {
+      params: { seasons },
+    });
+  }
+  categoryStrategyMap(seasons: number[]) {
+    return this.http.get<CategoryStrategyMapReport>('/api/archive/category-strategy-map', {
       params: { seasons },
     });
   }

@@ -1,5 +1,29 @@
 # Implementation plan
 
+## Category Strategy Map first slice — September 7, 2026
+
+**Personal question:** Where did completed historical category standings require
+larger or smaller production steps to move from one distinct value tier to the
+next, and is one stopping boundary repeated strongly enough to label conservatively?
+
+**Result:** Added a pure, on-demand historical transition-map calculation and a
+purpose-built read-only API DTO. The existing League comparison view now lets the
+user select a category, scan five normalized rank zones, inspect the conservative
+classification and review every season's tiers, transitions, source lineage and
+exclusions. Existing manager patterns, league pressure and auction comparison are
+preserved.
+
+The calculation groups exact ties, retains average ranks, normalizes with each
+season's direction-aware P90–P10 range and gives each eligible season equal weight
+per zone. `CAP_CANDIDATE` is possible only for one threshold that meets the
+approved effect, support-count, quartile and leave-one-out stability contract.
+Three-season results remain suggestive and unclassified. Missing values and
+incompatible or incomplete rules are explicit exclusions, never zero values.
+
+**Stopping point:** No ATTACK, PUNT, FLEXIBLE, player-pool scarcity, projection,
+auction price, roster marginal value, recommendation, optimizer, cross-category
+score, persistence change or schema migration was added.
+
 ## League comparison season-eligibility correction — September 7, 2026
 
 **Personal question:** When five years or all history is selected, does the

@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Approved synthetic UI review for historical manager category patterns." />
+  <meta name="description" content="Archived synthetic interaction review for historical manager patterns." />
   <meta name="color-scheme" content="light" />
-  <title>Fantasy Basketball · Analytics UI review</title>
+  <title>Fantasy Basketball · Archived interaction review</title>
   <link rel="stylesheet" href="showcase-theme.css" />
   <style>
     h2 { color:#244437; font-size:22px; letter-spacing:-.03em; margin:0 0 5px; }
@@ -114,14 +114,14 @@
 <body>
   <header class="showcase-header">
     <div class="showcase-brand">Fantasy Basketball<small>Historical analytics</small></div>
-    <div class="showcase-status"><i></i>Implemented interaction reference</div>
+    <div class="showcase-status"><i></i>Archived interaction reference</div>
   </header>
   <main class="showcase-page">
     <section class="page-heading">
       <div>
         <p class="showcase-eyebrow">Completed-season evidence</p>
-        <h1 class="showcase-title">Historical manager analytics</h1>
-        <p class="showcase-intro">Understand repeated category patterns, inspect the seasons behind them, and compare the historical pressure within the league.</p>
+        <h1 class="showcase-title">Archived interaction review</h1>
+        <p class="showcase-intro">The canonical synthetic demo now shows the current three-stage historical analytics journey.</p>
       </div>
       <div class="page-actions">
         <button class="showcase-button" id="connection" type="button">Connection</button>
@@ -129,7 +129,7 @@
       </div>
     </section>
 
-    <div class="showcase-banner"><strong>Implemented interaction reference.</strong> The local application follows this approved history-window, ranked-manager and interactive-pressure flow. This public page remains synthetic: names, values, results and evidence are invented.</div>
+    <div class="showcase-banner"><strong>Archived synthetic reference.</strong> This earlier interaction review is retained for implementation history. Use the <a href="app-preview.html">canonical demo</a> for the current flow; names, values, results and evidence here are invented.</div>
 
     <nav class="app-tabs" aria-label="Analytics navigation">
       <a class="showcase-button" href="app-preview.html">My profile</a>
@@ -142,11 +142,11 @@
     <section class="intro-row">
       <div>
         <p class="showcase-eyebrow">Historical category patterns</p>
-        <h2>Where did each manager repeatedly lean?</h2>
+        <h2>How did each manager finish relative to their own baseline?</h2>
         <p>Compare category outcomes with each manager’s own season baseline, then inspect the league context behind a pattern.</p>
       </div>
-      <label class="history-field">History to explore
-        <select id="history" aria-label="History to explore">
+      <label class="history-field">Seasons
+        <select id="history" aria-label="Seasons">
           <option value="one">Last year · 2026</option>
           <option value="three" selected>Last 3 years · 2024–2026</option>
           <option value="five">Last 5 years · 2022–2026</option>
@@ -156,9 +156,9 @@
     </section>
 
     <ol class="review-path showcase-card" aria-label="Three-story review journey">
-      <li><button type="button" data-jump="patterns"><span>1</span><strong>Scan managers</strong><small>Find repeated tilts</small></button></li>
-      <li><button type="button" data-jump="detail"><span>2</span><strong>Inspect a pattern</strong><small>Review seasons and evidence</small></button></li>
-      <li><button type="button" data-jump="pressure"><span>3</span><strong>Check league pressure</strong><small>See gaps and thresholds</small></button></li>
+      <li><button type="button" data-jump="patterns"><span>1</span><strong>Manager patterns</strong><small>Compare to each baseline</small></button></li>
+      <li><button type="button" data-jump="pressure"><span>2</span><strong>League pressure</strong><small>Compare standings gaps</small></button></li>
+      <li><a class="showcase-button" href="app-preview.html"><strong>3</strong> Category gap map</a></li>
     </ol>
 
     <section class="empty" id="empty" hidden>
@@ -175,8 +175,8 @@
             <p>Active managers follow their 2026 final ranking; managers without a 2026 team remain at the bottom.</p>
           </div>
           <div class="segmented" role="group" aria-label="Pattern measure">
-            <button class="showcase-button" type="button" data-metric="relative" aria-pressed="true">Relative emphasis</button>
-            <button class="showcase-button" type="button" data-metric="outcome" aria-pressed="false">Outcome level</button>
+            <button class="showcase-button" type="button" data-metric="relative" aria-pressed="true">Vs own baseline</button>
+            <button class="showcase-button" type="button" data-metric="outcome" aria-pressed="false">Category finish</button>
           </div>
         </header>
         <div class="table-scroll">
@@ -185,7 +185,7 @@
             <tbody id="heat-body"></tbody>
           </table>
         </div>
-        <div class="legend"><span>Below baseline</span><i></i><span>Above baseline</span><small>Value · eligible seasons</small></div>
+        <div class="legend"><span>Below baseline</span><i></i><span>Above baseline</span><small>Adjusted vs baseline · eligible seasons</small></div>
       </section>
 
       <aside class="showcase-card" id="detail" aria-labelledby="detail-title">
@@ -196,13 +196,13 @@
           <span class="evidence-tag" id="consistency"></span>
         </header>
         <div class="detail-metrics">
-          <div><span>Shrunken emphasis</span><strong id="shrunken"></strong></div>
-          <div><span>Direction repeated</span><strong id="repeat"></strong></div>
-          <div><span>Outcome level</span><strong id="outcome"></strong></div>
+          <div><span>Adjusted vs baseline</span><strong id="shrunken"></strong></div>
+          <div><span>Same direction</span><strong id="repeat"></strong></div>
+          <div><span>Category finish</span><strong id="outcome"></strong></div>
         </div>
         <div id="season-list"></div>
         <details>
-          <summary>Calculation and evidence</summary>
+          <summary>How this is calculated</summary>
           <p>Relative emphasis is the category’s normalized finish minus the manager’s season baseline. Two league-average virtual seasons reduce single-year noise.</p>
           <p id="evidence-copy"></p>
         </details>
@@ -213,15 +213,15 @@
     <section class="showcase-card pressure" id="pressure" aria-labelledby="pressure-title">
       <header class="panel-heading">
         <div>
-          <h3 id="pressure-title">Historical category pressure</h3>
-          <p>Pressure uses raw gaps between neighboring ranks. It is not projected player-pool scarcity.</p>
+          <h3 id="pressure-title">Historical league pressure</h3>
+          <p>Standings gaps, not player scarcity.</p>
         </div>
         <span class="showcase-scope">Completed seasons only</span>
       </header>
       <div class="pressure-layout">
         <div class="table-scroll">
           <table class="pressure-table">
-            <thead><tr><th>Category</th><th>Typical rank gap</th><th>Top-quarter threshold</th><th>Leader continuity</th></tr></thead>
+            <thead><tr><th>Category</th><th>Typical gap</th><th>Top-quarter level</th><th>Repeated leader</th></tr></thead>
             <tbody id="pressure-body"></tbody>
           </table>
         </div>
@@ -258,14 +258,14 @@
         { id:'legacy', name:'Legacy Bench', rank2026:null, years:[2025,2024,2023,2022,2021], relative:[-.01,.12,.08,-.04,.09,.16,-.08,.03], outcome:[.51,.66,.61,.45,.63,.71,.39,.54] }
       ];
       const pressure = [
-        { code:'FG%', gap:.007, threshold:.489, percentage:true, note:'Tight upper ranks', question:'Would a modest future efficiency gain be enough once 2027 shot volume and prices exist?' },
-        { code:'FT%', gap:.011, threshold:.810, percentage:true, note:'Leaders rotated', question:'Keep this flexible until 2027 attempts, prices and roster construction are known.' },
-        { code:'3PM', gap:41, threshold:1020, note:'Moderate pressure', question:'Later, test whether the future market makes this production expensive or replaceable.' },
-        { code:'PTS', gap:388, threshold:15840, note:'Stable leaders', question:'Historical standings alone cannot tell whether paying to close this gap is efficient.' },
-        { code:'REB', gap:176, threshold:6420, note:'Wide upper gaps', question:'You repeatedly emphasized REB. Is this an identity to preserve once future acquisition cost is visible?' },
-        { code:'AST', gap:132, threshold:3940, note:'Crowded middle', question:'Your AST history was weaker while neighboring ranks stayed close. This is a candidate to investigate, not yet a target.' },
-        { code:'STL', gap:27, threshold:712, note:'Tight and rotating', question:'Small gaps and rotating leaders suggest flexibility, but 2027 availability is still unknown.' },
-        { code:'BLK', gap:38, threshold:548, note:'Separated tiers', question:'BLK and REB were repeated strengths. Later, check whether one construction supplies both without overpaying.' }
+        { code:'FG%', gap:.007, threshold:.489, percentage:true, note:'Tight upper ranks', question:'Next: compare FG% with the manager pattern above.' },
+        { code:'FT%', gap:.011, threshold:.810, percentage:true, note:'Leaders rotated', question:'Next: compare FT% with the manager pattern above.' },
+        { code:'3PM', gap:41, threshold:1020, note:'Moderate pressure', question:'Next: compare 3PM with the manager pattern above.' },
+        { code:'PTS', gap:388, threshold:15840, note:'Stable leaders', question:'Next: compare PTS with the manager pattern above.' },
+        { code:'REB', gap:176, threshold:6420, note:'Wide upper gaps', question:'Next: compare REB with the manager pattern above.' },
+        { code:'AST', gap:132, threshold:3940, note:'Crowded middle', question:'Next: compare AST with the manager pattern above.' },
+        { code:'STL', gap:27, threshold:712, note:'Tight and rotating', question:'Next: compare STL with the manager pattern above.' },
+        { code:'BLK', gap:38, threshold:548, note:'Separated tiers', question:'Next: compare BLK with the manager pattern above.' }
       ];
       let historyWindow = 'three';
       let metric = 'relative';

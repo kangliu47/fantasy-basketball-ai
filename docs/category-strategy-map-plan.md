@@ -1,7 +1,7 @@
 # Category Strategy Map: Historical Marginal Roto Value Plan
 
 **Date:** September 7, 2026
-**Status:** Proposed next analytics slice for Codex implementation planning
+**Status:** Delivered first slice — September 7, 2026
 **Target location:** `docs/category-strategy-map-plan.md`
 **Primary product area:** League comparison
 **Depends on:** `docs/historical-category-patterns-design.md` and the approved `docs/analytics-ui-review.html`
@@ -9,6 +9,39 @@
 ---
 
 # 1. Executive recommendation
+
+## Delivery record — September 7, 2026
+
+The approved first slice is implemented in the local League comparison view.
+It derives a read-only Category Strategy Map from immutable completed-season
+archives and introduces no schema migration, ESPN request, manager-attribution
+dependency, projection, player-pool estimate, auction-price model, optimization,
+or recommendation.
+
+The delivered calculation version is:
+
+```text
+category-strategy-map-v1-tiergap-p90p10-fivezone-knee05-loo
+```
+
+It retains exact value tiers, average-tie ranks, next-distinct-better transitions,
+native signed required deltas, direction-aware P90–P10 normalization, source
+lineage and 20%-wide normalized rank zones. Each season contributes one median
+normalized transition gap per populated zone; cross-season values are equal-weight
+medians with IQRs.
+
+A boundary compares the adjacent better (`advance`) and worse (`entry`) zones:
+`effect = advance_gap / entry_gap - 1`. It is suggestive only with at least three
+evaluable and three supporting seasons, at least two-thirds support, median effect
+at least 0.5 and Q1 effect above zero. A `CAP_CANDIDATE` additionally needs at
+least four evaluable seasons, every leave-one-season-out subset to meet that same
+rule, and exactly one qualifying boundary. All other categories remain
+`UNCLASSIFIED`. This is a historical stopping-zone description, not a 2027 action.
+
+The League comparison experience now retains its manager and pressure evidence,
+then adds category selection, five-zone curve scanning and season/exclusion
+drill-down. Its language deliberately avoids scarcity, optimal, pricing, punt,
+buy and recommendation claims.
 
 The next analytics feature should be a **Category Strategy Map** that converts historical category standings from descriptive evidence into a bounded strategic hypothesis:
 

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Synthetic preview of a historical category gap map." />
+  <title>Fantasy Basketball Intelligence · Historical Category Gap Map</title>
+  <link rel="stylesheet" href="showcase-theme.css" />
+  <style>
+    .repo { color:var(--showcase-green); font-size:13px; font-weight:750; text-underline-offset:4px; }
+    .hero { max-width:780px; } .hero .showcase-title { font-size:clamp(32px,4.5vw,46px); }
+    .map-grid { display:grid; gap:14px; grid-template-columns:minmax(0,1.35fr) minmax(290px,.75fr); margin-top:20px; }
+    .panel h2 { color:var(--showcase-heading); font-size:20px; letter-spacing:-.03em; margin:0; }
+    .panel p { color:var(--showcase-muted); font-size:12px; line-height:1.5; }
+    .scope { background:var(--showcase-green-soft); border-radius:999px; color:#3e6450; display:inline-block; font-size:11px; margin:12px 0 0; padding:6px 9px; }
+    .curve { border-bottom:1px solid var(--showcase-line); border-left:1px solid var(--showcase-line); display:grid; gap:9px; grid-template-columns:repeat(5,1fr); min-height:205px; padding:20px 14px 0; }
+    .zone { align-items:center; display:flex; flex-direction:column; justify-content:end; min-width:0; }
+    .bar { background:#b7d6c0; border-radius:6px 6px 0 0; min-height:22px; width:62%; }
+    .zone:nth-child(4) .bar, .zone:nth-child(5) .bar { background:#d88963; }
+    .zone strong { color:var(--showcase-heading); font-size:12px; margin-bottom:5px; }
+    .zone small { color:var(--showcase-muted); font-size:10px; margin-top:7px; text-align:center; }
+    .axis { color:var(--showcase-muted); display:flex; font-size:10px; justify-content:space-between; margin-top:8px; }
+    .status { background:var(--showcase-green-soft); border-radius:9px; margin:15px 0; padding:12px; }
+    .status strong { color:var(--showcase-heading); display:block; font-size:13px; }
+    .status span { color:var(--showcase-muted); display:block; font-size:11px; line-height:1.45; margin-top:3px; }
+    .metric-grid { display:grid; gap:8px; grid-template-columns:repeat(2,1fr); margin:16px 0; }
+    .metric { background:var(--showcase-surface-soft); border-radius:8px; padding:10px; }
+    .metric small,.metric strong { display:block; } .metric small { color:var(--showcase-muted); font-size:10px; }
+    .metric strong { color:var(--showcase-heading); font-size:15px; margin-top:3px; }
+    details { border-top:1px solid var(--showcase-line); margin-top:12px; padding-top:12px; }
+    summary { color:var(--showcase-green); cursor:pointer; font-size:12px; font-weight:750; }
+    .evidence { color:var(--showcase-muted); font-size:11px; line-height:1.55; }
+    @media (max-width:760px) { .map-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="showcase-header"><div class="showcase-brand">Fantasy Basketball Intelligence<small>Historical Category Gap Map · Mock</small></div><a class="repo" href="app-preview.html">Open canonical demo</a></header>
+  <main class="showcase-page">
+    <section class="hero"><p class="showcase-eyebrow">Synthetic UI review</p><h1 class="showcase-title">Where were historical standings gaps largest?</h1><p class="showcase-intro">Compare normalized gaps between adjacent standings tiers across completed seasons.</p></section>
+    <div class="showcase-banner"><strong>Synthetic preview.</strong> Categories, seasons, and values are invented. This static view never connects to ESPN or publishes local league data.</div>
+    <div class="map-grid">
+      <section class="showcase-card panel"><p class="showcase-eyebrow">Historical Category Gap Map</p><h2>BLK gaps by standings tier</h2><p>Normalized gaps between adjacent standings tiers.</p><span class="scope">Completed seasons · 4 eligible</span><div class="curve" aria-label="BLK normalized gap by standings tier"><div class="zone"><strong>0.18</strong><div class="bar" style="height:48px"></div><small>Top</small></div><div class="zone"><strong>0.21</strong><div class="bar" style="height:56px"></div><small>Upper middle</small></div><div class="zone"><strong>0.24</strong><div class="bar" style="height:64px"></div><small>Middle</small></div><div class="zone"><strong>0.71</strong><div class="bar" style="height:142px"></div><small>Lower middle</small></div><div class="zone"><strong>0.82</strong><div class="bar" style="height:164px"></div><small>Bottom</small></div></div><div class="axis"><span>Smaller historical gap</span><span>Larger historical gap</span></div></section>
+      <aside class="showcase-card panel"><p class="showcase-eyebrow">Selected category · BLK</p><h2>Possible boundary; stability not met</h2><div class="status"><strong>Historical interpretation</strong><span>A larger gap appeared here, but it was not stable across season checks.</span></div><div class="metric-grid"><div class="metric"><small>Eligible seasons</small><strong>4 seasons</strong></div><div class="metric"><small>Evidence checks</small><strong>3 of 4</strong></div><div class="metric"><small>Native unit</small><strong>Blocks</strong></div><div class="metric"><small>Missing values</small><strong>None</strong></div></div><details><summary>How this is calculated</summary><p class="evidence">Each completed season contributes equally after its adjacent-tier gaps are normalized within that season.</p></details><details><summary>Sources and exclusions</summary><p class="evidence">Synthetic 2026–2023 completed-season examples. One tied tier is retained in the evidence rather than inferred away.</p></details></aside>
+    </div>
+    <footer class="showcase-footer">Static synthetic preview · The canonical public demo is <a href="app-preview.html">Application preview</a> · No login, tracking, or external API requests.</footer>
+  </main>
+</body>
+</html>

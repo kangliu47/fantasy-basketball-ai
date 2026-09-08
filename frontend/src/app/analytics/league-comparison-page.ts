@@ -9,6 +9,8 @@ import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import {
   Catalog,
+  CategoryStrategy,
+  CategoryStrategyMapReport,
   HistoricalCategoryPatternReport,
   LeagueCategoryPressure,
   ManagerCategoryPattern,
@@ -39,17 +41,22 @@ export class LeagueComparisonPage {
   readonly data = signal<ManagerData>({ managers: [], assignments: [], my_manager_id: null });
   readonly catalog = signal<Catalog>({ candidates: [], imported_seasons: [], job: null });
   readonly report = signal<HistoricalCategoryPatternReport | null>(null);
+  readonly strategyMap = signal<CategoryStrategyMapReport | null>(null);
   readonly loading = signal(false);
   readonly reportLoading = signal(false);
+  readonly strategyLoading = signal(false);
   readonly error = signal<string | null>(null);
   readonly reportError = signal<string | null>(null);
+  readonly strategyError = signal<string | null>(null);
   readonly historyWindow = signal<HistoryWindow>('recent-3');
   readonly metric = signal<PatternMetric>('relative');
   readonly selectedPatternKey = signal<string | null>(null);
   readonly selectedPressureCode = signal<string | null>(null);
   readonly selectedPressurePointKey = signal<string | null>(null);
+  readonly selectedStrategyCode = signal<string | null>(null);
   readonly reloadKey = signal(0);
   readonly reportReloadKey = signal(0);
+  readonly strategyReloadKey = signal(0);
   private readonly api = inject(ArchiveApi);
 
   readonly selectedSeasons = computed(() => {
@@ -95,6 +102,12 @@ export class LeagueComparisonPage {
     }
     return null;
   });
+  readonly selectedStrategy = computed(
+    () =>
+      this.strategyMap()?.categories.find(
+        (strategy) => strategy.category === this.selectedStrategyCode(),
+      ) ?? null,
+  );
 
   constructor() {
     effect((cleanup) => {
@@ -114,6 +127,29 @@ export class LeagueComparisonPage {
         error: (error) => {
           this.error.set(archiveError(error));
           this.loading.set(false);
+        },
+      });
+      cleanup(() => request.unsubscribe());
+    });
+
+    effect((cleanup) => {
+      const seasons = this.selectedSeasons();
+      this.strategyReloadKey();
+      this.strategyMap.set(null);
+      this.strategyError.set(null);
+      if (!seasons.length) {
+        this.strategyLoading.set(false);
+        return;
+      }
+      this.strategyLoading.set(true);
+      const request = this.api.categoryStrategyMap(seasons).subscribe({
+        next: (report) => {
+          this.strategyMap.set(report);
+          this.strategyLoading.set(false);
+        },
+        error: (error) => {
+          this.strategyError.set(archiveError(error));
+          this.strategyLoading.set(false);
         },
       });
       cleanup(() => request.unsubscribe());
@@ -184,6 +220,13 @@ export class LeagueComparisonPage {
         );
       }
     });
+
+    effect(() => {
+      const categories = this.strategyMap()?.categories ?? [];
+      if (!categories.some((item) => item.category === this.selectedStrategyCode())) {
+        this.selectedStrategyCode.set(categories[0]?.category ?? null);
+      }
+    });
   }
 
   retryPage() {
@@ -192,6 +235,10 @@ export class LeagueComparisonPage {
 
   retryReport() {
     this.reportReloadKey.update((value) => value + 1);
+  }
+
+  retryStrategy() {
+    this.strategyReloadKey.update((value) => value + 1);
   }
 
   patternKey(managerId: string, category: string) {
@@ -207,6 +254,10 @@ export class LeagueComparisonPage {
   selectPressure(category: string) {
     this.selectedPressureCode.set(category);
     this.selectedPressurePointKey.set(null);
+  }
+
+  selectStrategy(category: string) {
+    this.selectedStrategyCode.set(category);
   }
 
   jumpTo(id: string) {
@@ -267,7 +318,12 @@ export class LeagueComparisonPage {
 
   signed(value: number | null, digits = 2) {
     if (value === null) return '—';
+    if (Math.abs(value) < 0.5 * 10 ** -digits) return (0).toFixed(digits);
     return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}`;
+  }
+
+  seasonCount(count: number) {
+    return `${count} ${count === 1 ? 'season' : 'seasons'}`;
   }
 
   percentile(value: number | null) {
@@ -317,15 +373,43 @@ export class LeagueComparisonPage {
     return 'Historically separated tiers';
   }
 
-  pressureQuestion(pressure: LeagueCategoryPressure) {
-    const mine = this.report()
-      ?.managers.find((manager) => manager.is_me)
-      ?.patterns.find((pattern) => pattern.category === pressure.category);
-    if (mine?.eligible_seasons) {
-      const direction = (mine.raw_relative_emphasis ?? 0) >= 0 ? 'above' : 'below';
-      const suffix = mine.eligible_seasons === 1 ? '' : 's';
-      return `My profile finished ${direction} its season baseline in ${pressure.category} across ${mine.eligible_seasons} eligible season${suffix}. Is that history worth investigating once 2027 prices, projections and availability exist?`;
+  zoneLabel(zone: string) {
+    return (
+      {
+        top: 'Top',
+        upper_middle: 'Upper middle',
+        middle: 'Middle',
+        lower_middle: 'Lower middle',
+        bottom: 'Bottom',
+      }[zone] ?? zone
+    );
+  }
+
+  strategyHeight(strategy: CategoryStrategy, value: number | null) {
+    const maximum = Math.max(...strategy.zones.map((zone) => zone.median_normalized_gap ?? 0));
+    return value === null || maximum === 0 ? 0 : Math.max(8, (value / maximum) * 100);
+  }
+
+  normalized(value: number | null) {
+    return value === null ? '—' : value.toFixed(2);
+  }
+
+  strategyStatus(strategy: CategoryStrategy) {
+    if (strategy.classification === 'CAP_CANDIDATE') return 'Stable historical boundary';
+    if (strategy.knees.some((knee) => knee.label === 'SUGGESTIVE')) {
+      return 'Possible boundary; stability not met';
     }
-    return `Use this completed-season ${pressure.category} context as a question for later research; it does not show 2027 player availability or acquisition cost.`;
+    return 'No stable boundary found';
+  }
+
+  strategyNarrative(strategy: CategoryStrategy) {
+    const stable = strategy.knees.find((knee) => knee.label === 'CAP_CANDIDATE');
+    if (stable) {
+      return `Across completed seasons, the gap increased consistently from ${this.zoneLabel(stable.entry_zone)} to ${this.zoneLabel(stable.advance_zone)}.`;
+    }
+    if (strategy.knees.some((knee) => knee.label === 'SUGGESTIVE')) {
+      return 'A larger gap appeared here, but it was not stable across season checks.';
+    }
+    return 'No transition met the stability rule.';
   }
 }
