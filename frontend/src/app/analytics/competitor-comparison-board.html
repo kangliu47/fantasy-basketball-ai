@@ -1,9 +1,8 @@
 <section class="comparison-board" aria-labelledby="comparison-title">
   <div class="board-heading">
     <div>
-      <p class="eyebrow">Selected comparison</p>
       <h3 id="comparison-title">{{ myAlias() }} and {{ competitorAlias() }}</h3>
-      <p>Matched historical measures appear on the same row. They describe completed seasons, not a 2027 prediction.</p>
+      <p>Matched measures describe completed seasons. Missing evidence is unavailable, not zero.</p>
     </div>
     <div class="profile-headings" aria-hidden="true">
       <span>My profile</span><span>{{ competitorAlias() }}</span>
@@ -18,7 +17,7 @@
       <div class="section-heading">
         <div>
           <h4 id="auction-comparison-title">Auction spending</h4>
-          <p>Each curve orders non-keeper purchases from most to least expensive.</p>
+          <p>Observed non-keeper spend with reviewed manager links. Missing evidence is excluded—not zero.</p>
         </div>
         @if (auctionSeasons().length > 1) {
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -46,7 +45,7 @@
           <figcaption>{{ selectedAuctionSeason() }} · both lines use the same 0–100% configured-budget scale.</figcaption>
         </figure>
       }
-      <p class="metric-explainer"><strong>Top purchase budget share</strong> is the portion of the configured auction budget spent on the most expensive observed non-keeper purchase. Top three is the combined share of the three most expensive purchases; HHI shows how concentrated all observed spending was.</p>
+      <details class="metric-explainer"><summary>Auction metric definitions</summary><p><strong>Top purchase budget share</strong> is the portion of the configured auction budget spent on the most expensive observed non-keeper purchase. Top three is the combined share of the three most expensive purchases; HHI shows how concentrated all observed spending was.</p></details>
     </section>
 
     @if (categoryCodes().length && categorySeasons().length) {

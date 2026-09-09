@@ -230,6 +230,8 @@ describe('LeagueComparisonPage', () => {
     expect(content).toContain('Manager patterns');
     expect(content).toContain('League pressure');
     expect(content).toContain('Category gap map');
+    expect(content).toContain('Compare manager category patterns with league standings gaps.');
+    expect(content).toContain('Ordered by 2026 finish; historical-only managers appear last.');
     expect(content).not.toContain('Inspect a pattern');
     expect(content).toContain('Vs own baseline');
     expect(content).toContain('Category finish');
@@ -237,6 +239,7 @@ describe('LeagueComparisonPage', () => {
     expect(content).toContain('Same direction');
     expect(content).toContain('Historical league pressure');
     expect(content).toContain('Standings gaps, not player scarcity.');
+    expect(content).toContain('Adjacent standings-tier gaps, normalized within each completed season.');
     expect(content).toContain('2026 rank #2');
     expect(content).toContain('Additional auction analysis');
     expect(

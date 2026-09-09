@@ -51,13 +51,15 @@ describe('CompetitorTeamsPage', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Compare your completed-season results with a reviewed 2026 competitor.');
     expect(text).toContain('Planning assumption: reviewed 2026 participants may return in 2027');
     expect(text).toContain('Synthetic South');
     expect(text).not.toContain('Synthetic North\n      Reviewed evidence');
     expect(fixture.componentInstance.selected()).toBe(managers.managers[1].id);
     expect(fixture.nativeElement.querySelectorAll('app-competitor-comparison-board')).toHaveLength(1);
-    expect(text).toContain('Matched historical measures appear on the same row');
+    expect(text).toContain('Matched measures describe completed seasons.');
     expect(text).toContain('Top purchase budget share');
+    expect(text).toContain('Missing evidence is excluded—not zero.');
     expect(text).not.toContain('Auction patterns over time');
     expect(text).not.toContain('Repeated selections');
     expect(text).not.toContain('Archived roster seasons');

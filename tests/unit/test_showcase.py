@@ -67,6 +67,98 @@ def test_product_showcase_pages_share_the_repository_style_baseline() -> None:
     assert "<iframe" not in analytics_review
 
 
+def test_application_preview_is_a_three_destination_synthetic_twin() -> None:
+    preview = (DOCS / "app-preview.html").read_text(encoding="utf-8")
+    fixture_match = re.search(
+        r'<script id="synthetic-fixture" type="application/json">\s*(.*?)\s*</script>',
+        preview,
+        re.S,
+    )
+    assert fixture_match is not None
+    fixture = cast(dict[str, Any], json.loads(fixture_match.group(1)))
+
+    assert 'data-ui-style="fantasy-analytics-v1"' in preview
+    assert 'href="showcase-theme.css"' in preview
+    assert 'data-view="profile"' in preview
+    assert 'data-view="competitors"' in preview
+    assert 'data-view="league"' in preview
+    assert preview.index('data-view="profile"') < preview.index('data-view="competitors"')
+    assert preview.index('data-view="competitors"') < preview.index('data-view="league"')
+    assert 'id="view-profile"' in preview
+    assert 'id="view-competitors"' in preview
+    assert 'id="view-league"' in preview
+    assert 'id="view-profile"' in preview.split('class="view active"', 1)[1]
+    assert "Manager patterns" not in preview.split('<nav class="tabs"', 1)[1].split("</nav>", 1)[0]
+
+    assert fixture["workspace"]["catalog"] == [2026, 2025, 2024]
+    assert len(fixture["managers"]) >= 5
+    assert any(manager.get("me") for manager in fixture["managers"])
+    assert any(manager.get("historicalOnly") for manager in fixture["managers"])
+    assert any(assignment.get("shared") for assignment in fixture["assignments"])
+    assert fixture["comparison"]["unavailable"]["reason"]
+    category_evidence = fixture["categoryEvidence"]
+    assert any(item["normalizedFinish"] is None for item in category_evidence)
+    assert {
+        "syntheticId",
+        "evidenceId",
+        "value",
+        "rank",
+        "teamCount",
+        "normalizedFinish",
+        "reconciliation",
+        "assignmentRevision",
+    }.issubset(category_evidence[0])
+
+    for required in (
+        "profile-path",
+        "profile-body",
+        "comparison-me",
+        "paired-heatmaps",
+        "pattern-table",
+        "pressure-dots",
+        "gap-bars",
+        "Additional auction analysis",
+        "Manager auction concentration",
+        "Cross-season auction patterns",
+        "Showcase-only example states",
+        "No manager link",
+        "No competitors",
+        "Missing auction",
+        "No seasons",
+    ):
+        assert required in preview
+
+
+def test_application_preview_fixture_has_precomputed_evidence_and_no_network_calls() -> None:
+    preview = (DOCS / "app-preview.html").read_text(encoding="utf-8")
+    fixture_match = re.search(
+        r'<script id="synthetic-fixture" type="application/json">\s*(.*?)\s*</script>',
+        preview,
+        re.S,
+    )
+    assert fixture_match is not None
+    fixture = json.loads(fixture_match.group(1))
+    my_auction = fixture["profiles"]["syn-me"]["auctionBySeason"]["2026"]
+    for required in (
+        "budget",
+        "observedSpend",
+        "coverage",
+        "purchases",
+        "shares",
+        "exclusions",
+        "evidenceId",
+        "assignmentRevision",
+        "curve",
+    ):
+        assert required in my_auction
+    assert {"topOne", "topThree", "hhi", "lowPriceCount"}.issubset(my_auction["shares"])
+    assert fixture["league"]["pressure"]
+    assert fixture["league"]["gaps"]
+    assert fixture["league"]["auction"]["patterns"]
+    assert "fetch(" not in preview
+    assert "XMLHttpRequest" not in preview
+
+
 def test_architecture_review_source_snapshot_has_not_drifted() -> None:
     assert review_drift() == []
     review = (DOCS / "architecture-review.html").read_text(encoding="utf-8")

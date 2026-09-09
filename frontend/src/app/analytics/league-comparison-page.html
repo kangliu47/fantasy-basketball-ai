@@ -1,12 +1,8 @@
 <section class="analytics-page">
   <div class="intro-row">
     <div>
-      <p class="eyebrow">Historical category patterns</p>
-      <h2>How did each manager finish relative to their own baseline?</h2>
-      <p class="intro-copy">
-        Compare category outcomes with each manager’s own season baseline, then inspect the league
-        context behind a pattern.
-      </p>
+      <h2>League comparison</h2>
+      <p class="intro-copy">Compare manager category patterns with league standings gaps.</p>
     </div>
     @if (catalog().imported_seasons.length) {
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -24,17 +20,17 @@
   <ol class="review-path" aria-label="Historical analytics journey">
     <li>
       <button type="button" (click)="jumpTo('manager-patterns')">
-        <span>1</span><strong>Manager patterns</strong><small>Compare to each baseline</small>
+        <span>1</span><strong>Manager patterns</strong><small>Compare category history</small>
       </button>
     </li>
     <li>
       <button type="button" (click)="jumpTo('category-pressure')">
-        <span>2</span><strong>League pressure</strong><small>Compare standings gaps</small>
+        <span>2</span><strong>League pressure</strong><small>Inspect standings gaps</small>
       </button>
     </li>
     <li>
       <button type="button" (click)="jumpTo('category-strategy-map')">
-        <span>3</span><strong>Category gap map</strong><small>Inspect adjacent tiers</small>
+        <span>3</span><strong>Category gap map</strong><small>Compare adjacent tiers</small>
       </button>
     </li>
   </ol>
@@ -84,8 +80,7 @@
             <div>
               <h3 id="patterns-title">Manager category patterns</h3>
               <p>
-                Active managers follow their {{ analysis.seasons_requested[0] }} final ranking;
-                managers without a team that season remain at the bottom.
+                Ordered by {{ analysis.seasons_requested[0] }} finish; historical-only managers appear last.
               </p>
             </div>
             <div class="segmented" role="group" aria-label="Pattern measure">
@@ -420,7 +415,7 @@
       <header class="panel-heading">
         <div>
           <h3 id="strategy-map-title">Historical Category Gap Map</h3>
-          <p>Compare normalized gaps between adjacent standings tiers.</p>
+          <p>Adjacent standings-tier gaps, normalized within each completed season.</p>
         </div>
         <span class="scope-tag">Completed seasons</span>
       </header>

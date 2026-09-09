@@ -1,7 +1,6 @@
 <section class="analytics-page">
-  <p class="eyebrow">Your historical analytics</p>
   <h2>My profile</h2>
-  <p class="intro-copy">Review completed-season draft spending and category results.</p>
+  <p class="intro-copy">See how you spent at auction and finished by category.</p>
   @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
   @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
   @if (!loading() && !data().my_manager_id) {
