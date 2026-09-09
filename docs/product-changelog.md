@@ -3,6 +3,28 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-09 — Added MCP as an agent-interface architecture lesson
+
+**Why**
+
+The local MCP proof changed the architecture mental model: MCP is not simply a
+FastAPI wrapper. REST and MCP can be sibling adapters because deterministic
+software and model-driven agents need different interface affordances.
+
+**Changed**
+
+- Added a public learning note comparing REST/OpenAPI and MCP from first
+  principles.
+- Featured the mental model in the Learning Lab.
+- Connected the lesson to the existing FastAPI/FastMCP application-layer
+  architecture.
+
+**Not changed**
+
+- No new product capability.
+- No remote MCP exposure.
+- No public access to local fantasy data.
+
 ## 2026-09-07 — Added conservative historical Category Strategy Maps
 
 **Why**

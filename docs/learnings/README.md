@@ -10,6 +10,8 @@ about building with an AI coding agent and managing a personal product.
   engineering, and bounded work locally.
 - [Product management insights](product-management.md): scope, user journeys,
   assisted workflows and deciding what deserves a feature.
+- [MCP as an Agent-Computer Interface](mcp-agent-interface.md): why REST/OpenAPI
+  and MCP can be sibling adapters optimized for different consumers.
 - [Current personal-product direction](../personal-product-direction.md): the
   decisions that now govern the backlog.
 
