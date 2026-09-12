@@ -4,6 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { CategoryResult, ManagerAuctionSeason, Profile } from './archive.models';
 import { sortCategoryCodes } from '../core/category-order';
+import { heatmapColor, heatmapIsDark } from '../core/heatmap-colors';
 
 interface ProfileView {
   alias: string;
@@ -84,24 +85,13 @@ export class ManagerHistoryInsights {
   }
 
   finishColor(row: CategoryResult | undefined) {
-    const colors = [
-      '#253494',
-      '#225ea8',
-      '#1d91c0',
-      '#41b6c4',
-      '#a1dab4',
-      '#ffffbf',
-      '#fec44f',
-      '#f46d43',
-      '#d73027',
-    ];
     if (row?.normalized_finish === null || row?.normalized_finish === undefined) return '#f5f7f2';
-    return colors[Math.round(row.normalized_finish * (colors.length - 1))];
+    return heatmapColor(row.normalized_finish);
   }
 
   finishIsDark(row: CategoryResult | undefined) {
     const normalized = row?.normalized_finish;
-    return normalized !== null && normalized !== undefined && (normalized < 0.25 || normalized > 0.8);
+    return normalized !== null && normalized !== undefined && heatmapIsDark(normalized);
   }
 
   finishRank(row: CategoryResult | undefined) {

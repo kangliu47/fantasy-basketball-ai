@@ -7,6 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import { AuctionOverview, AuctionOverviewRow, AuctionPatterns } from '../archive/archive.models';
+import { heatmapColor, heatmapIsDark } from '../core/heatmap-colors';
 
 type AuctionMetric = 'hhi' | 'top_one_share' | 'top_three_share' | 'count_one_to_three';
 
@@ -179,44 +180,20 @@ export class LeagueAuctionOverview {
 
   heatColor(row: AuctionOverviewRow | null) {
     if (!row) return '';
-    const colors = [
-      '#253494',
-      '#225ea8',
-      '#1d91c0',
-      '#41b6c4',
-      '#a1dab4',
-      '#ffffbf',
-      '#fec44f',
-      '#f46d43',
-      '#d73027',
-    ];
     const values = this.metricValues();
     const value = this.metricValue(row);
     const minimum = Math.min(...values);
     const maximum = Math.max(...values);
-    return colors[Math.round(((value - minimum) / (maximum - minimum || 1)) * (colors.length - 1))];
+    return heatmapColor((value - minimum) / (maximum - minimum || 1));
   }
 
   heatIsDark(row: AuctionOverviewRow | null) {
     if (!row) return false;
-    const colors = [
-      '#253494',
-      '#225ea8',
-      '#1d91c0',
-      '#41b6c4',
-      '#a1dab4',
-      '#ffffbf',
-      '#fec44f',
-      '#f46d43',
-      '#d73027',
-    ];
     const values = this.metricValues();
     const value = this.metricValue(row);
-    const index = Math.round(
-      ((value - Math.min(...values)) / (Math.max(...values) - Math.min(...values) || 1)) *
-        (colors.length - 1),
+    return heatmapIsDark(
+      (value - Math.min(...values)) / (Math.max(...values) - Math.min(...values) || 1),
     );
-    return index < 2 || index > 6;
   }
 
   selectPattern(row: AuctionOverviewRow | null) {

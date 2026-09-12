@@ -8,6 +8,7 @@ import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import { CategoryResult, ManagerAuctionSeason, ManagerData, Profile } from '../archive/archive.models';
 import { sortCategoryCodes } from '../core/category-order';
+import { heatmapColor, heatmapIsDark } from '../core/heatmap-colors';
 
 @Component({
   selector: 'app-competitor-comparison-board',
@@ -121,14 +122,13 @@ export class CompetitorComparisonBoard {
   }
 
   finishColor(row: CategoryResult | undefined) {
-    const colors = ['#253494', '#225ea8', '#1d91c0', '#41b6c4', '#a1dab4', '#ffffbf', '#fec44f', '#f46d43', '#d73027'];
     if (row?.normalized_finish === null || row?.normalized_finish === undefined) return '#f5f7f2';
-    return colors[Math.round(row.normalized_finish * (colors.length - 1))];
+    return heatmapColor(row.normalized_finish);
   }
 
   finishIsDark(row: CategoryResult | undefined) {
     const value = row?.normalized_finish;
-    return value !== null && value !== undefined && (value < 0.25 || value > 0.8);
+    return value !== null && value !== undefined && heatmapIsDark(value);
   }
 
   finishRank(row: CategoryResult | undefined) {

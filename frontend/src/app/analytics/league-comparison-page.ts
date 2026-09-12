@@ -20,6 +20,7 @@ import {
 } from '../archive/archive.models';
 import { LeagueAuctionOverview } from './league-auction-overview';
 import { sortCategoryCodes, sortCategoryObjects } from '../core/category-order';
+import { heatmapColor } from '../core/heatmap-colors';
 
 type PatternMetric = 'relative' | 'outcome';
 type HistoryWindow = 'recent-1' | 'recent-3' | 'recent-5' | 'all';
@@ -317,10 +318,8 @@ export class LeagueComparisonPage {
     if (value === null) return '';
     const centered = this.metric() === 'relative' ? value : value - 0.5;
     const scale = this.metric() === 'relative' ? 0.22 : 0.5;
-    const strength = Math.min(1, Math.abs(centered) / scale);
-    return centered >= 0
-      ? `rgba(57, 112, 80, ${0.09 + strength * 0.38})`
-      : `rgba(184, 78, 70, ${0.08 + strength * 0.29})`;
+    const normalized = 0.5 + Math.max(-1, Math.min(1, centered / scale)) * 0.5;
+    return heatmapColor(normalized);
   }
 
   signed(value: number | null, digits = 2) {
