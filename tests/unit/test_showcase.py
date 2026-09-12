@@ -219,3 +219,162 @@ def test_pages_workflow_stages_only_the_explicit_showcase_pages() -> None:
         line.strip() for line in workflow.splitlines() if line.strip().startswith("cp docs/")
     }
     assert actual_copies == expected_copies
+
+
+def _personal_category_review_fixture() -> tuple[str, dict[str, Any]]:
+    review = (DOCS / "personal-category-value-review.html").read_text(encoding="utf-8")
+    match = re.search(
+        r'<script id="synthetic-fixture" type="application/json">\s*(.*?)\s*</script>',
+        review,
+        re.S,
+    )
+    assert match is not None
+    return review, cast(dict[str, Any], json.loads(match.group(1)))
+
+
+def test_personal_category_value_review_is_a_static_synthetic_accessible_artifact() -> None:
+    review, fixture = _personal_category_review_fixture()
+
+    assert 'data-ui-style="fantasy-analytics-v1"' in review
+    assert 'href="showcase-theme.css"' in review
+    assert fixture["manager"] == "My manager"
+    assert fixture["seasons"] == [2026, 2025, 2024, 2023, 2022]
+    assert {item["code"] for item in fixture["categories"]} == {
+        "FT%",
+        "BLK",
+        "AST",
+        "STL",
+        "FG%",
+        "TO",
+    }
+    assert 'data-scope="five"' in review
+    assert 'data-scope="three"' in review
+    assert "ArrowDown" in review
+    assert "ArrowUp" in review
+    assert "fetch(" not in review
+    assert "XMLHttpRequest" not in review
+    assert "auction spending" in review
+    assert "scarcity" in review
+    assert "does not measure" in review
+    for required_state in (
+        "Loading",
+        "Could not load synthetic evidence",
+        "No completed history",
+        "Missing reviewed manager assignment",
+        "Insufficient history",
+        "Category exclusion",
+        "Zero spread",
+        "Unavailable tier gap",
+    ):
+        assert required_state in review
+
+
+def test_personal_category_fixture_supports_the_approved_review_examples() -> None:
+    _, fixture = _personal_category_review_fixture()
+    categories = {item["code"]: item for item in fixture["categories"]}
+
+    ft = categories["FT%"]
+    assert ft["percentage"] and ft["higherBetter"]
+    assert all(
+        item["boundary"] == "CAP_CANDIDATE"
+        and item["managerTier"] == 1
+        and item["tiers"][1] > sorted(item["tiers"])[len(item["tiers"]) // 2]
+        for item in ft["records"].values()
+    )
+    # The manager's immediate lower tier is at least the median exact-tier gap:
+    # a visible synthetic hold-cushion example, not a disconnected label.
+    for item in ft["records"].values():
+        gaps = [item["tiers"][index] - item["tiers"][index + 1] for index in range(7)]
+        assert item["tiers"][1] - item["tiers"][2] >= sorted(gaps)[len(gaps) // 2]
+
+    assert all(
+        item["boundary"] != "CAP_CANDIDATE" for item in categories["BLK"]["records"].values()
+    )
+    for code in ("AST", "STL"):
+        for item in categories[code]["records"].values():
+            values = item["tiers"]
+            manager = values[item["managerTier"]]
+            assert manager < (values[3] + values[4]) / 2
+            assert (
+                values[item["managerTier"] - 1] - manager
+                < sorted(values[index] - values[index + 1] for index in range(7))[3]
+            )
+
+    assert categories["FG%"]["records"]["2022"]["excluded"]
+    to_tiers = categories["TO"]["records"]["2025"]["tiers"]
+    assert to_tiers[2] == to_tiers[3]  # one exact tied tier retained for lower-is-better TO
+    for category in categories.values():
+        for record in category["records"].values():
+            if "excluded" not in record:
+                assert record["observationId"].startswith("syn-")
+                assert record["assignmentRevision"].startswith("assign-syn-")
+
+
+def test_personal_category_fixture_has_deterministic_scope_sensitive_labels() -> None:
+    _, fixture = _personal_category_review_fixture()
+
+    def classification(category: dict[str, Any], years: list[int]) -> tuple[bool, bool, bool]:
+        eligible = [
+            category["records"][str(year)]
+            for year in years
+            if "tiers" in category["records"][str(year)]
+        ]
+        needed = -(-2 * len(eligible) // 3)
+        above = below = caps = better_side = adequate_hold = nearby = next_tier = 0
+        for record in eligible:
+            values = record["tiers"]
+            manager_index = record["managerTier"]
+            manager = values[manager_index]
+            baseline = (sorted(values)[3] + sorted(values)[4]) / 2
+            is_above = manager > baseline if category["higherBetter"] else manager < baseline
+            above += is_above
+            below += not is_above
+            caps += record["boundary"] == "CAP_CANDIDATE"
+            better_side += manager_index < 4
+            if manager_index + 1 < len(values):
+                hold = abs(manager - values[manager_index + 1])
+                gaps = sorted(
+                    abs(values[index] - values[index + 1])
+                    for index in range(len(values) - 1)
+                    if values[index] != values[index + 1]
+                )
+                adequate_hold += hold >= gaps[len(gaps) // 2]
+            if manager_index > 0:
+                next_tier += 1
+                gap = abs(values[manager_index - 1] - manager)
+                gaps = sorted(
+                    abs(values[index] - values[index + 1])
+                    for index in range(len(values) - 1)
+                    if values[index] != values[index + 1]
+                )
+                nearby += gap <= gaps[len(gaps) // 2]
+        stable_excess = (
+            len(years) == 5
+            and len(eligible) >= 3
+            and above >= needed
+            and caps >= needed
+            and better_side >= needed
+            and adequate_hold >= needed
+        )
+        recent_excess = (
+            len(years) == 3
+            and len(eligible) >= 3
+            and above >= needed
+            and caps >= needed
+            and better_side >= needed
+            and adequate_hold >= needed
+        )
+        nearby_gain = below >= needed and next_tier >= 3 and nearby >= needed
+        return stable_excess, recent_excess, nearby_gain
+
+    categories = {item["code"]: item for item in fixture["categories"]}
+    five = fixture["seasons"]
+    three = five[:3]
+    assert classification(categories["FT%"], five) == (True, False, False)
+    assert classification(categories["FT%"], three) == (False, True, False)
+    assert classification(categories["BLK"], five) == (False, False, False)
+    assert classification(categories["AST"], five) == (False, False, True)
+    assert classification(categories["STL"], five) == (False, False, True)
+    assert "normalizationAvailable" in (DOCS / "personal-category-value-review.html").read_text(
+        encoding="utf-8"
+    )

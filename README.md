@@ -178,6 +178,22 @@ launcher steps above. Dependencies, the compiled UI and launcher are generated l
 Requires macOS, Chrome, Python 3.12+, uv, pnpm 11, and a Node release supported by
 Angular 22 (the prepared environment uses Node 24.19).
 
+### Notebook-first analysis
+
+Use the local analysis environment to explore historical questions before
+building another frontend visualization:
+
+```bash
+uv sync --group analysis
+uv run --group analysis jupyter lab
+```
+
+Start with `analysis/notebooks/01_historical_category_patterns.ipynb`. It reads
+the local ignored DuckDB archive through the existing domain calculation and
+does not write application data. Notebook outputs and private paths are blocked
+by pre-commit; see [analysis/README.md](analysis/README.md) for the local-data
+boundary and verification commands.
+
 ```bash
 uv sync --locked
 cd frontend

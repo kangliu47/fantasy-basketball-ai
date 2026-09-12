@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Synthetic, static review of personal-manager historical category value evidence." />
+  <title>Fantasy Basketball Intelligence · Historical Category Value Review</title>
+  <link rel="stylesheet" href="showcase-theme.css" />
+  <style>
+    .review-nav { align-items:center; display:flex; gap:12px; }
+    .review-nav a { color:var(--showcase-green); font-size:13px; font-weight:750; text-underline-offset:4px; }
+    .hero { display:flex; gap:28px; justify-content:space-between; margin-bottom:22px; }
+    .hero-copy { max-width:730px; }
+    .hero .showcase-title { font-size:clamp(31px,4.4vw,46px); }
+    .scope-toggle { align-self:flex-end; display:flex; gap:7px; flex-wrap:wrap; }
+    .context-card { align-items:center; display:flex; gap:16px; justify-content:space-between; margin:18px 0; padding:15px 18px; }
+    .context-path { color:var(--showcase-muted); font-size:12px; }
+    .context-path strong { color:var(--showcase-heading); }
+    .context-action { color:var(--showcase-blue); font-size:13px; font-weight:750; }
+    .summary { display:grid; gap:13px; grid-template-columns:repeat(3,1fr); margin:18px 0; }
+    .summary-card { border-left:4px solid var(--showcase-line); min-height:132px; padding:17px; }
+    .summary-card.excess { border-left-color:var(--showcase-orange); }
+    .summary-card.gain { border-left-color:var(--showcase-blue); }
+    .summary-card.neutral { border-left-color:var(--showcase-green); }
+    .summary-card h2 { color:var(--showcase-heading); font-size:16px; letter-spacing:-.02em; margin:0 0 7px; }
+    .summary-card p { color:var(--showcase-muted); font-size:13px; line-height:1.5; margin:0; }
+    .analysis-layout { display:grid; gap:15px; grid-template-columns:minmax(0,1.22fr) minmax(330px,.78fr); }
+    .table-card { min-width:0; padding:0; overflow:hidden; }
+    .table-caption { align-items:flex-start; display:flex; gap:18px; justify-content:space-between; padding:20px 21px 12px; }
+    h2 { color:var(--showcase-heading); font-size:20px; letter-spacing:-.03em; margin:0; }
+    .table-caption p, .detail-copy { color:var(--showcase-muted); font-size:12px; line-height:1.5; margin:5px 0 0; }
+    .table-scroll { overflow-x:auto; }
+    table { border-collapse:collapse; min-width:720px; width:100%; }
+    th { background:var(--showcase-surface-soft); color:#52695b; font-size:10px; font-weight:750; letter-spacing:.06em; padding:10px 12px; text-align:left; text-transform:uppercase; white-space:nowrap; }
+    td { border-top:1px solid var(--showcase-line); color:#40574a; font-size:12px; padding:10px 12px; vertical-align:top; }
+    tr.selected td { background:#f3f7ff; }
+    .category-button { background:transparent; border:0; color:var(--showcase-heading); cursor:pointer; font-weight:750; padding:0; text-align:left; }
+    .category-button:focus-visible { outline:3px solid var(--showcase-green); outline-offset:3px; }
+    .subtle { color:var(--showcase-muted); display:block; font-size:10px; margin-top:3px; }
+    .label { border-radius:999px; display:inline-block; font-size:10px; font-weight:750; line-height:1.25; padding:5px 7px; }
+    .label.excess { background:#fff0e9; color:#9c4f30; }
+    .label.gain { background:var(--showcase-blue-soft); color:var(--showcase-blue); }
+    .label.none { background:var(--showcase-green-soft); color:#466a55; }
+    .detail { min-width:0; }
+    .detail-head { align-items:flex-start; display:flex; gap:15px; justify-content:space-between; }
+    .detail-head .showcase-scope { font-size:10px; padding:6px 9px; }
+    .definition-list { display:grid; gap:10px; grid-template-columns:1fr 1fr; margin:17px 0; }
+    .definition { background:var(--showcase-surface-soft); border-radius:9px; padding:10px; }
+    .definition strong { color:var(--showcase-heading); display:block; font-size:11px; }
+    .definition span { color:var(--showcase-muted); display:block; font-size:11px; line-height:1.4; margin-top:3px; }
+    .season-list { display:grid; gap:9px; }
+    .season { border:1px solid var(--showcase-line); border-radius:9px; padding:12px; }
+    .season-top { align-items:baseline; display:flex; gap:8px; justify-content:space-between; }
+    .season-top strong { color:var(--showcase-heading); font-size:13px; }
+    .season-top span { color:var(--showcase-muted); font-size:10px; }
+    .season-grid { display:grid; gap:8px; grid-template-columns:repeat(3,1fr); margin-top:9px; }
+    .season-grid small { color:var(--showcase-muted); display:block; font-size:9px; text-transform:uppercase; }
+    .season-grid b { color:#385447; display:block; font-size:11px; margin-top:3px; }
+    .source { border-top:1px solid var(--showcase-line); color:var(--showcase-muted); font-size:10px; line-height:1.45; margin-top:9px; padding-top:8px; }
+    .excluded { background:#fffaf1; border:1px dashed #e3ca9b; border-radius:9px; color:#765e33; font-size:11px; padding:11px; }
+    .state-card { margin-top:15px; }
+    .state-controls { display:flex; flex-wrap:wrap; gap:7px; margin:13px 0; }
+    .state-controls .showcase-button { font-size:11px; padding:7px 10px; }
+    .state-display { background:var(--showcase-surface-soft); border-radius:9px; min-height:61px; padding:12px; }
+    .state-display strong { color:var(--showcase-heading); display:block; font-size:12px; }
+    .state-display span { color:var(--showcase-muted); display:block; font-size:11px; line-height:1.45; margin-top:3px; }
+    .retry { font-size:11px; margin-top:8px; padding:6px 9px; }
+    .caveat { background:#fff7e9; border:1px solid #f0d8aa; border-radius:9px; color:#6f592d; font-size:12px; line-height:1.5; margin-top:15px; padding:13px 15px; }
+    .method { color:var(--showcase-muted); font-size:12px; line-height:1.5; margin-top:15px; }
+    .method details { border-top:1px solid var(--showcase-line); margin-top:10px; padding-top:10px; }
+    .method summary { color:var(--showcase-green); cursor:pointer; font-weight:750; }
+    @media (max-width:860px) { .hero, .analysis-layout { display:block; } .scope-toggle { margin-top:18px; } .summary { grid-template-columns:1fr; } .detail { margin-top:15px; } }
+    @media (max-width:520px) { .context-card, .detail-head { align-items:flex-start; flex-direction:column; } .definition-list, .season-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="showcase-header">
+    <div class="showcase-brand">Fantasy Basketball Intelligence<small>Historical analytics · Review artifact</small></div>
+    <div class="review-nav"><span class="showcase-status"><i></i>Offline synthetic review</span><a href="app-preview.html">Canonical demo</a></div>
+  </header>
+  <main class="showcase-page">
+    <section class="hero">
+      <div class="hero-copy"><p class="showcase-eyebrow">Personal manager profile</p><h1 class="showcase-title">Historical Category Value Review</h1><p class="showcase-intro">Did My manager repeatedly finish beyond a useful historical category boundary while other categories had nearby historical rank gains?</p></div>
+      <div class="scope-toggle" aria-label="Completed-season scope"><button class="showcase-button active" type="button" data-scope="five" aria-pressed="true">Five completed seasons</button><button class="showcase-button" type="button" data-scope="three" aria-pressed="false">Three-season sensitivity</button></div>
+    </section>
+    <div class="showcase-banner"><strong>Synthetic review only.</strong> All identities, observation IDs, seasons, values, and assignments below are invented. This page is offline and makes no connection to ESPN, local data, or a league account.</div>
+    <section class="showcase-card context-card" aria-label="Review entry context"><div><div class="context-path">My profile <span aria-hidden="true">›</span> <strong>Category value</strong></div><div class="context-action">Review category value</div></div><span class="showcase-scope" id="scope-note">Five completed synthetic seasons</span></section>
+    <section class="summary" aria-live="polite" id="summary"></section>
+    <section class="analysis-layout">
+      <section class="showcase-card table-card" aria-labelledby="category-table-title"><div class="table-caption"><div><p class="showcase-eyebrow">Select a category</p><h2 id="category-table-title">Observed manager-relative results</h2><p>Use Tab then Enter or Space to select; use ↑ and ↓ between category buttons.</p></div><span class="showcase-scope" id="eligible-note"></span></div><div class="table-scroll"><table><thead><tr><th>Category</th><th>Relative emphasis / eligible</th><th>Median finish</th><th>Next-tier gap</th><th>Hold cushion</th><th>Boundary</th><th>Review label</th></tr></thead><tbody id="category-table-body"></tbody></table></div></section>
+      <aside class="showcase-card detail" aria-live="polite" aria-labelledby="detail-title"><div class="detail-head"><div><p class="showcase-eyebrow">Selected category</p><h2 id="detail-title"></h2><p class="detail-copy" id="detail-copy"></p></div><span class="showcase-scope" id="detail-scope"></span></div><div class="definition-list"><div class="definition"><strong>Next-tier gap</strong><span>Native production needed to reach the next distinct better tier.</span></div><div class="definition"><strong>Hold cushion</strong><span>Native distance from My manager to the next distinct worse tier.</span></div><div class="definition"><strong>Relative emphasis</strong><span>Above or below the season's observed category median, not spending.</span></div><div class="definition"><strong>Normalized gap</strong><span>Gap ÷ that season's direction-aware P90–P10 spread. No cross-category units are added.</span></div></div><div class="season-list" id="season-list"></div><div id="exclusion-list"></div></aside>
+    </section>
+    <section class="showcase-card state-card" aria-labelledby="state-title"><p class="showcase-eyebrow">Reviewable evidence states</p><h2 id="state-title">Visible runtime and evidence boundaries</h2><div class="state-controls" id="state-controls"></div><div class="state-display" id="state-display" role="status" aria-live="polite"></div></section>
+    <aside class="caveat"><strong>Persistent caveat.</strong> This descriptive review does not measure auction spending or scarcity, establish causality, or recommend a move. It preserves observed historical outcomes separately from the question they raise.</aside>
+    <section class="method"><details><summary>Review rule and fixture checks</summary><p>In the five-season view, a possible excess-outcome pattern needs at least three jointly eligible manager seasons, repeated above-baseline outcomes, CAP_CANDIDATE boundary evidence, a better-side boundary in at least two-thirds of eligible seasons, and hold cushions at least as large as the season/category median distinct-tier gap in at least two-thirds. Nearby historical gain needs repeated below-baseline outcomes, at least three seasons with a next better tier, and a normalized next-tier gap no larger than that season/category median normalized distinct-tier gap in at least two-thirds. The three-season view may show a recent pattern but never receives the stable possible-excess label.</p><p>Values are calculated from the exact displayed tiers. Ties remain one tier with an average rank. Positive affine rescaling changes neither normalized gaps nor labels; a zero P90–P10 spread leaves normalized gaps unavailable and withholds classification. Missing observations or reviewed manager assignments are exclusions, never zeroes.</p></details></section>
+    <footer class="showcase-footer">Static synthetic artifact · No login, tracking, API request, local mapping, or private league data · <a href="app-preview.html">Open the canonical synthetic demo</a></footer>
+  </main>
+
+  <script id="synthetic-fixture" type="application/json">
+  {
+    "manager": "My manager",
+    "seasons": [2026, 2025, 2024, 2023, 2022],
+    "categories": [
+      {"code":"FT%","name":"FT%","percentage":true,"higherBetter":true,"records":{"2026":{"tiers":[0.541,0.535,0.527,0.521,0.515,0.509,0.503,0.497],"managerTier":1,"boundary":"CAP_CANDIDATE","observationId":"syn-ft-2026-a","assignmentRevision":"assign-syn-2026-r2"},"2025":{"tiers":[0.548,0.542,0.534,0.528,0.522,0.516,0.510,0.504],"managerTier":1,"boundary":"CAP_CANDIDATE","observationId":"syn-ft-2025-a","assignmentRevision":"assign-syn-2025-r1"},"2024":{"tiers":[0.545,0.539,0.531,0.525,0.519,0.513,0.507,0.501],"managerTier":1,"boundary":"CAP_CANDIDATE","observationId":"syn-ft-2024-a","assignmentRevision":"assign-syn-2024-r3"},"2023":{"tiers":[0.552,0.546,0.538,0.532,0.526,0.520,0.514,0.508],"managerTier":1,"boundary":"CAP_CANDIDATE","observationId":"syn-ft-2023-a","assignmentRevision":"assign-syn-2023-r2"},"2022":{"tiers":[0.537,0.531,0.523,0.517,0.511,0.505,0.499,0.493],"managerTier":1,"boundary":"CAP_CANDIDATE","observationId":"syn-ft-2022-a","assignmentRevision":"assign-syn-2022-r1"}}},
+      {"code":"BLK","name":"BLK","percentage":false,"higherBetter":true,"records":{"2026":{"tiers":[640,602,563,525,486,447,409,370],"managerTier":1,"boundary":"UNCLASSIFIED","observationId":"syn-blk-2026-a","assignmentRevision":"assign-syn-2026-r2"},"2025":{"tiers":[628,597,561,522,484,449,413,376],"managerTier":2,"boundary":"UNCLASSIFIED","observationId":"syn-blk-2025-a","assignmentRevision":"assign-syn-2025-r1"},"2024":{"tiers":[651,615,578,541,502,465,428,391],"managerTier":1,"boundary":"SUGGESTIVE","observationId":"syn-blk-2024-a","assignmentRevision":"assign-syn-2024-r3"},"2023":{"tiers":[635,603,568,530,494,456,420,382],"managerTier":2,"boundary":"UNCLASSIFIED","observationId":"syn-blk-2023-a","assignmentRevision":"assign-syn-2023-r2"},"2022":{"tiers":[618,585,551,514,477,441,405,368],"managerTier":1,"boundary":"UNCLASSIFIED","observationId":"syn-blk-2022-a","assignmentRevision":"assign-syn-2022-r1"}}},
+      {"code":"AST","name":"AST","percentage":false,"higherBetter":true,"records":{"2026":{"tiers":[2310,2150,1990,1840,1725,1710,1570,1400],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-ast-2026-a","assignmentRevision":"assign-syn-2026-r2"},"2025":{"tiers":[2260,2110,1975,1845,1730,1718,1575,1410],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-ast-2025-a","assignmentRevision":"assign-syn-2025-r1"},"2024":{"tiers":[2340,2180,2020,1870,1755,1742,1595,1420],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-ast-2024-a","assignmentRevision":"assign-syn-2024-r3"},"2023":{"tiers":[2290,2140,1995,1855,1740,1728,1580,1415],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-ast-2023-a","assignmentRevision":"assign-syn-2023-r2"},"2022":{"tiers":[2240,2090,1950,1815,1700,1688,1545,1380],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-ast-2022-a","assignmentRevision":"assign-syn-2022-r1"}}},
+      {"code":"STL","name":"STL","percentage":false,"higherBetter":true,"records":{"2026":{"tiers":[530,486,445,404,369,362,322,278],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-stl-2026-a","assignmentRevision":"assign-syn-2026-r2"},"2025":{"tiers":[518,476,438,400,367,360,321,279],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-stl-2025-a","assignmentRevision":"assign-syn-2025-r1"},"2024":{"tiers":[542,498,456,416,379,371,330,287],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-stl-2024-a","assignmentRevision":"assign-syn-2024-r3"},"2023":{"tiers":[525,483,441,403,368,360,320,277],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-stl-2023-a","assignmentRevision":"assign-syn-2023-r2"},"2022":{"tiers":[510,469,430,393,359,351,312,270],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-stl-2022-a","assignmentRevision":"assign-syn-2022-r1"}}},
+      {"code":"FG%","name":"FG%","percentage":true,"higherBetter":true,"records":{"2026":{"tiers":[0.522,0.510,0.499,0.488,0.477,0.466,0.454,0.442],"managerTier":2,"boundary":"UNCLASSIFIED","observationId":"syn-fg-2026-a","assignmentRevision":"assign-syn-2026-r2"},"2025":{"tiers":[0.526,0.514,0.502,0.490,0.478,0.466,0.454,0.442],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-fg-2025-a","assignmentRevision":"assign-syn-2025-r1"},"2024":{"tiers":[0.520,0.508,0.496,0.484,0.472,0.460,0.448,0.436],"managerTier":3,"boundary":"UNCLASSIFIED","observationId":"syn-fg-2024-a","assignmentRevision":"assign-syn-2024-r3"},"2023":{"tiers":[0.531,0.519,0.507,0.495,0.483,0.471,0.459,0.447],"managerTier":4,"boundary":"UNCLASSIFIED","observationId":"syn-fg-2023-a","assignmentRevision":"assign-syn-2023-r2"},"2022":{"excluded":"Complete synthetic FG% observation is unavailable; excluded rather than treated as zero."}}},
+      {"code":"TO","name":"TO","percentage":false,"higherBetter":false,"records":{"2026":{"tiers":[7.5,8.1,8.7,9.2,9.8,10.4,11.0,11.7],"managerTier":3,"boundary":"UNCLASSIFIED","observationId":"syn-to-2026-a","assignmentRevision":"assign-syn-2026-r2"},"2025":{"tiers":[7.4,8.0,8.6,8.6,9.4,10.1,10.9,11.6],"managerTier":2,"boundary":"UNCLASSIFIED","observationId":"syn-to-2025-a","assignmentRevision":"assign-syn-2025-r1"},"2024":{"tiers":[7.7,8.3,8.9,9.5,10.1,10.7,11.3,12.0],"managerTier":4,"boundary":"UNCLASSIFIED","observationId":"syn-to-2024-a","assignmentRevision":"assign-syn-2024-r3"},"2023":{"tiers":[7.6,8.2,8.8,9.4,10.0,10.6,11.2,11.9],"managerTier":2,"boundary":"UNCLASSIFIED","observationId":"syn-to-2023-a","assignmentRevision":"assign-syn-2023-r2"},"2022":{"tiers":[7.3,7.9,8.5,9.1,9.7,10.3,10.9,11.5],"managerTier":5,"boundary":"UNCLASSIFIED","observationId":"syn-to-2022-a","assignmentRevision":"assign-syn-2022-r1"}}}
+    ]
+  }
+  </script>
+  <script>
+    (() => {
+      const fixture = JSON.parse(document.getElementById('synthetic-fixture').textContent);
+      const state = { scope: 'five', selected: 'FT%', reviewState: 'ready' };
+      const threshold = count => Math.ceil(count * 2 / 3);
+      const median = values => { const sorted = [...values].sort((a,b) => a-b); const middle = Math.floor(sorted.length / 2); return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2; };
+      const percentile = (values, p) => { const sorted = [...values].sort((a,b) => a-b); const index = (sorted.length - 1) * p; const lower = Math.floor(index); const upper = Math.ceil(index); return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower); };
+      const scopeSeasons = () => fixture.seasons.slice(0, state.scope === 'five' ? 5 : 3);
+      const format = (category, value, delta = false) => {
+        if (value === null || value === undefined) return 'Unavailable';
+        if (category.percentage) return delta ? `${value > 0 ? '+' : ''}${(value * 100).toFixed(1)} pp` : `${(value * 100).toFixed(1)}%`;
+        return `${delta && value > 0 ? '+' : ''}${Number.isInteger(value) ? value : value.toFixed(1)} ${category.code}`;
+      };
+      const rankLabel = tier => tier.count > 1 ? `${tier.startRank}–${tier.endRank} shared (${tier.rank.toFixed(1)})` : `${tier.rank}`;
+      function tiers(record) {
+        const result = [];
+        let startRank = 1;
+        for (let index = 0; index < record.tiers.length;) {
+          const value = record.tiers[index]; let count = 1;
+          while (record.tiers[index + count] === value) count += 1;
+          const endRank = startRank + count - 1;
+          result.push({ value, count, startRank, endRank, rank: (startRank + endRank) / 2 });
+          startRank = endRank + 1; index += count;
+        }
+        return result;
+      }
+      function recordMetrics(category, season) {
+        const record = category.records[String(season)];
+        if (!record || record.excluded) return { season, excluded: record?.excluded || 'No synthetic observation was supplied.' };
+        const values = record.tiers; const exactTiers = tiers(record); const managerValue = values[record.managerTier];
+        const tierIndex = exactTiers.findIndex(tier => tier.value === managerValue);
+        const current = exactTiers[tierIndex]; const better = exactTiers[tierIndex - 1] || null; const worse = exactTiers[tierIndex + 1] || null;
+        const nativeGap = better ? Math.abs(better.value - current.value) : null;
+        const holdCushion = worse ? Math.abs(current.value - worse.value) : null;
+        const spread = percentile(values, .9) - percentile(values, .1);
+        const normalizedGap = spread === 0 || nativeGap === null ? null : nativeGap / spread;
+        const distinctGaps = exactTiers.slice(1).map((tier, index) => Math.abs(exactTiers[index].value - tier.value));
+        const medianGap = median(distinctGaps);
+        const normalizedMedianGap = spread === 0 ? null : medianGap / spread;
+        const baseline = median(values);
+        const aboveBaseline = category.higherBetter ? managerValue > baseline : managerValue < baseline;
+        const betterSide = current.rank <= (values.length + 1) / 2;
+        return { season, record, current, better, worse, nativeGap, holdCushion, spread, normalizedGap, medianGap, normalizedMedianGap, baseline, aboveBaseline, betterSide };
+      }
+      function analyze(category) {
+        const rows = scopeSeasons().map(season => recordMetrics(category, season));
+        const eligible = rows.filter(row => !row.excluded); const needed = threshold(eligible.length);
+        const above = eligible.filter(row => row.aboveBaseline).length;
+        const below = eligible.length - above;
+        const caps = eligible.filter(row => row.record.boundary === 'CAP_CANDIDATE').length;
+        const highSide = eligible.filter(row => row.betterSide).length;
+        const adequateHold = eligible.filter(row => row.holdCushion !== null && row.holdCushion >= row.medianGap).length;
+        const nearby = eligible.filter(row => row.nativeGap !== null && row.normalizedGap !== null && row.normalizedMedianGap !== null && row.normalizedGap <= row.normalizedMedianGap).length;
+        const normalizationAvailable = eligible.length > 0 && eligible.every(row => row.spread > 0);
+        const stableExcess = normalizationAvailable && state.scope === 'five' && eligible.length >= 3 && above >= needed && caps >= needed && highSide >= needed && adequateHold >= needed;
+        const recentExcess = normalizationAvailable && state.scope === 'three' && eligible.length >= 3 && above >= needed && caps >= needed && highSide >= needed && adequateHold >= needed;
+        const nearbyGain = normalizationAvailable && below >= needed && eligible.filter(row => row.better).length >= 3 && nearby >= needed;
+        const labels = [];
+        if (stableExcess) labels.push('Possible excess-outcome pattern');
+        if (nearbyGain) labels.push('Nearby historical gain');
+        if (recentExcess && !stableExcess) labels.push('Recent pattern; insufficient seasons for the stable excess-outcome rule');
+        if (!labels.length) labels.push('No supported signal');
+        return { category, rows, eligible, needed, above, below, caps, highSide, adequateHold, nearby, stableExcess, recentExcess, nearbyGain, labels };
+      }
+      const labelClass = label => label.startsWith('Possible') ? 'excess' : label.startsWith('Nearby') ? 'gain' : 'none';
+      function renderSummary(analyses) {
+        const excess = analyses.filter(item => item.stableExcess);
+        const gains = analyses.filter(item => item.nearbyGain);
+        const noSignal = analyses.filter(item => !item.stableExcess && !item.nearbyGain && !item.recentExcess);
+        const recent = analyses.filter(item => item.recentExcess);
+        document.getElementById('summary').innerHTML = `
+          <article class="showcase-card summary-card excess"><h2>${state.scope === 'three' ? 'Recent pattern' : 'Possible excess patterns'}</h2><p>${state.scope === 'three' ? (recent.length ? `${recent.map(x => x.category.code).join(', ')} repeats the selected evidence, but three seasons cannot receive the stable possible-excess classification.` : 'No category meets the recent evidence checks.') : (excess.length ? `${excess.map(x => x.category.code).join(', ')} repeatedly finished above its observed baseline beyond a CAP_CANDIDATE boundary. This raises a descriptive review question only.` : 'No category meets the conservative possible excess-outcome rule.')}</p></article>
+          <article class="showcase-card summary-card gain"><h2>Nearby historical gains</h2><p>${gains.length ? `${gains.map(x => x.category.code).join(', ')} repeatedly sat below baseline with a comparatively nearby next distinct better tier.` : 'No category meets the repeated nearby historical gain rule.'}</p></article>
+          <article class="showcase-card summary-card neutral"><h2>What the history says</h2><p>${excess.length && gains.length ? 'The history raises a reallocation question.' : noSignal.length ? `No supported signal for ${noSignal.map(x => x.category.code).join(', ')}.` : 'No supported signal beyond the labels shown.'}</p></article>`;
+      }
+      function medianDisplay(category, rows, key, delta = false) { const values = rows.filter(row => row[key] !== null && row[key] !== undefined).map(row => row[key]); return values.length ? format(category, median(values), delta) : 'Unavailable'; }
+      function renderTable(analyses) {
+        const body = document.getElementById('category-table-body');
+        body.innerHTML = analyses.map(item => { const { category, eligible, labels, above, below, needed } = item; const selected = category.code === state.selected; const direction = above >= below ? 'above baseline' : 'below baseline'; const medianRank = eligible.length ? median(eligible.map(row => row.current.rank)).toFixed(1).replace(/\.0$/, '') : 'Unavailable'; return `<tr class="${selected ? 'selected' : ''}"><td><button class="category-button" data-category="${category.code}" type="button" aria-pressed="${selected}">${category.name}</button><span class="subtle">${category.higherBetter ? 'Higher is better' : 'Lower is better'}${category.percentage ? ' · percentage points' : ' · native count'}</span></td><td>${direction}<span class="subtle">${Math.max(above, below)} of ${eligible.length} · threshold ${needed}</span></td><td>${medianRank}<span class="subtle">exact tier ranks</span></td><td>${medianDisplay(category, eligible, 'nativeGap', true)}<span class="subtle">next distinct better</span></td><td>${medianDisplay(category, eligible, 'holdCushion', true)}<span class="subtle">to next worse tier</span></td><td>${item.caps >= needed ? 'CAP_CANDIDATE' : 'Not stable'}<span class="subtle">${item.caps} of ${eligible.length} observed</span></td><td><span class="label ${labelClass(labels[0])}">${labels[0]}</span></td></tr>`; }).join('');
+        document.getElementById('eligible-note').textContent = `${scopeSeasons().length} selected · synthetic`;
+        body.querySelectorAll('.category-button').forEach(button => button.addEventListener('click', () => { state.selected = button.dataset.category; render(); }));
+      }
+      function renderDetail(analysis) {
+        const { category, rows, labels, eligible } = analysis;
+        document.getElementById('detail-title').textContent = `${category.name} evidence`;
+        document.getElementById('detail-copy').textContent = labels.join(' · ');
+        document.getElementById('detail-scope').textContent = `${eligible.length} eligible of ${rows.length}`;
+        document.getElementById('season-list').innerHTML = eligible.map(row => `<article class="season"><div class="season-top"><strong>${row.season} · rank ${rankLabel(row.current)}</strong><span>${row.betterSide ? 'Better-side boundary' : 'Lower-side boundary'} · ${row.record.boundary}</span></div><div class="season-grid"><div><small>Worse exact tier / My manager</small><b>${format(category, row.current.value)}</b></div><div><small>Next better tier</small><b>${row.better ? format(category, row.better.value) : 'Unavailable at top tier'}</b></div><div><small>Next-tier / hold</small><b>${format(category, row.nativeGap, true)} / ${format(category, row.holdCushion, true)}</b></div><div><small>Normalized / median tier</small><b>${row.normalizedGap === null ? 'Unavailable' : row.normalizedGap.toFixed(2)} / ${row.normalizedMedianGap === null ? 'Unavailable' : row.normalizedMedianGap.toFixed(2)}</b></div><div><small>Observed baseline</small><b>${format(category, row.baseline)}</b></div><div><small>Boundary position</small><b>${row.betterSide ? 'Better side' : 'Lower side'}</b></div></div><div class="source">Synthetic observation <strong>${row.record.observationId}</strong> · reviewed assignment revision <strong>${row.record.assignmentRevision}</strong> · exact tier rank ${rankLabel(row.current)}</div></article>`).join('');
+        const exclusions = rows.filter(row => row.excluded); document.getElementById('exclusion-list').innerHTML = exclusions.length ? `<div class="excluded"><strong>${exclusions.length} exclusion:</strong> ${exclusions.map(row => `${row.season}: ${row.excluded}`).join(' ')}</div>` : '';
+      }
+      const states = {
+        ready: ['Ready', 'Synthetic completed-season observations and reviewed assignment revisions are shown above.'],
+        loading: ['Loading', 'Calculating selected completed-season evidence…'],
+        error: ['Could not load synthetic evidence', 'A runtime error keeps prior results out of view and exposes a retry action.'],
+        noHistory: ['No completed history', 'No completed seasons were selected; no category result is inferred.'],
+        missingAssignment: ['Missing reviewed manager assignment', 'This season is excluded until a reviewed assignment revision identifies My manager.'],
+        insufficient: ['Insufficient history', 'If a required FT% observation is removed, only two jointly eligible seasons remain; the classification is withheld rather than replacing it with another season.'],
+        exclusion: ['Category exclusion', 'FG% 2022 is incomplete in this synthetic fixture and is excluded, never converted to zero.'],
+        zeroSpread: ['Zero spread', 'If P90–P10 equals zero, normalized gaps are unavailable and no classification is shown.'],
+        unavailableGap: ['Unavailable tier gap', 'Top tiers have no next better tier and bottom tiers have no next worse tier; the corresponding gap stays unavailable.']
+      };
+      function renderStatePanel() { const [title, copy] = states[state.reviewState]; document.getElementById('state-controls').innerHTML = Object.entries(states).map(([key, [label]]) => `<button type="button" class="showcase-button ${key === state.reviewState ? 'active' : ''}" data-state="${key}" aria-pressed="${key === state.reviewState}">${label}</button>`).join(''); document.getElementById('state-display').innerHTML = `<strong>${title}</strong><span>${copy}</span>${state.reviewState === 'error' ? '<button class="showcase-button retry" type="button" data-retry>Retry</button>' : ''}`; document.querySelectorAll('[data-state]').forEach(button => button.addEventListener('click', () => { state.reviewState = button.dataset.state; renderStatePanel(); })); document.querySelector('[data-retry]')?.addEventListener('click', () => { state.reviewState = 'ready'; renderStatePanel(); }); }
+      function render() { const analyses = fixture.categories.map(analyze); renderSummary(analyses); renderTable(analyses); renderDetail(analyses.find(item => item.category.code === state.selected)); document.getElementById('scope-note').textContent = state.scope === 'five' ? 'Five completed synthetic seasons' : 'Three-season sensitivity view'; document.querySelectorAll('[data-scope]').forEach(button => { const active = button.dataset.scope === state.scope; button.classList.toggle('active', active); button.setAttribute('aria-pressed', active); }); renderStatePanel(); }
+      document.querySelectorAll('[data-scope]').forEach(button => button.addEventListener('click', () => { state.scope = button.dataset.scope; render(); }));
+      document.addEventListener('keydown', event => { if (!['ArrowDown', 'ArrowUp'].includes(event.key) || !event.target.matches('.category-button')) return; const buttons = [...document.querySelectorAll('.category-button')]; const index = buttons.indexOf(event.target); const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length; event.preventDefault(); buttons[next].focus(); buttons[next].click(); });
+      render();
+    })();
+  </script>
+</body>
+</html>

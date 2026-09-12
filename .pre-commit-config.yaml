@@ -7,6 +7,12 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: notebook-privacy
+        name: Notebook outputs and private-data guard
+        entry: .venv/bin/python -m tools.check_notebooks --working-tree
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: ruff-check
         name: Ruff lint
         entry: .venv/bin/ruff check

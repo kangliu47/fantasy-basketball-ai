@@ -8,6 +8,7 @@ from fantasy_ai.application.history.service import HistoryService
 from fantasy_ai.application.models import LeagueSelection, WorkspaceError
 from fantasy_ai.application.workspace import WorkspaceService
 from fantasy_ai.domain.history.analysis import CategoryResult, ManagerProfile
+from fantasy_ai.domain.history.category_value_review import ReviewWindow
 from fantasy_ai.domain.history.models import Assignment, Dataset, Manager
 from fantasy_ai.domain.history.patterns import LeaguePatterns
 
@@ -19,6 +20,7 @@ from .history_schemas import (
     CatalogDTO,
     CategoryStrategyMapReportDTO,
     HistoricalCategoryPatternReportDTO,
+    HistoricalCategoryValueReviewDTO,
     ImportRequest,
     ManagersDTO,
     MyManagerRequest,
@@ -106,6 +108,13 @@ def create_history_router(history: HistoryService, workspace: WorkspaceService) 
     ) -> CategoryStrategyMapReportDTO:
         report = await history.category_strategy_map(selected().league_id, tuple(seasons))
         return CategoryStrategyMapReportDTO.from_report(report)
+
+    @router.get("/category-value-review", response_model=HistoricalCategoryValueReviewDTO)
+    async def category_value_review(
+        window: ReviewWindow = ReviewWindow.FIVE,
+    ) -> HistoricalCategoryValueReviewDTO:
+        report = await history.category_value_review(selected().league_id, window)
+        return HistoricalCategoryValueReviewDTO.from_report(report)
 
     @router.get("/managers", response_model=ManagersDTO)
     async def managers() -> ManagersDTO:

@@ -1,0 +1,239 @@
+<section class="value-review" aria-labelledby="category-value-review-title">
+  <header class="panel-heading">
+    <div>
+      <p class="eyebrow">HISTORICAL CATEGORY VALUE REVIEW</p>
+      <h3 id="category-value-review-title">Review category value</h3>
+      <p>
+        Completed-season outcomes and exact standings-tier evidence for
+        {{ report()?.manager?.alias ?? 'your selected manager' }}.
+      </p>
+    </div>
+    <div class="segmented" role="group" aria-label="Historical review window">
+      <button
+        mat-button
+        type="button"
+        [class.active]="window() === 5"
+        [attr.aria-pressed]="window() === 5"
+        (click)="chooseWindow(5)"
+      >
+        Five seasons
+      </button>
+      <button
+        mat-button
+        type="button"
+        [class.active]="window() === 3"
+        [attr.aria-pressed]="window() === 3"
+        (click)="chooseWindow(3)"
+      >
+        Three-season sensitivity
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Reviewing historical category value" />
+    <p class="loading-copy">Reading completed-season evidence from the saved archive…</p>
+  }
+  @if (error()) {
+    <p class="notice error" role="alert">
+      {{ error() }} <button mat-button type="button" (click)="retry()">Retry</button>
+    </p>
+  }
+  @if (report(); as result) {
+    @if (result.status === 'NO_HISTORY') {
+      <p class="notice">No completed rotisserie archive is available for this review window.</p>
+    } @else if (result.status === 'NO_MANAGER') {
+      <p class="notice">
+        Choose your reviewed manager link before reviewing personal category evidence.
+      </p>
+    } @else if (result.status === 'INVALID_MANAGER') {
+      <p class="notice error" role="alert">
+        Your saved manager selection is no longer available in this league.
+      </p>
+    } @else if (result.status === 'NO_EVIDENCE') {
+      <p class="notice">
+        No category has jointly eligible personal and exact-tier evidence in this window.
+      </p>
+    } @else {
+      <p class="scope-copy">
+        Completed candidates: {{ result.seasons_requested.join(', ') || 'none' }}.
+        {{ result.notes[0] }}
+      </p>
+      <div class="table-scroll">
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Historical result</th>
+              <th>Jointly eligible</th>
+              <th>Evidence state</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (category of result.categories; track category.category) {
+              <tr [class.selected]="selectedCode() === category.category">
+                <th>
+                  <button
+                    type="button"
+                    class="review-choice"
+                    [attr.aria-pressed]="selectedCode() === category.category"
+                    (click)="select(category.category)"
+                    (keydown.enter)="select(category.category)"
+                    (keydown.space)="select(category.category); $event.preventDefault()"
+                  >
+                    {{ category.category }}
+                  </button>
+                </th>
+                <td>{{ category.label ? category.narrative : 'Classification withheld' }}</td>
+                <td>{{ category.jointly_eligible_seasons }} / {{ category.selected_seasons }}</td>
+                <td>{{ categoryState(category) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (selected(); as category) {
+        <section class="review-detail" aria-live="polite" aria-label="Selected category evidence">
+          <header>
+            <h4>{{ category.category }} · season evidence</h4>
+            <p>{{ category.narrative }}</p>
+          </header>
+          @if (category.status === 'INSUFFICIENT_HISTORY') {
+            <p class="notice">Fewer than three jointly eligible seasons are available.</p>
+          }
+          @if (category.status === 'NORMALIZATION_UNAVAILABLE') {
+            <p class="notice">
+              Zero P90–P10 spread in a jointly eligible season makes normalized gap classification
+              unavailable.
+            </p>
+          }
+          <p class="method-copy">
+            Relative emphasis compares this category with the manager’s own weighted category
+            baseline for that season.
+          </p>
+          <p class="scope-copy">
+            Median next-tier gap: {{ gap(category.median_next_tier_gap_native, category) }} · Median
+            hold cushion: {{ gap(category.median_hold_cushion_native, category) }} ·
+            {{ category.raw_scale_compatible_seasons }} raw-scale-compatible season{{
+              category.raw_scale_compatible_seasons === 1 ? '' : 's'
+            }}
+          </p>
+          <p class="evidence-counts">
+            Positive relative emphasis: {{ category.positive_emphasis_seasons }} /
+            {{ category.jointly_eligible_seasons }} · Negative relative emphasis:
+            {{ category.negative_emphasis_seasons }} / {{ category.jointly_eligible_seasons }} ·
+            Better-side finishes: {{ category.better_side_seasons }} /
+            {{ category.jointly_eligible_seasons }} · Adequate holds:
+            {{ category.adequate_hold_seasons }} / {{ category.jointly_eligible_seasons }} · Nearby
+            next tiers: {{ category.nearby_next_tier_seasons }} /
+            {{ category.jointly_eligible_seasons }} · Next better tier available:
+            {{ category.next_better_tier_seasons }} / {{ category.jointly_eligible_seasons }} ·
+            Normalized gaps complete: {{ yesNo(category.normalization_complete) }}
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Season</th>
+                  <th>Value / tier</th>
+                  <th>Relative emphasis</th>
+                  <th>Next better tier</th>
+                  <th>Hold cushion</th>
+                  <th>Gap evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (season of category.seasons; track season.season) {
+                  <tr>
+                    <th>{{ season.season }}</th>
+                    <td>
+                      {{ value(season.exact_tier.value, category)
+                      }}<small
+                        >Rank {{ season.exact_tier.rank }} / {{ season.exact_tier.team_count }} ·
+                        {{ season.exact_tier.tier_size }} tied</small
+                      >
+                    </td>
+                    <td>
+                      {{ emphasis(season.relative_emphasis)
+                      }}<small
+                        >Finish {{ season.normalized_finish | number: '1.3-3' }} · baseline
+                        {{ season.season_baseline | number: '1.3-3' }}</small
+                      >
+                    </td>
+                    <td>
+                      {{ gap(season.exact_tier.next_better_required_native_delta, category, true)
+                      }}<small
+                        >Gap {{ gap(season.exact_tier.next_tier_gap_native, category) }}</small
+                      >
+                    </td>
+                    <td>
+                      {{ gap(season.exact_tier.hold_cushion_native, category)
+                      }}<small
+                        >Typical distinct-tier gap
+                        {{
+                          gap(season.exact_tier.typical_distinct_tier_gap_native, category)
+                        }}</small
+                      >
+                    </td>
+                    <td>
+                      Robust range {{ gap(season.exact_tier.robust_range, category)
+                      }}<small
+                        >Normalized next-tier gap
+                        {{ metric(season.exact_tier.normalized_next_tier_gap) }} · Typical
+                        normalized tier gap
+                        {{ metric(season.exact_tier.typical_distinct_tier_gap_normalized) }} ·
+                        Better-side finish: {{ yesNo(season.exact_tier.better_side) }} · Adequate
+                        hold: {{ yesNo(season.exact_tier.adequate_hold) }} · Nearby next tier:
+                        {{ yesNo(season.exact_tier.nearby_next_tier) }}</small
+                      >
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (category.exclusions.length) {
+            <details>
+              <summary>
+                {{ category.exclusions.length }} selected season exclusion{{
+                  category.exclusions.length === 1 ? '' : 's'
+                }}
+              </summary>
+              @for (exclusion of category.exclusions; track exclusion.season) {
+                <p>{{ exclusion.season }} · {{ exclusion.reason }}</p>
+              }
+            </details>
+          }
+          @if (category.seasons.length) {
+            <details>
+              <summary>Sources and boundary evidence</summary>
+              @for (season of category.seasons; track season.season) {
+                <p>
+                  {{ season.season }} · Observation {{ season.observation_id }} ·
+                  {{ season.retrieved_at | date: 'medium' }} · mapper {{ season.mapper_version }} ·
+                  assignment revision {{ season.assignment_revision }}
+                </p>
+              }
+              @for (
+                boundary of category.boundaries;
+                track boundary.entry_zone + boundary.advance_zone
+              ) {
+                <p>
+                  {{ boundary.entry_zone }} to {{ boundary.advance_zone }} · {{ boundary.label }} ·
+                  {{ boundary.jointly_eligible_supporting_seasons }} jointly eligible supporting
+                  season{{ boundary.jointly_eligible_supporting_seasons === 1 ? '' : 's' }} ·
+                  {{ boundary.supporting_seasons }} /
+                  {{ boundary.evaluable_seasons }} supporting/evaluable seasons · Support fraction
+                  {{ metric(boundary.support_fraction) }} · Median effect
+                  {{ metric(boundary.median_effect) }} · Q1 effect
+                  {{ metric(boundary.q1_effect) }} · Leave-one-season-out stable:
+                  {{ yesNo(boundary.leave_one_season_out_stable) }}
+                </p>
+              }
+            </details>
+          }
+        </section>
+      }
+    }
+  }
+</section>

@@ -36,6 +36,16 @@ htmlcov/
 work/
 .local/
 *.app/
+analysis/.ipynb_checkpoints/
+analysis/.jupyter/
+analysis/data/
+analysis/outputs/
+analysis/*.html
+analysis/*.png
+analysis/*.csv
+analysis/*.parquet
+analysis/*.json
+*.ipynb_checkpoints
 node_modules/
 .angular/
 .pnpm-store/

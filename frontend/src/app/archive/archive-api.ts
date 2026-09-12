@@ -11,6 +11,7 @@ import {
   Job,
   HistoricalCategoryPatternReport,
   CategoryStrategyMapReport,
+  HistoricalCategoryValueReview,
   Manager,
   ManagerData,
   Profile,
@@ -77,6 +78,11 @@ export class ArchiveApi {
   categoryStrategyMap(seasons: number[]) {
     return this.http.get<CategoryStrategyMapReport>('/api/archive/category-strategy-map', {
       params: { seasons },
+    });
+  }
+  categoryValueReview(window: 3 | 5) {
+    return this.http.get<HistoricalCategoryValueReview>('/api/archive/category-value-review', {
+      params: { window },
     });
   }
   myTeam(season: number) {

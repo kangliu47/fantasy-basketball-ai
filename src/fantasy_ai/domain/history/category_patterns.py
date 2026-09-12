@@ -5,6 +5,7 @@ from datetime import datetime
 from statistics import median
 
 from .analysis import CategoryResult, league_results, usable
+from .attribution import strict_personal_assignment
 from .models import Assignment, Category, Dataset, Manager, SeasonArchive
 
 CATEGORY_PATTERN_VERSION = "historical-category-patterns-2-k2-linear-quantiles-season-scale"
@@ -30,6 +31,14 @@ class PatternSeasonEvidence:
 
 
 @dataclass(frozen=True)
+class PatternSeasonExclusion:
+    """Internal reason detail used by the value-review composition."""
+
+    season: int
+    reason: str
+
+
+@dataclass(frozen=True)
 class ManagerCategoryPattern:
     category: str
     eligible_seasons: int
@@ -41,6 +50,7 @@ class ManagerCategoryPattern:
     direction_repeat_count: int
     consistency: str
     seasons: tuple[PatternSeasonEvidence, ...]
+    season_exclusions: tuple[PatternSeasonExclusion, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -170,15 +180,7 @@ def _raw_scale_compatible(
 def _eligible_assignment(
     assignments: tuple[Assignment, ...], manager_id: str, archive: SeasonArchive
 ) -> Assignment | None:
-    matches = [
-        item
-        for item in assignments
-        if item.league_id == archive.league_id
-        and item.season == archive.season
-        and item.scope == "whole_season"
-        and item.manager_ids == (manager_id,)
-    ]
-    return matches[0] if len(matches) == 1 else None
+    return strict_personal_assignment(assignments, manager_id, archive).assignment
 
 
 def _season_rows(archive: SeasonArchive) -> dict[tuple[str, str], CategoryResult]:
@@ -261,26 +263,54 @@ def _manager_rows(
         patterns: list[ManagerCategoryPattern] = []
         for code in categories:
             evidence: list[PatternSeasonEvidence] = []
+            season_exclusions: list[PatternSeasonExclusion] = []
             excluded = 0
             for archive in archives:
                 if not _category_compatible(archives[0], archive, code):
                     excluded += 1
+                    season_exclusions.append(
+                        PatternSeasonExclusion(archive.season, "INCOMPATIBLE_CATEGORY_OR_SEASON")
+                    )
                     continue
-                assignment = _eligible_assignment(assignments, manager_id, archive)
+                resolution = strict_personal_assignment(assignments, manager_id, archive)
+                assignment = resolution.assignment
+                if assignment is None:
+                    excluded += 1
+                    season_exclusions.append(
+                        PatternSeasonExclusion(
+                            archive.season,
+                            resolution.exclusion_code or "MISSING_REVIEWED_ASSIGNMENT",
+                        )
+                    )
+                    continue
                 rows = cached_rows[archive.season]
-                row = rows.get((assignment.team_id, code)) if assignment else None
-                baseline = _baseline(archive, rows, assignment.team_id) if assignment else None
-                source = archive.get(Dataset.TEAMS)
+                row = rows.get((assignment.team_id, code))
                 if (
-                    not assignment
-                    or not row
+                    not row
                     or row.value is None
                     or row.rank is None
                     or row.normalized_finish is None
-                    or baseline is None
-                    or source is None
                 ):
                     excluded += 1
+                    season_exclusions.append(
+                        PatternSeasonExclusion(
+                            archive.season, "INCOMPLETE_MANAGER_CATEGORY_EVIDENCE"
+                        )
+                    )
+                    continue
+                baseline = _baseline(archive, rows, assignment.team_id)
+                source = archive.get(Dataset.TEAMS)
+                if baseline is None:
+                    excluded += 1
+                    season_exclusions.append(
+                        PatternSeasonExclusion(archive.season, "INCOMPLETE_MANAGER_SEASON_BASELINE")
+                    )
+                    continue
+                if source is None:
+                    excluded += 1
+                    season_exclusions.append(
+                        PatternSeasonExclusion(archive.season, "SOURCE_LINEAGE_MISMATCH")
+                    )
                     continue
                 evidence.append(
                     PatternSeasonEvidence(
@@ -337,6 +367,7 @@ def _manager_rows(
                         shrunken_emphasis, repeats, count, [item.team_count for item in evidence]
                     ),
                     tuple(sorted(evidence, key=lambda item: item.season, reverse=True)),
+                    tuple(sorted(season_exclusions, key=lambda item: item.season, reverse=True)),
                 )
             )
         results.append(

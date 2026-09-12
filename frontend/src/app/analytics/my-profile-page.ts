@@ -5,10 +5,11 @@ import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import { Catalog, ManagerData } from '../archive/archive.models';
 import { ManagerProfiles } from '../archive/manager-profiles';
+import { HistoricalCategoryValueReviewComponent } from './historical-category-value-review';
 
 @Component({
   selector: 'app-my-profile-page',
-  imports: [MatProgressBarModule, ManagerProfiles],
+  imports: [MatProgressBarModule, ManagerProfiles, HistoricalCategoryValueReviewComponent],
   templateUrl: './my-profile-page.html',
 })
 export class MyProfilePage {

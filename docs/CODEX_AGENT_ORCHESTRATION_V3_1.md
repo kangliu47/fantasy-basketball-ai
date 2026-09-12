@@ -741,6 +741,37 @@ EXPECTED_OUTPUT:
 Do not summarize away a scientist_architect decision contract.
 Pass the implementation contract and semantic acceptance criteria intact.
 
+### Immutable decision handoff
+
+When a scientist_architect decision will be implemented later, the root must
+preserve the decision contract as an explicit handoff record before starting
+the engineer. The handoff record is authoritative from `STATUS` through
+`PERSIST_DECISION` and must retain its contract ID and calculation version.
+
+The root may add a bounded work-packet envelope around the contract, but may
+not rewrite, reorder, compress, reinterpret or selectively omit the contract's
+definitions, formulas, assumptions, implementation boundaries, labels or
+semantic acceptance criteria. The engineer must receive either the complete
+contract verbatim or a direct reference to that persisted record.
+
+The engineer must verify the contract ID before editing. If the record is
+missing, incomplete, contradictory to the work packet, or insufficient for a
+required semantic choice, the engineer returns `STATUS: NEEDS_DECISION` and
+does not invent a replacement assumption. The root may collect the result and
+perform mechanical integration, but cannot convert an escalation into an
+engineering choice. Any changed contract requires a new ID/version and an
+explicit supersession note.
+
+This creates a loss-resistant path:
+
+```text
+scientist_architect decision contract
+        ↓ verbatim persisted handoff
+engineer implementation + contract compliance report
+        ↓
+root execution and semantic verification
+```
+
 ### Verification
 
 There are two verification classes.

@@ -22,6 +22,7 @@ from fantasy_ai.domain.history.analysis import (
     auction_patterns,
     league_results,
     manager_profile,
+    usable,
 )
 from fantasy_ai.domain.history.category_patterns import (
     HistoricalCategoryPatternReport,
@@ -30,6 +31,12 @@ from fantasy_ai.domain.history.category_patterns import (
 from fantasy_ai.domain.history.category_strategy import (
     CategoryStrategyMapReport,
     category_strategy_map_report,
+)
+from fantasy_ai.domain.history.category_value_review import (
+    HistoricalCategoryValueReview,
+    ReviewScope,
+    ReviewWindow,
+    historical_category_value_review,
 )
 from fantasy_ai.domain.history.models import (
     Assignment,
@@ -397,6 +404,39 @@ class HistoryService:
     ) -> CategoryStrategyMapReport:
         archives = await self._analysis_archives(league_id, seasons)
         return await asyncio.to_thread(category_strategy_map_report, archives)
+
+    async def category_value_review(
+        self, league_id: int, window: ReviewWindow
+    ) -> HistoricalCategoryValueReview:
+        """Read the fixed personal review window without refreshing or mutating saved data."""
+        imported = await self.seasons(league_id)
+        all_archives: list[SeasonArchive] = []
+        for season in sorted(imported, reverse=True):
+            all_archives.append(await asyncio.to_thread(self.repository.archive, league_id, season))
+        candidates = tuple(archive for archive in all_archives if self._review_candidate(archive))
+        selected = candidates[: int(window)]
+        assignments = await self.assignments(league_id)
+        managers = await self.managers(league_id)
+        my_manager_id = await self.my_manager(league_id)
+        return await asyncio.to_thread(
+            historical_category_value_review,
+            selected,
+            assignments,
+            managers,
+            my_manager_id,
+            ReviewScope(window),
+        )
+
+    @staticmethod
+    def _review_candidate(archive: SeasonArchive) -> bool:
+        rules = archive.rules
+        return bool(
+            rules
+            and rules.phase == "completed"
+            and rules.scoring_format == "ROTO"
+            and usable(archive, Dataset.SETTINGS)
+            and any(category.supported and category.weight > 0 for category in rules.categories)
+        )
 
     async def _assign(
         self,

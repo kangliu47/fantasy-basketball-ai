@@ -4,6 +4,47 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-12 — Pause notebook implementation and clarify the question first
+
+**Conversation evidence — S19:** After reviewing the recent history from the MCP
+architecture lesson through the analytics showcase, UX refinements and
+notebook-first experiments, the user reports that the overall interaction with
+the workspace, repository and multiple models did not produce a good analytics
+experience. The interactive JupyterLab designs felt weak and did not reveal
+enough new information. The user also identifies an insufficiently explicit
+description of the desired direction as a major reason iteration was not
+productive. They report that Sol was strong at mathematics and reasoning, while
+the product direction still needed to be articulated more clearly by the user.
+
+**Synthesis:** The bottleneck was primarily problem framing and interaction
+design, not a missing Python library or an inability to perform mathematical
+reasoning. A technically correct notebook can still be low-value when the
+question, decision, population, comparison and useful-result criterion are not
+settled. Specialist reasoning is most valuable after the decision boundary is
+clear; it should not be expected to invent the user's direction without risking
+scope drift.
+
+**Practice — question-first pause gate:** Before another analytics notebook or
+UI slice, require a concise brief containing:
+
+- the personal decision or outcome;
+- the unit, population and date/season scope;
+- the comparison or baseline;
+- the available evidence and known gaps;
+- what result would change the user's thinking or action; and
+- the stopping rule and explicit out-of-scope items.
+
+Once that brief exists, route the mathematical or statistical method to Sol for
+a decision contract, review a minimal notebook or visualization sketch with
+synthetic data when the interaction is unclear, and hand only settled,
+bounded work to an implementation agent. Keep each experiment to one question
+and one useful journey; treat visual polish as secondary to interpretability.
+
+**Follow-up:** The current notebooks remain local exploratory infrastructure,
+not accepted next features. The next step is a user-authored question brief;
+no new notebook, Angular view, projection, scarcity method or recommendation is
+authorized until that brief is reviewed.
+
 ## 2026-09-06 — Correct content is not correct emphasis
 
 **Conversation evidence — S15:** The user approved a product-first showcase mock

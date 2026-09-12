@@ -120,6 +120,17 @@ describe('League workspace', () => {
     http.expectOne('/api/archive/managers').flush({ managers: [], assignments: [], my_manager_id: null });
     http.expectOne('/api/archive/catalog').flush({ candidates: [], imported_seasons: [], job: null });
     await settle();
+    http.expectOne('/api/archive/category-value-review?window=5').flush({
+      contract_id: 'HCVR-2026-09-12-v1',
+      calculation_version: 'historical-category-value-review-v1-manager-tilt-tiergap-cap-nearby',
+      window: 5,
+      status: 'NO_MANAGER',
+      manager: { alias: null, status: 'NO_MANAGER' },
+      seasons_requested: [],
+      categories: [],
+      notes: ['Choose a reviewed manager.'],
+    });
+    await settle();
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Synthetic League');
     expect(button('Refresh data').disabled).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('My profile');

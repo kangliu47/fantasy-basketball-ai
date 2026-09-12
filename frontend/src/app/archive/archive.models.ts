@@ -433,6 +433,83 @@ export interface CategoryStrategyMapReport {
   categories: CategoryStrategy[];
   notes: string[];
 }
+export interface ExactTierEvidence {
+  value: number;
+  rank: number;
+  team_count: number;
+  tier_size: number;
+  robust_range: number;
+  typical_distinct_tier_gap_native: number | null;
+  typical_distinct_tier_gap_normalized: number | null;
+  next_better_required_native_delta: number | null;
+  next_tier_gap_native: number | null;
+  normalized_next_tier_gap: number | null;
+  hold_cushion_native: number | null;
+  better_side: boolean;
+  adequate_hold: boolean;
+  nearby_next_tier: boolean;
+}
+export interface ReviewSeasonEvidence {
+  season: number;
+  normalized_finish: number;
+  season_baseline: number;
+  relative_emphasis: number;
+  exact_tier: ExactTierEvidence;
+  observation_id: string;
+  retrieved_at: string;
+  mapper_version: string;
+  assignment_revision: number;
+  raw_scale_compatible: boolean;
+}
+export interface ReviewSeasonExclusion {
+  season: number;
+  reason: string;
+}
+export interface ReviewBoundary {
+  advance_zone: string;
+  entry_zone: string;
+  label: string;
+  evaluable_seasons: number;
+  supporting_seasons: number;
+  jointly_eligible_supporting_seasons: number;
+  support_fraction: number | null;
+  median_effect: number | null;
+  q1_effect: number | null;
+  leave_one_season_out_stable: boolean;
+}
+export interface ReviewCategory {
+  category: string;
+  higher_is_better: boolean;
+  percentage: boolean;
+  status: string;
+  label: string | null;
+  narrative: string;
+  jointly_eligible_seasons: number;
+  selected_seasons: number;
+  positive_emphasis_seasons: number;
+  negative_emphasis_seasons: number;
+  better_side_seasons: number;
+  adequate_hold_seasons: number;
+  nearby_next_tier_seasons: number;
+  next_better_tier_seasons: number;
+  normalization_complete: boolean;
+  median_next_tier_gap_native: number | null;
+  median_hold_cushion_native: number | null;
+  raw_scale_compatible_seasons: number;
+  boundaries: ReviewBoundary[];
+  seasons: ReviewSeasonEvidence[];
+  exclusions: ReviewSeasonExclusion[];
+}
+export interface HistoricalCategoryValueReview {
+  contract_id: string;
+  calculation_version: string;
+  window: 3 | 5;
+  status: string;
+  manager: { alias: string | null; status: string };
+  seasons_requested: number[];
+  categories: ReviewCategory[];
+  notes: string[];
+}
 export interface Overlap {
   season: number;
   team_name: string;

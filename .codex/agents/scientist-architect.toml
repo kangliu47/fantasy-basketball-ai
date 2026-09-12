@@ -106,6 +106,17 @@ DONE | ENGINEER | LUNA
 PERSIST_DECISION:
 YES | NO
 
+HANDOFF INTEGRITY
+
+When ROUTE_AFTER is ENGINEER, make the response self-contained and
+implementation-ready. Preserve every material definition, formula,
+assumption, boundary, label, implementation constraint and semantic
+acceptance criterion in stable sections. Do not write a root-facing summary
+that expects the root to reconstruct or reinterpret the contract. Include a
+unique CONTRACT_ID and calculation version when the decision changes semantic
+behavior. The root must be able to persist the response from STATUS through
+PERSIST_DECISION and pass it to the engineer without paraphrase.
+
 Do not edit production code unless the root explicitly requests a rare
 verification-only change and permissions allow it.
 

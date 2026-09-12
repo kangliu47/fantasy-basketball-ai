@@ -1,13 +1,14 @@
 import asyncio
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
-from fantasy_ai.domain.history.models import Dataset
+from fantasy_ai.domain.history.models import Assignment, Dataset, Manager
 from fantasy_ai.interfaces.http.api import create_api
 from tests.fakes import SELECTION, SNAPSHOT, fake_service
-from tests.history_fakes import history_service, observation
+from tests.history_fakes import MANAGER_ID, NOW, history_service, observation
 from tests.integration.test_http import HEADERS
 
 
@@ -189,3 +190,48 @@ def test_manager_periods_support_takeovers_and_reject_overlap(tmp_path: Path) ->
             )
 
     asyncio.run(run())
+
+
+def test_category_value_review_is_local_personal_and_does_not_expose_workspace_identity(
+    tmp_path: Path,
+) -> None:
+    workspace = fake_service()
+    workspace.repository.save_selection(SELECTION)
+    history, repository, gateway = history_service(tmp_path)
+    years = (2026, 2025, 2024, 2023, 2022, 2021)
+    for year in years:
+        for dataset in (Dataset.SETTINGS, Dataset.TEAMS):
+            repository.save_observation(observation(dataset, year))
+    repository.save_manager(12345, Manager(MANAGER_ID, "Synthetic manager"))
+    for year in years:
+        repository.save_assignment(
+            Assignment(
+                str(uuid4()),
+                12345,
+                year,
+                f"espn:12345:{year}:team:1",
+                (MANAGER_ID,),
+                "whole_season",
+                None,
+                None,
+                "Synthetic reviewed mapping",
+                1,
+                NOW,
+            )
+        )
+    repository.set_my_manager(12345, MANAGER_ID)
+
+    with TestClient(create_api(workspace, history=history)) as client:
+        five = client.get("/api/archive/category-value-review")
+        three = client.get("/api/archive/category-value-review?window=3")
+
+    assert five.status_code == three.status_code == 200
+    assert five.json()["seasons_requested"] == list(years[:5])
+    assert three.json()["seasons_requested"] == list(years[:3])
+    assert five.json()["window"] == 5
+    assert "league_id" not in five.text
+    assert "owner_tokens" not in five.text and "opaque-local-reference" not in five.text
+    assert not gateway.calls
+
+    with TestClient(create_api(workspace, history=history)) as client:
+        assert client.get("/api/archive/category-value-review?window=4").status_code == 422

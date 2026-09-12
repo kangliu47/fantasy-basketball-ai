@@ -1,5 +1,124 @@
 # Implementation plan
 
+## Historical Category Value Review implementation — September 12, 2026
+
+**Personal question:** Across my newest completed ROTO seasons, which category
+outcomes have jointly reviewed manager evidence and exact standings-tier context
+without treating final outcomes as spending, intent or advice?
+
+**Delivered:** Implemented contract `HCVR-2026-09-12-v1` as a pure domain
+composition, fixed-window application read, personal-context API and My profile
+review component. The five-season default and separately requested three-season
+sensitivity preserve nested completed-season candidates, explicit exclusions,
+native units, percentage-point display, lower-is-better deltas, average-tie
+ranks and source lineage. The shared assignment resolver now rejects multiple,
+shared, dated and unknown-scope current links before either personal report can
+use them.
+
+**Validation:** Synthetic domain, API/privacy and Angular journey coverage
+exercise strict attribution, ties, directionality, percentage fractions,
+zero-spread withholding, CAP/suggestive gates, nested windows, period-compatible
+native summaries and endpoint validation. The implementation reads saved archive
+data only and adds no schema, provider, credential or planning write.
+
+**Stopping point:** This slice does not add scarcity, spending inference,
+optimization, player/trade logic, projection or recommendation behavior. The
+static synthetic review remains a prior artifact; production UI consumes only
+the new local endpoint.
+
+## Historical Category Value Review artifact — September 12, 2026
+
+**Personal question:** Across my selected completed seasons, did my team
+repeatedly finish beyond a historically useful category boundary while weaker
+categories had comparatively nearby rank-gain opportunities?
+
+**Result:** Added a synthetic, offline interactive HTML review with five-season
+default scope, three-season sensitivity, manager-relative category emphasis,
+exact standings-tier evidence, next-tier gaps, hold cushions, eligibility
+counts, source lineage and keyboard-accessible category drill-downs. The
+fixture demonstrates a conservative FT% possible excess-outcome pattern,
+nearby AST/STL historical gains, a non-flagged BLK example, percentage-point
+FG% handling, lower-is-better TO handling, ties and exclusions.
+
+**Interpretation boundary:** The artifact deliberately does not infer auction
+overspending, player scarcity, causality, feasible trades, or recommendations.
+“Possible excess-outcome pattern” is a descriptive review signal about final
+standings geometry, not a valuation or optimization result. The committed
+artifact contains no private manager name, mapping, league identifier or real
+league values.
+
+**Stopping point:** No Angular/API/domain change or private local-data rendering
+was added. The next step, if this review is useful, is to reconcile the same
+bounded evidence against a small local archive sample without committing that
+data, then decide separately whether any domain calculation deserves promotion.
+
+## Analytics notebook pause and question-first reset — September 12, 2026
+
+**Retrospective:** The notebook-first experiment established a reusable local
+environment and reused backend calculations, but the user reports that the
+resulting notebooks were not producing enough new insight and were not a good
+interactive design experience. The recent commit sequence—from the MCP agent
+interface lesson through the analytics showcase, UX refinement and notebook
+infrastructure—shows that implementation momentum is ahead of the clarity of
+the next analytical question.
+
+**Decision:** Pause new notebook and dashboard implementation. Require a
+user-authored question brief before another analytical slice: decision,
+population/unit, scope, baseline, evidence gaps, useful-result criterion and
+stopping rule. Use Sol for mathematical or statistical reasoning after that
+brief is clear, and use implementation agents only for a settled, bounded
+design.
+
+**Stopping point:** Existing notebook infrastructure stays available locally,
+but no new analysis question, visualization polish, Angular view, projection,
+scarcity method or recommendation is authorized until the brief is reviewed.
+
+## Notebook dashboards for historical analytics — September 11, 2026
+
+**Personal question:** Can the next analytics questions be explored in a
+readable, linked notebook workflow before any new Angular visualization is
+built?
+
+**Result:** Expanded the notebook adapter over the existing domain reports with
+tidy manager/category, pressure, auction, and repeated-selection frames. The
+category notebook now uses Panel as the Bokeh-backed layout and Plotly for the
+heatmap, evidence table and category-specific pressure view. The auction notebook
+adds separate tabs for observed spend concentration and repeated selections.
+The layouts keep unlike units separate and retain coverage, keeper and shared-
+management caveats instead of inferring intent.
+
+**Runtime evidence:** Against the local archive, the adapter loaded 10 seasons,
+8 categories, 109 auction rows and 1,735 selection rows; both Panel dashboards
+constructed successfully. No database write occurred.
+
+**Stopping point:** No new production statistical method, Angular widget,
+projection, scarcity estimate, recommendation, or persistence change was added.
+The notebook outputs were cleared before verification; real-data exploration
+remains local and ignored.
+
+## Notebook-first analysis workflow — September 11, 2026
+
+**Personal question:** Can historical analytics be explored interactively with
+the real local archive before we commit to another Angular visualization or
+production calculation?
+
+**Result:** Added an `analysis/` workspace with an `analysis` dependency group
+for JupyterLab, pandas, Plotly, Bokeh, Panel, HoloViews, Matplotlib and Seaborn.
+The first notebook reuses the existing historical category-pattern report and
+loads the local DuckDB archive read-only. A small notebook-facing adapter keeps
+exploration code separate from domain logic while making useful report rows
+easy to inspect as pandas data frames.
+
+**Guardrail:** Real league data remains local and ignored. A pre-commit notebook
+audit rejects code-cell outputs, rendered payloads and personal/private paths;
+the existing publication audit continues to reject local databases and raw
+captures. A deliberate output test confirmed the notebook audit fails closed.
+
+**Stopping point:** No Angular change, new domain calculation, persistence
+schema, synthetic replacement of the local archive, or production
+recommendation was added. Findings that survive exploration must still be
+promoted into `src/` with tests before becoming application behavior.
+
 ## Category Strategy Map first slice — September 7, 2026
 
 **Personal question:** Where did completed historical category standings require

@@ -44,6 +44,7 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S19 | Notebook-first analytics retrospective — September 12, 2026 | User reports that the notebook and model experiments produced weak insight despite strong mathematical reasoning, identifies insufficient problem context and unclear direction as the main iteration gap, and pauses further analytics implementation until a concrete question is articulated |
 | S18 | Correct League comparison season eligibility — September 7, 2026 | User notices the four-season ceiling under Last 5 and All history, requests a completeness check before another ESPN pull, then authorizes the calculation fix after the archive proves complete |
 | S17 | Refine League comparison recency and interaction — September 7, 2026 | User reports the category-pressure interaction regression, approves recent-history windows and 2026-rank ordering with legacy managers last, removes delivery labels, requests full local archive coverage, and requires interactive pressure dots |
 | S16 | Implement the approved historical category-pattern journey — September 6, 2026 | User asks to deliver scan managers, inspect one pattern and check league context in one pass using real archives and reviewed mappings, while retaining auction history and stopping before correlations |

@@ -12,6 +12,12 @@ from fantasy_ai.application.history.service import Suggestion
 from fantasy_ai.domain.history.analysis import AuctionOverview, AuctionPatterns
 from fantasy_ai.domain.history.category_patterns import HistoricalCategoryPatternReport
 from fantasy_ai.domain.history.category_strategy import CategoryStrategyMapReport
+from fantasy_ai.domain.history.category_value_review import (
+    HistoricalCategoryValueReview,
+    ReviewLabel,
+    ReviewStatus,
+    ReviewWindow,
+)
 from fantasy_ai.domain.history.models import (
     ArchiveRoster,
     Assignment,
@@ -370,6 +376,109 @@ class CategoryStrategyMapReportDTO(BaseModel):
 
     @classmethod
     def from_report(cls, report: CategoryStrategyMapReport) -> "CategoryStrategyMapReportDTO":
+        return cls.model_validate(report)
+
+
+class ReviewManagerContextDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    alias: str | None
+    status: ReviewStatus
+
+
+class ExactTierEvidenceDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    value: float
+    rank: float
+    team_count: int
+    tier_size: int
+    robust_range: float
+    typical_distinct_tier_gap_native: float | None
+    typical_distinct_tier_gap_normalized: float | None
+    next_better_required_native_delta: float | None
+    next_tier_gap_native: float | None
+    normalized_next_tier_gap: float | None
+    hold_cushion_native: float | None
+    better_side: bool
+    adequate_hold: bool
+    nearby_next_tier: bool
+
+
+class ReviewSeasonEvidenceDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    normalized_finish: float
+    season_baseline: float
+    relative_emphasis: float
+    exact_tier: ExactTierEvidenceDTO
+    observation_id: str
+    retrieved_at: datetime
+    mapper_version: str
+    assignment_revision: int
+    raw_scale_compatible: bool
+
+
+class ReviewSeasonExclusionDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    reason: str
+
+
+class ReviewBoundaryDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    advance_zone: str
+    entry_zone: str
+    label: str
+    evaluable_seasons: int
+    supporting_seasons: int
+    jointly_eligible_supporting_seasons: int
+    support_fraction: float | None
+    median_effect: float | None
+    q1_effect: float | None
+    leave_one_season_out_stable: bool
+
+
+class ReviewCategoryDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    category: str
+    higher_is_better: bool
+    percentage: bool
+    status: ReviewStatus
+    label: ReviewLabel | None
+    narrative: str
+    jointly_eligible_seasons: int
+    selected_seasons: int
+    positive_emphasis_seasons: int
+    negative_emphasis_seasons: int
+    better_side_seasons: int
+    adequate_hold_seasons: int
+    nearby_next_tier_seasons: int
+    next_better_tier_seasons: int
+    normalization_complete: bool
+    median_next_tier_gap_native: float | None
+    median_hold_cushion_native: float | None
+    raw_scale_compatible_seasons: int
+    boundaries: tuple[ReviewBoundaryDTO, ...]
+    seasons: tuple[ReviewSeasonEvidenceDTO, ...]
+    exclusions: tuple[ReviewSeasonExclusionDTO, ...]
+
+
+class HistoricalCategoryValueReviewDTO(BaseModel):
+    """Purpose-built personal DTO with no league identifiers or provider payloads."""
+
+    model_config = ConfigDict(from_attributes=True)
+    contract_id: str
+    calculation_version: str
+    window: ReviewWindow
+    status: ReviewStatus
+    manager: ReviewManagerContextDTO
+    seasons_requested: tuple[int, ...]
+    categories: tuple[ReviewCategoryDTO, ...]
+    notes: tuple[str, ...]
+
+    @classmethod
+    def from_report(
+        cls, report: HistoricalCategoryValueReview
+    ) -> "HistoricalCategoryValueReviewDTO":
         return cls.model_validate(report)
 
 

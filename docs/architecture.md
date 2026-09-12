@@ -1,5 +1,30 @@
 # Architecture and learning guide
 
+## Historical Category Value Review — September 12, 2026
+
+`HCVR-2026-09-12-v1` adds a personal, read-only composition above the existing
+historical category-pattern and category-strategy reports. The new pure-domain
+module joins the selected manager’s strictly reviewed season/category evidence
+to that team’s exact standings tier. It retains existing average-tie ranks,
+weighted within-season baseline, direction-aware P90–P10 ranges, exact-tier
+transitions and conservative knee semantics rather than duplicating them in
+Angular.
+
+The application service derives the fixed five- or three-season window from
+newest completed ROTO archives with usable settings, then reads only saved
+archives, managers, assignments and the league-scoped `my_manager_id`. It
+performs no gateway, credential, cache, persistence or plan operation. Missing
+or ambiguous evidence remains a selected-season exclusion; it is never
+zero-filled or replaced by an older archive.
+
+The endpoint is personal-context-only: `GET /api/archive/category-value-review?window=5`
+or `window=3`. Its DTO excludes league IDs, ownership tokens, provider payloads,
+assignment notes and unrelated manager information. My profile renders the
+returned labels and evidence after its introduction; Angular does not calculate
+baselines, tiers, gaps, boundaries or classifications. The stricter shared
+attribution resolver requires exactly one current, sole-manager whole-season
+assignment and is also used by the existing category-pattern report.
+
 ## League comparison compatibility boundaries — September 7, 2026
 
 The category-pattern domain now separates semantic compatibility from raw-value

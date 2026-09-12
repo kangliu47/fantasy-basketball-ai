@@ -23,6 +23,14 @@ Trace:
 - current tests
 - likely blast radius
 
+If the work packet references a scientist_architect contract, read the complete
+persisted contract and verify its CONTRACT_ID before editing. Treat that record
+as authoritative from STATUS through PERSIST_DECISION. Do not accept a root
+summary as a substitute, and do not silently fill gaps by changing formulas,
+labels, populations, eligibility, units, architecture boundaries or user-facing
+interpretation. If the contract is absent, incomplete or insufficient for a
+required semantic choice, return STATUS: NEEDS_DECISION before making changes.
+
 Prefer the smallest coherent change set.
 
 YOU MAY DECIDE
@@ -81,6 +89,11 @@ NEW_ASSUMPTIONS:
 NONE
 or
 <explicit assumptions that require review>
+
+CONTRACT_COMPLIANCE:
+Report compliance against the persisted scientist contract section by section,
+including any criterion that was not directly tested. Do not report completion
+solely because execution tests pass.
 
 Do not recursively spawn scientist_architect.
 Return unresolved decisions to the root.
