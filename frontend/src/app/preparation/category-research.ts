@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { PreparationStore } from './preparation-store';
+import { sortCategoryRules } from '../core/category-order';
 
 @Component({
   selector: 'app-category-research',
@@ -20,7 +21,7 @@ export class CategoryResearch {
   readonly references = computed(() => {
     const data = this.store.data();
     return (data?.patterns.seasons ?? []).flatMap((season) =>
-      (season.rules?.categories ?? []).map((category) => {
+      sortCategoryRules(season.rules?.categories ?? []).map((category) => {
         const rows = season.results.filter((row) => row.category === category.code);
         return {
           season: season.season,

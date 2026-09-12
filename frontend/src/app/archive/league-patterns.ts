@@ -8,6 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ArchiveApi } from './archive-api';
 import { archiveError } from './archive-error';
 import { CategoryResult, LeaguePatternData, ManagerData, SeasonReference } from './archive.models';
+import { sortCategoryCodes } from '../core/category-order';
 
 interface DistributionPoint {
   row: CategoryResult;
@@ -67,13 +68,13 @@ export class LeaguePatterns {
   readonly comparisonSeasonData = computed(
     () => this.data()?.seasons.find((season) => season.season === this.comparisonSeason()) ?? null,
   );
-  readonly categories = computed(() => [
-    ...new Set(
-      this.comparisonSeasonData()?.rules?.categories.map((category) => category.code) ??
+  readonly categories = computed(() =>
+    sortCategoryCodes([
+      ...(this.comparisonSeasonData()?.rules?.categories.map((category) => category.code) ??
         this.comparisonSeasonData()?.results.map((row) => row.category) ??
-        [],
-    ),
-  ]);
+        []),
+    ]),
+  );
   readonly teamChoices = computed<TeamChoice[]>(() => {
     const teams = new Map<string, string>();
     for (const row of this.comparisonSeasonData()?.results ?? []) {

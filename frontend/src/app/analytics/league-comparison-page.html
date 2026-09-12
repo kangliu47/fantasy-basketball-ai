@@ -109,7 +109,7 @@
               <thead>
                 <tr>
                   <th>Manager</th>
-                  @for (category of analysis.categories; track category) {
+                  @for (category of orderedReportCategories(); track category) {
                     <th>{{ category }}</th>
                   }
                 </tr>
@@ -280,7 +280,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (pressure of analysis.league_pressure; track pressure.category) {
+                @for (pressure of orderedPressure(); track pressure.category) {
                   <tr
                     class="pressure-row"
                     [class.selected]="pressure.category === selectedPressureCode()"
@@ -437,7 +437,7 @@
           <div class="strategy-layout">
             <div>
               <div class="strategy-list" role="tablist" aria-label="Historical category gap curves">
-                @for (strategy of map.categories; track strategy.category) {
+                @for (strategy of orderedStrategyCategories(); track strategy.category) {
                   <button
                     type="button"
                     [class.selected]="strategy.category === selectedStrategyCode()"

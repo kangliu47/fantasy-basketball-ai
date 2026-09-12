@@ -5,6 +5,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import { HistoricalCategoryValueReview, ReviewCategory } from '../archive/archive.models';
+import { sortCategoryObjects } from '../core/category-order';
 
 @Component({
   selector: 'app-historical-category-value-review',
@@ -19,8 +20,9 @@ export class HistoricalCategoryValueReviewComponent {
   readonly error = signal<string | null>(null);
   readonly selectedCode = signal<string | null>(null);
   readonly reload = signal(0);
+  readonly categories = computed(() => sortCategoryObjects(this.report()?.categories ?? []));
   readonly selected = computed(
-    () => this.report()?.categories.find((item) => item.category === this.selectedCode()) ?? null,
+    () => this.categories().find((item) => item.category === this.selectedCode()) ?? null,
   );
   private readonly api = inject(ArchiveApi);
 
@@ -35,7 +37,7 @@ export class HistoricalCategoryValueReviewComponent {
       const request = this.api.categoryValueReview(window).subscribe({
         next: (report) => {
           this.report.set(report);
-          this.selectedCode.set(report.categories[0]?.category ?? null);
+          this.selectedCode.set(sortCategoryObjects(report.categories)[0]?.category ?? null);
           this.loading.set(false);
         },
         error: (error) => {

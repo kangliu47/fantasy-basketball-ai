@@ -19,6 +19,7 @@ import {
   PressureSeason,
 } from '../archive/archive.models';
 import { LeagueAuctionOverview } from './league-auction-overview';
+import { sortCategoryCodes, sortCategoryObjects } from '../core/category-order';
 
 type PatternMetric = 'relative' | 'outcome';
 type HistoryWindow = 'recent-1' | 'recent-3' | 'recent-5' | 'all';
@@ -104,9 +105,15 @@ export class LeagueComparisonPage {
   });
   readonly selectedStrategy = computed(
     () =>
-      this.strategyMap()?.categories.find(
+      sortCategoryObjects(this.strategyMap()?.categories ?? []).find(
         (strategy) => strategy.category === this.selectedStrategyCode(),
       ) ?? null,
+  );
+
+  readonly orderedReportCategories = computed(() => sortCategoryCodes(this.report()?.categories ?? []));
+  readonly orderedPressure = computed(() => sortCategoryObjects(this.report()?.league_pressure ?? []));
+  readonly orderedStrategyCategories = computed(() =>
+    sortCategoryObjects(this.strategyMap()?.categories ?? []),
   );
 
   constructor() {
@@ -195,7 +202,7 @@ export class LeagueComparisonPage {
             : (choices[0] ?? null),
         );
       }
-      const pressureCodes = report.league_pressure
+      const pressureCodes = sortCategoryObjects(report.league_pressure)
         .filter((pressure) => pressure.eligible_seasons > 0)
         .map((pressure) => pressure.category);
       if (!pressureCodes.includes(this.selectedPressureCode() ?? '')) {
@@ -203,7 +210,7 @@ export class LeagueComparisonPage {
           this.selectedPattern()?.pattern.category ?? pressureCodes[0] ?? null,
         );
       }
-      const pressure = report.league_pressure.find(
+      const pressure = sortCategoryObjects(report.league_pressure).find(
         (candidate) => candidate.category === this.selectedPressureCode(),
       );
       const points =
@@ -222,7 +229,7 @@ export class LeagueComparisonPage {
     });
 
     effect(() => {
-      const categories = this.strategyMap()?.categories ?? [];
+      const categories = sortCategoryObjects(this.strategyMap()?.categories ?? []);
       if (!categories.some((item) => item.category === this.selectedStrategyCode())) {
         this.selectedStrategyCode.set(categories[0]?.category ?? null);
       }

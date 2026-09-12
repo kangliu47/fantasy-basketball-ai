@@ -3,6 +3,7 @@ import { Component, computed, effect, input, signal } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { CategoryResult, ManagerAuctionSeason, Profile } from './archive.models';
+import { sortCategoryCodes } from '../core/category-order';
 
 interface ProfileView {
   alias: string;
@@ -30,11 +31,11 @@ export class ManagerHistoryInsights {
     return rows;
   });
   readonly categoryCodes = computed(() =>
-    [
+    sortCategoryCodes([
       ...new Set(
         this.profiles().flatMap((item) => item.profile.categories.map((row) => row.category)),
       ),
-    ].sort(),
+    ]),
   );
   readonly categoryRows = computed(() =>
     this.profiles().flatMap((item) =>

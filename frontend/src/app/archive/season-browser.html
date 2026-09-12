@@ -62,7 +62,7 @@
         <thead>
           <tr>
             <th>Team</th>
-            @for (category of rules()?.categories ?? []; track category.code) {
+            @for (category of orderedRulesCategories(); track category.code) {
               <th>{{ category.code }}</th>
             }
           </tr>
@@ -71,7 +71,7 @@
           @for (team of teams(); track team.id) {
             <tr>
               <td>{{ team.name }}</td>
-              @for (category of rules()?.categories ?? []; track category.code) {
+            @for (category of orderedRulesCategories(); track category.code) {
                 @let row = result(team.id, category.code);
                 <td>
                   {{ row?.value == null ? '—' : (row!.value | number: '1.0-4') }}
@@ -155,7 +155,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (category of rules()?.categories ?? []; track category.code) {
+            @for (category of orderedRulesCategories(); track category.code) {
                     <tr>
                       <td>{{ category.code }}</td>
                       <td>{{ team.category_values[category.code] ?? '—' }}</td>

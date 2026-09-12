@@ -13,6 +13,7 @@ import { ArchiveApi } from './archive-api';
 import { archiveError } from './archive-error';
 import { CategoryResult, Dataset, ManagerData, SeasonArchive, Suggestion } from './archive.models';
 import { ManagerAssignment } from './manager-assignment';
+import { sortCategoryRules } from '../core/category-order';
 
 @Component({
   selector: 'app-season-browser',
@@ -55,6 +56,7 @@ export class SeasonBrowser {
   ];
   readonly teams = computed(() => this.observation('teams')?.teams ?? []);
   readonly rules = computed(() => this.observation('settings')?.rules);
+  readonly orderedRulesCategories = computed(() => sortCategoryRules(this.rules()?.categories ?? []));
   readonly draft = computed(() => this.observation('draft')?.picks ?? []);
   readonly unnamedPicks = computed(
     () => this.draft().filter((pick) => pick.metadata_source === 'unavailable').length,

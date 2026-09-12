@@ -7,6 +7,7 @@ import { forkJoin } from 'rxjs';
 import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import { CategoryResult, ManagerAuctionSeason, ManagerData, Profile } from '../archive/archive.models';
+import { sortCategoryCodes } from '../core/category-order';
 
 @Component({
   selector: 'app-competitor-comparison-board',
@@ -39,10 +40,10 @@ export class CompetitorComparisonBoard {
   readonly myAuction = computed(() => this.auctionFor(this.mine()));
   readonly competitorAuction = computed(() => this.auctionFor(this.competitor()));
   readonly categoryCodes = computed(() =>
-    [...new Set([
+    sortCategoryCodes([
       ...(this.mine()?.categories.map((row) => row.category) ?? []),
       ...(this.competitor()?.categories.map((row) => row.category) ?? []),
-    ])].sort(),
+    ]),
   );
   readonly categorySeasons = computed(() =>
     [...new Set([

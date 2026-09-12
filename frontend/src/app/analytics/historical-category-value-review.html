@@ -70,7 +70,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (category of result.categories; track category.category) {
+            @for (category of categories(); track category.category) {
               <tr [class.selected]="selectedCode() === category.category">
                 <th>
                   <button
