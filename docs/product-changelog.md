@@ -3,6 +3,29 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-13 — Started the V4.1 control-plane experiment
+
+**Why**
+
+The V3.1 Luna-root hypothesis reduced front-end model cost but sometimes missed
+nuance during exploratory intake. The learning record now treats routing as a
+reasoning task and accounts for rework, context duplication and human attention.
+
+**Changed**
+
+- Promoted Terra Medium to the root/control plane with Route 0 direct work as the
+  default.
+- Added an optional bounded Luna utility worker, while retaining Terra High and
+  Sol High specialist contracts.
+- Added session/context hygiene and verifiability-aware routing guidance.
+
+**Experiment**
+
+V4.1 is the next evidence-driven iteration, not settled best practice. Track
+manual intervention, intake quality, unnecessary delegation, specialist leverage,
+rework, context growth, human friction and quota efficiency over roughly one week
+or 15–20 meaningful tasks.
+
 ## 2026-09-09 — Added MCP as an agent-interface architecture lesson
 
 **Why**

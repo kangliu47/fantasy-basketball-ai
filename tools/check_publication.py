@@ -45,6 +45,7 @@ PUBLIC_CODEX_FILES = frozenset(
         ".codex/config.toml",
         ".codex/agents/scientist-architect.toml",
         ".codex/agents/engineer.toml",
+        ".codex/agents/utility-worker.toml",
     }
 )
 CODEX_AGENT_KEYS = frozenset(
@@ -190,6 +191,7 @@ def codex_issues(name: str, text: str) -> set[str]:
     expected_name = {
         ".codex/agents/scientist-architect.toml": "scientist_architect",
         ".codex/agents/engineer.toml": "engineer",
+        ".codex/agents/utility-worker.toml": "utility_worker",
     }[name]
     if not _has_exact_keys(config, CODEX_AGENT_KEYS):
         issues.add("unknown Codex configuration section")
@@ -203,6 +205,12 @@ def codex_issues(name: str, text: str) -> set[str]:
         issues.add("invalid Codex configuration schema")
     if name == ".codex/agents/scientist-architect.toml" and config["sandbox_mode"] != "read-only":
         issues.add("scientist architect sandbox must be read-only")
+    if name == ".codex/agents/utility-worker.toml" and (
+        config["model"] != "gpt-5.6-luna"
+        or config["model_reasoning_effort"] != "medium"
+        or config["sandbox_mode"] != "workspace-write"
+    ):
+        issues.add("utility worker configuration must remain bounded")
     return issues
 
 

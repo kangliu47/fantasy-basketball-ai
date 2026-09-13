@@ -62,6 +62,7 @@ frontend/dist/
 .codex/agents/*
 !.codex/agents/scientist-architect.toml
 !.codex/agents/engineer.toml
+!.codex/agents/utility-worker.toml
 .agents/
 *.har
 *.pem

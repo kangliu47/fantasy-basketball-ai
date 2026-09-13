@@ -3,39 +3,34 @@
 Build a local, read-only fantasy basketball intelligence application. The user
 is learning FastAPI and Angular; favor conventional, readable examples of each.
 
-## Codex Orchestration V3.1
+## Codex Orchestration V4.1
 
 ### Purpose
 
-Use the cheapest model that can safely own the current decision.
+The root runs on `gpt-5.6-terra` with medium reasoning and is the lead agent /
+control plane, not merely a router. It owns user intent, critical-path
+reasoning, ordinary direct work, selective delegation, bounded work packets,
+specialist integration and unresolved-decision handoff.
 
-The main session runs on Luna and acts as:
-- dispatcher
-- bounded executor
-- context packager
-- evidence collector
+### Default behavior and routing order
 
-The root is not the project's senior architect.
-
-### Default behavior
-
-Do not delegate merely because subagents are available.
-Use a single model when a single model is sufficient.
-
-### Routing order
+The default is **Route 0: stay on Terra Medium**. Do not delegate merely because
+agents are available; use one-agent execution when it is simpler and safe.
 
 For each request:
 
-1. Check whether it contains an unresolved consequential decision.
-2. If yes, route directly to `scientist_architect`.
-3. Otherwise, check whether behavior is settled but engineering work is substantial.
-4. If yes, route directly to `engineer`.
-5. Otherwise, execute directly on Luna.
-6. Escalate only when observed evidence reveals a stronger decision boundary.
+1. If consequential meaning is unresolved, use Route 3 / `scientist_architect`.
+2. If behavior is settled but engineering is substantial, use Route 2 / `engineer`.
+3. If bounded delegation creates clear leverage, use Route 1 / `utility_worker`.
+4. Otherwise, use Route 0 directly.
 
-### Direct to scientist_architect
+Consider unresolved meaning, verifiability, failure cost, reversibility,
+decomposability and volume. Do not route by keywords, file count or the mere
+presence of mathematics.
 
-Delegate directly when WHAT the system should do is unresolved in a consequential way, including:
+### Route 3: `scientist_architect` / Sol High
+
+Use when a consequential decision about meaning remains unresolved, including:
 - architecture
 - domain semantics
 - public contract meaning
@@ -49,15 +44,11 @@ Delegate directly when WHAT the system should do is unresolved in a consequentia
 - validation/backtesting methodology
 - cross-cutting product assumptions
 
-Do not route based on keywords.
+The presence of a metric or formula does not itself require Sol.
 
-"Add a Monte Carlo button" is not automatically a Sol task if Monte Carlo behavior already exists.
+### Route 2: `engineer` / Terra High
 
-"Add scarcity adjustment" may be a Sol task even if it sounds simple when the definition of scarcity is unresolved.
-
-### Direct to engineer
-
-Delegate directly when:
+Use when:
 - intended behavior is sufficiently specified
 - relevant scientific/architecture decisions are settled
 - implementation is substantial
@@ -66,23 +57,17 @@ Delegate directly when:
 - debugging has unknown cause
 - regression risk is meaningful
 
-### Luna direct execution
+Preserve `NEEDS_DECISION`: escalate rather than silently changing semantics,
+contracts, architecture direction or mathematical/statistical methodology.
 
-Keep work on Luna when:
-- behavior is clear
-- scope is bounded
-- change is reversible
-- failure cost is limited
-- output can be objectively verified
-- methodology/architecture is already settled
+### Route 1: `utility_worker` / Luna Medium
 
-### Escalation
-
-Luna -> engineer when objective evidence shows the task is broader than expected.
-
-Engineer -> root -> scientist_architect when implementation exposes an unresolved consequential decision.
-
-Do not force a cheap first attempt when the request obviously belongs to Sol or Terra.
+Use only when delegation creates clear leverage. Work must be narrow,
+independent, repetitive or high-volume, strongly and objectively verifiable, and
+small enough for a bounded context. Suitable work includes mechanical edits,
+fixture generation, analogous tests, inventory extraction and repeated checks.
+Luna must not own ambiguous intake, product meaning, architecture or scientific
+methodology; it must escalate ambiguity rather than guess.
 
 ### No nested orchestration
 
@@ -147,12 +132,12 @@ Passing execution tests does not prove an analytical method is conceptually corr
 ### Closure levels
 
 LOW RISK
-- Luna executes
+- Terra Medium executes directly
 - focused deterministic verification
 - done
 
-MEDIUM RISK
-- Terra executes
+BOUNDED FAN-OUT
+- Luna utility worker executes only when delegation has clear leverage
 - deterministic and relevant semantic verification
 - root reports evidence
 - done
@@ -169,6 +154,16 @@ HIGH SCIENTIFIC / ARCHITECTURAL RISK
 
 Do not invoke Sol twice by default.
 
+### Session and context hygiene
+
+Prefer one meaningful feature or problem per thread when practical. Offload noisy
+implementation/test loops when that protects the root, return compact specialist
+decision deltas, persist only durable project knowledge, and start a fresh thread
+when accumulated context becomes substantially irrelevant or expensive.
+
+Different model tiers do not constitute independent review; high-value review
+needs fresh context, actual evidence and adversarial/falsification framing.
+
 ### Parallelism
 
 Parallelize independent read-heavy work when useful.
@@ -180,16 +175,10 @@ Do not have multiple agents edit overlapping files concurrently without explicit
 Do not equate multi-agent with efficiency.
 Delegation has context and token overhead.
 
-Prefer:
-- Luna once
-- Terra once
-- or Sol decision -> Terra implementation
-
-over long agent chains.
-
-### Escalation loop limit
-
-If the same task crosses the decision/execution boundary more than twice, stop autonomous ping-pong and surface the unresolved issue to the user.
+Prefer direct Terra work, bounded Luna only when it pays, or Sol decision -> Terra
+implementation over long agent chains. If the same task crosses the
+decision/execution boundary more than twice, stop autonomous ping-pong and
+surface the unresolved issue to the user.
 
 ### Final reporting during the experiment
 
@@ -210,7 +199,8 @@ KEY_DECISIONS:
 EVIDENCE:
 <tests/validation>
 
-This observability is for the initial orchestration experiment and may be reduced later.
+This observability is for the V4.1 evidence-driven experiment, not settled best
+practice, and may be reduced later.
 
 ## Personal product scope
 

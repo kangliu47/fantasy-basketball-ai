@@ -5,9 +5,9 @@ about building with an AI coding agent and managing a personal product.
 
 - [Vibe coding experiences](vibe-coding.md): delegation, feedback, verification
   and learning the implementation.
-- [Codex agent orchestration](../CODEX_AGENT_ORCHESTRATION_V3_1.md): route
-  consequential decisions to specialist reasoning, substantial settled work to
-  engineering, and bounded work locally.
+- [Codex agent orchestration](../CODEX_AGENT_ORCHESTRATION_V4_1_AND_LEARNING_JOURNEY.md):
+  the V3 -> V3.1 -> V4 -> V4.1 journey from cheap routing to a capable control
+  plane, with bounded workers and evidence-driven delegation.
 - [Product management insights](product-management.md): scope, user journeys,
   assisted workflows and deciding what deserves a feature.
 - [MCP as an Agent-Computer Interface](mcp-agent-interface.md): why REST/OpenAPI

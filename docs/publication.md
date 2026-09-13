@@ -43,12 +43,13 @@ Keychain credentials, the dedicated browser profile, `.local/` workspace state,
 DuckDB databases and backups, raw/processed league captures, generated launchers,
 local logs, tooling caches, HAR/key exports and exported architecture review notes.
 The only public Codex reproducibility artifacts are `.codex/config.toml`,
-`.codex/agents/scientist-architect.toml`, and `.codex/agents/engineer.toml`.
-All other `.codex` paths remain private. The publication audit parses those three
-files, accepts only their narrow configuration schema, rejects hooks, MCP,
-environment, credential, path and network configuration, and requires the
-scientist architect to stay read-only. They remain subject to the same personal
-path, email and Gitleaks checks as every other public file.
+`.codex/agents/scientist-architect.toml`, `.codex/agents/engineer.toml`, and
+`.codex/agents/utility-worker.toml`. All other `.codex` paths remain private.
+The publication audit parses only these files, accepts their narrow configuration
+schemas, rejects hooks, MCP, environment, credential, path and network
+configuration, requires the scientist architect to stay read-only, and keeps the
+utility worker on its bounded Luna Medium configuration. They remain subject to
+the same personal path, email and Gitleaks checks as every other public file.
 Private league acceptance counts were removed from the public documentation;
 structural findings and synthetic test evidence remain.
 

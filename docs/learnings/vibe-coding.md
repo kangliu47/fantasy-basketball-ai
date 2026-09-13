@@ -4,6 +4,35 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-13 — Promote the control plane and make delegation earn its cost
+
+**Conversation evidence — V4.1 specification:** The earlier Luna-root experiment
+showed useful bounded execution but recurring misses on exploratory nuance and
+consequential analytical ambiguity. The specification records the V3.1 runtime
+observability lesson, the V4 promotion of Terra Medium, and community-research
+lessons favoring capable parents, shallow orchestration, compact state packets
+and verifiability-aware routing.
+
+**Synthesis:** Routing is reasoning when it must infer intent, distinguish meaning
+from implementation and preserve the critical path. The cheapest token is not
+necessarily the cheapest workflow once context duplication, rework and human
+attention are included. Terra Medium is therefore the lead/control plane; Luna
+remains only a named utility worker for narrow, repetitive, independently
+verifiable work; Terra High and Sol High retain their specialist boundaries and
+contracts.
+
+**Practice — V4.1 experiment:** Default to Route 0 and delegate only for clear
+leverage. Use bounded work packets, preserve Sol decision contracts and
+`NEEDS_DECISION`, keep orchestration shallow, and apply session hygiene by
+starting focused threads and persisting durable knowledge only.
+
+**Follow-up:** This is the next evidence-driven experiment, not settled best
+practice. Over roughly one week or 15–20 meaningful tasks, record manual
+intervention, intake comprehension, unnecessary delegation, Sol escalation
+quality, Terra High usage, Luna leverage, rework, root context growth, human
+friction and quota efficiency. Success means lower intervention and more useful
+work per quota unit than V3.1; remove Luna if it proves to add no leverage.
+
 ## 2026-09-12 — Pause notebook implementation and clarify the question first
 
 **Conversation evidence — S19:** After reviewing the recent history from the MCP

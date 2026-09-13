@@ -26,6 +26,17 @@ The architecture source ledger is now checked against the repository so a later
 implementation change cannot silently leave the public review claiming that it
 is current.
 
+## Delivery update — 2026-09-13
+
+The agentic-engineering track now records the V3 -> V3.1 -> V4 -> V4.1
+orchestration experiment. Terra Medium is the lead/control plane; Terra High and
+Sol High remain bounded engineering and scientist/architect specialists; Luna is
+an optional utility worker for narrow, repetitive, independently verifiable work.
+Route 0 direct execution is the default. This is presented as the next
+evidence-driven experiment, with success judged by intervention, rework, context
+growth, delegation leverage, human friction and useful work per quota—not as
+settled best practice.
+
 ## 1. Executive summary
 
 This project should no longer be treated as only a fantasy basketball application.

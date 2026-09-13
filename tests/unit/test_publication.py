@@ -37,6 +37,14 @@ model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = "Return evidence."
 """
+VALID_UTILITY_WORKER = """\
+name = "utility_worker"
+description = "Perform bounded mechanical work"
+model = "gpt-5.6-luna"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+developer_instructions = "Return objective evidence."
+"""
 
 
 @pytest.mark.parametrize(
@@ -65,7 +73,7 @@ def test_public_examples_and_source_remain_allowed() -> None:
     assert not text_issues("package@22.2.0")
 
 
-def test_only_the_three_reviewed_codex_files_can_be_published() -> None:
+def test_only_the_reviewed_codex_files_can_be_published() -> None:
     assert all(not private_path(name) for name in PUBLIC_CODEX_FILES)
     assert private_path(".codex/agents/other.toml")
     assert private_path(".codex/agents/nested/private.toml")
@@ -114,6 +122,10 @@ def test_working_tree_codex_discovery_includes_a_root_symlink(
             ".codex/agents/engineer.toml",
             VALID_ENGINEER,
         ),
+        (
+            ".codex/agents/utility-worker.toml",
+            VALID_UTILITY_WORKER,
+        ),
     ],
 )
 def test_reviewed_codex_files_with_the_narrow_schema_pass(name: str, content: str) -> None:
@@ -149,6 +161,11 @@ url = "https://example.invalid/mcp"
             ".codex/agents/scientist-architect.toml",
             VALID_SCIENTIST.replace("read-only", "workspace-write"),
             "scientist architect sandbox must be read-only",
+        ),
+        (
+            ".codex/agents/utility-worker.toml",
+            VALID_UTILITY_WORKER.replace("gpt-5.6-luna", "gpt-5.6-terra"),
+            "utility worker configuration must remain bounded",
         ),
     ],
 )
