@@ -20,7 +20,12 @@ def architecture_review_data() -> dict[str, Any]:
 
 def test_showcase_home_links_every_published_section() -> None:
     home = (DOCS / "index.html").read_text(encoding="utf-8")
-    for page in ("app-preview.html", "architecture-review.html", "learning-lab.html"):
+    for page in (
+        "app-preview.html",
+        "architecture-review.html",
+        "learning-lab.html",
+        "historical-category-allocation-preview.html",
+    ):
         assert (DOCS / page).is_file()
         assert f'href="{page}"' in home
 
@@ -57,7 +62,13 @@ def test_learning_lab_has_the_process_and_experiment_views() -> None:
 
 
 def test_product_showcase_pages_share_the_repository_style_baseline() -> None:
-    for page in ("index.html", "app-preview.html", "analytics-ui-review.html", "learning-lab.html"):
+    for page in (
+        "index.html",
+        "app-preview.html",
+        "analytics-ui-review.html",
+        "learning-lab.html",
+        "historical-category-allocation-preview.html",
+    ):
         html = (DOCS / page).read_text(encoding="utf-8")
         assert 'data-ui-style="fantasy-analytics-v1"' in html
         assert 'href="showcase-theme.css"' in html
@@ -65,6 +76,17 @@ def test_product_showcase_pages_share_the_repository_style_baseline() -> None:
 
     analytics_review = (DOCS / "analytics-ui-review.html").read_text(encoding="utf-8")
     assert "<iframe" not in analytics_review
+
+
+def test_category_allocation_walkthrough_is_synthetic_and_local_only() -> None:
+    preview = (DOCS / "historical-category-allocation-preview.html").read_text(encoding="utf-8")
+    assert "Synthetic flow review" in preview
+    assert 'data-ui-style="fantasy-analytics-v1"' in preview
+    assert 'href="showcase-theme.css"' in preview
+    assert 'data-nav="profile"' in preview
+    assert 'data-category="BLK"' not in preview  # Rows come only from the synthetic fixture.
+    assert "feasible player trade existed" in preview
+    assert "fetch(" not in preview and "XMLHttpRequest" not in preview
 
 
 def test_application_preview_is_a_three_destination_synthetic_twin() -> None:
@@ -214,6 +236,10 @@ def test_pages_workflow_stages_only_the_explicit_showcase_pages() -> None:
         "cp docs/architecture-review.html _site/architecture-review.html",
         "cp docs/learning-lab.html _site/learning-lab.html",
         "cp docs/category-strategy-map-preview.html _site/category-strategy-map-preview.html",
+        (
+            "cp docs/historical-category-allocation-preview.html "
+            "_site/historical-category-allocation-preview.html"
+        ),
     }
     actual_copies = {
         line.strip() for line in workflow.splitlines() if line.strip().startswith("cp docs/")

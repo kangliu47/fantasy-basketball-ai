@@ -5,11 +5,11 @@ import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
 import { Catalog, ManagerData } from '../archive/archive.models';
 import { ManagerProfiles } from '../archive/manager-profiles';
-import { HistoricalCategoryValueReviewComponent } from './historical-category-value-review';
+import { HistoricalCategoryAllocationComponent } from './historical-category-allocation';
 
 @Component({
   selector: 'app-my-profile-page',
-  imports: [MatProgressBarModule, ManagerProfiles, HistoricalCategoryValueReviewComponent],
+  imports: [MatProgressBarModule, ManagerProfiles, HistoricalCategoryAllocationComponent],
   templateUrl: './my-profile-page.html',
 })
 export class MyProfilePage {
@@ -23,6 +23,8 @@ export class MyProfilePage {
   constructor() {
     effect((cleanup) => {
       this.leagueId();
+      this.data.set({ managers: [], assignments: [], my_manager_id: null });
+      this.catalog.set({ candidates: [], imported_seasons: [], job: null });
       this.loading.set(true);
       this.error.set(null);
       const request = forkJoin({ managers: this.api.managers(), catalog: this.api.catalog() }).subscribe({

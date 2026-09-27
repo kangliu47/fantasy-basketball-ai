@@ -9,6 +9,7 @@ from datetime import datetime
 from statistics import median
 
 from .analysis import usable
+from .category_geometry import category_geometry
 from .category_patterns import _category, _category_compatible, _quantile
 from .models import Dataset, SeasonArchive
 
@@ -160,53 +161,38 @@ def _season_curve(archive: SeasonArchive, category_code: str) -> StrategySeasonC
     source = archive.get(Dataset.TEAMS)
     if not category or not source or not usable(archive, Dataset.TEAMS):
         return None
-    teams = archive.teams
-    values = [team.category_values.get(category_code) for team in teams]
-    if len(teams) < 2 or any(value is None for value in values):
-        return None
-    native_values = [float(value) for value in values if value is not None]
-    oriented = [value if category.higher_is_better else -value for value in native_values]
-    robust_range = _quantile(oriented, 0.9) - _quantile(oriented, 0.1)
-    ordered = sorted(
-        zip(teams, native_values, oriented, strict=True), key=lambda item: (-item[2], item[0].id)
+    geometry = category_geometry(
+        archive.teams,
+        category_code,
+        category.higher_is_better,
+        source.id,
+        source.retrieved_at,
+        source.mapper_version,
     )
-    tiers: list[StrategyTier] = []
-    index = 0
-    while index < len(ordered):
-        tier_oriented = ordered[index][2]
-        end = index + 1
-        while end < len(ordered) and ordered[end][2] == tier_oriented:
-            end += 1
-        entries = ordered[index:end]
-        rank = ((index + 1) + end) / 2
-        tiers.append(
-            StrategyTier(
-                entries[0][1],
-                tier_oriented,
-                rank,
-                tuple(item[0].id for item in entries),
-                tuple(item[0].name for item in entries),
-            )
-        )
-        index = end
+    if geometry is None:
+        return None
+    tiers = [
+        StrategyTier(item.value, item.oriented_value, item.rank, item.team_ids, item.team_names)
+        for item in geometry.tiers
+    ]
     transitions: list[RankTransition] = []
-    for tier_index in range(1, len(tiers)):
-        better, worse = tiers[tier_index - 1], tiers[tier_index]
-        raw_gap = better.oriented_value - worse.oriented_value
-        percentile = (((worse.rank + better.rank) / 2) - 1) / (len(teams) - 1)
+    for boundary in geometry.transitions:
+        percentile = (((boundary.worse_rank + boundary.better_rank) / 2) - 1) / (
+            geometry.team_count - 1
+        )
         transitions.append(
             RankTransition(
-                worse.rank,
-                better.rank,
-                raw_gap,
-                better.value - worse.value,
-                raw_gap / robust_range if robust_range > 0 else None,
+                boundary.worse_rank,
+                boundary.better_rank,
+                boundary.raw_gap,
+                boundary.required_native_delta,
+                boundary.normalized_gap,
                 percentile,
                 _zone(percentile),
-                len(worse.team_ids),
-                len(better.team_ids),
-                worse.team_ids,
-                better.team_ids,
+                boundary.worse_tier_size,
+                boundary.better_tier_size,
+                boundary.worse_team_ids,
+                boundary.better_team_ids,
                 source.id,
                 source.retrieved_at,
                 source.mapper_version,
@@ -228,14 +214,14 @@ def _season_curve(archive: SeasonArchive, category_code: str) -> StrategySeasonC
         )
         for zone in FIVE_ZONES
     )
-    value_counts = {value: native_values.count(value) for value in native_values}
+    value_counts = {tier.value: len(tier.team_ids) for tier in geometry.tiers}
     return StrategySeasonCurve(
         archive.season,
-        len(teams),
+        geometry.team_count,
         category.higher_is_better,
         bool(category.denominator),
-        robust_range,
-        sum(count for count in value_counts.values() if count > 1) / len(teams),
+        geometry.robust_range,
+        sum(count for count in value_counts.values() if count > 1) / geometry.team_count,
         source.id,
         source.retrieved_at,
         source.mapper_version,

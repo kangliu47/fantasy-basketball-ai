@@ -24,6 +24,10 @@ from fantasy_ai.domain.history.analysis import (
     manager_profile,
     usable,
 )
+from fantasy_ai.domain.history.category_allocation import (
+    HistoricalCategoryAllocationReport,
+    historical_category_allocation_report,
+)
 from fantasy_ai.domain.history.category_patterns import (
     HistoricalCategoryPatternReport,
     historical_category_pattern_report,
@@ -425,6 +429,25 @@ class HistoryService:
             managers,
             my_manager_id,
             ReviewScope(window),
+        )
+
+    async def category_allocation(self, league_id: int) -> HistoricalCategoryAllocationReport:
+        """Read all saved completed rotisserie evidence without changing the archive."""
+        imported = await self.seasons(league_id)
+        archives_list = [
+            await asyncio.to_thread(self.repository.archive, league_id, season)
+            for season in sorted(imported, reverse=True)
+        ]
+        archives = tuple(archive for archive in archives_list if self._review_candidate(archive))
+        assignments = await self.assignments(league_id)
+        managers = await self.managers(league_id)
+        my_manager_id = await self.my_manager(league_id)
+        return await asyncio.to_thread(
+            historical_category_allocation_report,
+            archives,
+            assignments,
+            managers,
+            my_manager_id,
         )
 
     @staticmethod

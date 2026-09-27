@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Historical category allocation · synthetic flow review</title>
+  <link rel="stylesheet" href="showcase-theme.css" />
+  <style>
+    .page-heading,.card-heading,.tabs,.review-states{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+    .tabs,.review-states{justify-content:flex-start;flex-wrap:wrap;margin:22px 0 18px}
+    .page-heading h1,.card-heading h2,.detail h3{color:var(--showcase-heading);letter-spacing:-.035em}
+    .page-heading h1{font-size:clamp(31px,4vw,45px);margin:0 0 9px}
+    .card-heading h2{font-size:23px;margin:0 0 6px}
+    .card-heading p,.method,.muted{color:var(--showcase-muted);line-height:1.5;margin:0}
+    .showcase-card+.showcase-card{margin-top:16px}
+    .scope{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:15px 0}
+    .table-wrap{overflow-x:auto}
+    table{border-collapse:collapse;min-width:760px;width:100%}
+    th,td{border-bottom:1px solid var(--showcase-line);font-size:13px;padding:11px 10px;text-align:left;vertical-align:top}
+    thead th{color:var(--showcase-muted);font-size:11px}
+    tbody tr.selected{background:var(--showcase-blue-soft)}
+    .row-button{background:none;border:0;color:var(--showcase-heading);cursor:pointer;font:inherit;font-weight:700;padding:2px 0;text-align:left}
+    .row-button:hover{text-decoration:underline}
+    .row-button:focus-visible{outline:3px solid var(--showcase-green);outline-offset:3px}
+    .count{color:var(--showcase-muted);font-size:11px;white-space:nowrap}
+    .detail{border-top:1px solid var(--showcase-line);margin-top:18px;padding-top:17px}
+    .detail h3{font-size:17px;margin:0 0 10px}
+    .detail-grid{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+    .detail-grid div{background:var(--showcase-surface-soft);border-radius:8px;padding:12px}
+    .detail-grid small,.detail-grid strong{display:block}
+    .detail-grid small{color:var(--showcase-muted);font-size:11px}
+    .detail-grid strong{color:var(--showcase-heading);font-size:18px;margin-top:5px}
+    .question{background:var(--showcase-surface-soft);border-left:3px solid var(--showcase-orange);font-size:13px;line-height:1.55;margin-top:16px;padding:12px 14px}
+    .state{background:var(--showcase-surface-soft);border-radius:8px;color:var(--showcase-ink);padding:18px}
+    .state[hidden],.workspace[hidden],.profile[hidden]{display:none}
+    .spinner{background:var(--showcase-green);border-radius:999px;display:inline-block;height:7px;margin-right:8px;width:7px}
+    details{color:var(--showcase-muted);font-size:12px;margin-top:13px}
+    summary{color:var(--showcase-green);cursor:pointer;font-weight:700}
+    @media(max-width:760px){.page-heading,.card-heading{flex-direction:column}.detail-grid{grid-template-columns:1fr}.showcase-scope{white-space:normal}}
+  </style>
+</head>
+<body>
+  <header class="showcase-header">
+    <div class="showcase-brand">Fantasy Basketball<small>Historical analytics</small></div>
+    <div class="showcase-status"><i></i>Local · read-only</div>
+  </header>
+  <main class="showcase-page">
+    <section class="page-heading">
+      <div><p class="showcase-eyebrow">Completed-season evidence</p><h1>Your league history</h1><p class="showcase-intro">Explore completed-season manager patterns, auction spending, and category results.</p></div>
+      <div><button class="showcase-button" type="button" id="connection">Connection</button> <button class="showcase-button" type="button" id="refresh">Refresh data</button></div>
+    </section>
+    <p class="showcase-banner"><strong>Synthetic flow review.</strong> Every name, season result, category value and source ID below is invented. This page has no API or ESPN connection.</p>
+    <nav class="tabs" aria-label="Analytics navigation">
+      <button class="showcase-button active" type="button" data-nav="profile" aria-current="page">My profile</button>
+      <button class="showcase-button" type="button" data-nav="competitors">Competitor teams</button>
+      <button class="showcase-button" type="button" data-nav="league">League comparison</button>
+    </nav>
+    <section class="workspace" id="other-view" hidden><article class="showcase-card"><h2 id="other-title"></h2><p class="muted">This review focuses on My profile. Select My profile to return to the category report.</p></article></section>
+    <section class="profile" id="profile-view">
+      <article class="showcase-card">
+        <div class="card-heading"><div><h2>My profile</h2><p>See how you spent at auction and finished by category.</p></div><span class="showcase-scope">Avery · reviewed manager link</span></div>
+        <p class="method">The category report appears within your existing profile, after your historical results. It uses saved completed-season standings.</p>
+      </article>
+      <article class="showcase-card" aria-labelledby="allocation-title">
+        <div class="card-heading"><div><p class="showcase-eyebrow">Historical category allocation</p><h2 id="allocation-title">Category buffers and next-tier gaps</h2><p>Where was my observed category tier protected, and where was the next tier close?</p></div><span class="showcase-scope">2026 · 1 eligible season</span></div>
+        <div class="scope"><span class="showcase-scope">Relative to each category’s league spread</span><span class="count">Continuous distances first · labels are secondary</span></div>
+        <div id="ready-state">
+          <div class="table-wrap"><table><thead><tr><th>Category</th><th>Median buffer to worse tier</th><th>Median gap to better tier</th><th>Evidence</th><th>Relative signal</th></tr></thead><tbody id="category-rows"></tbody></table></div>
+          <section class="detail" id="category-detail" aria-live="polite"></section>
+          <div class="question"><strong>Historical reallocation question · 2026</strong><br />PTS had a larger relative buffer; BLK had a smaller relative next-tier gap. This does not establish that a feasible player trade existed.</div>
+          <details><summary>Methods, exclusions and sources</summary><p>Provider-exact tiers; average ranks for ties; P90–P10 normalization. Only a sole, reviewed whole-season manager assignment is eligible. No category gap is treated as player cost or an exchange rate.</p><p>Illustrative source: synthetic observation SYN-2026-01 · assignment revision 2.</p></details>
+        </div>
+        <div class="state" id="loading-state" role="status" hidden><span class="spinner"></span>Reading saved standings evidence…</div>
+        <div class="state" id="empty-state" hidden><strong>No eligible personal category evidence yet.</strong><p>A completed season and a reviewed whole-season manager link are needed. Missing or shared assignments remain excluded.</p></div>
+        <div class="state" id="error-state" role="alert" hidden><strong>Category evidence could not be loaded.</strong><p>Your saved history is unchanged.</p><button class="showcase-button" type="button" id="retry">Retry</button></div>
+      </article>
+    </section>
+    <section class="review-states" aria-label="Mock state controls"><span class="muted">Review states:</span><button class="showcase-button active" type="button" data-state="ready" aria-pressed="true">Ready</button><button class="showcase-button" type="button" data-state="loading" aria-pressed="false">Loading</button><button class="showcase-button" type="button" data-state="empty" aria-pressed="false">No evidence</button><button class="showcase-button" type="button" data-state="error" aria-pressed="false">Error</button></section>
+    <footer class="showcase-footer">Synthetic interface walkthrough · historical observations only · no roster recommendations · <a href="index.html">Showcase home</a> · <a href="app-preview.html">Application preview</a></footer>
+  </main>
+  <script>
+    const rows = [
+      {code:'PTS',buffer:.35,gap:.30,signal:'Larger relative buffer',value:'990',worse:'920',better:'1,050',native:'70 points',next:'60 points',rank:'4 of 12'},
+      {code:'REB',buffer:.20,gap:.20,signal:'No relative signal',value:'650',worse:'620',better:'680',native:'30 rebounds',next:'30 rebounds',rank:'3 of 12'},
+      {code:'AST',buffer:.10,gap:.15,signal:'No relative signal',value:'410',worse:'400',better:'425',native:'10 assists',next:'15 assists',rank:'6 of 12'},
+      {code:'BLK',buffer:.05,gap:.05,signal:'Small relative next-tier gap',value:'175',worse:'170',better:'180',native:'5 blocks',next:'5 blocks',rank:'7 of 12'}
+    ];
+    const byId = id => document.getElementById(id);
+    let selected = 'PTS';
+    function renderCategory() {
+      byId('category-rows').innerHTML = rows.map(row => `<tr class="${selected===row.code?'selected':''}"><th><button class="row-button" type="button" data-category="${row.code}" aria-pressed="${selected===row.code}">${row.code}</button></th><td>${row.buffer.toFixed(3)}</td><td>${row.gap.toFixed(3)}</td><td>1 / 1 season</td><td>${row.signal}</td></tr>`).join('');
+      const row = rows.find(item => item.code === selected);
+      byId('category-detail').innerHTML = `<h3>${row.code} · 2026 season evidence</h3><div class="detail-grid"><div><small>Observed value and rank</small><strong>${row.value} · ${row.rank}</strong></div><div><small>Next worse tier · open preserve boundary</small><strong>${row.worse}</strong><small>Buffer ${row.native}; equality joins that tier</small></div><div><small>Next better tier</small><strong>${row.better}</strong><small>Required category delta ${row.next}</small></div></div><p class="method" style="margin-top:12px">Normalized buffer ${row.buffer.toFixed(3)} · normalized next-tier gap ${row.gap.toFixed(3)}. Distances describe final standings; they do not establish a feasible roster change.</p>`;
+    }
+    function showState(name) {
+      for (const state of ['ready','loading','empty','error']) byId(`${state}-state`).hidden = state !== name;
+      document.querySelectorAll('[data-state]').forEach(button => {const active=button.dataset.state===name;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+    }
+    document.addEventListener('click', event => {
+      const button = event.target.closest('button'); if (!button) return;
+      if (button.dataset.category) {selected=button.dataset.category;renderCategory();}
+      if (button.dataset.state) showState(button.dataset.state);
+      if (button.id==='retry'||button.id==='refresh') showState('ready');
+      if (button.dataset.nav) {const profile=button.dataset.nav==='profile';byId('profile-view').hidden=!profile;byId('other-view').hidden=profile;byId('other-title').textContent=button.textContent;document.querySelectorAll('[data-nav]').forEach(item=>{const active=item===button;item.classList.toggle('active',active);item.toggleAttribute('aria-current',active);});}
+      if (button.id==='connection') {byId('other-title').textContent='Connection';byId('profile-view').hidden=true;byId('other-view').hidden=false;}
+    });
+    renderCategory(); showState('ready');
+  </script>
+</body>
+</html>

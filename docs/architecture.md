@@ -1,5 +1,27 @@
 # Architecture and learning guide
 
+## Historical Category Allocation — September 27, 2026
+
+`HCARE-2026-09-13-v1` adds a separate, read-only personal report for historical
+category redundancy and opportunity. A shared pure-domain geometry primitive now
+owns orientation, provider-exact distinct tiers, average-tie ranks, adjacent
+boundaries, P90–P10 ranges and TEAM-observation lineage. Category Strategy Map
+consumes that primitive without changing its public response or interpretation.
+
+The allocation report requires one current, sole-manager, reviewed whole-season
+assignment per season, reads only saved completed ROTO archives, and returns a
+credential-free DTO at `GET /api/archive/category-allocation`. It retains raw
+boundaries, signed lower-is-better native deltas, normalized gaps, exclusions
+and assignment revisions. My Profile presents the new all-category table after
+existing historical results, with a category and season drill-down; the older
+Category Value Review endpoint remains supported. The approved synthetic
+[walkthrough](historical-category-allocation-preview.html) is copied to GitHub
+Pages as a static page without a provider or application connection.
+
+No persistence, provider, credentials, planning writes, player/trade logic or
+cross-category allocation score were added. The reallocation panel is a
+historical question, not evidence that a feasible trade existed.
+
 ## Development-agent orchestration V5 — September 27, 2026
 
 The development workflow now uses a shared-context Sol High lead for design and

@@ -6,10 +6,8 @@
   @if (!loading() && !data().my_manager_id) {
     <p class="notice">Your profile needs one reviewed manager link before historical insights can be shown.</p>
   }
-  @if (!loading()) {
-    <app-historical-category-value-review />
-  }
-  @if (data().my_manager_id) {
+  @if (!loading() && !error() && data().my_manager_id) {
     <app-manager-profiles [data]="data()" [seasons]="catalog().imported_seasons" [leagueId]="leagueId()" [managerId]="data().my_manager_id" [viewerOnly]="true" />
+    <app-historical-category-allocation [leagueId]="leagueId()" />
   }
 </section>

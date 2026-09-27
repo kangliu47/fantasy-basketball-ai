@@ -1,0 +1,116 @@
+<section class="allocation" aria-labelledby="category-allocation-title">
+  <header class="panel-heading">
+    <div>
+      <p class="eyebrow">HISTORICAL CATEGORY ALLOCATION</p>
+      <h3 id="category-allocation-title">Category buffers and next-tier gaps</h3>
+      <p>Where was my observed category tier protected, and where was the next tier close?</p>
+    </div>
+    @if (report(); as result) {
+      <span class="scope-pill">{{ result.seasons_requested.length }} completed candidate season(s)</span>
+    }
+  </header>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading historical category allocation" />
+    <p class="state-copy" role="status">Reading saved standings evidence…</p>
+  }
+  @if (error()) {
+    <div class="state-copy error" role="alert">
+      <strong>Category evidence could not be loaded.</strong>
+      <span>Your saved history is unchanged. {{ error() }}</span>
+      <button mat-button type="button" (click)="retry()">Retry</button>
+    </div>
+  }
+  @if (report(); as result) {
+    @if (result.status !== 'READY') {
+      <div class="state-copy">
+        <strong>{{ result.notes[0] }}</strong>
+        <p>A completed season and one reviewed whole-season manager link are needed for personal evidence. Missing or shared assignments remain excluded.</p>
+      </div>
+    } @else {
+      <p class="method-copy">
+        Completed-season evidence for {{ result.manager.alias }}. The distances below are relative
+        to each category’s league spread. Continuous values lead; relative labels are secondary.
+      </p>
+      <div class="table-scroll">
+        <table class="allocation-table">
+          <thead><tr>
+            <th scope="col">Category</th>
+            <th scope="col">Median buffer to worse tier</th>
+            <th scope="col">Median gap to better tier</th>
+            <th scope="col">Evidence</th>
+            <th scope="col">Relative signals</th>
+          </tr></thead>
+          <tbody>
+            @for (category of categories(); track category.category) {
+              <tr [class.selected]="selectedCode() === category.category">
+                <th scope="row"><button class="allocation-choice" type="button" [attr.aria-pressed]="selectedCode() === category.category" (click)="select(category.category)">{{ category.category }}</button></th>
+                <td>{{ metric(category.median_normalized_redundancy) }}</td>
+                <td>{{ metric(category.median_normalized_opportunity) }}</td>
+                <td>{{ category.eligible_seasons }} / {{ category.selected_seasons }} seasons</td>
+                <td>{{ signals(category) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (selected(); as category) {
+        <section class="allocation-detail" aria-live="polite">
+          <div class="detail-heading">
+            <div>
+              <h4>{{ category.category }} · season evidence</h4>
+              <p class="method-copy">Median native buffer {{ gap(category.median_redundancy_native, category) }} · median next-better delta {{ gap(category.median_opportunity_native_delta, category, true) }} · {{ category.raw_scale_compatible_seasons }} raw-scale-compatible season(s).</p>
+            </div>
+            @if (category.seasons.length > 1) {
+              <div class="season-choices" aria-label="Choose evidence season">
+                @for (season of category.seasons; track season.season) {
+                  <button class="season-choice" type="button" [attr.aria-pressed]="selectedSeason() === season.season" (click)="selectSeason(season.season)">{{ season.season }}</button>
+                }
+              </div>
+            }
+          </div>
+          @if (selectedEvidence(); as season) {
+            <div class="detail-grid">
+              <div class="detail-tile"><small>Observed {{ season.season }} value and rank</small><strong>{{ value(season.value, category) }} · {{ season.rank }} of {{ season.team_count }}</strong><small>{{ season.team_name }} · tier size {{ season.tier_size }}</small></div>
+              <div class="detail-tile"><small>Next worse tier · open preserve boundary</small><strong>{{ preserveBoundary(season, category) }}</strong><small>
+                @if (season.preserve_boundary_status === 'AVAILABLE') { Buffer {{ gap(season.raw_redundancy, category) }}; equality joins that tier. }
+                @else { Buffer unavailable at the worst observed tier. }
+              </small></div>
+              <div class="detail-tile"><small>Next better tier</small><strong>{{ opportunityBoundary(season, category) }}</strong><small>
+                @if (season.opportunity_boundary_status === 'AVAILABLE') { Required category delta {{ gap(season.required_native_delta, category, true) }}. }
+                @else { No better-tier opportunity is available. }
+              </small></div>
+            </div>
+            <p class="method-copy detail-method">Normalized buffer {{ metric(season.normalized_redundancy) }} · normalized next-tier gap {{ metric(season.normalized_opportunity) }} · robust range {{ gap(season.robust_range, category) }}. {{ seasonSignals(season) }}.</p>
+            @if (season.tier_context === 'TIED_TIER_CONTEXT_ONLY') {
+              <p class="method-copy">This tied tier is context only; one team’s change could break the tie before reaching an adjacent tier.</p>
+            }
+            @if (category.percentage) {
+              <p class="method-copy">Percentage gaps are percentage points. Without team makes and attempts, they cannot be translated into shots or player production.</p>
+            }
+            <details><summary>Source for {{ season.season }}</summary><p>Observation {{ season.source_observation_id }} · {{ season.retrieved_at | date: 'medium' }} · mapper {{ season.mapper_version }} · assignment revision {{ season.assignment_revision }}</p></details>
+          } @else {
+            <p class="state-copy">No eligible season evidence is available for this category.</p>
+          }
+          @if (category.exclusions.length) {
+            <details><summary>{{ category.exclusions.length }} excluded season(s)</summary>
+              @for (exclusion of category.exclusions; track exclusion.season) { <p>{{ exclusion.season }} · {{ exclusion.reason }}</p> }
+            </details>
+          }
+        </section>
+      }
+      @if (result.reallocation_questions.length) {
+        <section class="reallocation-question">
+          <h4>Historical reallocation question</h4>
+          @for (question of result.reallocation_questions; track question.season) {
+            <p><strong>{{ question.season }}</strong> · Larger relative buffers: {{ reallocationCategories(question.sources) }} · Smaller relative next-tier gaps: {{ reallocationCategories(question.destinations) }}</p>
+          }
+          <p>This identifies a historical reallocation question. It does not establish that a feasible player trade existed.</p>
+        </section>
+      } @else {
+        <p class="state-copy">Insufficient evidence for a distinct historical reallocation question.</p>
+      }
+      <p class="method-copy limitation">{{ result.notes[result.notes.length - 1] }}</p>
+    }
+  }
+</section>

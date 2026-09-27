@@ -4,6 +4,25 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-27 — Review the analytical flow before completing its interface
+
+**Conversation evidence — S21:** The approved calculation contract and a partial
+implementation existed before the user reviewed this feature’s My Profile flow.
+The synthetic mock made the placement, category selection and empty/error states
+concrete. The user then authorized the full app and public walkthrough update.
+
+**Synthesis:** A settled formula still leaves an interface decision. Here, the
+mock review exposed that the draft panel sat before the profile’s existing
+historical results, while the reviewed journey placed it after them. Keeping
+the mock synthetic also made the public Pages boundary clear.
+
+**Practice:** Record both the calculation contract and the approved entry,
+selection and evidence flow. Check production placement against the mock before
+closing a historical analytics slice, and publish only static invented examples.
+
+**Follow-up:** Validate the connected local experience separately from synthetic
+tests when reviewed private archive evidence is available.
+
 ## 2026-09-27 — Keep decision boundaries without mandatory agent handoffs
 
 **Conversation evidence — S20:** During the GPT-6 migration review, the user
