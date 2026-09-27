@@ -43,12 +43,15 @@ Keychain credentials, the dedicated browser profile, `.local/` workspace state,
 DuckDB databases and backups, raw/processed league captures, generated launchers,
 local logs, tooling caches, HAR/key exports and exported architecture review notes.
 The only public Codex reproducibility artifacts are `.codex/config.toml`,
-`.codex/agents/scientist-architect.toml`, `.codex/agents/engineer.toml`, and
+`.codex/agents/frontier-expert.toml`, and
 `.codex/agents/utility-worker.toml`. All other `.codex` paths remain private.
 The publication audit parses only these files, accepts their narrow configuration
 schemas, rejects hooks, MCP, environment, credential, path and network
-configuration, requires the scientist architect to stay read-only, and keeps the
-utility worker on its bounded Luna Medium configuration. They remain subject to
+configuration, requires the frontier expert to stay on GPT-6 Astra High and
+read-only, and keeps the utility worker on bounded GPT-6 Luna High. Root model
+defaults may be overridden or omitted to inherit personal settings. Retired V4.1
+role snapshots live under `docs/orchestration-history/`, outside discovery.
+These files remain subject to
 the same personal path, email and Gitleaks checks as every other public file.
 Private league acceptance counts were removed from the public documentation;
 structural findings and synthetic test evidence remain.

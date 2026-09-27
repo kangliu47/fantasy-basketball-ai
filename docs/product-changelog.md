@@ -3,6 +3,15 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-27 — Merge design and implementation in the GPT-6 lead
+
+The user selected Sol High to own design and implementation in shared context,
+Luna High for bounded execution and Astra High for exceptionally hard reasoning.
+[V5](CODEX_AGENT_ORCHESTRATION_V5.md) replaces the separate engineer/scientist
+roles while retaining decision checkpoints, semantic checks and complete
+contracts for real handoffs. Root defaults remain explicitly overridable.
+V4.1 is preserved as history; runtime performance remains an experiment.
+
 ## 2026-09-13 — Started the V4.1 control-plane experiment
 
 **Why**

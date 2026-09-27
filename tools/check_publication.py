@@ -43,8 +43,7 @@ EXAMPLE_DOMAINS = {
 PUBLIC_CODEX_FILES = frozenset(
     {
         ".codex/config.toml",
-        ".codex/agents/scientist-architect.toml",
-        ".codex/agents/engineer.toml",
+        ".codex/agents/frontier-expert.toml",
         ".codex/agents/utility-worker.toml",
     }
 )
@@ -163,17 +162,15 @@ def codex_issues(name: str, text: str) -> set[str]:
         issues.add("forbidden Codex configuration value")
 
     if name == ".codex/config.toml":
-        if not _has_exact_keys(config, CODEX_CONFIG_KEYS):
+        if "agents" not in config or not set(config).issubset(CODEX_CONFIG_KEYS):
             issues.add("unknown Codex configuration section")
             return issues
         agents = config["agents"]
-        if (
-            not isinstance(config["model"], str)
-            or not config["model"]
-            or not isinstance(config["model_reasoning_effort"], str)
-            or not config["model_reasoning_effort"]
-            or not _has_exact_keys(agents, CODEX_AGENTS_KEYS)
-        ):
+        if any(
+            not isinstance(config[key], str) or not config[key]
+            for key in ("model", "model_reasoning_effort")
+            if key in config
+        ) or not _has_exact_keys(agents, CODEX_AGENTS_KEYS):
             issues.add("invalid Codex configuration schema")
             return issues
         if (
@@ -189,8 +186,7 @@ def codex_issues(name: str, text: str) -> set[str]:
         return issues
 
     expected_name = {
-        ".codex/agents/scientist-architect.toml": "scientist_architect",
-        ".codex/agents/engineer.toml": "engineer",
+        ".codex/agents/frontier-expert.toml": "frontier_expert",
         ".codex/agents/utility-worker.toml": "utility_worker",
     }[name]
     if not _has_exact_keys(config, CODEX_AGENT_KEYS):
@@ -203,11 +199,15 @@ def codex_issues(name: str, text: str) -> set[str]:
         issues.add("invalid Codex configuration schema")
     if config["sandbox_mode"] not in {"read-only", "workspace-write"}:
         issues.add("invalid Codex configuration schema")
-    if name == ".codex/agents/scientist-architect.toml" and config["sandbox_mode"] != "read-only":
-        issues.add("scientist architect sandbox must be read-only")
+    if name == ".codex/agents/frontier-expert.toml" and (
+        config["model"] != "gpt-6-astra"
+        or config["model_reasoning_effort"] != "high"
+        or config["sandbox_mode"] != "read-only"
+    ):
+        issues.add("frontier expert must remain Astra High and read-only")
     if name == ".codex/agents/utility-worker.toml" and (
-        config["model"] != "gpt-5.6-luna"
-        or config["model_reasoning_effort"] != "medium"
+        config["model"] != "gpt-6-luna"
+        or config["model_reasoning_effort"] != "high"
         or config["sandbox_mode"] != "workspace-write"
     ):
         issues.add("utility worker configuration must remain bounded")

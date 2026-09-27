@@ -3,69 +3,81 @@
 Build a local, read-only fantasy basketball intelligence application. The user
 is learning FastAPI and Angular; favor conventional, readable examples of each.
 
-## Codex Orchestration V4.1
+## Codex Orchestration V5 — GPT-6 shared-context lead
 
 ### Purpose
 
-The root runs on `gpt-5.6-terra` with medium reasoning and is the lead agent /
-control plane, not merely a router. It owns user intent, critical-path
-reasoning, ordinary direct work, selective delegation, bounded work packets,
-specialist integration and unresolved-decision handoff.
+The project default is `gpt-6-sol` with high reasoning. The lead owns user intent,
+design, implementation, verification and integration in one shared context.
+Model settings are defaults, not claims about the effective runtime model or
+restrictions on the user's explicit model/reasoning selection. Respect that
+selection and keep the lead's responsibilities independent of its model.
+
+Current policy and migration evidence live in
+`docs/CODEX_AGENT_ORCHESTRATION_V5.md`. V4.1 and earlier documents are historical;
+their routing rules and prohibition on Astra are superseded.
 
 ### Default behavior and routing order
 
-The default is **Route 0: stay on Terra Medium**. Do not delegate merely because
-agents are available; use one-agent execution when it is simpler and safe.
+The default is **Route 0: the lead does the work directly**. There is no mandatory
+scientist-to-engineer handoff or medium-to-high transition. Do not delegate merely
+because agents are available, a change crosses modules, or a formula is involved.
 
 For each request:
 
-1. If consequential meaning is unresolved, use Route 3 / `scientist_architect`.
-2. If behavior is settled but engineering is substantial, use Route 2 / `engineer`.
-3. If bounded delegation creates clear leverage, use Route 1 / `utility_worker`.
-4. Otherwise, use Route 0 directly.
+1. For exceptionally difficult reasoning or consequential adversarial review,
+   delegate a bounded question to Route 2 / `frontier_expert` (GPT-6 Astra High).
+   Go directly when the need is apparent; do not require a failed Sol attempt.
+2. For clear, bounded work whose result can be checked reliably, use Route 1 /
+   `utility_worker` (GPT-6 Luna High) only when briefing and review earn their cost.
+3. Otherwise, stay on Route 0, including regular design and substantial implementation.
 
 Consider unresolved meaning, verifiability, failure cost, reversibility,
 decomposability and volume. Do not route by keywords, file count or the mere
 presence of mathematics.
 
-### Route 3: `scientist_architect` / Sol High
+### Decision checkpoint within the lead
 
-Use when a consequential decision about meaning remains unresolved, including:
-- architecture
-- domain semantics
-- public contract meaning
-- mathematical/statistical methodology
-- analytics formulation
-- ranking/valuation methodology
-- uncertainty
-- optimization
-- simulation
-- data sufficiency
-- validation/backtesting methodology
-- cross-cutting product assumptions
+Before implementing a consequential analytical or architectural change, establish
+the user decision, target quantity, evidence and grain, populations, units,
+assumptions, boundaries and acceptance criteria. Distinguish descriptive analysis,
+prediction, causality, optimization and heuristics. Prefer the simplest defensible
+baseline. Missing evidence is not zero and cannot be fixed by more reasoning.
 
-The presence of a metric or formula does not itself require Sol.
+Persist a decision contract when it changes durable behavior or will be handed
+to another agent. Routine edits do not need a formal contract. A new unresolved
+semantic choice is `NEEDS_DECISION`: resolve it explicitly before implementing,
+using Astra or user input only when the nature of the decision requires it.
 
-### Route 2: `engineer` / Terra High
+Before editing, trace the execution path, relevant contracts, tests and likely
+blast radius. The lead implements and verifies its own settled decisions without
+an obligatory second agent. Never silently change formulas, populations, labels,
+units or architecture to make implementation easier.
 
-Use when:
-- intended behavior is sufficiently specified
-- relevant scientific/architecture decisions are settled
-- implementation is substantial
-- work crosses modules/layers
-- integration work is involved
-- debugging has unknown cause
-- regression risk is meaningful
+### Route 2: `frontier_expert` / GPT-6 Astra High
 
-Preserve `NEEDS_DECISION`: escalate rather than silently changing semantics,
-contracts, architecture direction or mathematical/statistical methodology.
+Use for exceptional methodology, architecture or diagnosis where difficult,
+coupled assumptions or expensive downstream mistakes justify stronger reasoning.
+Also use for targeted adversarial review when meaningful counterexamples or
+semantic risks cannot be resolved by ordinary checks. Not every consequential
+decision requires Astra; the lead owns regular design and methodology.
 
-### Route 1: `utility_worker` / Luna Medium
+Escalate after a substantive attempt if evidence exposes contradictory assumptions,
+an unresolved causal mechanism or inability to establish semantic correctness.
+A transient tool or test failure alone is not a reason to escalate. Do not run a
+mandatory Luna -> Sol -> Astra ladder or require Astra to review every change.
+
+The specialist reads and reasons; the lead integrates its complete decision
+contract and implements it. Missing evidence or a user preference must remain
+`CANNOT_SUPPORT` or `NEEDS_USER_INPUT`, not an invented answer.
+
+### Route 1: `utility_worker` / GPT-6 Luna High
 
 Use only when delegation creates clear leverage. Work must be narrow,
 independent, repetitive or high-volume, strongly and objectively verifiable, and
 small enough for a bounded context. Suitable work includes mechanical edits,
-fixture generation, analogous tests, inventory extraction and repeated checks.
+fixture generation, analogous tests, targeted exploration, inventory extraction,
+and localized fixes with a reproduced failure and clear acceptance criteria.
 Luna must not own ambiguous intake, product meaning, architecture or scientific
 methodology; it must escalate ambiguity rather than guess.
 
@@ -105,8 +117,10 @@ ESCALATE_WHEN:
 EXPECTED_OUTPUT:
 <what the agent must return>
 
-Do not summarize away a scientist_architect decision contract.
-Pass the implementation contract and semantic acceptance criteria intact.
+Do not summarize away a specialist decision contract. Preserve its definitions,
+formulas, assumptions, implementation constraints and semantic acceptance criteria.
+Read the complete persisted contract and verify its CONTRACT_ID before implementing
+or delegating it. Keep calculation versions when analytical meaning changes.
 
 ### Verification
 
@@ -132,7 +146,7 @@ Passing execution tests does not prove an analytical method is conceptually corr
 ### Closure levels
 
 LOW RISK
-- Terra Medium executes directly
+- Lead executes directly
 - focused deterministic verification
 - done
 
@@ -143,16 +157,15 @@ BOUNDED FAN-OUT
 - done
 
 HIGH SCIENTIFIC / ARCHITECTURAL RISK
-- Sol produces decision contract
-- Terra implements
-- Terra proves contract compliance where possible
-- invoke Sol again ONLY if:
+- Lead establishes a decision contract; use Astra when Route 2 criteria apply
+- Lead implements and proves contract compliance where possible
+- invoke Astra again ONLY if:
   - implementation deviated from the contract
   - new consequential assumptions appeared
   - acceptance criteria cannot establish semantic correctness
   - failure cost warrants explicit specialist review
 
-Do not invoke Sol twice by default.
+Do not invoke Astra twice by default. Report semantic criteria that remain untested.
 
 ### Session and context hygiene
 
@@ -175,8 +188,8 @@ Do not have multiple agents edit overlapping files concurrently without explicit
 Do not equate multi-agent with efficiency.
 Delegation has context and token overhead.
 
-Prefer direct Terra work, bounded Luna only when it pays, or Sol decision -> Terra
-implementation over long agent chains. If the same task crosses the
+Prefer direct lead work, bounded Luna only when it pays, or an Astra decision
+followed by lead implementation over long agent chains. If the same task crosses the
 decision/execution boundary more than twice, stop autonomous ping-pong and
 surface the unresolved issue to the user.
 
@@ -199,8 +212,9 @@ KEY_DECISIONS:
 EVIDENCE:
 <tests/validation>
 
-This observability is for the V4.1 evidence-driven experiment, not settled best
-practice, and may be reduced later.
+Report configured/requested models separately from verified runtime identities;
+do not self-report model identity from the policy text. This observability is for
+the V5 experiment, not settled best practice, and may be reduced later.
 
 ## Personal product scope
 

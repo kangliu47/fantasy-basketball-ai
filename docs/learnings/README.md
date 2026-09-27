@@ -5,9 +5,10 @@ about building with an AI coding agent and managing a personal product.
 
 - [Vibe coding experiences](vibe-coding.md): delegation, feedback, verification
   and learning the implementation.
-- [Codex agent orchestration](../CODEX_AGENT_ORCHESTRATION_V4_1_AND_LEARNING_JOURNEY.md):
-  the V3 -> V3.1 -> V4 -> V4.1 journey from cheap routing to a capable control
-  plane, with bounded workers and evidence-driven delegation.
+- [Current Codex agent orchestration](../CODEX_AGENT_ORCHESTRATION_V5.md): Sol High
+  owns design and implementation, with bounded Luna High work and exceptional
+  Astra High reasoning. The [V3–V4.1 journey](../CODEX_AGENT_ORCHESTRATION_V4_1_AND_LEARNING_JOURNEY.md)
+  remains available as history.
 - [Product management insights](product-management.md): scope, user journeys,
   assisted workflows and deciding what deserves a feature.
 - [MCP as an Agent-Computer Interface](mcp-agent-interface.md): why REST/OpenAPI
@@ -44,6 +45,7 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S20 | GPT-6 orchestration migration — September 27, 2026 (this conversation) | User challenges separate Sol engineer/scientist agents, chooses shared context and Sol High for leadership plus implementation, retains Luna High for bounded work and Astra High for hard problems, then authorizes implementation |
 | S19 | Notebook-first analytics retrospective — September 12, 2026 | User reports that the notebook and model experiments produced weak insight despite strong mathematical reasoning, identifies insufficient problem context and unclear direction as the main iteration gap, and pauses further analytics implementation until a concrete question is articulated |
 | S18 | Correct League comparison season eligibility — September 7, 2026 | User notices the four-season ceiling under Last 5 and All history, requests a completeness check before another ESPN pull, then authorizes the calculation fix after the archive proves complete |
 | S17 | Refine League comparison recency and interaction — September 7, 2026 | User reports the category-pressure interaction regression, approves recent-history windows and 2026-rank ordering with legacy managers last, removes delivery labels, requests full local archive coverage, and requires interactive pressure dots |
