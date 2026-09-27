@@ -3,6 +3,16 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-27 — Make historical category buffers inspectable in My Profile
+
+The user approved a synthetic My Profile flow for understanding completed-season
+standings tiers. The local app now displays normalized category buffers and
+next-tier gaps, with selectable season evidence, native boundaries, exclusions
+and source lineage. Relative signals identify historical questions while the
+copy explicitly withholds player, trade and future-season claims. A synthetic
+walkthrough is published through the existing GitHub Pages showcase; no league
+data or connected app runtime is hosted there.
+
 ## 2026-09-27 — Merge design and implementation in the GPT-6 lead
 
 The user selected Sol High to own design and implementation in shared context,

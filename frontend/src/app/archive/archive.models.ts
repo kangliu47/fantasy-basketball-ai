@@ -510,6 +510,88 @@ export interface HistoricalCategoryValueReview {
   categories: ReviewCategory[];
   notes: string[];
 }
+export type AllocationSignal =
+  | 'EXCESS_BUFFER'
+  | 'FRAGILE_POINT'
+  | 'REACHABLE_POINT'
+  | 'LOCKED_TIER'
+  | 'BALANCED_NEUTRAL'
+  | 'TIED_TIER_CONTEXT_ONLY';
+export interface AllocationSeasonEvidence {
+  season: number;
+  team_id: string;
+  team_name: string;
+  value: number;
+  oriented_value: number;
+  rank: number;
+  team_count: number;
+  tier_size: number;
+  tier_context: 'SINGLETON_TIER' | 'TIED_TIER_CONTEXT_ONLY';
+  preserve_boundary_native: number | null;
+  preserve_boundary_rank: number | null;
+  preserve_boundary_tier_size: number | null;
+  preserve_boundary_status: 'AVAILABLE' | 'UNAVAILABLE_NO_WORSE_TIER';
+  preserve_boundary_open: boolean | null;
+  next_better_boundary_native: number | null;
+  next_better_boundary_rank: number | null;
+  next_better_boundary_tier_size: number | null;
+  opportunity_boundary_status: 'AVAILABLE' | 'UNAVAILABLE_ALREADY_BEST_TIER';
+  raw_redundancy: number | null;
+  raw_opportunity: number | null;
+  required_native_delta: number | null;
+  robust_range: number;
+  normalized_redundancy: number | null;
+  normalized_opportunity: number | null;
+  normalization_status: 'AVAILABLE' | 'UNAVAILABLE_ZERO_ROBUST_RANGE';
+  signals: AllocationSignal[];
+  source_observation_id: string;
+  retrieved_at: string;
+  mapper_version: string;
+  assignment_revision: number;
+  raw_scale_compatible: boolean;
+}
+export interface AllocationSignalSupport {
+  signal: AllocationSignal;
+  supporting_seasons: number;
+  evaluable_seasons: number;
+  recurring: boolean;
+}
+export interface AllocationCategory {
+  category: string;
+  higher_is_better: boolean;
+  percentage: boolean;
+  eligible_seasons: number;
+  selected_seasons: number;
+  median_normalized_redundancy: number | null;
+  median_normalized_opportunity: number | null;
+  median_redundancy_native: number | null;
+  median_opportunity_native_delta: number | null;
+  raw_scale_compatible_seasons: number;
+  signal_support: AllocationSignalSupport[];
+  seasons: AllocationSeasonEvidence[];
+  exclusions: { season: number; reason: string }[];
+}
+export interface ReallocationCategory {
+  category: string;
+  normalized_metric: number;
+  raw_gap: number;
+  required_native_delta: number | null;
+}
+export interface SeasonReallocationQuestion {
+  season: number;
+  sources: ReallocationCategory[];
+  destinations: ReallocationCategory[];
+}
+export interface HistoricalCategoryAllocationReport {
+  contract_id: string;
+  calculation_version: string;
+  status: 'READY' | 'NO_HISTORY' | 'NO_MANAGER' | 'INVALID_MANAGER' | 'NO_EVIDENCE';
+  manager: { alias: string | null; status: string };
+  seasons_requested: number[];
+  categories: AllocationCategory[];
+  reallocation_questions: SeasonReallocationQuestion[];
+  notes: string[];
+}
 export interface Overlap {
   season: number;
   team_name: string;

@@ -1,5 +1,35 @@
 # Implementation plan
 
+## Historical Category Allocation implementation — September 27, 2026
+
+**Personal question:** In completed seasons with a reviewed whole-season manager
+link, where did my category tier have a large open buffer to the next distinct
+worse tier, and where was the next better tier comparatively close?
+
+**Delivered:** Implemented `HCARE-2026-09-13-v1` from pure exact standings
+geometry through a saved-archive application read, public DTO/API and My Profile
+component. The all-category table leads with equal-weight median normalized
+redundancy/opportunity, then exposes season evidence, strict signal support,
+lineage and exclusions. Reallocation questions only list distinct high-buffer
+source and reachable destination categories; they produce no score, exchange
+rate or recommended move. The user approved the synthetic My Profile walkthrough
+on September 27. The production panel follows the existing profile results;
+category and season controls reveal evidence, with explicit loading, empty and
+recoverable error states. The same synthetic walkthrough is an explicit Pages
+artifact linked from the showcase home.
+
+**Validation:** Synthetic tests cover orientation, open boundaries, best/worst
+tiers, tied context, percentage fractions/points, missing values, zero range,
+league sizes, attribution exclusions, strict quartiles, locked/reachable/fragile
+signals and Strategy Map parity. API and frontend tests exercise the personal
+endpoint, privacy boundary, loading, insufficient evidence, category and season
+selection, league changes and normal rendering. Publication checks apply to the
+new static walkthrough and the existing repository boundary.
+
+**Stopping point:** The report remains one-category-at-a-time descriptive
+history. It does not infer player cost, production correlation adjustment,
+trades, 2027 strategy, scarcity, ROI, optimization or plan writes.
+
 ## GPT-6 orchestration V5 — September 27, 2026
 
 **Accepted outcome:** Sol High owns leadership and implementation in one context;

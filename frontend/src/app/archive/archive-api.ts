@@ -12,6 +12,7 @@ import {
   HistoricalCategoryPatternReport,
   CategoryStrategyMapReport,
   HistoricalCategoryValueReview,
+  HistoricalCategoryAllocationReport,
   Manager,
   ManagerData,
   Profile,
@@ -84,6 +85,9 @@ export class ArchiveApi {
     return this.http.get<HistoricalCategoryValueReview>('/api/archive/category-value-review', {
       params: { window },
     });
+  }
+  categoryAllocation() {
+    return this.http.get<HistoricalCategoryAllocationReport>('/api/archive/category-allocation');
   }
   myTeam(season: number) {
     return this.http.get<{ team_id: string | null }>(`/api/archive/seasons/${season}/my-team`);

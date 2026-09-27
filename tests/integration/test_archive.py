@@ -235,3 +235,44 @@ def test_category_value_review_is_local_personal_and_does_not_expose_workspace_i
 
     with TestClient(create_api(workspace, history=history)) as client:
         assert client.get("/api/archive/category-value-review?window=4").status_code == 422
+
+
+def test_category_allocation_is_local_personal_and_preserves_public_lineage(
+    tmp_path: Path,
+) -> None:
+    workspace = fake_service()
+    workspace.repository.save_selection(SELECTION)
+    history, repository, gateway = history_service(tmp_path)
+    for year in (2026, 2025):
+        for dataset in (Dataset.SETTINGS, Dataset.TEAMS):
+            repository.save_observation(observation(dataset, year))
+    repository.save_manager(12345, Manager(MANAGER_ID, "Synthetic manager"))
+    for year in (2026, 2025):
+        repository.save_assignment(
+            Assignment(
+                str(uuid4()),
+                12345,
+                year,
+                f"espn:12345:{year}:team:1",
+                (MANAGER_ID,),
+                "whole_season",
+                None,
+                None,
+                "Synthetic reviewed mapping",
+                1,
+                NOW,
+            )
+        )
+    repository.set_my_manager(12345, MANAGER_ID)
+
+    with TestClient(create_api(workspace, history=history)) as client:
+        response = client.get("/api/archive/category-allocation")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["contract_id"] == "HCARE-2026-09-13-v1"
+    assert payload["calculation_version"].startswith("historical-category-allocation-v1")
+    assert payload["seasons_requested"] == [2026, 2025]
+    assert "league_id" not in response.text
+    assert "owner_tokens" not in response.text and "opaque-local-reference" not in response.text
+    assert not gateway.calls

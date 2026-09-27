@@ -19,6 +19,7 @@ from .history_schemas import (
     AuctionPatternsDTO,
     CatalogDTO,
     CategoryStrategyMapReportDTO,
+    HistoricalCategoryAllocationReportDTO,
     HistoricalCategoryPatternReportDTO,
     HistoricalCategoryValueReviewDTO,
     ImportRequest,
@@ -115,6 +116,11 @@ def create_history_router(history: HistoryService, workspace: WorkspaceService) 
     ) -> HistoricalCategoryValueReviewDTO:
         report = await history.category_value_review(selected().league_id, window)
         return HistoricalCategoryValueReviewDTO.from_report(report)
+
+    @router.get("/category-allocation", response_model=HistoricalCategoryAllocationReportDTO)
+    async def category_allocation() -> HistoricalCategoryAllocationReportDTO:
+        report = await history.category_allocation(selected().league_id)
+        return HistoricalCategoryAllocationReportDTO.from_report(report)
 
     @router.get("/managers", response_model=ManagersDTO)
     async def managers() -> ManagersDTO:

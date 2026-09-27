@@ -10,6 +10,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from fantasy_ai.application.history.models import ImportJob, SeasonCandidate
 from fantasy_ai.application.history.service import Suggestion
 from fantasy_ai.domain.history.analysis import AuctionOverview, AuctionPatterns
+from fantasy_ai.domain.history.category_allocation import (
+    AllocationBoundaryStatus,
+    AllocationNormalizationStatus,
+    AllocationSignal,
+    AllocationStatus,
+    AllocationTierContext,
+    HistoricalCategoryAllocationReport,
+)
 from fantasy_ai.domain.history.category_patterns import HistoricalCategoryPatternReport
 from fantasy_ai.domain.history.category_strategy import CategoryStrategyMapReport
 from fantasy_ai.domain.history.category_value_review import (
@@ -479,6 +487,113 @@ class HistoricalCategoryValueReviewDTO(BaseModel):
     def from_report(
         cls, report: HistoricalCategoryValueReview
     ) -> "HistoricalCategoryValueReviewDTO":
+        return cls.model_validate(report)
+
+
+class AllocationManagerContextDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    alias: str | None
+    status: AllocationStatus
+
+
+class AllocationSeasonEvidenceDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    team_id: str
+    team_name: str
+    value: float
+    oriented_value: float
+    rank: float
+    team_count: int
+    tier_size: int
+    tier_context: AllocationTierContext
+    preserve_boundary_native: float | None
+    preserve_boundary_rank: float | None
+    preserve_boundary_tier_size: int | None
+    preserve_boundary_status: AllocationBoundaryStatus
+    preserve_boundary_open: bool | None
+    next_better_boundary_native: float | None
+    next_better_boundary_rank: float | None
+    next_better_boundary_tier_size: int | None
+    opportunity_boundary_status: AllocationBoundaryStatus
+    raw_redundancy: float | None
+    raw_opportunity: float | None
+    required_native_delta: float | None
+    robust_range: float
+    normalized_redundancy: float | None
+    normalized_opportunity: float | None
+    normalization_status: AllocationNormalizationStatus
+    signals: tuple[AllocationSignal, ...]
+    source_observation_id: str
+    retrieved_at: datetime
+    mapper_version: str
+    assignment_revision: int
+    raw_scale_compatible: bool
+
+
+class AllocationSeasonExclusionDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    reason: str
+
+
+class AllocationSignalSupportDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    signal: AllocationSignal
+    supporting_seasons: int
+    evaluable_seasons: int
+    recurring: bool
+
+
+class AllocationCategoryDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    category: str
+    higher_is_better: bool
+    percentage: bool
+    eligible_seasons: int
+    selected_seasons: int
+    median_normalized_redundancy: float | None
+    median_normalized_opportunity: float | None
+    median_redundancy_native: float | None
+    median_opportunity_native_delta: float | None
+    raw_scale_compatible_seasons: int
+    signal_support: tuple[AllocationSignalSupportDTO, ...]
+    seasons: tuple[AllocationSeasonEvidenceDTO, ...]
+    exclusions: tuple[AllocationSeasonExclusionDTO, ...]
+
+
+class ReallocationCategoryDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    category: str
+    normalized_metric: float
+    raw_gap: float
+    required_native_delta: float | None
+
+
+class SeasonReallocationQuestionDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    season: int
+    sources: tuple[ReallocationCategoryDTO, ...]
+    destinations: tuple[ReallocationCategoryDTO, ...]
+
+
+class HistoricalCategoryAllocationReportDTO(BaseModel):
+    """Purpose-built personal DTO with no workspace or ownership tokens."""
+
+    model_config = ConfigDict(from_attributes=True)
+    contract_id: str
+    calculation_version: str
+    status: AllocationStatus
+    manager: AllocationManagerContextDTO
+    seasons_requested: tuple[int, ...]
+    categories: tuple[AllocationCategoryDTO, ...]
+    reallocation_questions: tuple[SeasonReallocationQuestionDTO, ...]
+    notes: tuple[str, ...]
+
+    @classmethod
+    def from_report(
+        cls, report: HistoricalCategoryAllocationReport
+    ) -> "HistoricalCategoryAllocationReportDTO":
         return cls.model_validate(report)
 
 

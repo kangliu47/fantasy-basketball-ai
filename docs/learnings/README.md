@@ -45,6 +45,7 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S21 | Historical category allocation completion — September 27, 2026 (this conversation) | User confirms the bounded historical report, reviews the synthetic My Profile mock, then authorizes full application and documentation completion plus publication of the synthetic page |
 | S20 | GPT-6 orchestration migration — September 27, 2026 (this conversation) | User challenges separate Sol engineer/scientist agents, chooses shared context and Sol High for leadership plus implementation, retains Luna High for bounded work and Astra High for hard problems, then authorizes implementation |
 | S19 | Notebook-first analytics retrospective — September 12, 2026 | User reports that the notebook and model experiments produced weak insight despite strong mathematical reasoning, identifies insufficient problem context and unclear direction as the main iteration gap, and pauses further analytics implementation until a concrete question is articulated |
 | S18 | Correct League comparison season eligibility — September 7, 2026 | User notices the four-season ceiling under Last 5 and All history, requests a completeness check before another ESPN pull, then authorizes the calculation fix after the archive proves complete |

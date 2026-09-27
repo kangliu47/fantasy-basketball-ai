@@ -1,6 +1,8 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 50](#50-league-comparison-season-eligibility--accepted-correction-2026-09-07)
+> **Current scope:** [amendment 51](#51-historical-category-allocation--accepted-implementation-2026-09-27)
+> adds the approved My Profile category-buffer journey and its synthetic public
+> walkthrough. [Amendment 50](#50-league-comparison-season-eligibility--accepted-correction-2026-09-07)
 > separates normalized completed-season eligibility from raw counting-stat
 > scale compatibility. [Amendment 49](#49-league-comparison-recency-and-interaction--accepted-iteration-2026-09-07)
 > prioritizes recent history, orders the active 2026 cohort by final rank and
@@ -31,6 +33,28 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 51. Historical category allocation — accepted implementation, 2026-09-27
+
+The user approved the synthetic My Profile flow on September 27, 2026 and asked
+to complete the application and documentation update, then publish the new
+walkthrough through GitHub Pages. The approved entry point is My Profile after
+existing historical results. Selecting a category reveals its completed-season
+evidence; when several seasons qualify, the user can select one. Loading,
+missing-evidence and recoverable error states remain explicit.
+
+The calculation follows [HCARE-2026-09-13-v1](historical-category-allocation-contract.md):
+provider-exact adjacent standings tiers, an open buffer to the next worse tier,
+the gap to the next better tier, P90–P10 normalization and conservative
+within-season relative labels. Personal evidence requires one reviewed,
+sole-manager whole-season assignment. Raw boundaries, units, exclusions and
+source lineage remain inspectable. The read-only result uses saved completed
+archives and is independent of ESPN connection state.
+
+The public [category-allocation walkthrough](historical-category-allocation-preview.html)
+uses synthetic data only. It is not the connected local app. This slice does not
+estimate a feasible cross-category exchange, player trade, future result,
+auction value or optimization. It does not modify plans or persisted observations.
 
 # 50. League comparison season eligibility — accepted correction, 2026-09-07
 
