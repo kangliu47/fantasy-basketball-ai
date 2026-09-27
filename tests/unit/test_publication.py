@@ -12,36 +12,28 @@ from tools.check_publication import (
 )
 
 VALID_CONFIG = """\
-model = "gpt-5.6-luna"
-model_reasoning_effort = "medium"
+model = "gpt-6-sol"
+model_reasoning_effort = "high"
 
 [agents]
 enabled = true
 max_concurrent_threads_per_session = 3
-default_subagent_model = "gpt-5.6-luna"
-default_subagent_reasoning_effort = "medium"
+default_subagent_model = "gpt-6-sol"
+default_subagent_reasoning_effort = "high"
 """
-VALID_SCIENTIST = """\
-name = "scientist_architect"
-description = "Architecture decisions"
-model = "gpt-5.6-sol"
+VALID_FRONTIER = """\
+name = "frontier_expert"
+description = "Exceptionally difficult decisions and adversarial review"
+model = "gpt-6-astra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = "Return a decision contract."
 """
-VALID_ENGINEER = """\
-name = "engineer"
-description = "Implement approved work"
-model = "gpt-5.6-terra"
-model_reasoning_effort = "high"
-sandbox_mode = "workspace-write"
-developer_instructions = "Return evidence."
-"""
 VALID_UTILITY_WORKER = """\
 name = "utility_worker"
 description = "Perform bounded mechanical work"
-model = "gpt-5.6-luna"
-model_reasoning_effort = "medium"
+model = "gpt-6-luna"
+model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = "Return objective evidence."
 """
@@ -78,6 +70,8 @@ def test_only_the_reviewed_codex_files_can_be_published() -> None:
     assert private_path(".codex/agents/other.toml")
     assert private_path(".codex/agents/nested/private.toml")
     assert private_path(".codex/mcp/local.toml")
+    assert private_path(".codex/agents/engineer.toml")
+    assert private_path(".codex/agents/scientist-architect.toml")
 
 
 def test_working_tree_codex_discovery_includes_ignored_nested_files_and_symlinks(
@@ -115,12 +109,8 @@ def test_working_tree_codex_discovery_includes_a_root_symlink(
             VALID_CONFIG,
         ),
         (
-            ".codex/agents/scientist-architect.toml",
-            VALID_SCIENTIST,
-        ),
-        (
-            ".codex/agents/engineer.toml",
-            VALID_ENGINEER,
+            ".codex/agents/frontier-expert.toml",
+            VALID_FRONTIER,
         ),
         (
             ".codex/agents/utility-worker.toml",
@@ -133,13 +123,22 @@ def test_reviewed_codex_files_with_the_narrow_schema_pass(name: str, content: st
 
 
 @pytest.mark.parametrize(
+    "root_settings",
+    ["", 'model = "gpt-6-astra"\n', 'model_reasoning_effort = "medium"\n'],
+)
+def test_root_defaults_can_be_inherited_or_overridden(root_settings: str) -> None:
+    agents = "[agents]" + VALID_CONFIG.split("[agents]", 1)[1]
+    assert not audit(".codex/config.toml", (root_settings + agents).encode())
+
+
+@pytest.mark.parametrize(
     ("name", "content", "expected_issue"),
     [
         (".codex/config.toml", "model = [", "malformed Codex TOML"),
         (
             ".codex/config.toml",
             """\
-model = "gpt-5.6-luna"
+model = "gpt-6-sol"
 model_reasoning_effort = "medium"
 
 [mcp_servers.local]
@@ -148,23 +147,35 @@ url = "https://example.invalid/mcp"
             "forbidden Codex configuration key",
         ),
         (
-            ".codex/agents/engineer.toml",
-            VALID_ENGINEER + 'command = "run"\n',
+            ".codex/agents/frontier-expert.toml",
+            VALID_FRONTIER + 'command = "run"\n',
             "forbidden Codex configuration key",
         ),
         (
-            ".codex/agents/engineer.toml",
-            VALID_ENGINEER.replace("Implement approved work", "Use /private/league-data"),
+            ".codex/agents/frontier-expert.toml",
+            VALID_FRONTIER.replace("Return a decision contract.", "Use /private/league-data"),
             "forbidden Codex configuration value",
         ),
         (
-            ".codex/agents/scientist-architect.toml",
-            VALID_SCIENTIST.replace("read-only", "workspace-write"),
-            "scientist architect sandbox must be read-only",
+            ".codex/agents/frontier-expert.toml",
+            VALID_FRONTIER.replace("read-only", "workspace-write"),
+            "frontier expert must remain Astra High and read-only",
+        ),
+        (
+            ".codex/agents/frontier-expert.toml",
+            VALID_FRONTIER.replace("gpt-6-astra", "gpt-5.6-sol"),
+            "frontier expert must remain Astra High and read-only",
         ),
         (
             ".codex/agents/utility-worker.toml",
-            VALID_UTILITY_WORKER.replace("gpt-5.6-luna", "gpt-5.6-terra"),
+            VALID_UTILITY_WORKER.replace("gpt-6-luna", "gpt-6-sol"),
+            "utility worker configuration must remain bounded",
+        ),
+        (
+            ".codex/agents/utility-worker.toml",
+            VALID_UTILITY_WORKER.replace(
+                'model_reasoning_effort = "high"', 'model_reasoning_effort = "medium"'
+            ),
             "utility worker configuration must remain bounded",
         ),
     ],

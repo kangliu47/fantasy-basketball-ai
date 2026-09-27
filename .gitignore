@@ -60,8 +60,7 @@ frontend/dist/
 !.codex/config.toml
 !.codex/agents/
 .codex/agents/*
-!.codex/agents/scientist-architect.toml
-!.codex/agents/engineer.toml
+!.codex/agents/frontier-expert.toml
 !.codex/agents/utility-worker.toml
 .agents/
 *.har

@@ -1,5 +1,23 @@
 # Implementation plan
 
+## GPT-6 orchestration V5 — September 27, 2026
+
+**Accepted outcome:** Sol High owns leadership and implementation in one context;
+Luna High handles bounded work and Astra High handles exceptional reasoning.
+
+**Delivered:** Updated project defaults and policy, retired the separate engineer
+and scientist roles into history, added the read-only frontier expert, preserved
+decision-contract integrity and updated the publication allowlist and checks.
+The lead remains explicitly user-overridable. See [V5](CODEX_AGENT_ORCHESTRATION_V5.md).
+
+**Validation:** 31 focused publication tests passed and the working-tree audit
+reported zero findings. Parsed TOML and preservation checks passed. These establish
+configuration intent. Runtime role loading and workload performance require a
+fresh chat and subsequent observed tasks; no live benchmark was run here.
+
+**Stopping point:** Development workflow only; no application behavior, personal
+global defaults, credentials, data or external publication changes.
+
 ## Historical Category Value Review implementation — September 12, 2026
 
 **Personal question:** Across my newest completed ROTO seasons, which category

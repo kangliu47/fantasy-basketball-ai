@@ -4,6 +4,30 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-09-27 — Keep decision boundaries without mandatory agent handoffs
+
+**Conversation evidence — S20:** During the GPT-6 migration review, the user
+challenged the value of separate engineer and scientist agents using the same
+Sol model. They preferred shared context, then selected Sol High for both the
+lead and implementation, Luna High for bounded work and Astra High for hard
+problems. They explicitly authorized implementation after this refinement.
+
+**Synthesis:** Different responsibilities do not necessarily require different
+agents. A persistent lead can retain domain assumptions through implementation
+while using an explicit decision checkpoint. Isolation and delegation should
+solve a concrete context, execution or reasoning problem, rather than mirror
+job titles. This is a design hypothesis, not a measured performance improvement.
+
+**Practice:** Follow [V5](../CODEX_AGENT_ORCHESTRATION_V5.md). Retire the mandatory
+engineer/scientist split, preserve complete decision contracts when handing off,
+and respect explicit root-model choices. Keep Astra focused on exceptional
+questions and Luna on tasks whose outputs can be checked independently.
+
+**Follow-up:** Observe actual role/model selection, correct completion, human
+corrections, latency and total usage including retries. Configuration validity
+does not prove runtime routing or cost savings. The September 13 entry below
+describes the earlier experiment and is retained as historical evidence.
+
 ## 2026-09-13 — Promote the control plane and make delegation earn its cost
 
 **Conversation evidence — V4.1 specification:** The earlier Luna-root experiment

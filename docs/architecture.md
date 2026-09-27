@@ -1,5 +1,14 @@
 # Architecture and learning guide
 
+## Development-agent orchestration V5 — September 27, 2026
+
+The development workflow now uses a shared-context Sol High lead for design and
+implementation, Luna High for bounded work and a read-only Astra High specialist
+for exceptional reasoning. Complete decision contracts and separate execution
+and semantic verification remain required where applicable. This changes Codex
+development configuration, not the fantasy application's runtime architecture.
+See [V5](CODEX_AGENT_ORCHESTRATION_V5.md) for routing, defaults and validation limits.
+
 ## Historical Category Value Review — September 12, 2026
 
 `HCVR-2026-09-12-v1` adds a personal, read-only composition above the existing
