@@ -549,6 +549,12 @@ export interface AllocationSeasonEvidence {
   mapper_version: string;
   assignment_revision: number;
   raw_scale_compatible: boolean;
+  standings_tiers: {
+    value: number;
+    rank: number;
+    tier_size: number;
+    relative_spread: number | null;
+  }[];
 }
 export interface AllocationSignalSupport {
   signal: AllocationSignal;

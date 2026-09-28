@@ -12,10 +12,11 @@ import {
   ReallocationCategory,
 } from '../archive/archive.models';
 import { sortCategoryObjects } from '../core/category-order';
+import { HistoricalRankCurvesComponent } from './historical-rank-curves';
 
 @Component({
   selector: 'app-historical-category-allocation',
-  imports: [DatePipe, MatButtonModule, MatProgressBarModule],
+  imports: [DatePipe, MatButtonModule, MatProgressBarModule, HistoricalRankCurvesComponent],
   templateUrl: './historical-category-allocation.html',
   styleUrl: './historical-category-allocation.scss',
 })
@@ -48,9 +49,12 @@ export class HistoricalCategoryAllocationComponent {
       const request = this.api.categoryAllocation().subscribe({
         next: (report) => {
           this.report.set(report);
-          const first = sortCategoryObjects(report.categories)[0];
+          const ordered = sortCategoryObjects(report.categories);
+          const latest = report.seasons_requested[0] ?? null;
+          const first = ordered.find((category) =>
+            category.seasons.some((season) => season.season === latest)) ?? ordered[0];
           this.selectedCode.set(first?.category ?? null);
-          this.selectedSeason.set(first?.seasons[0]?.season ?? null);
+          this.selectedSeason.set(latest ?? first?.seasons[0]?.season ?? null);
           this.loading.set(false);
         },
         error: (error) => {
@@ -64,9 +68,6 @@ export class HistoricalCategoryAllocationComponent {
 
   select(category: string) {
     this.selectedCode.set(category);
-    this.selectedSeason.set(
-      this.categories().find((item) => item.category === category)?.seasons[0]?.season ?? null,
-    );
   }
 
   selectSeason(season: number) {

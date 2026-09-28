@@ -32,6 +32,17 @@
         Completed-season evidence for {{ result.manager.alias }}. The distances below are relative
         to each category’s league spread. Continuous values lead; relative labels are secondary.
       </p>
+      @if (selectedSeason(); as chartSeason) {
+        <div class="season-choices chart-seasons" aria-label="Choose standings season">
+          @for (season of result.seasons_requested; track season) {
+            <button class="season-choice" type="button" [attr.aria-pressed]="chartSeason === season"
+              (click)="selectSeason(season)">{{ season }}</button>
+          }
+        </div>
+        <app-historical-rank-curves [categories]="categories()" [season]="chartSeason"
+          [selectedCode]="selectedCode()" (categorySelected)="select($event)" />
+      }
+      <h4 class="summary-heading">Historical buffer summary</h4>
       <div class="table-scroll">
         <table class="allocation-table">
           <thead><tr>

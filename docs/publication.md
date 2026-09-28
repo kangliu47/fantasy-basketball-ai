@@ -26,7 +26,8 @@ GitHub Pages publishes seven explicit static documents and one shared stylesheet
 The application preview, archived UI review and category-allocation walkthrough
 use invented aliases, category values and league patterns. The application
 preview is the canonical public demo; the focused walkthrough shows the approved
-My Profile flow and remains static synthetic content.
+My Profile flow, including the Stats by rank chart, and remains static synthetic
+content.
 The architecture review's diagrams, request flows, source viewer and decision
 forms run in the browser without an API. Review notes use browser-local storage
 and a JSON export; collaborators do not automatically share notes. Its source

@@ -31,12 +31,23 @@
     .detail-grid small{color:var(--showcase-muted);font-size:11px}
     .detail-grid strong{color:var(--showcase-heading);font-size:18px;margin-top:5px}
     .question{background:var(--showcase-surface-soft);border-left:3px solid var(--showcase-orange);font-size:13px;line-height:1.55;margin-top:16px;padding:12px 14px}
+    .curve-controls,.curve-legend{align-items:center;display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}
+    .curve-grid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .curve-card{background:var(--showcase-surface);border:1px solid var(--showcase-line);border-radius:10px;color:var(--showcase-heading);cursor:pointer;font:inherit;padding:13px;text-align:left}
+    .curve-card[aria-pressed=true]{background:var(--showcase-blue-soft);border-color:#9ab9e4}
+    .curve-card strong,.curve-card small{display:block}.curve-card small{color:var(--showcase-muted);font-size:11px;margin-top:4px}
+    .curve-card svg{display:block;margin-top:8px;width:100%}.curve-card svg text{fill:var(--showcase-muted);font-size:10px}
+    .curve-card svg .axis{stroke:var(--showcase-line)}.curve-card svg .line{fill:none;stroke:#a7c9af;stroke-width:2}
+    .curve-card svg .buffer{stroke:var(--showcase-green);stroke-width:4}.curve-card svg .gain{stroke:var(--showcase-orange);stroke-width:4}
+    .curve-card svg circle{fill:var(--showcase-green);stroke:#fff;stroke-width:2}.curve-card svg circle.me{fill:var(--showcase-blue)}.curve-card svg circle.better{fill:var(--showcase-orange)}
+    .curve-legend{color:var(--showcase-muted);font-size:11px}.curve-legend i{border-radius:50%;display:inline-block;height:9px;margin-right:4px;width:9px}
+    .curve-legend .me{background:var(--showcase-blue)}.curve-legend .better{background:var(--showcase-orange)}.curve-legend .worse{background:var(--showcase-green)}
     .state{background:var(--showcase-surface-soft);border-radius:8px;color:var(--showcase-ink);padding:18px}
     .state[hidden],.workspace[hidden],.profile[hidden]{display:none}
     .spinner{background:var(--showcase-green);border-radius:999px;display:inline-block;height:7px;margin-right:8px;width:7px}
     details{color:var(--showcase-muted);font-size:12px;margin-top:13px}
     summary{color:var(--showcase-green);cursor:pointer;font-weight:700}
-    @media(max-width:760px){.page-heading,.card-heading{flex-direction:column}.detail-grid{grid-template-columns:1fr}.showcase-scope{white-space:normal}}
+    @media(max-width:760px){.page-heading,.card-heading{flex-direction:column}.detail-grid,.curve-grid{grid-template-columns:1fr}.showcase-scope{white-space:normal}}
   </style>
 </head>
 <body>
@@ -65,6 +76,7 @@
         <div class="card-heading"><div><p class="showcase-eyebrow">Historical category allocation</p><h2 id="allocation-title">Category buffers and next-tier gaps</h2><p>Where was my observed category tier protected, and where was the next tier close?</p></div><span class="showcase-scope">2026 · 1 eligible season</span></div>
         <div class="scope"><span class="showcase-scope">Relative to each category’s league spread</span><span class="count">Continuous distances first · labels are secondary</span></div>
         <div id="ready-state">
+          <section class="detail" aria-labelledby="rank-title"><h3 id="rank-title">Season totals by category rank</h3><p class="method">Each dot is an observed synthetic league tier. Rank improves to the right; height shows the 2026 category total.</p><div class="curve-controls"><span class="muted">Vertical scale</span><button class="showcase-button active" type="button" data-scale="native" aria-pressed="true">Native season total</button><button class="showcase-button" type="button" data-scale="normalized" aria-pressed="false">League-spread change from me</button></div><p class="method" id="scale-note"></p><div class="curve-grid" id="curve-grid"></div><div class="curve-legend"><span><i class="worse"></i>Next worse tier</span><span><i class="me"></i>Your tier</span><span><i class="better"></i>Next better tier</span></div><p class="method" id="curve-detail" aria-live="polite"></p><p class="method">Lines connect final standings only. Ties use average rank. Category weights and ties can change ROTO-point steps; these gaps do not establish a feasible roster move.</p></section>
           <div class="table-wrap"><table><thead><tr><th>Category</th><th>Median buffer to worse tier</th><th>Median gap to better tier</th><th>Evidence</th><th>Relative signal</th></tr></thead><tbody id="category-rows"></tbody></table></div>
           <section class="detail" id="category-detail" aria-live="polite"></section>
           <div class="question"><strong>Historical reallocation question · 2026</strong><br />PTS had a larger relative buffer; BLK had a smaller relative next-tier gap. This does not establish that a feasible player trade existed.</div>
@@ -80,13 +92,30 @@
   </main>
   <script>
     const rows = [
-      {code:'PTS',buffer:.35,gap:.30,signal:'Larger relative buffer',value:'990',worse:'920',better:'1,050',native:'70 points',next:'60 points',rank:'4 of 12'},
-      {code:'REB',buffer:.20,gap:.20,signal:'No relative signal',value:'650',worse:'620',better:'680',native:'30 rebounds',next:'30 rebounds',rank:'3 of 12'},
-      {code:'AST',buffer:.10,gap:.15,signal:'No relative signal',value:'410',worse:'400',better:'425',native:'10 assists',next:'15 assists',rank:'6 of 12'},
-      {code:'BLK',buffer:.05,gap:.05,signal:'Small relative next-tier gap',value:'175',worse:'170',better:'180',native:'5 blocks',next:'5 blocks',rank:'7 of 12'}
+      {code:'PTS',signal:'Larger relative buffer',value:'990',worse:'920',better:'1,050',native:'70 points',next:'60 points',rank:'4 of 12',mine:3,totals:[1200,1120,1050,990,920,870,820,780,730,690,640,590]},
+      {code:'REB',signal:'No relative signal',value:'650',worse:'620',better:'680',native:'30 rebounds',next:'30 rebounds',rank:'3 of 12',mine:2,totals:[730,680,650,620,595,560,535,510,490,470,445,420]},
+      {code:'AST',signal:'No relative signal',value:'410',worse:'400',better:'425',native:'10 assists',next:'15 assists',rank:'6 of 12',mine:5,totals:[520,490,460,440,425,410,400,385,370,350,335,320]},
+      {code:'BLK',signal:'Small relative next-tier gap',value:'175',worse:'170',better:'180',native:'5 blocks',next:'5 blocks',rank:'7 of 12',mine:6,totals:[240,225,210,200,190,180,175,170,160,150,140,125]}
     ];
     const byId = id => document.getElementById(id);
     let selected = 'PTS';
+    let scale = 'native';
+    function quantile(sorted,p){const at=(sorted.length-1)*p,lo=Math.floor(at),hi=Math.ceil(at);return sorted[lo]+(sorted[hi]-sorted[lo])*(at-lo)}
+    rows.forEach(row=>{const sorted=[...row.totals].sort((a,b)=>a-b),spread=quantile(sorted,.9)-quantile(sorted,.1);row.buffer=(row.totals[row.mine]-row.totals[row.mine+1])/spread;row.gap=(row.totals[row.mine-1]-row.totals[row.mine])/spread});
+    function renderCurves(){
+      const maxSpread=Math.max(1,...rows.flatMap(row=>{const sorted=[...row.totals].sort((a,b)=>a-b),spread=quantile(sorted,.9)-quantile(sorted,.1),mine=row.totals[row.mine];return row.totals.map(value=>Math.abs((value-mine)/spread))}));
+      const domain=Math.ceil(maxSpread*10)/10;
+      byId('curve-grid').innerHTML=rows.map(row=>{
+        const values=row.totals,low=values[11],high=values[0],mine=values[row.mine],sorted=[...values].sort((a,b)=>a-b),spread=quantile(sorted,.9)-quantile(sorted,.1),x=index=>48+(11-index)/11*300,y=value=>scale==='native'?194-(value-low)/(high-low)*160:114-(value-mine)/spread/domain*80;
+        const path=values.map((value,index)=>[x(index),y(value)]).reverse().map((point,index)=>`${index?'L':'M'} ${point[0]} ${point[1]}`).join(' ');
+        const dots=values.map((value,index)=>`<circle class="${index===row.mine?'me':index===row.mine-1?'better':''}" cx="${x(index)}" cy="${y(value)}" r="${Math.abs(index-row.mine)<=1?6:3.5}"/>`).join('');
+        return `<button class="curve-card" type="button" data-curve="${row.code}" aria-pressed="${selected===row.code}"><strong>${row.code} · your #${row.mine+1} finish</strong><small>${scale==='native'?'Season total':'Change from your total ÷ league spread'} · horizontal rank</small><svg viewBox="0 0 380 238" role="img" aria-label="${row.code} observed synthetic totals by rank"><line class="axis" x1="48" x2="48" y1="34" y2="194"/><line class="axis" x1="48" x2="348" y1="194" y2="194"/><path class="line" d="${path}"/><line class="gain" x1="${x(row.mine)}" y1="${y(mine)}" x2="${x(row.mine-1)}" y2="${y(values[row.mine-1])}"/><line class="buffer" x1="${x(row.mine+1)}" y1="${y(values[row.mine+1])}" x2="${x(row.mine)}" y2="${y(mine)}"/>${dots}<text x="48" y="222">#12 · worse</text><text x="348" y="222" text-anchor="end">#1 · better</text></svg><small>Next better: ${values[row.mine-1]-mine} · open buffer: ${mine-values[row.mine+1]}</small></button>`;
+      }).join('');
+      const row=rows.find(item=>item.code===selected),sorted=[...row.totals].sort((a,b)=>a-b),spread=quantile(sorted,.9)-quantile(sorted,.1);
+      byId('curve-detail').textContent=`${row.code}: your #${row.mine+1} total was ${row.value}. Next better gap: ${row.totals[row.mine-1]-row.totals[row.mine]} (${((row.totals[row.mine-1]-row.totals[row.mine])/spread).toFixed(3)} league spreads). Open buffer to next worse: ${row.totals[row.mine]-row.totals[row.mine+1]} (${((row.totals[row.mine]-row.totals[row.mine+1])/spread).toFixed(3)} spreads).`;
+      byId('scale-note').textContent=scale==='native'?'Native totals are readable within each category; vertical scales differ. Use normalized gaps for cross-category comparison.':'Every card uses the same vertical scale: change from your total divided by that category’s P90–P10 league spread.';
+      document.querySelectorAll('[data-scale]').forEach(button=>{const active=button.dataset.scale===scale;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
+    }
     function renderCategory() {
       byId('category-rows').innerHTML = rows.map(row => `<tr class="${selected===row.code?'selected':''}"><th><button class="row-button" type="button" data-category="${row.code}" aria-pressed="${selected===row.code}">${row.code}</button></th><td>${row.buffer.toFixed(3)}</td><td>${row.gap.toFixed(3)}</td><td>1 / 1 season</td><td>${row.signal}</td></tr>`).join('');
       const row = rows.find(item => item.code === selected);
@@ -98,13 +127,14 @@
     }
     document.addEventListener('click', event => {
       const button = event.target.closest('button'); if (!button) return;
-      if (button.dataset.category) {selected=button.dataset.category;renderCategory();}
+      if (button.dataset.category||button.dataset.curve) {selected=button.dataset.category||button.dataset.curve;renderCategory();renderCurves();}
+      if (button.dataset.scale) {scale=button.dataset.scale;renderCurves();}
       if (button.dataset.state) showState(button.dataset.state);
       if (button.id==='retry'||button.id==='refresh') showState('ready');
       if (button.dataset.nav) {const profile=button.dataset.nav==='profile';byId('profile-view').hidden=!profile;byId('other-view').hidden=profile;byId('other-title').textContent=button.textContent;document.querySelectorAll('[data-nav]').forEach(item=>{const active=item===button;item.classList.toggle('active',active);item.toggleAttribute('aria-current',active);});}
       if (button.id==='connection') {byId('other-title').textContent='Connection';byId('profile-view').hidden=true;byId('other-view').hidden=false;}
     });
-    renderCategory(); showState('ready');
+    renderCategory(); renderCurves(); showState('ready');
   </script>
 </body>
 </html>

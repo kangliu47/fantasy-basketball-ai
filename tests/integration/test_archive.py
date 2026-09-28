@@ -273,6 +273,9 @@ def test_category_allocation_is_local_personal_and_preserves_public_lineage(
     assert payload["contract_id"] == "HCARE-2026-09-13-v1"
     assert payload["calculation_version"].startswith("historical-category-allocation-v1")
     assert payload["seasons_requested"] == [2026, 2025]
+    first_tier = payload["categories"][0]["seasons"][0]["standings_tiers"][0]
+    assert set(first_tier) == {"value", "rank", "tier_size", "relative_spread"}
+    assert payload["categories"][0]["seasons"][0]["standings_tiers"]
     assert "league_id" not in response.text
     assert "owner_tokens" not in response.text and "opaque-local-reference" not in response.text
     assert not gateway.calls

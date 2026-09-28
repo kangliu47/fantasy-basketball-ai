@@ -164,6 +164,13 @@ def test_report_labels_large_fragile_reachable_locked_and_reallocation_without_s
     assert AllocationSignal.REACHABLE_POINT in blk.signals
     assert pts.raw_redundancy is not None and pts.preserve_boundary_native is not None
     assert pts.normalized_redundancy is not None and pts.normalized_opportunity is not None
+    assert len(pts.standings_tiers) == pts.team_count
+    assert pts.standings_tiers[0].rank == 1
+    assert pts.standings_tiers[-1].rank == pts.team_count
+    assert pts.standings_tiers[3].relative_spread == pytest.approx(0)
+    assert pts.standings_tiers[2].relative_spread == pytest.approx(pts.normalized_opportunity)
+    assert pts.standings_tiers[4].relative_spread == pytest.approx(-pts.normalized_redundancy)
+    assert all(item.tier_size == 1 for item in pts.standings_tiers)
     question = result.reallocation_questions[0]
     assert any(item.category == "PTS" for item in question.sources)
     assert any(item.category == "BLK" for item in question.destinations)
@@ -185,6 +192,10 @@ def test_best_worst_tied_percentage_missing_and_zero_range_remain_unavailable() 
     assert tied_row.normalization_status == "UNAVAILABLE_ZERO_ROBUST_RANGE"
     assert tied_row.tier_context == "TIED_TIER_CONTEXT_ONLY"
     assert tied_row.normalized_redundancy is None and tied_row.normalized_opportunity is None
+    assert len(tied_row.standings_tiers) == 1
+    assert tied_row.standings_tiers[0].rank == 6.5
+    assert tied_row.standings_tiers[0].tier_size == 12
+    assert tied_row.standings_tiers[0].relative_spread is None
     assert tied_row.signals == (AllocationSignal.TIED_TIER_CONTEXT_ONLY,)
     percentage = next(item for item in best.categories if item.category == "FG%").seasons[0]
     assert percentage.value < 1
@@ -194,6 +205,11 @@ def test_best_worst_tied_percentage_missing_and_zero_range_remain_unavailable() 
     assert percentage.normalized_redundancy == pytest.approx(
         percentage.raw_redundancy / percentage.robust_range
     )
+    lower = next(item for item in best.categories if item.category == "TO").seasons[0]
+    assert lower.standings_tiers[0].value < lower.standings_tiers[-1].value
+    assert lower.standings_tiers[0].relative_spread == pytest.approx(0)
+    assert lower.standings_tiers[1].relative_spread is not None
+    assert lower.standings_tiers[1].relative_spread < 0
     missing = report((archive(2026, missing=True),), (assignment(2026),))
     assert next(item for item in missing.categories if item.category == "PTS").seasons == ()
 

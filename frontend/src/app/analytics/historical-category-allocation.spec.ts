@@ -4,6 +4,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HistoricalCategoryAllocationReport } from '../archive/archive.models';
 import { HistoricalCategoryAllocationComponent } from './historical-category-allocation';
 
+const standingValues = [0.553, 0.55, 0.543, 0.54, 0.537, 0.534, 0.531, 0.528, 0.525, 0.522, 0.519, 0.516];
+const standingTiers = standingValues.map((value, index) => ({
+  value, rank: index + 1, tier_size: 1, relative_spread: (value - 0.55) / 0.02,
+}));
+
 const report: HistoricalCategoryAllocationReport = {
   contract_id: 'HCARE-2026-09-13-v1',
   calculation_version:
@@ -26,8 +31,8 @@ const report: HistoricalCategoryAllocationReport = {
       percentage: true,
       eligible_seasons: 1,
       selected_seasons: 1,
-      median_normalized_redundancy: 0.8,
-      median_normalized_opportunity: 0.1,
+      median_normalized_redundancy: 0.35,
+      median_normalized_opportunity: 0.15,
       median_redundancy_native: 0.007,
       median_opportunity_native_delta: 0.003,
       raw_scale_compatible_seasons: 1,
@@ -70,8 +75,8 @@ const report: HistoricalCategoryAllocationReport = {
           raw_opportunity: 0.003,
           required_native_delta: 0.003,
           robust_range: 0.02,
-          normalized_redundancy: 0.8,
-          normalized_opportunity: 0.1,
+          normalized_redundancy: 0.35,
+          normalized_opportunity: 0.15,
           normalization_status: 'AVAILABLE',
           signals: ['EXCESS_BUFFER', 'REACHABLE_POINT'],
           source_observation_id: 'synthetic-observation',
@@ -79,6 +84,7 @@ const report: HistoricalCategoryAllocationReport = {
           mapper_version: 'test-1',
           assignment_revision: 2,
           raw_scale_compatible: true,
+          standings_tiers: standingTiers,
         },
       ],
     },
@@ -86,8 +92,8 @@ const report: HistoricalCategoryAllocationReport = {
   reallocation_questions: [
     {
       season: 2026,
-      sources: [{ category: 'FG%', normalized_metric: 0.8, raw_gap: 0.007, required_native_delta: null }],
-      destinations: [{ category: 'AST', normalized_metric: 0.1, raw_gap: 2, required_native_delta: 2 }],
+      sources: [{ category: 'FG%', normalized_metric: 0.35, raw_gap: 0.007, required_native_delta: null }],
+      destinations: [{ category: 'AST', normalized_metric: 0.15, raw_gap: 2, required_native_delta: 2 }],
     },
   ],
 };
@@ -123,6 +129,8 @@ describe('HistoricalCategoryAllocationComponent', () => {
     expect(content).toContain('Larger relative buffer, Small relative next-tier gap');
     expect(content).toContain('feasible player trade existed');
     expect(content).toContain('correlated player production');
+    expect(content).toContain('Season totals by category rank');
+    expect(fixture.nativeElement.querySelectorAll('app-historical-rank-curves circle').length).toBe(12);
   });
 
   it('shows an insufficient-evidence state without manufacturing a signal', () => {
@@ -146,6 +154,52 @@ describe('HistoricalCategoryAllocationComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Retry');
   });
 
+  it('keeps lower-is-better native totals descending toward better ranks and orients normalized gaps upward', () => {
+    fixture.detectChanges();
+    const source = report.categories[0];
+    const evidence = source.seasons[0];
+    http.expectOne('/api/archive/category-allocation').flush({
+      ...report,
+      categories: [{ ...source, category: 'TO', percentage: false, higher_is_better: false,
+        seasons: [{ ...evidence, value: 8, rank: 2, team_count: 3, robust_range: 5,
+          next_better_boundary_native: 5, preserve_boundary_native: 10,
+          raw_opportunity: 3, raw_redundancy: 2,
+          standings_tiers: [
+            { value: 5, rank: 1, tier_size: 1, relative_spread: 0.6 },
+            { value: 8, rank: 2, tier_size: 1, relative_spread: 0 },
+            { value: 10, rank: 3, tier_size: 1, relative_spread: -0.4 },
+          ] }],
+      }],
+    });
+    fixture.detectChanges();
+    const dots = Array.from(fixture.nativeElement.querySelectorAll('app-historical-rank-curves circle.tier-dot')) as SVGCircleElement[];
+    expect(Number(dots[0].getAttribute('cx'))).toBeGreaterThan(Number(dots[2].getAttribute('cx')));
+    expect(Number(dots[0].getAttribute('cy'))).toBeGreaterThan(Number(dots[2].getAttribute('cy')));
+    const normalized = Array.from(fixture.nativeElement.querySelectorAll('app-historical-rank-curves button') as NodeListOf<HTMLButtonElement>)
+      .find((button) => button.textContent?.includes('League-spread change from me'))!;
+    normalized.click();
+    fixture.detectChanges();
+    const normalizedDots = Array.from(fixture.nativeElement.querySelectorAll('app-historical-rank-curves circle.tier-dot')) as SVGCircleElement[];
+    expect(Number(normalizedDots[0].getAttribute('cy'))).toBeLessThan(Number(normalizedDots[2].getAttribute('cy')));
+  });
+
+  it('labels zero-range tied evidence as unavailable on the normalized scale', () => {
+    fixture.detectChanges();
+    const source = report.categories[0];
+    const evidence = source.seasons[0];
+    http.expectOne('/api/archive/category-allocation').flush({
+      ...report,
+      categories: [{ ...source, seasons: [{ ...evidence, value: 0.5, rank: 6.5, tier_size: 12,
+        robust_range: 0, standings_tiers: [{ value: 0.5, rank: 6.5, tier_size: 12, relative_spread: null }] }] }],
+    });
+    fixture.detectChanges();
+    const normalized = Array.from(fixture.nativeElement.querySelectorAll('app-historical-rank-curves button') as NodeListOf<HTMLButtonElement>)
+      .find((button) => button.textContent?.includes('League-spread change from me'))!;
+    normalized.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Normalized view unavailable: P90–P10 league spread is zero.');
+  });
+
   it('switches season evidence and reloads when the selected league changes', () => {
     fixture.detectChanges();
     const first = report.categories[0].seasons[0];
@@ -156,7 +210,8 @@ describe('HistoricalCategoryAllocationComponent', () => {
         ...report.categories[0],
         eligible_seasons: 2,
         selected_seasons: 2,
-        seasons: [first, { ...first, season: 2025, value: 0.51, source_observation_id: 'synthetic-2025' }],
+        seasons: [first, { ...first, season: 2025, value: 0.51, source_observation_id: 'synthetic-2025',
+          standings_tiers: standingTiers.map((tier) => ({ ...tier, value: tier.value - 0.04 })) }],
       }],
     });
     fixture.detectChanges();
@@ -166,6 +221,7 @@ describe('HistoricalCategoryAllocationComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('51.00%');
     expect(fixture.nativeElement.textContent).toContain('synthetic-2025');
+    expect(fixture.nativeElement.querySelector('app-historical-rank-curves .scope-pill').textContent).toContain('2025');
 
     fixture.componentRef.setInput('leagueId', 98765);
     fixture.detectChanges();

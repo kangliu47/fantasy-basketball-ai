@@ -3,6 +3,15 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-09-27 — Show category totals by league rank
+
+The user approved the synthetic Option F chart for My Profile. The local app now
+shows all completed-season category rank curves at once, with the personal and
+adjacent tiers marked. Native totals explain each category's standings shape;
+the P90–P10-relative scale supports cross-category comparison. The existing
+buffer table and evidence detail remain available. The public walkthrough uses
+invented standings only and does not connect to ESPN.
+
 ## 2026-09-27 — Make historical category buffers inspectable in My Profile
 
 The user approved a synthetic My Profile flow for understanding completed-season

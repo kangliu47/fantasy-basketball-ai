@@ -1,6 +1,8 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 51](#51-historical-category-allocation--accepted-implementation-2026-09-27)
+> **Current scope:** [amendment 52](#52-stats-by-rank-in-my-profile--accepted-implementation-2026-09-27)
+> adds the approved all-category rank curve with native and normalized vertical
+> scales. [Amendment 51](#51-historical-category-allocation--accepted-implementation-2026-09-27)
 > adds the approved My Profile category-buffer journey and its synthetic public
 > walkthrough. [Amendment 50](#50-league-comparison-season-eligibility--accepted-correction-2026-09-07)
 > separates normalized completed-season eligibility from raw counting-stat
@@ -33,6 +35,26 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 52. Stats by rank in My Profile — accepted implementation, 2026-09-27
+
+The user approved Option F from the synthetic 2026 ROTO-point visual review for
+the existing My Profile historical category allocation journey. A season selector
+and all-category small multiples place observed standings rank on the horizontal
+axis and completed-season category totals on the vertical axis. The current,
+next distinct better and next distinct worse tiers are highlighted. A vertical
+scale switch shows either native totals or each tier's oriented change from the
+personal total divided by its category's P90–P10 league spread. The latter
+provides a common descriptive unit across categories; it is not player cost or
+an exchange rate.
+
+The view reads exact tiers from the existing saved-archive calculation. It keeps
+provider ties at their average rank, lower-is-better orientation, percentage
+units, unavailable normalization and source lineage. The table and historical
+question remain below the new overview. Only the synthetic walkthrough is
+published on GitHub Pages; the connected app continues to run on loopback.
+No new archive persistence, ESPN write, prediction, optimization or roster
+recommendation is part of this change.
 
 # 51. Historical category allocation — accepted implementation, 2026-09-27
 

@@ -7,6 +7,15 @@
 **Date:** September 13, 2026
 **Status:** Approved implementation contract
 
+**Presentation extension — September 27, 2026:** The user approved Option F,
+“Stats by rank,” after reviewing synthetic rank-curve alternatives. The report
+now exposes every exact standings tier per eligible season for an all-category
+chart: native value, average-tie rank, tier size and oriented distance from the
+personal tier divided by this contract's P90–P10 robust range. A zero range
+keeps native tiers and withholds the normalized view. Rank runs horizontally
+from worse to better; native totals or relative offsets run vertically. This
+does not alter the calculation version or infer a category exchange rate.
+
 **Delivery record — September 27, 2026:** The user approved the
 [synthetic My Profile flow](historical-category-allocation-preview.html) and
 requested the complete app, documentation and GitHub Pages update. The

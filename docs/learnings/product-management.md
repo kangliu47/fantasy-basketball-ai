@@ -5,6 +5,100 @@ The interpretations and practices below are assistant synthesis; the personal
 pivot, historical-results priority and public showcase structure are explicit
 user decisions.
 
+## 2026-09-27 — Keep league shape alongside a shared comparison scale
+
+**Conversation evidence — S27:** The user approved Option F for the real app after
+reviewing the rank-horizontal, season-total-vertical mock and requested local
+verification and public delivery.
+
+**Synthesis:** Native totals make one category's standings easy to read, while
+P90–P10-relative offsets let the same rank shapes be compared across categories.
+The two scales answer different reading tasks and should remain a visible choice.
+
+**Practice:** Carry the approved mock into My Profile with both vertical scales,
+exact tiers and the underlying evidence detail. Describe historical gaps without
+claiming that a roster move can transfer production between categories.
+
+## 2026-09-27 — Put rank steps on the horizontal axis when explaining stat cost
+
+**Conversation evidence — S26:** The user liked the corrected point curve but
+asked to try rank position on the horizontal axis and accumulated season stats
+on the vertical axis because that may better match their mental model.
+
+**Synthesis:** Equal horizontal rank steps make the vertical stat difference
+between adjacent ROTO points directly visible. Native totals aid comprehension,
+while a separate normalized scale is needed before comparing slopes across
+categories. A connecting line must remain labeled as observed rank shape, not
+continuous scoring.
+
+**Practice:** Review both vertical scales in a synthetic mock and preserve
+exact tier values and tie rules before choosing a production view.
+
+## 2026-09-27 — Check chart direction as a semantic invariant
+
+**Conversation evidence — S25:** The user noticed that the current-value marker
+in the synthetic ROTO curve sat left of both adjacent thresholds. The worse
+threshold had been signed twice when positioned on the horizontal axis.
+
+**Synthesis:** Correct labels and numeric gaps do not prove a chart encodes the
+same tier geometry. When better is to the right, the worse threshold must be
+left of the current value and the better threshold right of it.
+
+**Practice:** Check marker ordering for every category and keep a visible
+direction legend in point-tier mockups.
+
+## 2026-09-27 — Give standings gaps a point-tier reading without inventing a trade rate
+
+**Conversation evidence — S24:** The user found all three synthetic buffer
+views meaningful and asked for a single unit comparable across categories that
+relates adjacent stat gaps to ROTO points. They want to reason more clearly
+about where category resources may have been over-allocated.
+
+**Synthesis:** In a singleton, equal-weight ROTO standing, adjacent ranks differ
+by one point. Dividing each adjacent stat gap by its category's P90–P10 league
+spread gives one descriptive unit across categories. It reuses the existing
+normalization but cannot estimate a player-level exchange rate or an optimal
+roster. Ties and category weights change the point interpretation.
+
+**Practice:** Prototype both an all-rank point-step matrix and point payoff
+curves with synthetic data. Keep the historical distribution and the feasible
+roster-move question visibly separate before any production change.
+
+## 2026-09-27 — Combine league shape and category comparison in one scan
+
+**Conversation evidence — S23:** After reviewing the two synthetic buffer
+options, the user said the full-league, one-category ladder and the
+across-category adjacent-gap view were complementary. They requested a third
+option that makes all ranks visible across all categories while helping them
+reason about possible ROTO-point gains.
+
+**Synthesis:** A decision view should preserve both the distribution of every
+team's finish and the local threshold that changes a ROTO point. Centering each
+category on the user's finish and scaling distances by its league spread offers
+a shared visual reference, while exact native values remain available on
+selection. This is still descriptive evidence, not a feasible transfer of
+production between categories.
+
+**Practice:** Keep this combined view in synthetic mock review until the user
+selects a flow. If approved, preserve its full-rank evidence and threshold
+details without turning the visual into a trade recommendation.
+
+## 2026-09-27 — Show standings geometry before asking users to decode distances
+
+**Conversation evidence — S22:** The user found the historical buffer calculation
+reasonable but said its numeric table did not show where their 2026 finish sat
+within the league or make adjacent rank gaps easy to compare. They requested two
+synthetic visualization options before deciding on a feature change.
+
+**Synthesis:** Correct normalized distances can still obscure the league shape
+and the user's position. A full rank view and an across-category summary answer
+different parts of the same retrospective question. Visual comparison must keep
+the open preserve boundary and avoid suggesting a feasible exchange rate.
+
+**Practice:** Review a style-consistent synthetic mock with both views before
+changing the production UI. Treat mock preference as a pending decision, and
+keep native gaps and source context accessible alongside normalized marks.
+
 ## 2026-09-07 — Separate semantic compatibility from measurement scale
 
 **Conversation evidence — S18:** The user found that Last 5 and All history

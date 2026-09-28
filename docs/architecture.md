@@ -1,5 +1,17 @@
 # Architecture and learning guide
 
+## Stats by rank presentation — September 27, 2026
+
+The historical allocation domain now projects its existing exact standings
+tiers into each eligible season's read result. Each tier carries native value,
+average-tie rank, tier size and oriented change from the personal tier divided
+by the same P90–P10 robust range used by the allocation calculation. A zero
+range yields an unavailable relative offset. The FastAPI DTO exposes no
+competitor identity in these chart points. Angular renders rank on X and native
+or normalized season totals on Y; it does not recalculate tier geometry or
+classify roster opportunities. The calculation version, archive schema and
+read-only application path remain unchanged.
+
 ## Historical Category Allocation — September 27, 2026
 
 `HCARE-2026-09-13-v1` adds a separate, read-only personal report for historical

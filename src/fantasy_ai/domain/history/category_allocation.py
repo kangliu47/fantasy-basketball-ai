@@ -61,6 +61,16 @@ class AllocationManagerContext:
 
 
 @dataclass(frozen=True)
+class AllocationStandingTier:
+    """One observed distinct league tier, without opponent identity fields."""
+
+    value: float
+    rank: float
+    tier_size: int
+    relative_spread: float | None
+
+
+@dataclass(frozen=True)
 class AllocationSeasonEvidence:
     season: int
     team_id: str
@@ -93,6 +103,7 @@ class AllocationSeasonEvidence:
     mapper_version: str
     assignment_revision: int
     raw_scale_compatible: bool
+    standings_tiers: tuple[AllocationStandingTier, ...]
 
 
 @dataclass(frozen=True)
@@ -285,6 +296,17 @@ def _category_evidence(
                 geometry.mapper_version,
                 resolution.assignment.revision,
                 _raw_scale_compatible(reference, archive, reference_category),
+                tuple(
+                    AllocationStandingTier(
+                        item.value,
+                        item.rank,
+                        len(item.team_ids),
+                        (item.oriented_value - tier.oriented_value) / geometry.robust_range
+                        if geometry.robust_range > 0
+                        else None,
+                    )
+                    for item in geometry.tiers
+                ),
             )
         )
     return evidence, exclusions

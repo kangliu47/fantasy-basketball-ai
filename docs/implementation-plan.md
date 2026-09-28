@@ -1,5 +1,28 @@
 # Implementation plan
 
+## Stats by rank in My Profile — September 27, 2026
+
+**Personal question:** Across completed-season categories, where did my observed
+finish sit among all league tiers, and how large were the adjacent stat gaps in
+native and distribution-relative units?
+
+**Delivered:** The user approved Option F from the synthetic rank-curve review
+for the existing My Profile journey. The read-only allocation DTO now includes
+every provider-exact standings tier with average-tie rank, tier size, native
+value and an oriented P90–P10-relative offset from the personal tier. Angular
+renders all-category small multiples with rank horizontal, season total vertical,
+and a native/normalized scale switch. Selecting a card opens the same season's
+existing evidence detail and retains missing-season states. The synthetic public
+walkthrough shows the same approved shape and controls.
+
+**Validation:** Focused domain, API/privacy and Angular tests cover tier payloads,
+orientation, ties, zero range, season selection and local presentation. Build,
+local startup, full tests and publication checks are recorded with delivery.
+
+**Stopping point:** This is descriptive final-standing geometry. No category
+exchange rate, feasible roster move, player production model or ROTO optimization
+is inferred. The allocation formula and calculation version stay unchanged.
+
 ## Historical Category Allocation implementation — September 27, 2026
 
 **Personal question:** In completed seasons with a reviewed whole-season manager

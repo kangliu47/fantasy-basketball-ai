@@ -16,6 +16,8 @@ tr.selected { background: #e8f0ff; }
 .allocation-choice:focus-visible,.season-choice:focus-visible { outline: 2px solid #397b54; outline-offset: 3px; }
 .allocation-detail { border-top: 1px solid #dfe6dc; margin-top: 1.1rem; padding-top: 1.1rem; }
 .season-choices { display: flex; flex-wrap: wrap; gap: .45rem; }
+.chart-seasons { margin: .8rem 0 0; }
+.summary-heading { color: #244437; font-size: .9rem; margin: 1.25rem 0 .5rem; }
 .season-choice { background: #fff; border: 1px solid #cfdcd0; border-radius: 8px; color: #315e43; cursor: pointer; padding: .45rem .7rem; }
 .season-choice[aria-pressed='true'] { background: #e8f0ff; border-color: #99b8e4; color: #28599d; font-weight: 700; }
 .detail-grid { display: grid; gap: .7rem; grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: .9rem; }

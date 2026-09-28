@@ -496,6 +496,14 @@ class AllocationManagerContextDTO(BaseModel):
     status: AllocationStatus
 
 
+class AllocationStandingTierDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    value: float
+    rank: float
+    tier_size: int
+    relative_spread: float | None
+
+
 class AllocationSeasonEvidenceDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     season: int
@@ -529,6 +537,7 @@ class AllocationSeasonEvidenceDTO(BaseModel):
     mapper_version: str
     assignment_revision: int
     raw_scale_compatible: bool
+    standings_tiers: tuple[AllocationStandingTierDTO, ...]
 
 
 class AllocationSeasonExclusionDTO(BaseModel):

@@ -1,0 +1,86 @@
+<section class="rank-curves" aria-labelledby="rank-curves-title">
+  <div class="curve-heading">
+    <div>
+      <p class="eyebrow">LEAGUE STANDINGS SHAPE</p>
+      <h4 id="rank-curves-title">Season totals by category rank</h4>
+      <p>Each dot is an observed league tier. Rank improves to the right; height is the completed-season category total.</p>
+    </div>
+    <span class="scope-pill">{{ season() }} · saved standings</span>
+  </div>
+  <div class="scale-controls" aria-label="Vertical axis scale">
+    <span>Vertical scale</span>
+    <button type="button" [attr.aria-pressed]="scale() === 'native'" (click)="setScale('native')">Native season total</button>
+    <button type="button" [attr.aria-pressed]="scale() === 'normalized'" (click)="setScale('normalized')">League-spread change from me</button>
+  </div>
+  <p class="method-copy">
+    @if (scale() === 'native') {
+      Native totals are readable within a category. The vertical scale differs by category; compare normalized gaps in the evidence below.
+    } @else {
+      Every card uses the same vertical scale: oriented change from your total divided by that category's P90–P10 league spread. Positive is better, including lower-is-better categories.
+    }
+  </p>
+  <div class="curve-grid">
+    @for (card of cards(); track card.category.category) {
+      <button class="curve-card" type="button"
+        [class.selected]="selectedCode() === card.category.category"
+        [attr.aria-pressed]="selectedCode() === card.category.category"
+        (click)="categorySelected.emit(card.category.category)">
+        <strong>{{ card.category.category }}</strong>
+        @if (card.evidence; as evidence) {
+          <small>Your rank #{{ formatRank(evidence.rank) }} of {{ evidence.team_count }} · {{ formatValue(evidence.value, card.category) }}
+            @if (!card.category.higher_is_better) { · lower is better }
+          </small>
+        } @else {
+          <small>No eligible evidence for {{ season() }}</small>
+        }
+        @if (card.unavailable) {
+          <span class="unavailable">{{ card.unavailable }}</span>
+        } @else if (card.evidence; as evidence) {
+          <svg viewBox="0 0 380 238" role="img"
+            [attr.aria-label]="card.category.category + ' observed league category totals by average-tie rank; your rank ' + formatRank(evidence.rank)">
+            <title>{{ card.category.category }} standings tiers, {{ season() }}</title>
+            <line class="axis" x1="48" x2="48" y1="34" y2="194" />
+            <line class="axis" x1="48" x2="348" y1="194" y2="194" />
+            @if (card.zeroY !== null) {
+              <line class="zero" x1="48" x2="348" [attr.y1]="card.zeroY" [attr.y2]="card.zeroY" />
+            }
+            <text x="43" y="39" text-anchor="end">{{ card.topLabel }}</text>
+            <text x="43" y="197" text-anchor="end">{{ card.bottomLabel }}</text>
+            <path class="rank-line" [attr.d]="card.path" />
+            @if (card.better; as segment) {
+              <line class="gain-segment" [attr.x1]="segment.from.x" [attr.y1]="segment.from.y"
+                [attr.x2]="segment.to.x" [attr.y2]="segment.to.y" />
+            }
+            @if (card.worse; as segment) {
+              <line class="buffer-segment" [attr.x1]="segment.from.x" [attr.y1]="segment.from.y"
+                [attr.x2]="segment.to.x" [attr.y2]="segment.to.y" />
+            }
+            @for (point of card.points; track point.rank) {
+              <circle [attr.class]="'tier-dot ' + point.tone" [attr.cx]="point.x" [attr.cy]="point.y"
+                [attr.r]="point.tone === 'me' ? 7 : point.tone === 'other' ? 3.5 : 6">
+                <title>Rank #{{ formatRank(point.rank) }} · {{ formatValue(point.value, card.category) }} · {{ point.tierSize }} team(s)</title>
+              </circle>
+            }
+            <text x="48" y="222">#{{ evidence.team_count }} · worse</text>
+            <text x="348" y="222" text-anchor="end">#1 · better</text>
+          </svg>
+          <span class="curve-summary">Next better: {{ evidence.raw_opportunity === null ? 'Already best tier' : formatGap(evidence.raw_opportunity, card.category) }} · open buffer: {{ evidence.raw_redundancy === null ? 'No worse tier' : formatGap(evidence.raw_redundancy, card.category) }}</span>
+        }
+      </button>
+    }
+  </div>
+  <div class="legend"><span><i class="swatch worse"></i>Next worse tier</span><span><i class="swatch me"></i>Your tier</span><span><i class="swatch better"></i>Next better tier</span></div>
+  @if (selectedCard(); as card) {
+    @if (card.evidence; as evidence) {
+      <p class="method-copy selected-copy" aria-live="polite">
+        <strong>{{ card.category.category }} · #{{ formatRank(evidence.rank) }} of {{ evidence.team_count }}.</strong>
+        Next better: {{ formatGap(evidence.raw_opportunity, card.category) }}
+        @if (evidence.normalized_opportunity !== null) { ({{ evidence.normalized_opportunity.toFixed(3) }} league spreads) }.
+        Next worse open boundary: {{ formatGap(evidence.raw_redundancy, card.category) }}
+        @if (evidence.normalized_redundancy !== null) { ({{ evidence.normalized_redundancy.toFixed(3) }} league spreads) }.
+        @if (evidence.tier_size > 1) { Your current tier is tied; individual changes can break the tie before an adjacent distinct tier. }
+      </p>
+    }
+  }
+  <p class="method-copy">The line connects observed final standings; it is not continuous scoring. Average-tie ranks and league category weights can change the ROTO-point interpretation of a rank step. These gaps do not establish a feasible roster move.</p>
+</section>
