@@ -1,6 +1,26 @@
 :host {
   display: block;
 }
+[hidden] {
+  display: none !important;
+}
+.comparison-tabs {
+  border-bottom: 1px solid #dce3d7;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+}
+.comparison-tabs button {
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  color: #63766a;
+  padding: 0.7rem 0;
+}
+.comparison-tabs button.active {
+  border-bottom-color: #2c6b50;
+  color: #2c6b50;
+}
 
 .intro-row,
 .panel-heading,
@@ -255,7 +275,18 @@ th {
 }
 
 .legend i {
-  background: linear-gradient(90deg, #b84e46, #cf7045, #e7a38d, #f1d6cf, #f5f7f2, #d7e8da, #a7c9ae, #6e9f7b, #397050);
+  background: linear-gradient(
+    90deg,
+    #b84e46,
+    #cf7045,
+    #e7a38d,
+    #f1d6cf,
+    #f5f7f2,
+    #d7e8da,
+    #a7c9ae,
+    #6e9f7b,
+    #397050
+  );
   border-radius: 4px;
   display: block;
   height: 8px;

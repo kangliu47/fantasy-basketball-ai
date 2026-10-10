@@ -3,6 +3,10 @@
 Started September 5, 2026. These notes capture what this project is teaching us
 about building with an AI coding agent and managing a personal product.
 
+- [Historical study reuse](historical-study-reuse.md): defining cheap points,
+  preserving cohorts and ties, and verifying the approved flow on the user's screen.
+- [Offline authentication boundary](offline-authentication-boundary.md): saved
+  analysis lifecycle must not request live credentials; Python sessions stay in memory.
 - [Vibe coding experiences](vibe-coding.md): delegation, feedback, verification
   and learning the implementation.
 - [Current Codex agent orchestration](../CODEX_AGENT_ORCHESTRATION_V5.md): Sol High
@@ -45,6 +49,9 @@ these are paraphrased learning notes, not transcript exports.
 
 | Source | Conversation | Evidence used |
 | --- | --- | --- |
+| S30 | Category strategy verified and approved for publication — October 10, 2026 (this conversation) | User defines cheap points as small historical stat gaps, approves the League comparison mock and real flow, confirms the in-app update works, and authorizes remote-main integration with public learning updates |
+| S29 | Remove Python Keychain access — October 10, 2026 (this conversation) | User rejects Python access to Keychain, requests ESPN browser sign-in plus a local token and affirms credential-free offline history |
+| S28 | Reuse historical study calculations — October 10, 2026 (this conversation) | User asks to promote only calculations useful in the completed-season study, requests TDD and approves the bounded saved-only service plus HTTP/MCP scope |
 | S27 | Implement Stats by rank — September 27, 2026 (this conversation) | After reviewing the revised Option F mock, the user approves it for the real local app and explicitly requests local verification, publication and merge to main |
 | S26 | Flip the point-tier chart axes — September 27, 2026 (this conversation) | User likes the corrected point curve but asks to try rank positions on the horizontal axis and accumulated category stats on the vertical axis for a more intuitive reading |
 | S25 | Correct the point-curve threshold orientation — September 27, 2026 (this conversation) | User notices that the mock's blue current-value marker should sit between the green worse-tier and orange better-tier markers; source review confirms a sign error in the worse marker position |

@@ -3,11 +3,14 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Annotated
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 from fantasy_ai.application.models import WorkspaceError
 from fantasy_ai.bootstrap import ApplicationServices, build_services
+from fantasy_ai.interfaces.cohort_study_schemas import CohortStudyDTO
 
 from .schemas import FantasyContext, SeasonCategoryResult, SeasonResultsResponse
 
@@ -16,7 +19,10 @@ user's locally saved league archive.
 
 Use get_fantasy_context when the selected league or available historical seasons are unknown.
 Use get_season_results for season-level category analysis. Treat historical results as descriptive
-evidence, not projections. Do not infer manager identity from team identity. Never request or
+evidence, not projections. Use get_cohort_study for an explicitly selected reviewed manager cohort,
+observed rank thresholds, stat gaps, integer point-gain ladders and games-volume diagnostics.
+Small stat gaps are not auction prices; game replays are not available games or projections.
+Do not infer manager identity from team identity. Never request or
 expose ESPN credentials, cookies, or raw provider responses. If saved data is missing, report the
 limitation rather than inventing it."""
 
@@ -102,6 +108,39 @@ def create_mcp(services: ApplicationServices) -> FastMCP:
                 for item in rows
             ],
         )
+
+    @mcp.tool(
+        description=(
+            "Study saved completed seasons for an explicit returning-manager cohort. Return "
+            "original and cohort standings, observed rank-4/6 thresholds, top/middle/bottom "
+            "stat-gap medians, exact integer counting-stat point-gain ladders, equal-game "
+            "diagnostics and a separate extra-game replay at the target's observed rates. "
+            "Manager IDs must already have reviewed sole whole-season links. Incomplete "
+            "cohort seasons are excluded, not silently shrunk. Descriptive only: gaps are "
+            "not auction cost and extra games are not verified availability. Reads saved "
+            "local evidence only; never refreshes ESPN or saves a scenario."
+        ),
+        annotations={"readOnlyHint": True},
+    )
+    async def get_cohort_study(
+        seasons: Annotated[list[int], Field(min_length=1, max_length=15)],
+        cohort_manager_ids: Annotated[list[str], Field(min_length=2, max_length=30)],
+        target_manager_id: str,
+        extra_games: Annotated[int, Field(ge=0, le=1000, strict=True)] = 20,
+    ) -> CohortStudyDTO:
+        selection = services.workspace.selection
+        if selection is None:
+            raise WorkspaceError(
+                "No league is selected. Open the local workspace and save league details first."
+            )
+        report = await services.history.cohort_study(
+            selection.league_id,
+            tuple(seasons),
+            tuple(cohort_manager_ids),
+            target_manager_id,
+            extra_games,
+        )
+        return CohortStudyDTO.from_report(report)
 
     return mcp
 

@@ -1,0 +1,626 @@
+<section class="study" aria-label="Category strategy">
+  <p class="intro-copy">
+    Compare the returning managers’ historical stat gaps, then inspect where your next roto points
+    would have come from.
+  </p>
+  @if (!data().my_manager_id) {
+    <section class="analysis-card empty-state">
+      <h3>Choose your reviewed manager profile first.</h3>
+      <p>
+        Use the existing assistant-guided manager setup. No identity is inferred from a team name.
+      </p>
+    </section>
+  } @else if (!availableSeasons().length) {
+    <section class="analysis-card empty-state">
+      <h3>No saved seasons to compare.</h3>
+      <p>Import completed-season evidence through Connection before using this analysis.</p>
+    </section>
+  } @else {
+    <div class="controls">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic"
+        ><mat-label>History window</mat-label
+        ><mat-select [value]="windowSize()" (selectionChange)="windowSize.set($event.value)"
+          ><mat-option [value]="3">Last 3 seasons</mat-option
+          ><mat-option [value]="5">Last 5 seasons</mat-option></mat-select
+        ></mat-form-field
+      >
+      <div>
+        <span class="control-label">Comparison group</span
+        ><button
+          mat-stroked-button
+          type="button"
+          [disabled]="setupLoading() || !participants().length"
+          (click)="openCohort()"
+        >
+          {{
+            cohortIds().length
+              ? cohortIds().length + ' managers · review cohort'
+              : 'Review comparison group'
+          }}
+        </button>
+      </div>
+      <div class="basis-control">
+        <span class="control-label">Compare gaps using</span>
+        <div class="segmented" role="group" aria-label="Gap comparison basis">
+          <button
+            mat-button
+            type="button"
+            [class.active]="basis() === 'season_totals'"
+            [attr.aria-pressed]="basis() === 'season_totals'"
+            (click)="basis.set('season_totals')"
+          >
+            Season totals</button
+          ><button
+            mat-button
+            type="button"
+            [disabled]="!equalAvailable()"
+            [class.active]="basis() === 'per_team_game'"
+            [attr.aria-pressed]="basis() === 'per_team_game'"
+            (click)="basis.set('per_team_game')"
+          >
+            Equal games
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="assumption">
+      {{ cohortNote() }}
+      @if (cohortReviewed()) {
+        <strong>Comparison group reviewed for this session.</strong>
+      }
+    </p>
+    @if (setupLoading() || loading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Loading saved cohort evidence" />
+      <p class="loading-copy" role="status">Reading saved cohort evidence…</p>
+    }
+    @if (setupError()) {
+      <div class="notice error" role="alert">
+        {{ setupError() }}
+        <button mat-button type="button" (click)="setupReload.update(increment)">
+          Retry cohort setup
+        </button>
+      </div>
+    }
+    @if (error()) {
+      <div class="notice error" role="alert">
+        Category analysis could not be loaded. {{ error() }} Your cohort and history window are
+        retained.
+        <button mat-button type="button" (click)="reload.update(increment)">Retry analysis</button>
+      </div>
+    }
+    @if (!setupLoading() && !setupError() && !cohortIds().length) {
+      <section class="analysis-card empty-state">
+        <h3>Review who is returning.</h3>
+        <p>
+          Choose at least two reviewed managers, including your own profile, to calculate the
+          comparison.
+        </p>
+        <button
+          mat-stroked-button
+          type="button"
+          [disabled]="!participants().length"
+          (click)="openCohort()"
+        >
+          Review cohort
+        </button>
+      </section>
+    }
+    @if (report(); as analysis) {
+      @if (!analysis.seasons.length) {
+        <section class="analysis-card empty-state">
+          <h3>The selected cohort cannot be reconstructed yet.</h3>
+          <p>
+            Each season needs a sole, reviewed whole-season link for every selected manager. Other
+            evidence problems also exclude a season. The comparison group is never silently reduced.
+          </p>
+          <button mat-stroked-button type="button" (click)="openCohort()">Review cohort</button>
+          <p>Use the existing assistant-guided setup to review missing manager links.</p>
+        </section>
+      } @else {
+        <div class="context-strip">
+          <div class="context-item">
+            <small>Explicit comparison group</small
+            ><strong>{{ analysis.cohort_manager_ids.length }} managers</strong
+            ><small>{{
+              cohortReviewed()
+                ? 'Reviewed for this session'
+                : 'Returning-participant assumption · review above'
+            }}</small>
+          </div>
+          <div class="context-item">
+            <small>Comparable completed history</small
+            ><strong
+              >{{ analysis.seasons.length }} /
+              {{ analysis.requested_seasons.length }} seasons</strong
+            ><small>Requested {{ analysis.requested_seasons.join(' · ') }}</small>
+          </div>
+          <div class="context-item">
+            <small>Your {{ latest()?.season }} cohort replay</small
+            ><strong
+              >{{ number(latestPersonal()?.total_points, 1) }}
+              <span
+                >/ {{ number(maximumPoints()) }} points · #{{
+                  latestPersonal()?.overall_rank
+                }}</span
+              ></strong
+            ><small
+              >Original {{ latest()?.original_standings?.length }} teams:
+              {{ number(latestOriginal()?.total_points, 1) }} points · #{{
+                latestOriginal()?.overall_rank
+              }}</small
+            >
+          </div>
+        </div>
+        <section class="analysis-card" aria-labelledby="study-map-title">
+          <header class="panel-heading">
+            <div>
+              <p class="eyebrow">1 · Compare categories</p>
+              <h3 id="study-map-title">Where were the smaller stat gaps?</h3>
+              <p>Shorter bars mean less stat separation between adjacent standings tiers.</p>
+            </div>
+            <span class="scope-pill">{{
+              basis() === 'season_totals'
+                ? 'Observed season totals'
+                : 'Counts per team game · ratios fixed'
+            }}</span>
+          </header>
+          <div class="table-scroll">
+            <table class="gap-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Top</th>
+                  <th>Middle</th>
+                  <th>Bottom</th>
+                  <th>
+                    Your ranks<br /><small
+                      >{{ analysis.seasons.map(seasonYear).join(' · ') }} (latest first)</small
+                    >
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (code of codes(); track code) {
+                  <tr [class.selected]="category() === code">
+                    <td>
+                      <button
+                        type="button"
+                        class="category-button"
+                        [attr.aria-label]="'Inspect ' + code"
+                        [attr.aria-pressed]="category() === code"
+                        (click)="chooseCategory(code)"
+                      >
+                        {{ code }}
+                        @if (category() === code) {
+                          ↗
+                        }
+                      </button>
+                    </td>
+                    @for (zoneName of zones; track zoneName) {
+                      <td>
+                        <div class="gap-cell">
+                          <div class="bar-track" aria-hidden="true">
+                            <div
+                              [class]="'bar ' + zoneName"
+                              [style.width.%]="barWidth(zone(code, zoneName))"
+                            ></div>
+                          </div>
+                          <span class="gap-value">{{ number(zone(code, zoneName), 3) }}</span>
+                        </div>
+                      </td>
+                    }
+                    <td>
+                      <div class="rank-chips">
+                        @for (season of analysis.seasons; track season.season) {
+                          <span
+                            class="rank-chip"
+                            [attr.title]="
+                              season.season + ': rank ' + rankLabel(rank(season, code, basis()))
+                            "
+                            >{{ rankLabel(rank(season, code, basis())) }}</span
+                          >
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="method-copy">
+            Shared bar scale: 0–{{ number(maxGap(), 3) }} league spreads. Median of season medians,
+            with equal season weight. Missing values are unavailable.
+          </p>
+          <p class="method-copy">
+            Select a category to inspect actual stat steps. Small historical gaps do not establish
+            low auction prices.
+          </p>
+        </section>
+        <section class="analysis-card" aria-labelledby="study-detail-title">
+          <header class="panel-heading">
+            <div>
+              <p class="eyebrow">2 · Inspect your point-gain steps</p>
+              <h3 id="study-detail-title">
+                {{ category() }} · your {{ selectedSeason()?.season }} finish
+              </h3>
+              <p>
+                {{ formatStat(row()?.target_value ?? null) }} · rank
+                {{ rankLabel(rank(selectedSeason(), category(), basis())) }} of
+                {{ analysis.cohort_manager_ids.length }}
+                @if (row() && !row()?.geometry?.higher_is_better) {
+                  · lower is better
+                }
+              </p>
+            </div>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic"
+              ><mat-label>Season evidence</mat-label
+              ><mat-select
+                [value]="selectedSeason()?.season"
+                (selectionChange)="year.set($event.value)"
+              >
+                @for (season of analysis.seasons; track season.season) {
+                  <mat-option [value]="season.season">{{ season.season }}</mat-option>
+                }
+              </mat-select></mat-form-field
+            >
+          </header>
+          <div class="detail-grid">
+            <div class="curve-wrap">
+              <div #chartElement>
+                @if (curve(); as chart) {
+                  <svg
+                    [attr.viewBox]="'0 0 ' + chart.width + ' 275'"
+                    role="img"
+                    [attr.aria-label]="
+                      category() +
+                      ' observed standings tiers. Rank runs from worse to better. Your rank ' +
+                      rankLabel(rank(selectedSeason(), category(), basis()))
+                    "
+                  >
+                    <title>
+                      {{ category() }} · {{ selectedSeason()?.season }} observed cohort standings
+                    </title>
+                    <text x="72" y="16">
+                      {{
+                        row()?.units === 'ratio'
+                          ? 'Observed ratio'
+                          : basis() === 'per_team_game'
+                            ? 'Count per team game'
+                            : 'Observed season total'
+                      }}
+                    </text>
+                    @for (tick of chart.ticks; track $index) {
+                      <line
+                        class="grid"
+                        x1="72"
+                        [attr.x2]="chart.right"
+                        [attr.y1]="tick.y"
+                        [attr.y2]="tick.y"
+                      />
+                      <text x="62" [attr.y]="tick.y + 4" text-anchor="end">
+                        {{ formatStat(tick.value) }}
+                      </text>
+                    }
+                    <path class="curve" [attr.d]="chart.path" />
+                    @for (point of chart.points; track point.rank) {
+                      <circle
+                        [attr.class]="'tier ' + point.tone"
+                        [attr.cx]="point.x"
+                        [attr.cy]="point.y"
+                        [attr.r]="point.tone === 'me' ? 7 : 5"
+                      >
+                        <title>
+                          {{ formatStat(point.value) }} · rank {{ rankLabel(point.rank) }} ·
+                          {{ point.team_ids.length }} team(s){{
+                            point.tone === 'me' ? ' · You' : ''
+                          }}
+                        </title>
+                      </circle>
+                    }
+                    @if (chart.target; as target) {
+                      <circle class="ghost" [attr.cx]="target.x" [attr.cy]="target.y" r="7">
+                        <title>
+                          Selected target · {{ formatStat(target.step.target_value) }} ·
+                          {{ signed(target.step.actual_gain) }} roto points
+                        </title>
+                      </circle>
+                    }
+                    <text x="72" y="258">#{{ analysis.cohort_manager_ids.length }} · worse</text>
+                    <text [attr.x]="chart.right" y="258" text-anchor="end">#1 · better</text>
+                  </svg>
+                } @else {
+                  <p class="notice">
+                    Equal-game standings are unavailable for this season because positive
+                    games-played evidence is missing. Switch to season totals to inspect its valid
+                    raw standings.
+                  </p>
+                }
+              </div>
+              <div class="legend">
+                <span><i class="me"></i>You</span><span><i class="better"></i>Next better tier</span
+                ><span><i class="worse"></i>Next worse tier</span>
+                @if (curve()?.target) {
+                  <span><i class="target"></i>Selected point target</span>
+                }
+              </div>
+              <p class="method-copy">
+                Gap to next better tier: {{ formatGap(row()?.gap_to_next_better ?? null) }}. Buffer
+                to next worse tier: {{ formatGap(row()?.buffer_to_next_worse ?? null) }}.
+                @if (row()?.gap_to_next_better === null) {
+                  No distinct better tier.
+                }
+                @if (row()?.buffer_to_next_worse === null) {
+                  No distinct worse tier.
+                }
+              </p>
+              <div class="thresholds">
+                @for (
+                  threshold of selectedSummary()?.thresholds ?? [];
+                  track threshold.observed_rank
+                ) {
+                  <div class="threshold">
+                    <small
+                      >Observed #{{ threshold.observed_rank }} threshold · selected history
+                      window</small
+                    ><strong>{{ formatStat(threshold.median) }}</strong
+                    ><small
+                      >Range {{ formatStat(threshold.minimum) }}–{{ formatStat(threshold.maximum)
+                      }}<br />{{ threshold.season_count }} comparable seasons · ties may span this
+                      ordinal</small
+                    >
+                    @if (threshold.excluded_seasons.length) {
+                      <small
+                        >Excluded from native threshold summary:
+                        {{ threshold.excluded_seasons.join(' · ') }}</small
+                      >
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+            <aside class="ladder-panel">
+              <h4>What would a point have required?</h4>
+              @if (gains().length) {
+                <p class="method-copy">
+                  Smallest whole-stat change earning at least each weighted point gain. Opponents
+                  stay fixed.
+                </p>
+                <div class="ladder-options">
+                  @for (gain of gains(); track gain.requested_gain) {
+                    <button
+                      type="button"
+                      class="ladder-step"
+                      [class.active]="wanted() === gain.requested_gain"
+                      [disabled]="gain.required_delta === null"
+                      [attr.aria-pressed]="wanted() === gain.requested_gain"
+                      (click)="wanted.set(gain.requested_gain)"
+                    >
+                      <span
+                        >At least +{{ gain.requested_gain }} roto
+                        {{ gain.requested_gain === 1 ? 'point' : 'points' }}</span
+                      ><strong>{{ gainLabel(gain) }}</strong>
+                    </button>
+                  }
+                </div>
+                <p class="callout" aria-live="polite">
+                  @if (selectedGain(); as gain) {
+                    @if (gain.required_delta !== null) {
+                      {{ gainLabel(gain) }} → {{ formatStat(gain.target_value) }} total →
+                      {{ signed(gain.actual_gain) }} roto points. This is the minimum integer
+                      change.
+                    } @else {
+                      This gain is unattainable. Select a smaller step.
+                    }
+                  }
+                </p>
+                <p class="method-copy">
+                  Joining and passing a tie can earn different gains. Each step changes only this
+                  category.
+                </p>
+              } @else {
+                <p class="callout">
+                  @if (basis() === 'per_team_game') {
+                    Switch to season totals to inspect the exact counting-stat ladder.
+                  } @else if (row()?.units === 'ratio') {
+                    Shooting-ratio gain steps require a makes/attempts scenario. Use the observed
+                    thresholds for historical context.
+                  } @else {
+                    An integer gain ladder requires integral counting totals for every team. It is
+                    unavailable for this evidence.
+                  }
+                </p>
+              }
+            </aside>
+          </div>
+          <details class="source-details">
+            <summary>How to read the chart and its evidence</summary>
+            <p>
+              Dots represent exact tied tiers; tied category ranks are averages. The curve describes
+              final standings. Integer steps change only your category total against fixed
+              opponents, including joining or passing ties.
+            </p>
+            <p>
+              Each gap is divided by that season’s P90–P10 league spread. Top/middle/bottom use
+              adjacent-tier average-rank midpoints: ≤{{ analysis.rank_zone_boundaries[0] }}, &gt;{{
+                analysis.rank_zone_boundaries[0]
+              }}
+              to ≤{{ analysis.rank_zone_boundaries[1] }}, and &gt;{{
+                analysis.rank_zone_boundaries[1]
+              }}. Within-season medians lead to an equal-weight median across seasons.
+            </p>
+            @if (selectedSeason(); as season) {
+              <div class="source-ledger">
+                <div>
+                  Teams observation<br /><code>{{ season.teams_observation_id }}</code
+                  ><br />{{ season.retrieved_at | date: 'medium' }} · {{ season.mapper_version }} ·
+                  {{ season.teams_coverage }}
+                </div>
+                <div>
+                  Settings observation<br /><code>{{ season.settings_observation_id }}</code
+                  ><br />{{ season.settings_retrieved_at | date: 'medium' }} ·
+                  {{ season.settings_mapper_version }} · {{ season.settings_coverage }}
+                </div>
+                <div>
+                  Reviewed whole-season links<br />
+                  @for (link of season.assignment_evidence; track link.manager_id) {
+                    <span
+                      >{{ alias(link.manager_id) }} · revision {{ link.revision }} ·
+                      <code>{{ link.assignment_id }}</code
+                      ><br
+                    /></span>
+                  }
+                </div>
+                <div>
+                  Calculation<br /><code>{{ analysis.calculation_version }}</code
+                  ><br />Reported provider points:
+                  {{
+                    season.provider_points_match === null
+                      ? 'unavailable'
+                      : season.provider_points_match
+                        ? 'reconcile'
+                        : 'do not reconcile'
+                  }}
+                </div>
+              </div>
+            }
+          </details>
+        </section>
+        <section class="analysis-card" aria-labelledby="study-games-title">
+          <p class="eyebrow">3 · Check games played</p>
+          <h3 id="study-games-title">Is game volume part of the story?</h3>
+          <p class="method-copy">Two separate checks help you read the historical result.</p>
+          <div class="game-grid">
+            <div>
+              <h4>{{ category() }} after equalizing game volume</h4>
+              @if (selectedSeason()?.equal_game_standings) {
+                <div class="big-shift">
+                  #{{ rankLabel(rank(selectedSeason(), category(), 'season_totals')) }} → #{{
+                    rankLabel(rank(selectedSeason(), category(), 'per_team_game'))
+                  }}
+                  <span>of {{ analysis.cohort_manager_ids.length }}</span>
+                </div>
+                <p class="method-copy">
+                  Season-total rank → count-per-game rank. Each team’s own positive games played is
+                  divided out; shooting ratios stay unchanged. Your observed team games:
+                  {{ number(rawPersonal()?.games_played) }}.
+                </p>
+                <button
+                  mat-button
+                  type="button"
+                  (click)="
+                    basis.set(basis() === 'season_totals' ? 'per_team_game' : 'season_totals')
+                  "
+                >
+                  {{
+                    basis() === 'season_totals'
+                      ? 'View all categories with equal games'
+                      : 'Return to season-total gaps'
+                  }}
+                </button>
+              } @else {
+                <p class="notice">
+                  Equal-game diagnostic unavailable: at least one team lacks positive games-played
+                  evidence. Raw standings remain available.
+                </p>
+              }
+              <p class="method-copy">Historical rates, not a forecast.</p>
+            </div>
+            <div>
+              <h4>Replay extra games at your observed rates</h4>
+              <div class="segmented" role="group" aria-label="Hypothetical extra games">
+                @for (extra of extraOptions; track extra) {
+                  <button
+                    mat-button
+                    type="button"
+                    [disabled]="!selectedSeason()?.game_replay || loading()"
+                    [class.active]="extraGames() === extra"
+                    [attr.aria-pressed]="extraGames() === extra"
+                    (click)="extraGames.set(extra)"
+                  >
+                    +{{ extra }}
+                  </button>
+                }
+              </div>
+              @if (replay(); as after) {
+                <div aria-live="polite">
+                  <div class="big-shift">
+                    {{ number(rawPersonal()?.total_points, 1) }} →
+                    {{ number(after.total_points, 1) }} <span>roto points</span>
+                  </div>
+                  <p class="method-copy">
+                    {{ signed(selectedSeason()?.game_replay?.target_points_gain ?? null) }} points
+                    in the independent +{{ analysis.extra_games }}-game replay · overall #{{
+                      rawPersonal()?.overall_rank
+                    }}
+                    → #{{ after.overall_rank }}
+                  </p>
+                  <div class="gain-chips">
+                    @for (gain of replayGains(); track gain.category) {
+                      <span class="gain-chip" [class.positive]="gain.gain > 0"
+                        >{{ gain.category }} {{ signed(gain.gain) }}</span
+                      >
+                    }
+                  </div>
+                </div>
+              } @else {
+                <p class="notice">
+                  Your positive games-played evidence is unavailable. No replay has been substituted
+                  with zero.
+                </p>
+              }
+              <p class="method-copy">
+                Hypothetical counting rates; shooting ratios stay fixed. Extra games are not
+                verified available starts. This replay is separate from the point-gain steps above.
+              </p>
+            </div>
+          </div>
+          @for (exclusion of selectedSeason()?.diagnostic_exclusions ?? []; track $index) {
+            <p class="method-copy">{{ exclusionLabel(exclusion) }}</p>
+          }
+        </section>
+      }
+      @if (analysis.exclusions.length) {
+        <section class="analysis-card exclusions">
+          <h3>Excluded season evidence</h3>
+          <p>Each affected season is excluded as a whole; no manager is silently dropped.</p>
+          <ul>
+            @for (exclusion of analysis.exclusions; track $index) {
+              <li>{{ exclusionLabel(exclusion) }}</li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  }
+</section>
+<ng-template #cohortTemplate>
+  <h2 mat-dialog-title>Review the comparison group</h2>
+  <mat-dialog-content
+    ><p>{{ cohortNote() }}</p>
+    <p>
+      Keep the same managers across all selected seasons. Returning status is a planning assumption,
+      separate from reviewed identity evidence.
+    </p>
+    <div class="manager-grid">
+      @for (manager of participants(); track manager.id) {
+        <mat-checkbox
+          [checked]="draftIds().includes(manager.id)"
+          [disabled]="manager.id === data().my_manager_id"
+          (change)="toggleManager(manager.id, $event.checked)"
+          >{{ manager.alias
+          }}{{ manager.id === data().my_manager_id ? ' · you' : '' }}</mat-checkbox
+        >
+      }
+    </div>
+    <p>
+      {{ draftIds().length }} selected · include your profile and 2–30 managers. No assignments or
+      plans are saved.
+    </p></mat-dialog-content
+  >
+  <mat-dialog-actions align="end"
+    ><button mat-button mat-dialog-close type="button">Cancel</button
+    ><button mat-flat-button type="button" [disabled]="!validDraft()" (click)="applyCohort()">
+      Apply cohort
+    </button></mat-dialog-actions
+  >
+</ng-template>

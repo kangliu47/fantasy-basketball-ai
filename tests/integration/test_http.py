@@ -1,9 +1,29 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from fantasy_ai.interfaces.http.api import create_api
-from tests.fakes import FAKE_SESSION, fake_service
+from tests.fakes import FAKE_SESSION, SELECTION, SNAPSHOT, fake_service
 
 HEADERS = {"X-Fantasy-Client": "local-ui", "Origin": "http://testserver"}
+
+
+def test_offline_http_startup_and_history_do_not_read_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = fake_service()
+    service.repository.save_selection(SELECTION)
+    service.repository.save_snapshot(SELECTION, SNAPSHOT)
+
+    def forbidden() -> None:
+        raise AssertionError("Offline HTTP must not read credentials")
+
+    monkeypatch.setattr(service.credentials, "load", forbidden)
+    with TestClient(create_api(service)) as client:
+        state = client.get("/api/state").json()
+        assert state["connection"] == "disconnected"
+        assert state["league"]["name"] == "Synthetic League"
+        assert state["operation"]["status"] != "error"
+        assert client.get("/api/history").status_code == 200
 
 
 def test_local_configuration_and_explicit_public_response() -> None:

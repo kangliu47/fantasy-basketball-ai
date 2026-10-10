@@ -44,8 +44,6 @@ class WorkspaceService:
                 self.snapshot = await asyncio.to_thread(
                     self.repository.load_snapshot, self.selection
                 )
-            saved = await asyncio.to_thread(self.credentials.load)
-            self.connection = "saved" if saved else "disconnected"
         except WorkspaceError as error:
             self.operation = Operation(status="error", message=str(error))
 
@@ -110,7 +108,7 @@ class WorkspaceService:
             await asyncio.to_thread(self.gateway.verify, selection, session)
             if self._cancelled.is_set():
                 raise asyncio.CancelledError
-            self.operation = Operation("login", "running", "Saving your connection in Keychain…")
+            self.operation = Operation("login", "running", "Keeping your ESPN session in memory…")
             await asyncio.to_thread(self.credentials.save, session)
             self.connection = "connected"
             self.operation = Operation(
@@ -178,7 +176,7 @@ class WorkspaceService:
             self._ensure_idle()
             await asyncio.to_thread(self.credentials.delete)
             self.connection = "disconnected"
-            self.operation = Operation(status="success", message="Saved app connection removed.")
+            self.operation = Operation(status="success", message="In-memory ESPN session cleared.")
             return self.state()
 
     async def history(self, limit: int = 20, offset: int = 0) -> SnapshotPage:
@@ -202,9 +200,13 @@ class WorkspaceService:
 
     async def close(self) -> None:
         self._cancelled.set()
-        if self._task is not None and not self._task.done():
-            try:
-                await asyncio.wait_for(asyncio.shield(self._task), timeout=5)
-            except TimeoutError:
-                self._task.cancel()
-                await asyncio.gather(self._task, return_exceptions=True)
+        try:
+            if self._task is not None and not self._task.done():
+                try:
+                    await asyncio.wait_for(asyncio.shield(self._task), timeout=5)
+                except TimeoutError:
+                    self._task.cancel()
+                    await asyncio.gather(self._task, return_exceptions=True)
+        finally:
+            await asyncio.to_thread(self.credentials.delete)
+            self.connection = "disconnected"

@@ -3,6 +3,31 @@
 Curated product-facing changes, newest first. This is distinct from Git history:
 it records why a change matters to the product or learning objective.
 
+## 2026-10-10 — Category strategy from study to working application
+
+The user moved the question from general analytical features to category
+priorities across returning managers. The accepted first meaning of cheap roto
+points is a small historical stat gap. The local app now supports reviewed
+cohort comparisons, recent three/five-season gap maps, exact counting-stat point
+steps and independent games diagnostics. The user reviewed the mock and
+confirmed the implemented journey works before authorizing publication.
+
+Pure Python calculations serve both HTTP and local MCP. Ties, weights, ratio
+volumes, whole-season assignment evidence and missing-data limits travel with
+the results. Small gaps do not prove low auction prices; manager results do not
+prove intent; game replays do not verify available starts or predict next season.
+The public showcase adds the approved synthetic walkthrough and the Learning Lab
+records these decisions. The connected app and real league evidence remain local.
+
+## 2026-10-10 — Make saved history independent of live credentials
+
+The user rejected repeated Python Keychain prompts. Backend startup now restores
+saved data without reading credentials; explicit ESPN browser connection supplies
+a session held only in process memory. Disconnect/shutdown release that reference.
+No API token file or Keychain migration is introduced. The dedicated browser's
+own login state remains separate. HTTP/MCP regression tests forbid startup
+credential reads, and saved-history use was verified while disconnected.
+
 ## 2026-09-27 — Show category totals by league rank
 
 The user approved the synthetic Option F chart for My Profile. The local app now

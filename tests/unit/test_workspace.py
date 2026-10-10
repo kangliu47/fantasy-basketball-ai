@@ -105,14 +105,53 @@ def test_failed_refresh_preserves_last_snapshot_and_hides_unexpected_exception()
     asyncio.run(scenario())
 
 
-def test_saved_session_is_not_claimed_as_verified_on_restart() -> None:
+def test_startup_restores_saved_history_without_reading_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     async def scenario() -> None:
         service = fake_service()
-        service.credentials.save(FAKE_SESSION)
+        service.repository.save_selection(SELECTION)
+        service.repository.save_snapshot(SELECTION, SNAPSHOT)
+
+        def forbidden() -> None:
+            raise AssertionError("Offline startup must not read credentials")
+
+        monkeypatch.setattr(service.credentials, "load", forbidden)
         await service.initialize()
-        assert service.connection == "saved"
+        assert service.connection == "disconnected"
+        assert service.selection == SELECTION
+        assert service.snapshot == SNAPSHOT
+        assert service.operation.status != "error"
+
+    asyncio.run(scenario())
+
+
+def test_disconnect_and_shutdown_drop_the_session() -> None:
+    async def scenario() -> None:
+        service = fake_service()
+        await service.configure(SELECTION)
+        await service.connect()
+        await finish(service)
         await service.disconnect()
         assert service.connection == "disconnected"
         assert service.credentials.load() is None
+        await service.connect()
+        await finish(service)
+        await service.close()
+        assert service.credentials.load() is None
+        assert service.connection == "disconnected"
+
+    asyncio.run(scenario())
+
+
+def test_refresh_without_session_requests_sign_in_and_keeps_history() -> None:
+    async def scenario() -> None:
+        service = fake_service()
+        await service.configure(SELECTION)
+        service.snapshot = SNAPSHOT
+        with pytest.raises(WorkspaceError, match="Connect ESPN"):
+            await service.refresh()
+        assert service.snapshot == SNAPSHOT
+        assert service.connection == "disconnected"
 
     asyncio.run(scenario())

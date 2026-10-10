@@ -1,5 +1,140 @@
 # Implementation plan
 
+## Category strategy remote-main delivery — October 10, 2026
+
+**User verification / authorization:** The user confirmed the real application
+works and explicitly requested commit and integration into remote main, including
+public documentation and learning about category strategy. The earlier local-only
+stopping point is superseded for this release. Local main matched origin/main
+before delivery; no separate feature branch needs merging.
+
+**Public update:** Link the approved synthetic strategy walkthrough from the
+homepage and the canonical demo; label it as an implemented local flow. Update
+README, product changelog, Learning Lab, the sourced learning journal, PRD,
+architecture evidence and publication whitelist. Describe cheap points as small
+historical stat gaps, preserve missing evidence and keep auction cost, manager
+intent and future-production claims outside what the data establishes. The
+related user-approved removal of Python Keychain access is included.
+
+**Verification:** All 259 Python tests and 64 Angular tests pass. Ruff, strict
+mypy, formatting, source freshness, publication and notebook audits pass. The
+production bundle remains approximately 807 kB, with its existing soft warning.
+Public-page browser checks confirm the homepage entry, synthetic walkthrough
+and updated Learning Lab; the app has already been user-verified.
+
+**Release gates:** Review intended files; run source freshness, publication,
+notebook and redacted secret checks, relevant regression tests and static-page
+browser verification. Commit audited source and synthetic artifacts, push main
+without force, and verify the remote revision and Pages deployment.
+
+## Category strategy frontend — October 10, 2026
+
+**Approval:** The user explicitly requested implementation of the reviewed
+Category strategy mock in the real application. Entry is League comparison;
+Historical overview remains available. The accepted flow is recorded in
+[the mock review](category-strategy-study-mock.md) and PRD amendment 55.
+
+**Delivered:** Typed saved-history API integration, session-local returning-cohort
+review, recent three/five-season controls, category gap bars and personal ranks,
+responsive native tied-tier curves, observed thresholds, exact counting-stat
+point steps, equal-game comparison, independent extra-game replay and evidence
+ledgers. The specified departure is seeded through reviewed reference IDs and
+unambiguous last-place ranks; private names and league data are not embedded in
+source. Analytical formulas and the saved-only backend contract are unchanged.
+
+**Verification:** All 64 Angular tests pass across 14 files, including new cohort,
+navigation, ties, weighted lower-is-better, fractional counting units, ratios,
+missing games, exclusion, cancellation and retry cases. Production build passes
+with the 500 kB soft initial-bundle warning (approximately 807 kB, below the 1 MB
+hard limit). Local browser checks use saved history while ESPN is disconnected.
+All 257 Python tests pass, along with Ruff, strict mypy (70 application source
+files), formatting, diff whitespace checks, source-ledger freshness and the
+publication audit (299 files, zero findings). Browser verification covered the
+12-manager cohort dialog, three/five-season results, equal-game mode, extra-game
+replay and mobile table containment. The loopback server remains running on
+port 8765, without ESPN sign-in or Keychain access.
+No commit, merge, publication, ESPN authentication or provider refresh is included.
+
+## Remove Python Keychain access — October 10, 2026
+
+**Runtime verification follow-up (latest):** At the user's request, started the
+updated Uvicorn app on loopback port 8765. Startup completed without a Keychain
+prompt. Health, state, saved-history, archive catalog and Angular shell returned
+HTTP 200. State was disconnected/idle with a saved snapshot; the browser loaded
+the saved manager profile and category history, then showed Not connected with
+the existing Connect ESPN action. No ESPN connection, refresh or credential
+read was performed. Re-ran 14 focused session, workspace, HTTP and MCP tests:
+all passed. Left the server running and its browser tab open for user review.
+
+**User decision:** Python must not access Keychain. ESPN sign-in supplies a local
+session, and saved historical analysis must remain usable without authentication.
+This supersedes the original Keychain storage requirement. The existing dedicated
+browser profile remains the default; only its normal browser login is persistent.
+
+**Delivered:** Replaced the Keychain adapter with a process-local memory session
+store shared by workspace and history imports; removed the direct keyring
+dependency and all startup credential reads. The existing explicit Connect ESPN
+flow supplies a verified session. Disconnect/shutdown drop the reference; backend
+restart requires Connect ESPN again. Offline HTTP/MCP startup restores saved data
+without credentials. No UI navigation, provider refresh, Keychain migration,
+commit or merge is included. Existing OS permissions and obsolete Keychain items
+require manual cleanup; the backend never touches them.
+
+**Verification:** Regression tests first reproduced startup credential access and
+retained shutdown sessions, then passed after implementation. Synthetic fixtures
+cover memory-store isolation, shared composition, credential-free HTTP/MCP startup,
+disconnect/shutdown cleanup, sign-in-required refresh and retained saved history.
+The full Python suite passes (257 tests), as do Ruff, strict mypy (114 source
+files), source-ledger freshness, formatting and the publication audit. An AST
+scan confirms no keyring imports across all 70 application source files. The
+lockfile update removes only the two direct-dependency entries; unused keyring
+remains transitive through FastMCP. No real ESPN session or Keychain was accessed
+during verification. Existing running processes still need to reload the code.
+
+## Category strategy frontend mock — October 10, 2026
+
+The user requested a mock before deciding to integrate the historical study
+backend and selected League comparison as the entry point. The
+[interactive synthetic mock](category-strategy-study-preview.html) proposes a
+category overview, exact point-gain drill-down and games-volume checks inside
+the existing shell. It includes cohort/history controls and unavailable states.
+See [the integration proposal](category-strategy-study-mock.md) for backend field
+mapping and the stopping point. The initial mock delivery awaited review. The later approval and local
+implementation are recorded above; merge remains a separate decision.
+
+## Reusable historical cohort study — October 10, 2026
+
+**Personal question:** Which calculations from a completed-season strategy study
+should future analysis call directly instead of recreating them in scratch code?
+
+**Approved scope:** Promote cohort rescoring, observed thresholds and rank-zone
+gaps, exact integer gain ladders, and games-volume diagnostics. Reuse existing
+auction and manager-pattern reports; retain exploratory correlations and
+permutation experiments in analysis-only code. The accepted implementation adds
+pure domain calculations, one saved-only application method, HTTP and local MCP
+access, synthetic tests and documentation. See [the decision contract](cohort-study-contract.md).
+
+**Delivered:** `HistoryService.cohort_study` accepts selected saved seasons,
+explicit reviewed cohort manager IDs, a target inside that cohort and an
+extra-game count. Both adapters call it directly and share one safe response
+schema. The output preserves exact ties, weights, original versus hypothetical
+standings, evidence revisions, missing-data exclusions, units and equal-season
+weighting. Existing analytical contracts remain unchanged.
+
+**Validation:** Tests were run failing before domain implementation and before
+application/adapter implementation, then made green. Synthetic checks cover
+score conservation, weighted ties, lower direction, exhaustive small-population
+integer minimality, missing data, attribution conflicts, ratio components,
+period compatibility and equal-season aggregation. Adapter tests compare HTTP
+and MCP results and prohibit gateway, credential and analysis save calls.
+An offline comparison against the previous private study export passed 816
+checks across five seasons; no private fixture entered the repository.
+The full Python suite passes (256 tests); Ruff, strict mypy (114 source files),
+source-ledger freshness and the working-tree publication audit also pass.
+
+**Stopping point:** Backend reuse only. No UI, new prediction, auction pricing,
+optimization, provider refresh, persisted scenario, commit or publication.
+
 ## Stats by rank in My Profile — September 27, 2026
 
 **Personal question:** Across completed-season categories, where did my observed

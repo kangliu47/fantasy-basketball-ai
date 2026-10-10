@@ -191,11 +191,11 @@ def _mcp_content(data: dict[str, Any]) -> None:
     contract = "tests/integration/test_mcp.py"
     bootstrap = "src/fantasy_ai/bootstrap.py"
     refs = {
-        "mcp-create": _add_ref(data, server, 24, 41),
-        "mcp-tools": _add_ref(data, server, 43, 104),
-        "mcp-context": _add_ref(data, server, 51, 65),
-        "mcp-results": _add_ref(data, server, 76, 104),
-        "mcp-stdio": _add_ref(data, server, 109, 116),
+        "mcp-create": _add_ref(data, server, 30, 47),
+        "mcp-tools": _add_ref(data, server, 49, 143),
+        "mcp-context": _add_ref(data, server, 57, 71),
+        "mcp-results": _add_ref(data, server, 82, 110),
+        "mcp-stdio": _add_ref(data, server, 148, 155),
         "mcp-dto": _add_ref(data, schemas, 6, 36),
         "mcp-test": _add_ref(data, contract, 17, 61),
         "shared-root": _add_ref(data, bootstrap, 22, 65),
@@ -217,7 +217,7 @@ def _mcp_content(data: dict[str, Any]) -> None:
                 "title": "FastMCP STDIO adapter",
                 "layer": "MCP / presentation adapter",
                 "role": "Defines one transport-independent FastMCP server and runs its default STDIO transport without protocol-breaking stdout diagnostics.",
-                "contract": "Exactly two read-only tools expose selected context and saved season category results.",
+                "contract": "Three read-only tools expose selected context, saved season category results and the approved historical cohort study.",
                 "guarantee": "The adapter never calls localhost REST, refreshes ESPN or exposes raw provider responses.",
                 "limit": "The module currently combines the adapter factory and executable entry point; split them if transport or lifecycle complexity grows.",
                 "refs": [refs["mcp-create"], refs["mcp-tools"], refs["mcp-stdio"]],
@@ -239,7 +239,7 @@ def _mcp_content(data: dict[str, Any]) -> None:
                 "role": "Workspace and history protocols keep persistence details outside the services used by the MCP adapter.",
                 "contract": "The tools request only initialized selection, snapshot, archive seasons and calculated results.",
                 "guarantee": "No arbitrary SQL, filesystem access or provider payload becomes an agent tool.",
-                "limit": "The underlying protocols remain broader than the two-tool surface.",
+                "limit": "The underlying protocols remain broader than the three-tool surface.",
                 "refs": [
                     "src/fantasy_ai/application/ports.py:10",
                     "src/fantasy_ai/application/history/ports.py:29",
@@ -329,7 +329,7 @@ def _mcp_content(data: dict[str, Any]) -> None:
                 "Implements ports",
                 "Reads local evidence",
             ],
-            "note": "Codex launches a local STDIO child process. FastMCP exposes two read-only tools, which call the existing application services directly; no HTTP port, REST loopback, provider refresh or MCP-specific database is introduced.",
+            "note": "Codex launches a local STDIO child process. FastMCP exposes three read-only tools, which call the existing application services directly; no HTTP port, REST loopback, provider refresh or MCP-specific database is introduced.",
         },
     )
     for feature in data["features"]:
@@ -387,9 +387,9 @@ def _mcp_content(data: dict[str, Any]) -> None:
             "title": "Keep the MCP surface read-only and transport-replaceable",
             "kind": "Accepted POC boundary",
             "priority": "Current thin slice",
-            "observed": "The implemented server exposes exactly two read-only tools over STDIO, calls application services directly and maps results into compact DTOs.",
+            "observed": "The implemented server exposes three read-only tools over STDIO, calls application services directly and maps results into explicit safe DTOs. The approved cohort-study tool extends the original two-tool slice.",
             "scenario": "Adding writes, provider refreshes or an HTTP listener before the local discovery proof is understood would combine product, security and lifecycle risks in one experiment.",
-            "proposal": "Keep STDIO and the two-tool contract until a concrete multi-client or remote use case justifies mounting the same tool definitions as Streamable HTTP under FastAPI.",
+            "proposal": "Keep STDIO and the approved read-only tool contract until a concrete multi-client or remote use case justifies mounting the same tool definitions as Streamable HTTP under FastAPI.",
             "tradeoff": "A client gets its own process and service instances, and concurrent local write workflows remain an operational limitation of the POC.",
             "refs": [refs["mcp-create"], refs["mcp-tools"], refs["mcp-test"]],
         },
@@ -402,7 +402,7 @@ def _mcp_content(data: dict[str, Any]) -> None:
             "title": "Narrow process capabilities before remote MCP",
             "kind": "Review finding",
             "priority": "Before Streamable HTTP",
-            "observed": "The two tools are read-only, but build_services still constructs the full local service bundle, including credential, provider, browser-login and planning-capable objects that the MCP tools do not need.",
+            "observed": "The three tools are read-only, but build_services still constructs the full local service bundle, including credential, provider, browser-login and planning-capable objects that the MCP tools do not need.",
             "scenario": "Tool annotations and server instructions describe intended behavior; they are not a least-privilege process boundary. That distinction matters if the server later accepts remote clients.",
             "proposal": "Before adding Streamable HTTP, introduce a narrow MCP read-service bundle or facade that constructs and exposes only the saved-state capabilities required by approved tools.",
             "tradeoff": "A separate composition path adds wiring and risks duplication, so defer it while STDIO remains a local proof and keep the tool contract transport-independent.",
@@ -605,6 +605,241 @@ def _projection_poc_content(data: dict[str, Any]) -> None:
     )
 
 
+def _memory_session_content(data: dict[str, Any]) -> None:
+    """Keep the current authentication boundary and removed adapter refs accurate."""
+    old_ref = "src/fantasy_ai/infrastructure/keychain.py:15"
+    new_ref = _add_ref(data, "src/fantasy_ai/infrastructure/session_store.py", 8, 23)
+    data["refs"].pop(old_ref, None)
+    for node in data["nodes"].values():
+        node["refs"] = [new_ref if ref == old_ref else ref for ref in node["refs"]]
+    data["nodes"]["workspace-http"]["limit"] = (
+        "These checks are not user authentication. Startup restores saved data without "
+        "reading credentials; live ESPN reads require explicit browser connection."
+    )
+    data["nodes"]["workspace"]["guarantee"] = (
+        "A refresh is saved before the visible snapshot advances. Login verification "
+        "precedes an in-memory session; disconnect and shutdown drop that reference."
+    )
+    data["nodes"]["workspace-adapters"].update(
+        title="Browser, memory session, ESPN & storage",
+        role="PlaywrightBrowserLogin uses a dedicated browser profile. MemorySessionStore "
+        "holds only a process-local session. Gateways and repositories implement ports.",
+        limit="The dedicated browser may remember login. Backend restarts require Connect "
+        "ESPN again. Python never accesses Keychain or writes an API token file.",
+    )
+    data["nodes"]["local-system"].update(
+        title="ESPN + browser + process memory + DuckDB",
+        role="ESPN is the remote source. Browser profile and saved workspace data stay on "
+        "the Mac; the backend session lives only in process memory.",
+    )
+    for feature in data["features"]:
+        if feature["id"] == "workspace":
+            feature["calls"][-1] = "Browser / memory session / ESPN / DuckDB"
+            feature["note"] = (
+                "The browser adapter maps integration events to progress. The backend "
+                "holds a verified session only in memory; public state contains no cookies. "
+                "Saved-history startup does not read credentials."
+            )
+    for flow in data["flows"]:
+        if flow["id"] == "login":
+            flow["steps"][2].update(
+                title="Verify and hold the session in memory",
+                text="WorkspaceService verifies access and shares the session through "
+                "MemorySessionStore. Disconnect/shutdown drop it; no Keychain or token file.",
+            )
+            flow["steps"][3]["text"] = (
+                "An explicit refresh uses the current in-memory session and asks "
+                "LeagueGateway for a mapped LeagueSnapshot."
+            )
+    for decision in data["decisions"]:
+        if decision["id"] == "D6":
+            decision["observed"] = decision["observed"].replace(
+                "Startup initializes Keychain and migrations.",
+                "Startup restores saved state and runs migrations without credentials.",
+            )
+
+
+def _cohort_study_content(data: dict[str, Any]) -> None:
+    """Document the implemented saved-only path separately from provider imports."""
+    ui = _add_ref(data, "frontend/src/app/analytics/category-strategy-study.ts", 110, 230)
+    http = _add_ref(data, "src/fantasy_ai/interfaces/http/history_api.py", 121, 136)
+    service = _add_ref(data, "src/fantasy_ai/application/history/service.py", 414, 439)
+    port = _add_ref(data, "src/fantasy_ai/application/history/ports.py", 29, 105)
+    storage = _add_ref(data, "src/fantasy_ai/infrastructure/history_repository.py", 103, 145)
+    study = _add_ref(data, "src/fantasy_ai/domain/history/cohort_study.py", 463, 520)
+    scoring = _add_ref(data, "src/fantasy_ai/domain/history/cohort_standings.py", 40, 150)
+    dto = _add_ref(data, "src/fantasy_ai/interfaces/cohort_study_schemas.py", 1, 34)
+    mcp = _add_ref(data, "src/fantasy_ai/interfaces/mcp/server.py", 109, 144)
+    tests = _add_ref(data, "tests/integration/test_cohort_study_api.py", 1, 100)
+    entries = [
+        (
+            "study-ui",
+            "Category strategy",
+            "Angular / presentation",
+            "League comparison presents reviewed-cohort gaps, native tiers, exact point steps and games checks.",
+            "Explicit cohort, target, season window and extra-game parameters feed the typed saved-history read.",
+            "Unsubscribing obsolete requests prevents stale results; Apply stages cohort changes without saving assignments.",
+            "Returning status is a session-local assumption. Angular formats and plots Python results, without scoring teams.",
+            [ui],
+        ),
+        (
+            "study-http",
+            "Cohort-study HTTP / MCP",
+            "Sibling interface adapters",
+            "GET /api/archive/cohort-study and get_cohort_study invoke the same application method.",
+            "Bounded explicit inputs and a shared safe DTO preserve the analytical contract.",
+            "No provider payload, ownership token or credential appears in the DTO.",
+            "HTTP uses the selected local league; MCP is local STDIO, not a hosted service.",
+            [http, mcp, dto],
+        ),
+        (
+            "study-service",
+            "HistoryService.cohort_study",
+            "Application / saved-history use case",
+            "Reads requested saved archives and current reviewed assignments, then calls the pure study calculation.",
+            "Uses the existing HistoryRepository port and translates invalid requests into bounded application errors.",
+            "The method does not invoke credentials, a provider gateway, refresh or save.",
+            "One unresolved cohort member excludes that entire season; the population is never silently reduced.",
+            [service, tests],
+        ),
+        (
+            "study-port",
+            "Existing HistoryRepository",
+            "Application / read contracts",
+            "Supplies imported archives and reviewed manager assignments to the study use case.",
+            "Existing archive and assignment protocols keep filesystem and SQL details outside the calculation.",
+            "No new analytical store or database schema is introduced.",
+            "Other methods support imports; this feature invokes only the saved-read subset.",
+            [port, service],
+        ),
+        (
+            "study-store",
+            "Existing DuckDB history adapter",
+            "Infrastructure / saved evidence",
+            "Reconstructs saved observations and assignment revisions through the existing repository adapter.",
+            "Reads use the single workspace connection lock and preserve observation lineage.",
+            "Saved evidence remains available while ESPN is disconnected.",
+            "The public walkthrough embeds synthetic results; it does not access the local database.",
+            [storage],
+        ),
+        (
+            "study-domain",
+            "Exact cohort calculations",
+            "Domain / pure calculations",
+            "Rescores the explicit cohort, summarizes observed thresholds and gaps, and computes independent games diagnostics.",
+            "Contract COHORT-STUDY-2026-10-10-v1 preserves exact ties, weights, direction, ratio volume and equal-season summaries.",
+            "Integer point steps rescore ties; missing games withhold diagnostics without erasing valid raw standings.",
+            "Small historical gaps are not auction prices, manager intent, available starts or future-production forecasts.",
+            [study, scoring],
+        ),
+    ]
+    for identifier, title, layer, role, contract, guarantee, limit, refs in entries:
+        data["nodes"][identifier] = dict(
+            id=identifier,
+            title=title,
+            layer=layer,
+            role=role,
+            contract=contract,
+            guarantee=guarantee,
+            limit=limit,
+            refs=refs,
+        )
+    data["features"] = [f for f in data["features"] if f["id"] != "cohort-study"]
+    data["features"].insert(
+        0,
+        {
+            "id": "cohort-study",
+            "name": "Category strategy",
+            "question": "Where did the returning cohort have smaller historical stat gaps?",
+            "nodes": [
+                "study-ui",
+                "study-http",
+                "study-service",
+                "study-port",
+                "study-store",
+                "local-data",
+            ],
+            "domain": "study-domain",
+            "calls": [
+                "Typed saved read",
+                "Invokes shared use case",
+                "Reads through existing port",
+                "Implements read contract",
+                "Reads local evidence",
+            ],
+            "note": "The approved Angular journey and local MCP call one saved-only method. Python owns scoring; the frontend plots typed results. No ESPN, authentication, scenario write or new database is part of this read path.",
+        },
+    )
+    data["flows"] = [f for f in data["flows"] if f["id"] != "cohort-study"]
+    data["flows"].insert(
+        0,
+        {
+            "id": "cohort-study",
+            "title": "Inspect historical category investment",
+            "summary": "Reviewed cohort · saved completed seasons · independent descriptive replays",
+            "steps": [
+                {
+                    "actor": "Angular",
+                    "title": "Review the returning cohort",
+                    "text": "Choose the comparison group and recent history. Returning participation is a planning assumption, separate from reviewed identity evidence.",
+                    "ref": ui,
+                },
+                {
+                    "actor": "HTTP or MCP",
+                    "title": "Validate explicit study inputs",
+                    "text": "The sibling adapters call HistoryService.cohort_study directly and share one safe result schema.",
+                    "ref": http,
+                },
+                {
+                    "actor": "HistoryService",
+                    "title": "Read saved evidence",
+                    "text": "Load requested archives and assignment revisions through the existing repository. No credentials, provider call or save is performed.",
+                    "ref": service,
+                },
+                {
+                    "actor": "Domain",
+                    "title": "Preserve the cohort and exact ties",
+                    "text": "Require sole reviewed whole-season links, rescore weighted categories, and retain original standings separately from hypothetical replays.",
+                    "ref": study,
+                },
+                {
+                    "actor": "Domain",
+                    "title": "Find the smallest integer point step",
+                    "text": "Rescore candidate native counting changes against fixed opponents. Joining and passing ties can earn different weighted gains.",
+                    "ref": scoring,
+                },
+                {
+                    "actor": "Angular",
+                    "title": "Show gaps, steps and games limits",
+                    "text": "Plot observed tiers, label unavailable evidence and display independent equal-game and extra-game results. Small gaps do not establish auction cost.",
+                    "ref": ui,
+                },
+            ],
+            "failure": "An unresolved member excludes the whole season. Missing positive games withholds affected diagnostics while keeping valid raw standings. Retry retains filters and stale reads are canceled.",
+            "refs": [tests, dto, mcp],
+        },
+    )
+    data["decisions"] = [d for d in data["decisions"] if d["id"] != "D11"]
+    data["decisions"].insert(
+        0,
+        {
+            "id": "D11",
+            "title": "Define cheap points as historical stat gaps",
+            "kind": "Accepted analytical and UI boundary",
+            "priority": "Implemented locally",
+            "observed": "The user selected small historical stat gaps, approved the mock, and confirmed the local Category strategy view works.",
+            "scenario": "Combining final outcomes, manager intent and auction prices into one opportunity score would exceed the available evidence.",
+            "proposal": "Reuse exact saved-history calculations across HTTP, MCP and Angular; preserve the explicit cohort, ties, exclusions and independent games checks.",
+            "tradeoff": "The view supports category investigation, not a price model, player optimizer or forecast. Public examples are synthetic.",
+            "refs": [study, scoring, ui],
+        },
+    )
+    data["nodes"]["mcp-adapters"]["role"] = (
+        "The composition root supplies the same DuckDB repositories and process-local "
+        "memory session adapter as HTTP. Saved-history startup does not load credentials."
+    )
+
+
 def refresh_review(root: Path = ROOT, review: Path = REVIEW) -> None:
     html, data = load_review(review)
     old_sources = data["sources"]
@@ -619,6 +854,8 @@ def refresh_review(root: Path = ROOT, review: Path = REVIEW) -> None:
 
     _mcp_content(data)
     _projection_poc_content(data)
+    _memory_session_content(data)
+    _cohort_study_content(data)
     embedded_paths = {ref["path"] for ref in data["refs"].values()}
     data["sources"] = {
         path: {
@@ -658,7 +895,7 @@ def refresh_review(root: Path = ROOT, review: Path = REVIEW) -> None:
         [
             "MCP contract",
             "Fresh synthetic check",
-            "The FastMCP client discovers exactly get_fantasy_context and get_season_results, receives compact structured results, and makes no provider call.",
+            "The FastMCP client discovers get_fantasy_context, get_season_results and get_cohort_study. Synthetic checks verify saved structured results, HTTP/MCP study parity and no provider call.",
         ],
         [
             "Artifact interactions",

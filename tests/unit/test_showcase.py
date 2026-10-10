@@ -25,6 +25,7 @@ def test_showcase_home_links_every_published_section() -> None:
         "architecture-review.html",
         "learning-lab.html",
         "historical-category-allocation-preview.html",
+        "category-strategy-study-preview.html",
     ):
         assert (DOCS / page).is_file()
         assert f'href="{page}"' in home
@@ -68,6 +69,7 @@ def test_product_showcase_pages_share_the_repository_style_baseline() -> None:
         "analytics-ui-review.html",
         "learning-lab.html",
         "historical-category-allocation-preview.html",
+        "category-strategy-study-preview.html",
     ):
         html = (DOCS / page).read_text(encoding="utf-8")
         assert 'data-ui-style="fantasy-analytics-v1"' in html
@@ -236,6 +238,7 @@ def test_pages_workflow_stages_only_the_explicit_showcase_pages() -> None:
         "cp docs/architecture-review.html _site/architecture-review.html",
         "cp docs/learning-lab.html _site/learning-lab.html",
         "cp docs/category-strategy-map-preview.html _site/category-strategy-map-preview.html",
+        "cp docs/category-strategy-study-preview.html _site/category-strategy-study-preview.html",
         (
             "cp docs/historical-category-allocation-preview.html "
             "_site/historical-category-allocation-preview.html"
@@ -404,3 +407,50 @@ def test_personal_category_fixture_has_deterministic_scope_sensitive_labels() ->
     assert "normalizationAvailable" in (DOCS / "personal-category-value-review.html").read_text(
         encoding="utf-8"
     )
+
+
+def test_category_strategy_public_walkthrough_is_synthetic_and_saved_only() -> None:
+    preview = (DOCS / "category-strategy-study-preview.html").read_text(encoding="utf-8")
+    fixture = re.search(
+        r'<script id="synthetic-data" type="application/json">(.*?)</script>', preview, re.S
+    )
+    assert fixture is not None
+    data = json.loads(fixture.group(1))
+    assert data["managers"] == [
+        "You",
+        "River",
+        "Atlas",
+        "Juniper",
+        "Summit",
+        "Harbor",
+        "Cedar",
+        "Orion",
+        "Maple",
+        "Willow",
+        "Beacon",
+        "Aspen",
+        "Former manager",
+    ]
+    assert set(data["reports"]) == {"12", "13"}
+    assert "now implemented in the local app" in preview
+    assert "Small historical gaps do not establish low auction prices" in preview
+    assert 'href="index.html"' in preview
+    assert "fetch(" not in preview and "XMLHttpRequest" not in preview
+
+
+def test_cohort_architecture_map_separates_saved_reads_from_provider_imports() -> None:
+    data = architecture_review_data()
+    feature = next(f for f in data["features"] if f["id"] == "cohort-study")
+    assert feature["domain"] == "study-domain"
+    assert feature["nodes"] == [
+        "study-ui",
+        "study-http",
+        "study-service",
+        "study-port",
+        "study-store",
+        "local-data",
+    ]
+    assert "history-adapters" not in feature["nodes"]  # That node includes provider imports.
+    assert "does not invoke credentials" in data["nodes"]["study-service"]["guarantee"]
+    assert "Python owns scoring" in feature["note"]
+    assert data["decisions"][0]["id"] == "D11"

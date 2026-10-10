@@ -3,6 +3,7 @@
 import asyncio
 from pathlib import Path
 
+import pytest
 from fastmcp import Client
 
 from fantasy_ai.application.planning.service import PreparationService
@@ -15,12 +16,20 @@ from tests.fakes import SELECTION, SNAPSHOT, fake_service
 from tests.history_fakes import history_service, observation
 
 
-def test_mcp_discovers_read_only_tools_and_returns_compact_saved_results(tmp_path: Path) -> None:
+def test_mcp_discovers_read_only_tools_and_returns_compact_saved_results(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     async def run() -> None:
         workspace = fake_service()
         workspace.repository.save_selection(SELECTION)
         workspace.repository.save_snapshot(SELECTION, SNAPSHOT)
         history, repository, gateway = history_service(tmp_path)
+
+        def forbidden() -> None:
+            raise AssertionError("Offline MCP must not read credentials")
+
+        monkeypatch.setattr(workspace.credentials, "load", forbidden)
+        monkeypatch.setattr(history.credentials, "load", forbidden)
         for dataset in (Dataset.SETTINGS, Dataset.TEAMS, Dataset.ROSTERS, Dataset.DRAFT):
             repository.save_observation(observation(dataset, 2026))
         planning = PreparationService(
@@ -31,7 +40,7 @@ def test_mcp_discovers_read_only_tools_and_returns_compact_saved_results(tmp_pat
         async with Client(server) as client:
             tools = await client.list_tools()
             names = {tool.name for tool in tools}
-            assert names == {"get_fantasy_context", "get_season_results"}
+            assert names == {"get_fantasy_context", "get_season_results", "get_cohort_study"}
 
             context = await client.call_tool("get_fantasy_context")
             assert context.structured_content == {

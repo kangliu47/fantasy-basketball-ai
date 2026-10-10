@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { CohortStudy } from './cohort-study.models';
 import {
   Assignment,
   AssignmentInput,
@@ -88,6 +89,21 @@ export class ArchiveApi {
   }
   categoryAllocation() {
     return this.http.get<HistoricalCategoryAllocationReport>('/api/archive/category-allocation');
+  }
+  cohortStudy(
+    seasons: number[],
+    cohortManagerIds: string[],
+    targetManagerId: string,
+    extraGames: number,
+  ) {
+    return this.http.get<CohortStudy>('/api/archive/cohort-study', {
+      params: {
+        seasons,
+        cohort_manager_ids: cohortManagerIds,
+        target_manager_id: targetManagerId,
+        extra_games: extraGames,
+      },
+    });
   }
   myTeam(season: number) {
     return this.http.get<{ team_id: string | null }>(`/api/archive/seasons/${season}/my-team`);

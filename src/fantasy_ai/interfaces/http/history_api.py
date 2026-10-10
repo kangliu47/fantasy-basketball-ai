@@ -11,6 +11,7 @@ from fantasy_ai.domain.history.analysis import CategoryResult, ManagerProfile
 from fantasy_ai.domain.history.category_value_review import ReviewWindow
 from fantasy_ai.domain.history.models import Assignment, Dataset, Manager
 from fantasy_ai.domain.history.patterns import LeaguePatterns
+from fantasy_ai.interfaces.cohort_study_schemas import CohortStudyDTO
 
 from .history_schemas import (
     AliasRequest,
@@ -116,6 +117,22 @@ def create_history_router(history: HistoryService, workspace: WorkspaceService) 
     ) -> HistoricalCategoryValueReviewDTO:
         report = await history.category_value_review(selected().league_id, window)
         return HistoricalCategoryValueReviewDTO.from_report(report)
+
+    @router.get("/cohort-study", response_model=CohortStudyDTO)
+    async def cohort_study(
+        seasons: Annotated[list[int], Query(min_length=1, max_length=15)],
+        cohort_manager_ids: Annotated[list[UUID], Query(min_length=2, max_length=30)],
+        target_manager_id: UUID,
+        extra_games: Annotated[int, Query(ge=0, le=1000)] = 20,
+    ) -> CohortStudyDTO:
+        report = await history.cohort_study(
+            selected().league_id,
+            tuple(seasons),
+            tuple(str(mid) for mid in cohort_manager_ids),
+            str(target_manager_id),
+            extra_games,
+        )
+        return CohortStudyDTO.from_report(report)
 
     @router.get("/category-allocation", response_model=HistoricalCategoryAllocationReportDTO)
     async def category_allocation() -> HistoricalCategoryAllocationReportDTO:

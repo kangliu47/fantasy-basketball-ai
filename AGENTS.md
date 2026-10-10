@@ -301,7 +301,11 @@ the V5 experiment, not settled best practice, and may be reduced later.
   commands may remain documented for developers, not required for the user.
 - ESPN login uses a dedicated, local browser profile. The user enters credentials
   and completes MFA/CAPTCHA directly on ESPN. Do not automate those challenges.
-- Store the captured ESPN session in macOS Keychain. Never expose cookies in
+- Keep the captured ESPN session only in backend process memory. Python must
+  never access Keychain or persist an API token to disk. Startup and saved-history
+  analysis must not read credentials. Use the existing explicit Connect ESPN
+  browser flow before provider reads; disconnect and shutdown clear the session.
+  The dedicated browser may retain its own login. Never expose cookies in
   HTTP responses, Angular state, logs, snapshots, screenshots, test output, Git,
   or agent context. Do not inspect real `.env`, browser profile, or Keychain values.
 - No ESPN writes, automated transactions, remote application binding, or access
@@ -310,7 +314,7 @@ the V5 experiment, not settled best practice, and may be reduced later.
   review are authorized. Publish only audited source, synthetic fixtures and
   documentation. Keep private league data, credentials, browser state, local review
   notes and machine-specific configuration out of commits and Pages artifacts.
-- UI actions need useful busy, success, error, and cancellation states. A saved
+- UI actions need useful busy, success, error, and cancellation states. An available
   session is not proof of league access; verify with a read request.
 - Persist successful refreshes as complete, append-only DuckDB observations.
   Keep database access behind application ports and use transactions. Preserve

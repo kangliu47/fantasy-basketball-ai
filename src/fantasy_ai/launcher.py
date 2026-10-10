@@ -83,7 +83,7 @@ def main() -> int:
         "a{color:#11746b}</style><h1>The workspace could not start</h1>"
         "<p>The local app may need a rebuild, or another program may be using its port.</p>"
         "<p>Return to the project in Codex and ask to restart the workspace. "
-        "Your league data and saved connection are unchanged.</p>"
+        "Your saved league data is unchanged. Connect ESPN after the server restarts.</p>"
     )
     webbrowser.open(error_page.as_uri())
     return 1

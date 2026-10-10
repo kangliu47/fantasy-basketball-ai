@@ -14,8 +14,8 @@ from fantasy_ai.infrastructure.duckdb_repository import DuckDBWorkspaceRepositor
 from fantasy_ai.infrastructure.espn_gateway import ESPNLeagueGateway
 from fantasy_ai.infrastructure.history_gateway import ESPNHistoryGateway
 from fantasy_ai.infrastructure.history_repository import DuckDBHistoryRepository
-from fantasy_ai.infrastructure.keychain import MacOSCredentialStore
 from fantasy_ai.infrastructure.planning_repository import DuckDBPlanRepository
+from fantasy_ai.infrastructure.session_store import MemorySessionStore
 from fantasy_ai.interfaces.http.api import create_api
 
 
@@ -33,7 +33,7 @@ def build_services(root: Path | None = None) -> ApplicationServices:
     root = root or Path.cwd()
     gateway = ESPNLeagueGateway(root / "data/raw/espn")
     repository = DuckDBWorkspaceRepository(root / ".local/workspace")
-    credentials = MacOSCredentialStore()
+    credentials = MemorySessionStore()
     workspace = WorkspaceService(
         repository,
         credentials,

@@ -134,7 +134,8 @@ const strategyMap: CategoryStrategyMapReport = {
       excluded_seasons: 0,
       classification: 'UNCLASSIFIED',
       stopping_boundary: null,
-      narrative: 'No repeated historical transition boundary met the conservative stopping-zone rule.',
+      narrative:
+        'No repeated historical transition boundary met the conservative stopping-zone rule.',
       zones: ['top', 'upper_middle', 'middle', 'lower_middle', 'bottom'].map((zone) => ({
         zone,
         median_normalized_gap: 0.2,
@@ -239,7 +240,9 @@ describe('LeagueComparisonPage', () => {
     expect(content).toContain('Same direction');
     expect(content).toContain('Historical league pressure');
     expect(content).toContain('Standings gaps, not player scarcity.');
-    expect(content).toContain('Adjacent standings-tier gaps, normalized within each completed season.');
+    expect(content).toContain(
+      'Adjacent standings-tier gaps, normalized within each completed season.',
+    );
     expect(content).toContain('2026 rank #2');
     expect(content).toContain('Additional auction analysis');
     expect(
@@ -398,28 +401,60 @@ describe('LeagueComparisonPage', () => {
     expect(content).toContain('No transition met the stability rule.');
     expect(content).not.toContain('CAP_CANDIDATE');
     expect(content).not.toContain('Stopping boundary');
-    expect(fixture.componentInstance.strategyStatus({
-      ...strategyMap.categories[0],
-      classification: 'CAP_CANDIDATE',
-    })).toBe('Stable historical boundary');
-    expect(fixture.componentInstance.strategyStatus({
-      ...strategyMap.categories[0],
-      knees: [
-        {
-          advance_zone: 'middle',
-          entry_zone: 'lower_middle',
-          evaluable_seasons: 3,
-          supporting_seasons: 3,
-          support_fraction: 1,
-          median_effect: 0.5,
-          q1_effect: 0.1,
-          effect_iqr: 0,
-          leave_one_season_out_stable: false,
-          label: 'SUGGESTIVE',
-          evidence: [],
-        },
-      ],
-    })).toBe('Possible boundary; stability not met');
+    expect(
+      fixture.componentInstance.strategyStatus({
+        ...strategyMap.categories[0],
+        classification: 'CAP_CANDIDATE',
+      }),
+    ).toBe('Stable historical boundary');
+    expect(
+      fixture.componentInstance.strategyStatus({
+        ...strategyMap.categories[0],
+        knees: [
+          {
+            advance_zone: 'middle',
+            entry_zone: 'lower_middle',
+            evaluable_seasons: 3,
+            supporting_seasons: 3,
+            support_fraction: 1,
+            median_effect: 0.5,
+            q1_effect: 0.1,
+            effect_iqr: 0,
+            leave_one_season_out_stable: false,
+            label: 'SUGGESTIVE',
+            evidence: [],
+          },
+        ],
+      }),
+    ).toBe('Possible boundary; stability not met');
     expect(fixture.componentInstance.zoneLabel('upper_middle')).toBe('Upper middle');
+  });
+  it('opens the approved strategy entry lazily and preserves it across comparison tabs', () => {
+    flushShell();
+    expect(fixture.nativeElement.querySelector('app-category-strategy-study')).toBeNull();
+    fixture.componentInstance.selectView('strategy');
+    fixture.detectChanges();
+    http.expectOne((r) => r.url.endsWith('/category-pattern-report')).flush(report);
+    fixture.detectChanges();
+    const study = fixture.nativeElement.querySelector('app-category-strategy-study');
+    expect(study).not.toBeNull();
+    expect(study.textContent).toContain('Review who is returning');
+    fixture.componentInstance.selectView('overview');
+    fixture.detectChanges();
+    fixture.componentInstance.selectView('strategy');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-category-strategy-study')).toBe(study);
+    http.expectNone((r) => r.url.endsWith('/cohort-study'));
+  });
+
+  it('keeps shell failures visible while the strategy view is selected', () => {
+    fixture.componentInstance.selectView('strategy');
+    fixture.detectChanges();
+    http.expectOne('/api/archive/managers').flush({}, { status: 503, statusText: 'Unavailable' });
+    http.expectOne('/api/archive/catalog');
+    fixture.detectChanges();
+    const alert = fixture.nativeElement.querySelector('[role="alert"]');
+    expect(alert).not.toBeNull();
+    expect(alert.closest('[hidden]')).toBeNull();
   });
 });

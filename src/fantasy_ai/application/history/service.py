@@ -42,6 +42,8 @@ from fantasy_ai.domain.history.category_value_review import (
     ReviewWindow,
     historical_category_value_review,
 )
+from fantasy_ai.domain.history.cohort_study import CohortStudyReport
+from fantasy_ai.domain.history.cohort_study import cohort_study as calculate_cohort_study
 from fantasy_ai.domain.history.models import (
     Assignment,
     CoverageStatus,
@@ -408,6 +410,32 @@ class HistoryService:
     ) -> CategoryStrategyMapReport:
         archives = await self._analysis_archives(league_id, seasons)
         return await asyncio.to_thread(category_strategy_map_report, archives)
+
+    async def cohort_study(
+        self,
+        league_id: int,
+        seasons: tuple[int, ...],
+        cohort_manager_ids: tuple[str, ...],
+        target_manager_id: str,
+        extra_games: int = 20,
+    ) -> CohortStudyReport:
+        """Read saved observations and reviewed links; never refresh or save a scenario."""
+        known = {manager.id for manager in await self.managers(league_id)}
+        if not 2 <= len(cohort_manager_ids) <= 30 or not set(cohort_manager_ids) <= known:
+            raise WorkspaceError("Choose between 2 and 30 reviewed managers in this league.")
+        archives = await self._analysis_archives(league_id, seasons)
+        assignments = await self.assignments(league_id)
+        try:
+            return await asyncio.to_thread(
+                calculate_cohort_study,
+                archives,
+                assignments,
+                cohort_manager_ids,
+                target_manager_id,
+                extra_games,
+            )
+        except ValueError as error:
+            raise WorkspaceError(str(error)) from None
 
     async def category_value_review(
         self, league_id: int, window: ReviewWindow

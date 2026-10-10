@@ -4,24 +4,25 @@ A local, read-only ESPN league workspace built with **FastAPI**, **Angular**, an
 **Angular Material**. Domain Driven Design and Clean Architecture guide the
 boundaries between the fantasy model, use cases, adapters, and UI.
 
-**Current product direction — September 5, 2026:** focus on personal use, starting
-with **past league results and category strengths**. Occasional manager mapping
-belongs in an assisted conversation; it should not gate team-level analysis.
+**Current product direction — October 10, 2026:** use completed-season evidence
+to investigate **category priorities across returning managers**. Category strategy
+is implemented locally after user review. Occasional manager mapping belongs in
+an assisted conversation; team-level history stays available without full mapping.
 See the [scope and next delivery](docs/personal-product-direction.md) and
-[project learning journal](docs/learnings/README.md). This is a roadmap update;
-the app workflows below describe the existing implementation.
+[project learning journal](docs/learnings/README.md). The workflows below describe
+the existing implementation.
 
 ## Explore the public showcase
 
 **[Open the Fantasy Basketball Intelligence showcase](https://kangliu47.github.io/fantasy-basketball-ai/)**
 
 Choose the synthetic [application preview](https://kangliu47.github.io/fantasy-basketball-ai/app-preview.html),
-the approved [analytics UI review](https://kangliu47.github.io/fantasy-basketball-ai/analytics-ui-review.html),
+the [Category strategy walkthrough](https://kangliu47.github.io/fantasy-basketball-ai/category-strategy-study-preview.html),
 or the source-backed [architecture review](https://kangliu47.github.io/fantasy-basketball-ai/architecture-review.html).
-Together they show the current product experience, the next proposed analytics
-interaction and the implementation boundaries, including the completed local
-STDIO MCP thin slice. The accepted organization and
-maintenance rules are in the [showcase strategy](docs/showcase-strategy.md).
+Together they show the historical product experience, the Category strategy flow
+now implemented locally, and the implementation boundaries. The local STDIO MCP
+interface shares saved-history services with HTTP; public pages use synthetic data.
+The accepted organization and maintenance rules are in the [showcase strategy](docs/showcase-strategy.md).
 New product mocks and public previews must start from the repository's
 [UI style guide](docs/ui-style-guide.md), not a generator's default theme.
 
@@ -44,18 +45,30 @@ For initial setup, open **Connection & data**:
    panel explains where to find them in ESPN.
 2. Click **Connect ESPN**. A separate Chrome window opens. Sign in directly on
    ESPN and complete any verification yourself.
-3. Once league access is verified, the window closes and the app saves the API
-   session in **macOS Keychain**. Click **Refresh league** to load teams and rosters.
+3. Once league access is verified, the window closes and the backend holds the API
+   session **only in memory**. Click **Refresh league** to load teams and rosters.
 
-Future refreshes reuse the saved connection. When it expires, use **Reconnect
-ESPN**. No cookies need to be copied, pasted, or sent to Codex. Chrome is required
+Refreshes reuse that session while the backend stays running. After a backend
+restart or session expiry, use **Connect ESPN** or **Reconnect ESPN**. No cookies
+need to be copied, pasted, or sent to Codex. Chrome is required
 for browser sign-in. The app uses a dedicated local
 browser profile, separate from your everyday Chrome profile.
 
-**Disconnect** removes the app's Keychain item. It does not sign the dedicated
+**Disconnect** clears the backend's in-memory session. It does not sign the dedicated
 browser out of ESPN. The last successful roster remains available when a refresh
 fails. Switching leagues loads the latest saved snapshot for that league and
 season, or an empty view if it has no saved data.
+
+Python never accesses Keychain. Startup and saved historical analysis work
+without credentials. The dedicated browser can remember its own ESPN login, so
+Connect ESPN may verify an existing browser session without another password.
+No separate API token file is written. Closing the app tab does not stop the
+backend or clear its session; disconnect explicitly or stop the backend.
+
+If an older version created a `fantasy-basketball-ai` Keychain item, this version
+does not read, migrate or delete it. In **Keychain Access**, you can remove Python
+from that item's **Access Control** list or delete that obsolete item yourself.
+Restart existing backend and local MCP processes to load the new code.
 
 Closing the browser tab leaves the small local server running for the current
 Mac session. Reopen the launcher to return to the workspace. If startup fails,
@@ -117,6 +130,28 @@ names and review season links when personal attribution becomes useful.
 Historical rosters do not establish continuous ownership; unverified transaction
 samples do not support churn or holding-period metrics.
 
+## Category strategy: inspect the returning league
+
+Open **League comparison → Category strategy**. Review the returning managers,
+choose the last three or five imported seasons, and compare top/middle/bottom
+stat gaps with your own category ranks. Selecting a category shows its observed
+standings tiers, historical thresholds and the smallest whole-stat change that
+would have earned each requested roto-point gain against fixed opponents.
+
+Equal-game rankings and a separate extra-game replay help distinguish game
+volume from observed rates. Ties, category weights, lower-is-better rules,
+missing games and excluded seasons remain explicit. The comparison group is a
+session-local planning assumption; changing it does not edit manager assignments.
+History works while disconnected from ESPN. Python owns all analytical calculations.
+
+“Cheap points” here means **small historical stat gaps**, not low auction prices.
+Use these results to identify categories to investigate alongside the existing
+manager-pattern and auction reports. They do not predict future outcomes or
+establish which players or extra starts are available. See the
+[synthetic walkthrough](docs/category-strategy-study-preview.html),
+[calculation contract](docs/cohort-study-contract.md) and
+[lessons from the study](docs/learnings/historical-study-reuse.md).
+
 ## What is implemented
 
 - League setup, browser sign-in/cancel, connection status, refresh progress, safe
@@ -124,22 +159,25 @@ samples do not support churn or holding-period metrics.
 - FastAPI endpoints with explicit response models; no credentials or raw ESPN
   responses are exposed to the frontend.
 - Independent domain objects, application use cases and protocols, and adapters
-  for ESPN, browser login, Keychain, and local persistence.
+  for ESPN, browser login, in-memory sessions, and local persistence.
 - An append-only DuckDB history of league settings, teams, players, and rosters,
   plus timestamped, credential-redacted ESPN captures.
 - Multi-season archives, reviewed manager assignments and deterministic historical
   analysis, with coverage, evidence tables and separate legacy 2017 support.
 - Persistent 2027 preparation plans, evidence-linked player shortlists, personal
-  category targets and manager watchlists, with a preparation-first UI.
+  category targets and manager watchlists, with their preserved preparation components.
 - Historical manager analytics with auction concentration metrics, a cumulative
   spend curve and an interactive category-finish heatmap.
+- Category strategy with reviewed-cohort rescoring, historical gap summaries,
+  exact counting-stat steps and games diagnostics, exposed through HTTP and MCP.
 - The original read-only Python probe remains available for developer diagnosis.
 
 Browser sign-in and league refresh have been exercised locally. Offline tests
 use synthetic data. ESPN's undocumented API may require mapping
 adjustments as it changes. The 2017–2026 archive, descriptive manager profiles
 and persistent 2027 preparation are implemented. Verified new-season inputs and
-manual draft rehearsal are the next milestone.
+manual draft rehearsal remain separate future work. The current slice makes
+saved category evidence inspectable for auction preparation.
 
 ## Learn the architecture
 
@@ -252,7 +290,7 @@ its chosen env file. Snapshots are written atomically with owner-only access.
 
 ## Local data and scope
 
-Keychain stores the API session. Ignored `.local/` holds browser state, settings,
+The backend API session lives only in process memory. Ignored `.local/` holds browser state, settings,
 the DuckDB history database, the original JSON cache, and server logs. Ignored `data/raw/espn/` contains
 credential-redacted captures, which may still contain private league/member data.
 Never share these files without sanitizing them or enable HTTP wire debugging

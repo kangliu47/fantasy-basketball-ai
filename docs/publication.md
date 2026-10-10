@@ -10,13 +10,14 @@ The accepted presentation strategy is recorded in
 
 ## What is published
 
-GitHub Pages publishes seven explicit static documents and one shared stylesheet:
+GitHub Pages publishes eight explicit static documents and one shared stylesheet:
 
 - `docs/index.html` as the showcase home at `/`;
 - `docs/app-preview.html` at `/app-preview.html`;
 - `docs/analytics-ui-review.html` at `/analytics-ui-review.html`;
 - `docs/architecture-review.html` at `/architecture-review.html`;
 - `docs/learning-lab.html` at `/learning-lab.html`;
+- `docs/category-strategy-study-preview.html` at `/category-strategy-study-preview.html`;
 - `docs/category-strategy-map-preview.html` at `/category-strategy-map-preview.html`;
 - `docs/historical-category-allocation-preview.html` at
   `/historical-category-allocation-preview.html`; and
@@ -27,7 +28,10 @@ The application preview, archived UI review and category-allocation walkthrough
 use invented aliases, category values and league patterns. The application
 preview is the canonical public demo; the focused walkthrough shows the approved
 My Profile flow, including the Stats by rank chart, and remains static synthetic
-content.
+content. The Category strategy walkthrough illustrates the implemented returning-
+cohort gap, exact point-step and games-diagnostic flow. Its managers, source
+references and backend-generated results are synthetic; state controls are for
+illustration and do not call the application API.
 The architecture review's diagrams, request flows, source viewer and decision
 forms run in the browser without an API. Review notes use browser-local storage
 and a JSON export; collaborators do not automatically share notes. Its source

@@ -42,12 +42,22 @@ curated public changes are in [product-changelog.md](product-changelog.md).
 Product-facing pages follow the repository's
 [UI style guide](ui-style-guide.md) and shared `showcase-theme.css` primitives.
 
-## Current architecture story — September 6, 2026
+## Category strategy publication — accepted October 10, 2026
+
+The user confirmed the local Category strategy journey works and authorized
+committing it to remote main with public documentation and learning updates.
+The homepage now points to the approved synthetic walkthrough, labeled as an
+implemented local flow. The canonical app demo links to it from League comparison.
+The Learning Lab records the decision to define cheap points as small historical
+stat gaps, the limits of inferring manager intent and price, and the tests needed
+to preserve cohort, ties and offline access. This adds no connected public runtime.
+
+## Current architecture story — October 10, 2026
 
 The **Understand** path now demonstrates the completed local STDIO MCP thin slice
 alongside the browser architecture. It must show that both interfaces reuse the
-same application services while keeping the MCP boundary limited to two read-only
-tools and saved evidence. A repository drift check protects the review's embedded
+same application services while keeping the MCP boundary limited to three read-only
+tools and saved evidence, including the approved cohort-study capability. A repository drift check protects the review's embedded
 source ledger; a page labeled current must be refreshed when implementation source
 changes.
 
@@ -66,6 +76,7 @@ current source snapshot cannot be rendered through the wrong architectural shape
 | `/app-preview.html` | Current synthetic application preview | Current demo |
 | `/analytics-ui-review.html` | Implemented manager-category-pattern interaction reference | Synthetic public evidence; implemented in the local product |
 | `/architecture-review.html` | Source-backed implementation and architecture review | Technical evidence for the reviewed snapshot |
+| `/category-strategy-study-preview.html` | Returning-cohort strategy walkthrough | Synthetic example of the implemented local flow |
 | `/learning-lab.html` | Process, experiments and durable project lessons | Living case study |
 
 Each page should link back to the showcase home. The home page should describe

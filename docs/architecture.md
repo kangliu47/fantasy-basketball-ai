@@ -1,5 +1,51 @@
 # Architecture and learning guide
 
+## Category strategy frontend — October 10, 2026
+
+`LeagueComparisonPage` lazily mounts `CategoryStrategyStudyComponent` when its
+Category strategy tab is first selected, preserving selections across the two
+comparison tabs. `ArchiveApi.cohortStudy` sends explicit season, cohort, target
+and extra-game parameters to the existing HTTP read. Typed DTOs mirror the safe
+backend response; Angular formats results, positions SVG tiers and shows
+server-derived point differences. Python retains scoring, thresholds, exact
+integer ladders, normalization and game replays.
+
+Reference participation comes from reviewed assignments and the existing
+manager-pattern report. A unique last-place departure in a 13-manager reference
+season seeds the specified 12-manager planning assumption. Ambiguity requires
+explicit cohort review. The dialog stages edits until Apply, locks the personal
+profile and saves no assignments or plans. Read requests are unsubscribed when
+filters change, preventing obsolete results from replacing current selections.
+Missing, excluded, loading and retryable-error states remain explicit. The view
+uses saved history while disconnected; it never requests credentials or refresh.
+See [the approved flow](category-strategy-study-mock.md).
+
+## Reusable historical cohort study — October 10, 2026
+
+The pure `domain/history/cohort_standings.py` module owns exact weighted ROTO
+rescoring and minimal integer counting-stat gain ladders. `cohort_study.py`
+composes those calculations with existing category geometry and strict reviewed
+attribution. It returns original and cohort standings separately, observed
+rank-4/6 thresholds, equal-season normalized gap summaries using the study's
+absolute rank boundaries 4 and 9, equal-game diagnostics and independent
+extra-game replays. Existing Strategy Map, allocation, auction and manager-pattern
+formulas remain unchanged. See [the contract](cohort-study-contract.md).
+
+`HistoryService.cohort_study` reads saved archives and current reviewed assignment
+revisions through the existing repository port. It performs no gateway,
+credential or save operation. An unresolved cohort member excludes the entire
+season. Ratios require matching makes/attempts, missing GP only withholds the
+affected diagnostic, and incompatible season lengths exclude native counting
+thresholds from cross-season summaries. Purpose-built safe result types retain
+lineage and exclusions without archive teams or ownership tokens.
+
+Sibling adapters share `interfaces/cohort_study_schemas.py`:
+`GET /api/archive/cohort-study` and local STDIO `get_cohort_study` call the same
+application method directly. The local MCP surface now has three read-only
+tools; the earlier two-tool thin slice below is historical. No database schema,
+frontend, runtime analysis dependency or provider operation is added. The static
+architecture source ledger is refreshed as a required source-drift check.
+
 ## Stats by rank presentation — September 27, 2026
 
 The historical allocation domain now projects its existing exact standings
@@ -252,7 +298,7 @@ FastAPI interface ──► application use cases ──► fantasy domain
                             ▲
                             │ implements ports
                   infrastructure adapters
-                  ESPN · browser · Keychain · DuckDB/files
+                  ESPN · browser · process memory · DuckDB/files
 ```
 
 The composition root, `bootstrap.py`, injects concrete adapters into the
@@ -262,8 +308,8 @@ the composition root or outer layers.
 | Layer | Responsibility | Must not know about |
 | --- | --- | --- |
 | `domain/` | League, team, roster player | HTTP, ESPN JSON, files, browser, UI |
-| `application/` | Configure, connect, cancel, refresh, browse history; ports and state | FastAPI, HTTPX, DuckDB, Keychain implementation, Angular |
-| `infrastructure/` | Implement browser, Keychain, file, and provider ports | Angular presentation |
+| `application/` | Configure, connect, cancel, refresh, browse history; ports and state | FastAPI, HTTPX, DuckDB, session-store implementation, Angular |
+| `infrastructure/` | Implement browser, memory session, file, and provider ports | Angular presentation |
 | `interfaces/http/` | HTTP validation, response DTOs, local-origin protection | Credential serialization |
 | `frontend/` | Material components, forms, typed HttpClient and interaction state | ESPN cookies and fantasy calculations |
 
@@ -287,12 +333,18 @@ the domain and UI. Raw payloads, owners, and member records stay outside HTTP.
 
 Connect ESPN starts a dedicated visible browser profile. The user enters
 credentials and completes verification directly in ESPN. Only cookies scoped
-to the fixed ESPN read URL are considered. Verify league access before saving
-the session in one macOS Keychain item. No cookie values reach Angular.
+to the fixed ESPN read URL are considered. Verify league access before placing
+the session in `MemorySessionStore`, shared by workspace and import use cases in
+one process. Python has no Keychain adapter or calls and writes no API token file.
+No cookie values reach Angular. Startup restores selection, snapshots and archive
+jobs without reading credentials, including the local MCP lifespan.
 
 The local browser profile is Git-ignored and contains authenticated state. Do
-not inspect it with an agent or emit browser traces/recordings. Keychain protects
-the API session cache; the browser also retains its own local session storage.
+not inspect it with an agent or emit browser traces/recordings. The browser
+retains its own local session storage; the backend keeps only an in-memory copy
+obtained through explicit Connect ESPN. A backend restart requires Connect ESPN
+again, which may reuse the dedicated browser's login. No automatic connection or
+provider refresh occurs during offline historical reads.
 Never use the everyday Chrome profile for this helper.
 
 Browser progress crosses the application port as a fixed `LoginStage` enum.
@@ -307,8 +359,13 @@ ESPN's normal sign-in and any verification challenges.
 FastAPI binds to loopback, validates Host, rejects cross-site requests, and
 requires a custom header for mutations. Angular and the API share one origin;
 there is no wildcard CORS. This is a local single-user application. A saved
-session is rechecked on refresh. Disconnect removes the app's Keychain cache;
-the dedicated browser can retain its ESPN sign-in.
+session is rechecked on refresh. Disconnect and workspace shutdown release the
+in-memory session reference; the dedicated browser can retain its ESPN sign-in.
+This is reference clearing, not a guarantee of secure erasure from Python memory.
+The compatibility `saved` connection status can still mean an in-memory session
+awaiting verification for a changed selection; no session survives process exit.
+Old Keychain items are untouched: cleanup and removal of previously granted
+Python access are manual OS operations, documented in README.
 
 ## Frameworks to learn
 
@@ -324,8 +381,9 @@ the dedicated browser can retain its ESPN sign-in.
 - Playwright: separate persistent context, scoped cookie access, user-driven
   login, and cancellation.
   [Persistent contexts](https://playwright.dev/python/docs/api/class-browsertype#browser-type-launch-persistent-context)
-- Keyring: explicitly use macOS Keychain with no plaintext fallback.
-  [Keyring documentation](https://keyring.readthedocs.io/en/latest/)
+- Backend sessions: a small thread-safe in-memory adapter with no external I/O.
+  `keyring` is no longer a direct dependency; FastMCP can still bring it as an
+  unused transitive dependency. No application code imports or invokes it.
 
 ## Run lifecycle
 

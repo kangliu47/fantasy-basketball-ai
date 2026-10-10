@@ -1,6 +1,14 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 52](#52-stats-by-rank-in-my-profile--accepted-implementation-2026-09-27)
+> **Current scope:** [amendment 56](#56-category-strategy-publication--user-verified-release-2026-10-10)
+> authorizes remote-main integration and synthetic public documentation after
+> user verification. [Amendment 55](#55-category-strategy-in-league-comparison--approved-mock-implementation-2026-10-10)
+> implements the approved Category strategy journey using saved historical evidence.
+> [Amendment 54](#54-no-python-keychain-access--user-correction-2026-10-10)
+> replaces Keychain integration with in-memory backend sessions and credential-free
+> offline startup. [Amendment 53](#53-reusable-historical-study-backend--accepted-implementation-2026-10-10)
+> promotes the completed-season study calculations into a saved-only backend
+> service with HTTP and local MCP access. [Amendment 52](#52-stats-by-rank-in-my-profile--accepted-implementation-2026-09-27)
 > adds the approved all-category rank curve with native and normalized vertical
 > scales. [Amendment 51](#51-historical-category-allocation--accepted-implementation-2026-09-27)
 > adds the approved My Profile category-buffer journey and its synthetic public
@@ -35,6 +43,64 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 56. Category strategy publication — user-verified release, 2026-10-10
+
+The user confirmed the implemented local flow works and explicitly authorized
+committing and integrating it into remote main, with public documentation and
+learning updates reflecting the category-strategy discussion. This supersedes
+the earlier local-only delivery boundary. The showcase links to the approved
+synthetic walkthrough; the Learning Lab and journal explain the chosen historical
+stat-gap quantity, cohort and tie semantics, games diagnostics, offline access
+and the distinction from price, intent and future production. Publish audited
+source and synthetic examples through the existing Pages whitelist. Real league
+findings, credentials, mappings, browser state and databases remain local.
+
+# 55. Category strategy in League comparison — approved mock implementation, 2026-10-10
+
+The user explicitly approved implementing the [reviewed mock](category-strategy-study-mock.md)
+in the real application. League comparison now offers Historical overview and
+Category strategy. The latter calls the existing saved-only cohort-study API to
+show normalized category gaps, personal ranks, native tied-tier curves, observed
+thresholds, exact integer point-gain steps and independent games diagnostics.
+
+The comparison group is an explicit, editable planning assumption. The specified
+13-to-12 departure is seeded only when reviewed reference-season participants
+and ranks uniquely identify the sole last-place manager; otherwise review is
+required. No private manager name is hardcoded. Three/five-season windows and
+cohort changes are session-local, with no assignment or plan writes. Missing
+links exclude whole seasons; missing GP withholds affected diagnostics. Small
+historical stat gaps are not auction-price estimates or forecasts. Scoring stays
+in Python. This approval covers local implementation and verification; commit,
+merge, publication and provider refresh remain outside this delivery.
+
+# 54. No Python Keychain access — user correction, 2026-10-10
+
+The user explicitly rejects Python access to Keychain and requests direct ESPN
+browser sign-in plus a local session, while affirming credential-free offline
+history. This overrides previous Keychain requirements. The backend holds only
+an in-memory session after explicit verified browser connection, with no API
+token file. The existing dedicated browser profile may remember its own login.
+Disconnect and shutdown clear the backend session reference; restarting requires
+Connect ESPN before new provider reads. Saved history and local MCP startup do
+not read credentials. No Keychain item is read, migrated or deleted; previously
+granted OS access requires manual revocation. Existing navigation is reused.
+
+# 53. Reusable historical study backend — accepted implementation, 2026-10-10
+
+The user approved a TDD backend slice containing only reusable calculations from
+the completed-season strategy study: explicit reviewed-cohort rescoring,
+historical observed thresholds and rank-zone gap summaries, minimal integer
+counting-stat point gains, and games-volume diagnostics. Existing auction and
+manager-category reports remain the source for those capabilities. Exploratory
+correlations and permutation experiments stay outside the runtime service.
+
+The [contract](cohort-study-contract.md) preserves source lineage, exact ties,
+weights, missing values, explicit population and independent hypothetical
+replays. HTTP and local STDIO MCP expose the same saved-only application read.
+This authorizes a third read-only MCP tool, superseding the earlier two-tool
+surface limit for this capability. No UI, new model, provider refresh, scenario
+write, commit or publication is included.
 
 # 52. Stats by rank in My Profile — accepted implementation, 2026-09-27
 

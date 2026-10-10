@@ -21,6 +21,7 @@ import {
 import { LeagueAuctionOverview } from './league-auction-overview';
 import { sortCategoryCodes, sortCategoryObjects } from '../core/category-order';
 import { heatmapColor } from '../core/heatmap-colors';
+import { CategoryStrategyStudyComponent } from './category-strategy-study';
 
 type PatternMetric = 'relative' | 'outcome';
 type HistoryWindow = 'recent-1' | 'recent-3' | 'recent-5' | 'all';
@@ -34,11 +35,18 @@ type HistoryWindow = 'recent-1' | 'recent-3' | 'recent-5' | 'all';
     MatProgressBarModule,
     MatSelectModule,
     LeagueAuctionOverview,
+    CategoryStrategyStudyComponent,
   ],
   templateUrl: './league-comparison-page.html',
   styleUrl: './league-comparison-page.scss',
 })
 export class LeagueComparisonPage {
+  readonly view = signal<'overview' | 'strategy'>('overview');
+  readonly strategyOpened = signal(false);
+  selectView(view: 'overview' | 'strategy'): void {
+    if (view === 'strategy') this.strategyOpened.set(true);
+    this.view.set(view);
+  }
   readonly leagueId = input.required<number>();
   readonly data = signal<ManagerData>({ managers: [], assignments: [], my_manager_id: null });
   readonly catalog = signal<Catalog>({ candidates: [], imported_seasons: [], job: null });
@@ -111,8 +119,12 @@ export class LeagueComparisonPage {
       ) ?? null,
   );
 
-  readonly orderedReportCategories = computed(() => sortCategoryCodes(this.report()?.categories ?? []));
-  readonly orderedPressure = computed(() => sortCategoryObjects(this.report()?.league_pressure ?? []));
+  readonly orderedReportCategories = computed(() =>
+    sortCategoryCodes(this.report()?.categories ?? []),
+  );
+  readonly orderedPressure = computed(() =>
+    sortCategoryObjects(this.report()?.league_pressure ?? []),
+  );
   readonly orderedStrategyCategories = computed(() =>
     sortCategoryObjects(this.strategyMap()?.categories ?? []),
   );
