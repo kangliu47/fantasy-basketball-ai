@@ -1,5 +1,142 @@
 # Architecture and learning guide
 
+## Premium projection connection — October 17, 2026
+
+**Live compatibility follow-up:** the authenticated browser may land on
+`/import-v4/`. Acquisition follows the visible category-projection destination or
+refreshes the current projection view. A hidden password field or a different
+Hashtag path does not establish authentication failure. Only HTTPS on the two
+canonical Hashtag hosts is accepted; source context and coverage still validate.
+ASP.NET filters can use partial XHR postbacks. Selection waits for the actual
+same-page request and PageRequestManager completion, or a full navigation, then
+checks the selected value. Listeners are removed on completion/failure/cancellation.
+Typed local diagnostics return page classification, recognized row-limit labels
+and filter booleans, without URLs, account fields, form values or projection rows.
+Live full-list fetching is verified; activation remains an explicit user action.
+
+The approved [flow and contract](hashtag-premium-design-review.md),
+`HASHTAG-PREMIUM-2026-10-17-v1`, extends the existing draft workspace. Pure domain
+`AcquiredProjection` / `ProjectionCoverage` represent source-list evidence,
+separate from ESPN eligibility. `PremiumProjectionService` owns one browser job
+and one expiring staged candidate through `AuthenticatedProjectionSource`.
+`DraftService` activates the candidate under its existing mutation lock, pins the
+previous active import, and uses the shared DuckDB repository connection lock.
+Projection imports stay append-only; old documents load with optional acquisition
+evidence defaulting to absent, so no schema migration is needed.
+
+`HashtagBrowserSource` owns a dedicated Chrome profile under ignored local storage.
+The user signs in directly and chooses **I've signed in**. Only fetching can verify
+premium list access. The adapter uses the visible page's primary season projection
+dataset, averages, All players, all teams/positions and zero minimum GP. It reads
+only selected controls, source title/date and sanitized projection cells. It never
+exports cookies, storage state, full authenticated HTML, screenshots or traces.
+Browser operations have fixed safe errors; provider exception details do not enter
+HTTP responses or logs. The existing public probe remains compatible, including
+rank cells with nested movement indicators.
+
+Full-list verification requires explicit All selection, exact source context,
+no pagination and agreement between displayed and parsed rows. Large Top-N lists
+cannot establish completeness. Unexpected pagination/control changes fail closed;
+the adapter currently supports the single-page All list, not inferred completeness
+from traversing an unknown pager. Public-only and unsupported page layouts keep the
+active snapshot unchanged. Live premium-page compatibility has been checked with
+the user's normal sign-in; synthetic tests alone do not establish account access.
+
+The local `/api/projections/hashtag` adapter accepts commands and candidate IDs,
+never credentials, browser paths or arbitrary URLs. Its requests inherit the
+existing local-origin/client protections. Angular's `HashtagProjections` panel
+polls safe local status while mounted, preserves staged results across existing
+navigation, and emits a saved `DraftView` only after activation. Failed saves keep
+the candidate available for retry; stable import IDs prevent duplicate commits.
+Another activated import blocks a stale candidate. Activation preserves unfinished
+target text and its original import reference and invalidates stale valuation
+results through the existing store. No formula, league rule or ESPN identity link
+changes. Browser access expires after 15 minutes, unsaved candidates after 30;
+shutdown/cancellation closes owned browser operations. Saved projections work offline.
+
+## Auction valuation frontend — October 17, 2026, approved integration
+
+`DraftWorkspace` provides one `ValuationStore` shared by the new
+`AuctionValuation` panel and the existing candidate table/inspector. This state
+survives Prepare/Auction/League evidence navigation in the mounted workspace.
+Requests pin a saved import ID plus an explicit transient scenario and separate
+coverage/eligibility declarations. None of those controls changes saved draft
+rules or upgrades imported coverage. The backend remains the only calculation
+implementation; Angular formats Decimal strings and integer cents.
+
+Source/rule/context changes or review edits unsubscribe the outstanding request,
+advance its generation and clear prices. A new import clears its declarations.
+Sale/target changes leave the input fingerprint unchanged, retaining static
+values while ledger budgets update. Outside-set candidates are unpriced; an
+unavailable server result exposes no price map. Failed/cancelled requests do not
+restore an old allocation. Declarations and results are session-local, with no
+new schema or persistence adapter.
+
+The explicit rounded-baseline action changes only the ceiling field and marks
+it dirty. Existing revision checks and import evidence govern the eventual
+target save; old-import edits retain their text and must be reviewed before a
+new baseline is copied. Legal maximums continue to come from the Python ledger.
+The approved artifact is `docs/auction-values-preview.html` with the shared
+`fantasy-analytics-v1` style. The formula contract is unchanged.
+
+## Auction allocation slice — October 17, 2026
+
+The user prioritizes a league-adjusted player-dollar baseline while independently
+obtaining Hashtag access. Calculation belongs in the pure draft domain; the
+application resolves an explicitly referenced saved projection import. A local
+HTTP preview can accept a valuation scenario without changing the saved draft
+rules, targets, observations or auction ledger. It must not fetch provider data.
+
+The calculation records its version, declared normalization population, selected
+categories, projection basis, purchase demand, replacement cutoff and exact room
+budget reconciliation. An incomplete or unreviewed population cannot produce a
+complete-looking dollar board. The existing 30-player sample remains useful for
+comparison, rather than whole-room valuation. IR remains separate from auction
+purchases. A synthetic Prepare mock precedes new Angular implementation.
+
+**Implemented:** `domain/draft/valuation_models.py` holds scenario, evidence and
+safe result types; `valuation.py` uses Decimal precision 50, canonical category
+scores and integer cents apportionment. Exactly constant proportional shooting
+pairs are detected using rational cross-products so a repeating percentage cannot
+create artificial variance. The versioned [contract](auction-valuation-contract.md)
+defines population, missing evidence, cutoff ties and cap failure behavior.
+
+`application/draft/valuation.py` resolves one saved import through the existing
+repository port. It includes every imported row, offers no implicit exclusions,
+and keeps coverage and eligibility declarations separate. A known partial import
+cannot be promoted by acknowledgement. No declaration edits saved import evidence.
+`interfaces/http/valuation_api.py` exposes `POST /api/draft/valuation` with strict
+typed requests and the existing local-origin/client protections. The response
+contains canonical Decimal strings, integer cents, provenance and safe projection
+references, with no raw provider row, gateway access or persistence. The preview's
+transient scenario never changes the board; recorded sales never reprice it.
+
+## Draft preparation implementation — October 11, 2026
+
+The approved Prepare → Auction companion journey uses `DraftService` through
+typed `/api/draft` endpoints. Pure `domain/draft` code owns weighted shooting
+ratios, per-game/season-total conversion and exact integer budget accounting.
+Angular presents these results and preserves unfinished target edits across
+research navigation. History mounts lazily under League evidence.
+
+Projection files use the existing Hashtag parser through a bounded local adapter;
+imports retain explicit input basis, dates, coverage and a user-declared season.
+Provider IDs remain separate from ESPN IDs. Targets extend the existing
+`DraftPlan` shortlist with projection references and revision checks. A confirmed
+planning context can initialize without fabricating a historical observation.
+
+DuckDB schema v5 adds append-only projection imports and draft-board revisions.
+All adapters use the existing connection lock; migrations checkpoint and back up
+older databases. Event IDs make sale retries idempotent; undo appends a void event.
+Outside-sample purchases consume budget and slots while projection evidence stays
+unknown. See [DRAFT-PREP-2026-10-11-v1](draft-preparation-design-review.md).
+
+A dedicated read-only live browser observer is technically plausible but unproven
+for current basketball auctions. The existing login browser closes after session
+verification and provides no live feed. Do not turn ordinary archived draft
+requests into an assumed live integration. The approved manual companion requires no live session; existing historical
+services, formulas and evidence are retained.
+
 ## Category strategy frontend — October 10, 2026
 
 `LeagueComparisonPage` lazily mounts `CategoryStrategyStudyComponent` when its

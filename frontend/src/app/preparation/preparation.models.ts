@@ -25,6 +25,7 @@ export interface ShortlistEntry {
   max_bid: number | null;
   observation_ids: string[];
   added_at: string;
+  projection_snapshot_ids?: string[];
 }
 export interface DraftPlan {
   id: string;
@@ -35,6 +36,7 @@ export interface DraftPlan {
   reference_rules: Rules;
   reference_team_count: number;
   rules_status: string;
+  reference_kind?: 'historical' | 'user_confirmed';
   settings: PlanSettings;
   shortlist: ShortlistEntry[];
   revision: number;

@@ -120,16 +120,20 @@
       </form>
       <details class="source">
         <summary>Where these rules came from</summary>
-        <p>
-          Copied from {{ plan.reference_season }}: {{ plan.reference_team_count }} teams,
-          {{ plan.reference_rules.scoring_format }} scoring. Your draft format and budget above are
-          planning assumptions. This plan's historical reference stays fixed.
-        </p>
-        <p>
-          {{ plan.reference_rules.categories.length }} categories ·
-          {{ plan.reference_rules.keeper_count ?? 'Unknown' }} keeper slots in the source season.
-        </p>
-        <small>Settings observation {{ plan.reference_observation_id }}</small>
+        @if (plan.reference_kind === 'user_confirmed') {
+          <p>User-confirmed draft context. No imported historical settings are claimed.</p>
+        } @else {
+          <p>
+            Copied from {{ plan.reference_season }}: {{ plan.reference_team_count }} teams,
+            {{ plan.reference_rules.scoring_format }} scoring. Your draft format and budget above
+            are planning assumptions. This plan's historical reference stays fixed.
+          </p>
+          <p>
+            {{ plan.reference_rules.categories.length }} categories ·
+            {{ plan.reference_rules.keeper_count ?? 'Unknown' }} keeper slots in the source season.
+          </p>
+        }
+        <small>Settings reference {{ plan.reference_observation_id }}</small>
         <p>
           Confirm the actual 2027 rules when available. Historical category thresholds are not
           forecasts.

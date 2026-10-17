@@ -6,15 +6,20 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
+from fantasy_ai.application.draft.service import DraftService
 from fantasy_ai.application.history.service import HistoryService
 from fantasy_ai.application.planning.service import PreparationService
+from fantasy_ai.application.projections.premium import PremiumProjectionService
 from fantasy_ai.application.workspace import WorkspaceService
 from fantasy_ai.infrastructure.browser_login import PlaywrightBrowserLogin
+from fantasy_ai.infrastructure.draft_repository import DuckDBDraftRepository
 from fantasy_ai.infrastructure.duckdb_repository import DuckDBWorkspaceRepository
 from fantasy_ai.infrastructure.espn_gateway import ESPNLeagueGateway
 from fantasy_ai.infrastructure.history_gateway import ESPNHistoryGateway
 from fantasy_ai.infrastructure.history_repository import DuckDBHistoryRepository
 from fantasy_ai.infrastructure.planning_repository import DuckDBPlanRepository
+from fantasy_ai.infrastructure.projections.browser import HashtagBrowserSource
+from fantasy_ai.infrastructure.projections.files import LocalProjectionFiles
 from fantasy_ai.infrastructure.session_store import MemorySessionStore
 from fantasy_ai.interfaces.http.api import create_api
 
@@ -26,6 +31,8 @@ class ApplicationServices:
     workspace: WorkspaceService
     history: HistoryService
     planning: PreparationService
+    draft: DraftService | None = None
+    projections: PremiumProjectionService | None = None
 
 
 def build_services(root: Path | None = None) -> ApplicationServices:
@@ -47,7 +54,16 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         ESPNHistoryGateway(root / ".local/workspace"),
     )
     planning = PreparationService(DuckDBPlanRepository(repository), archive_repository)
-    return ApplicationServices(workspace, history, planning)
+    draft = DraftService(
+        DuckDBDraftRepository(repository),
+        LocalProjectionFiles(root / ".local/projections/hashtag"),
+        planning,
+        archive_repository,
+    )
+    projections = PremiumProjectionService(
+        HashtagBrowserSource(root / ".local/hashtag-browser"), draft
+    )
+    return ApplicationServices(workspace, history, planning, draft, projections)
 
 
 def create_app() -> FastAPI:
@@ -63,4 +79,6 @@ def create_app() -> FastAPI:
         root / "frontend/dist/fantasy-workspace/browser",
         services.history,
         services.planning,
+        services.draft,
+        services.projections,
     )

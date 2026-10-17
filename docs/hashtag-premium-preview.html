@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Hashtag premium projections · Design review</title>
+  <link rel="stylesheet" href="showcase-theme.css">
+  <style>
+    .showcase-page{max-width:1380px;padding-top:26px}.showcase-title{font-size:34px}
+    h2,h3{color:var(--showcase-heading);margin:0 0 10px;letter-spacing:-.025em}h2{font-size:20px}h3{font-size:16px}
+    p{line-height:1.5}.muted,small{color:var(--showcase-muted)}small{font-size:12px}
+    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.between{justify-content:space-between}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 18px;padding-bottom:12px;border-bottom:1px solid var(--showcase-line)}
+    .primary{background:var(--showcase-green-strong);border-color:var(--showcase-green-strong);color:var(--showcase-surface)}
+    .primary:hover{background:var(--showcase-green)}button:disabled{opacity:.5;cursor:default}
+    .showcase-card{margin-bottom:16px;padding:20px}.source-row{margin:12px 0 18px}
+    .notice{background:var(--showcase-surface-soft);border-left:3px solid var(--showcase-green);padding:12px;margin:14px 0;font-size:13px;line-height:1.5}
+    .notice.error{border-color:var(--showcase-red)}.notice.review{border-color:var(--showcase-orange)}
+    .grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:18px;align-items:start}
+    .facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+    .facts div{background:var(--showcase-surface-soft);padding:12px;border-radius:7px}.facts strong{display:block;margin-top:5px;font-size:19px;color:var(--showcase-heading)}
+    .steps{padding-left:22px;font-size:13px;line-height:1.8}.caption{font-size:12px;color:var(--showcase-muted)}
+    .scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:right;white-space:nowrap;padding:11px 9px;border-bottom:1px solid var(--showcase-line)}
+    th{font-size:11px;color:var(--showcase-muted);font-weight:600}th:first-child,td:first-child{text-align:left}td:first-child small{display:block;margin-top:3px}
+    input,select{font:inherit;color:var(--showcase-ink);background:var(--showcase-surface);padding:9px;border:1px solid var(--showcase-control-line);border-radius:7px;max-width:100%}
+    input:focus-visible{outline:3px solid var(--showcase-green);outline-offset:3px}label{font-size:12px;color:var(--showcase-muted)}label input{display:block;margin-top:5px;width:100%}
+    .toolbar{margin:16px 0}.toolbar label{flex:1;min-width:150px}.pagination{margin-top:12px}
+    .state-tools{border-top:1px solid var(--showcase-line);padding-top:14px;margin-top:26px}.state-tools .row{margin-top:12px}
+    summary{cursor:pointer;color:var(--showcase-green);padding:5px 0}details p{font-size:13px}.checks{font-size:13px;line-height:1.8;padding-left:20px}
+    [hidden]{display:none!important}.preview-table{max-height:330px}.empty{padding:28px 12px;text-align:center}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:450px){.showcase-page{padding:24px 16px}.showcase-header{padding:16px;gap:12px}.showcase-status{max-width:100px}.showcase-title{font-size:29px}.tabs button{padding:8px}.facts strong{font-size:17px}.showcase-card{padding:16px}}
+  </style>
+</head>
+<body>
+<header class="showcase-header"><div class="showcase-brand">Fantasy Basketball<small>Draft preparation</small></div><span class="showcase-status"><i></i>Local · Read-only sources</span></header>
+<main class="showcase-page">
+  <p class="showcase-eyebrow">2027 · YOUR DRAFT WORKSPACE</p>
+  <h1 class="showcase-title" id="title">Build a shortlist you can use.</h1>
+  <p class="showcase-intro">Bring your premium projections into the same workspace as your targets and draft decisions.</p>
+  <div class="showcase-banner">Interactive mock · All players, statistics, counts and dates below are synthetic. No sign-in or provider requests occur. Changes last only while this page is open.</div>
+  <nav class="tabs" aria-label="Workspace navigation">
+    <button class="showcase-button" data-nav="prepare" aria-pressed="true">Prepare</button>
+    <button class="showcase-button" data-nav="auction" aria-pressed="false">Auction companion</button>
+    <button class="showcase-button" data-nav="evidence" aria-pressed="false">League evidence</button>
+  </nav>
+  <div id="other-view" class="notice" hidden></div>
+  <div id="draft-view">
+    <div class="row between source-row"><small id="saved-summary"></small><button class="showcase-button" id="coverage-toggle" aria-expanded="false" aria-controls="coverage">Data & coverage</button></div>
+    <div id="feedback" class="notice" role="status" aria-live="polite" hidden></div>
+    <section class="showcase-card" id="coverage" hidden aria-labelledby="coverage-title">
+      <div class="row between"><h2 id="coverage-title">Projection data & coverage</h2><span class="showcase-scope" id="connection-state">Hashtag disconnected</span></div>
+      <p>Fetch the full Hashtag projection list for the 2026–27 NBA season, review it, then use it for your 2027 draft preparation.</p>
+      <div class="grid">
+        <div>
+          <h3>Connect Hashtag</h3>
+          <p class="muted">Sign in directly on Hashtag in a dedicated browser, just like the ESPN connection. Complete any verification there. Your password is never entered in this app.</p>
+          <div class="row">
+            <button class="showcase-button primary" id="connect">Connect Hashtag</button>
+            <button class="showcase-button" id="fetch" disabled>Fetch full projections</button>
+            <button class="showcase-button" id="disconnect" hidden>Disconnect</button>
+          </div>
+          <div class="notice" id="operation" hidden role="status" aria-live="polite"></div>
+          <p class="caption">Saved projections work offline. Disconnect ends app access; the dedicated browser may remember your sign-in.</p>
+        </div>
+        <aside>
+          <h3>What this fetch includes</h3>
+          <ul class="checks"><li>Every row in the unfiltered provider projection list</li><li>GP, minutes and projected category statistics</li><li>FG and FT percentages with makes / attempts</li><li>Available positions, NBA team, ADP, rank and total</li></ul>
+          <p class="caption">2026–27 · per-game source inputs · all teams and positions · no minimum-GP filter. TO is retained but excluded from this league’s eight-category analysis.</p>
+        </aside>
+      </div>
+      <div class="notice review" id="retained"></div>
+      <details><summary>Existing file import and saved sample</summary><p>The current HTML / normalized JSON import remains available in the application. This mock focuses on the new connected fetch.</p></details>
+    </section>
+    <section class="showcase-card" id="candidate" hidden aria-labelledby="candidate-title">
+      <div class="row between"><h2 id="candidate-title">Review fetched projections</h2><span class="showcase-scope">Candidate · not active yet</span></div>
+      <p>All 480 rows in the synthetic provider list were read and validated. Review the source context before updating your draft workspace.</p>
+      <div class="facts"><div><small>Projected players</small><strong>480 / 480 rows</strong></div><div><small>Source season</small><strong>2026–27</strong></div><div><small>Source updated</small><strong>Oct 17, 2026</strong></div><div><small>Input basis</small><strong>Per game</strong></div></div>
+      <details><summary>Coverage and validation evidence</summary><ul class="checks"><li>Premium projection view; full-list selection; no team, position or minimum-GP filters</li><li>480 displayed rows / 480 parsed rows; distinct provider IDs; all pages traversed in this example</li><li>Required statistics and shooting components validated; no missing required values</li><li>Source season and projection dataset checked separately from the saved ESPN selection</li></ul><p>These are illustrative checks, not observations of your account. Production full-list verification must use evidence available in the authenticated page; row count alone cannot prove completeness.</p></details>
+      <div class="scroll preview-table"><table aria-label="Fetched projection preview"><thead><tr><th>Player · source position</th><th>GP</th><th>MPG</th><th>FG% (M/A)</th><th>FT% (M/A)</th><th>3PM</th><th>PTS</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>TO</th><th>ADP</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
+      <p class="caption">First five synthetic rows shown. Full provider projection coverage does not establish ESPN draft eligibility. Provider ranks and totals are metadata, separate from this league’s values.</p>
+      <div class="row"><button class="showcase-button primary" id="activate">Use these projections</button><button class="showcase-button" id="discard">Discard fetched data</button></div>
+    </section>
+    <section class="showcase-card" aria-labelledby="pool-title">
+      <div class="row between"><h2 id="pool-title">Find your next target</h2><span class="showcase-scope">2 saved targets · retained</span></div>
+      <p class="caption" id="pool-context"></p>
+      <div class="row toolbar"><label>Search saved projections<input type="search" id="search" placeholder="Player name or position"></label><span class="showcase-scope">Per game · 8-category ROTO</span></div>
+      <div class="scroll"><table aria-label="Saved draft projections"><thead><tr><th>Player · source position</th><th>GP</th><th>FG% (M/A)</th><th>FT% (M/A)</th><th>3PM</th><th>PTS</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>My ceiling</th></tr></thead><tbody id="saved-rows"></tbody></table></div>
+      <p id="search-empty" class="empty" hidden>No saved players match. Try another name or position.</p>
+      <div class="row between pagination"><small id="page-label"></small><div class="row"><button class="showcase-button" id="previous">Previous</button><button class="showcase-button" id="next">Next</button></div></div>
+      <p class="caption">Your targets, notes, personal ceilings and recorded sales stay saved across projection refreshes. Players absent from a new import remain visible as targets with unavailable current projections.</p>
+    </section>
+  </div>
+  <details class="state-tools" id="demo-tools"><summary>Design review controls</summary>
+    <p class="caption">Simulate sign-in and fetch completion here. Failure examples preserve the active snapshot.</p>
+    <div class="row"><button class="showcase-button" id="demo-signin" disabled>Simulate browser sign-in</button><button class="showcase-button" id="demo-complete" disabled>Finish synthetic fetch</button><button class="showcase-button" id="demo-expired">Expired sign-in</button><button class="showcase-button" id="demo-partial">Public-only result</button><button class="showcase-button" id="demo-season">Wrong season / basis</button><button class="showcase-button" id="demo-schema">Invalid table</button><button class="showcase-button" id="demo-network">Network failure</button><button class="showcase-button" id="demo-save">Save failure</button><button class="showcase-button" id="demo-empty">No saved projections</button><button class="showcase-button" id="reset">Reset mock</button></div>
+  </details>
+  <footer class="showcase-footer">Proposed flow · awaiting UI approval · synthetic data only · fantasy-analytics-v1</footer>
+</main>
+<script>
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const state = { connection: 'disconnected', operation: null, candidate: false, saved: 30, page: 0, nav: 'prepare', saveFailure: false };
+  const players = Array.from({length:480}, (_, i) => ({
+    name: ['Alpha Example', 'Birch Fiction', 'Cedar Sample', 'Delta Example', 'Ember Fiction'][i % 5] + ' ' + String(i + 1).padStart(3, '0'),
+    pos: ['PG/SG','C','SF/PF','SG','PF/C'][i%5], team: 'SYN', gp: 60 + i%17, mpg: (20 + i%15).toFixed(1),
+    fg: '.500 (6.0/12.0)', ft: '.800 (2.4/3.0)', three: (0.5 + i%6 * 0.3).toFixed(1), pts: 15 + i%9,
+    reb: 3 + i%8, ast: 1 + i%7, stl: (0.6 + i%5 * 0.2).toFixed(1), blk: (0.2 + i%6 * 0.2).toFixed(1),
+    to: (1 + i%4 * 0.3).toFixed(1), adp: i%11 === 0 ? '—' : i+5
+  }));
+  function cells(p, candidate, i) {
+    const values = candidate ? [p.gp,p.mpg,p.fg,p.ft,p.three,p.pts,p.reb,p.ast,p.stl,p.blk,p.to,p.adp] : [p.gp,p.fg,p.ft,p.three,p.pts,p.reb,p.ast,p.stl,p.blk,i===0?'$28':i===1?'$16':'—'];
+    return '<tr><td>'+p.name+'<small>'+p.pos+' · '+p.team+(i<2?' · Saved target':'')+'</small></td>'+values.map(v=>'<td>'+v+'</td>').join('')+'</tr>';
+  }
+  function feedback(message, error=false) {
+    $('feedback').hidden = false;
+    $('feedback').className = 'notice' + (error?' error':'');
+    $('feedback').setAttribute('role', error?'alert':'status');
+    $('feedback').textContent = message;
+  }
+  function openCoverage() {
+    $('coverage').hidden = false; $('coverage-toggle').setAttribute('aria-expanded','true');
+  }
+  function renderTable() {
+    const query = $('search').value.trim().toLowerCase();
+    const rows = players.slice(0,state.saved).map((p,i)=>({p,i})).filter(({p})=>(p.name+' '+p.pos).toLowerCase().includes(query));
+    const pages = Math.max(1,Math.ceil(rows.length/8)); state.page = Math.min(state.page,pages-1);
+    $('saved-rows').innerHTML = rows.slice(state.page*8,state.page*8+8).map(({p,i})=>cells(p,false,i)).join('');
+    $('page-label').textContent = rows.length ? 'Page '+(state.page+1)+' of '+pages+' · '+rows.length+' matching players' : '0 matching players';
+    $('search-empty').hidden = rows.length > 0; $('previous').disabled = state.page === 0; $('next').disabled = state.page >= pages-1;
+  }
+  function render() {
+    const busy = !!state.operation;
+    $('connection-state').textContent = {disconnected:'Hashtag disconnected',waiting:'Sign-in in progress',connected:'Browser ready · fetch to verify',expired:'Hashtag sign-in needed'}[state.connection];
+    $('connect').textContent = state.connection==='expired'?'Reconnect Hashtag':'Connect Hashtag';
+    $('connect').hidden = state.connection==='connected'; $('connect').disabled = busy;
+    $('disconnect').hidden = state.connection!=='connected'; $('disconnect').disabled = busy;
+    $('fetch').disabled = busy || state.connection!=='connected' || state.candidate;
+    $('candidate').hidden = !state.candidate;
+    $('activate').disabled = busy;
+    $('demo-signin').disabled = state.operation!=='signin'; $('demo-complete').disabled = state.operation!=='fetch';
+    $('saved-summary').textContent = state.saved ? 'Hashtag · '+state.saved+' synthetic players · '+(state.saved===30?'public sample':'verified provider-list example')+' · saved on this Mac' : 'No projections imported';
+    $('pool-context').textContent = state.saved ? state.saved+' projected players for 156 planned purchases. '+(state.saved===30?'Partial coverage: saved public sample.':'Full provider list in this example; ESPN eligibility remains unverified.') : 'Connect Hashtag and fetch projections to begin. Existing saved decisions are retained.';
+    $('retained').textContent = state.saved ? 'Active snapshot: '+state.saved+' synthetic players. It stays available until a new validated snapshot is saved. Targets and recorded sales are retained.' : 'No active projection snapshot. Fetch and review projections, then choose Use these projections.';
+    $('operation').hidden = !busy;
+    if (busy) {
+      $('operation').replaceChildren();
+      const text = document.createElement('p');
+      text.textContent = state.operation==='signin' ? 'Waiting for you to sign in on Hashtag. In this mock, use Simulate browser sign-in below.' : 'Reading the full projection list and validating its season, basis, rows and statistics. In this mock, use Finish synthetic fetch below.';
+      const cancel = document.createElement('button'); cancel.className='showcase-button'; cancel.id='cancel'; cancel.textContent = state.operation==='signin'?'Cancel sign-in':'Cancel fetch';
+      $('operation').append(text,cancel);
+    }
+    renderTable();
+  }
+  function fail(message, expired=false) {
+    state.operation=null; state.candidate=false;
+    if(expired || state.connection==='waiting') state.connection=expired?'expired':'disconnected';
+    openCoverage(); feedback(message+' The active snapshot and saved decisions are unchanged.',true); render();
+  }
+  document.addEventListener('click', e => {
+    const button = e.target.closest('button'); if(!button || button.disabled) return;
+    const id = button.id;
+    if(button.dataset.nav) {
+      state.nav=button.dataset.nav;
+      document.querySelectorAll('[data-nav]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.nav===state.nav)));
+      $('draft-view').hidden=state.nav==='evidence'; $('other-view').hidden=state.nav!=='evidence';
+      $('title').textContent=state.nav==='prepare'?'Build a shortlist you can use.':state.nav==='auction'?'Stay oriented while the auction moves.':'Your league evidence';
+      $('other-view').textContent='Existing historical reports open here in the app. Return to Prepare to continue the projection flow; your fetched candidate is preserved.';
+      if(state.nav==='auction') feedback('The application reuses the active projection snapshot in the existing auction companion. This mock focuses on projection acquisition.');
+    }
+    if(id==='coverage-toggle') { const visible=$('coverage').hidden; $('coverage').hidden=!visible; button.setAttribute('aria-expanded',String(visible)); }
+    if(id==='connect') {state.connection='waiting';state.operation='signin';state.candidate=false;openCoverage();$('demo-tools').open=true;render();}
+    if(id==='demo-signin') {state.connection='connected';state.operation=null;feedback('Synthetic browser sign-in completed. Fetch projections to verify premium data access.');render();}
+    if(id==='fetch') {state.operation='fetch';$('demo-tools').open=true;render();}
+    if(id==='cancel') {if(state.operation==='signin')state.connection='disconnected';state.operation=null;feedback('Cancelled. The active projection snapshot is unchanged.');render();}
+    if(id==='demo-complete') {state.operation=null;state.candidate=true;feedback('Synthetic fetch validated. Review the candidate before using it.');render();$('candidate').scrollIntoView({block:'start'});}
+    if(id==='activate') {
+      if(state.saveFailure) {state.saveFailure=false;feedback('Could not save the fetched projections. Your active snapshot is unchanged; the validated candidate is still available to retry.',true);return;}
+      state.saved=480;state.candidate=false;state.page=0;feedback('480 synthetic projections are now active. Targets, notes, ceilings and recorded sales are retained.');render();
+    }
+    if(id==='discard') {state.candidate=false;feedback('Fetched candidate discarded. Your active snapshot is unchanged.');render();}
+    if(id==='disconnect') {state.connection='disconnected';feedback('Disconnected from Hashtag. Saved projections stay available offline.');render();}
+    if(id==='previous') {state.page--;renderTable();} if(id==='next') {state.page++;renderTable();}
+    if(id==='demo-expired') fail('Your Hashtag sign-in has expired. Reconnect and sign in directly on Hashtag.',true);
+    if(id==='demo-partial') fail('Only the public 30-row list was returned. Full premium coverage could not be verified. Check your membership and reconnect.');
+    if(id==='demo-season') fail('The selected source season or stat basis does not match 2026–27 per-game projections. Correct the source selection and fetch again.');
+    if(id==='demo-schema') fail('The projection table failed validation. No new snapshot was activated.');
+    if(id==='demo-network') fail('Hashtag could not be reached. Retry the fetch when your connection is available.');
+    if(id==='demo-save') {state.operation=null;if(state.connection==='waiting')state.connection='disconnected';state.candidate=true;state.saveFailure=true;openCoverage();feedback('Design example: a validated candidate is ready. Choose Use these projections to simulate a failed save.');render();}
+    if(id==='demo-empty') {state.operation=null;state.connection='disconnected';state.candidate=false;state.saved=0;state.page=0;openCoverage();feedback('Design example: no projections have been imported yet.');render();}
+    if(id==='reset') location.reload();
+  });
+  $('search').addEventListener('input',()=>{state.page=0;renderTable();});
+  $('candidate-rows').innerHTML=players.slice(0,5).map((p,i)=>cells(p,true,i)).join('');
+  render();
+</script>
+</body>
+</html>

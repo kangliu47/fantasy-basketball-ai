@@ -1,30 +1,148 @@
 <header class="topbar">
-  <div class="brand">Fantasy Basketball<span class="brand-subtitle">Historical analytics</span></div>
-  <div class="local-label"><span></span>Local · read-only</div>
+  <div class="brand">Fantasy Basketball<span class="brand-subtitle">Draft preparation</span></div>
+  <div class="local-label"><span></span>Local · ESPN read-only</div>
 </header>
 <main>
   @if (store.state(); as state) {
     <section class="intro">
       <div>
-        <p class="eyebrow">COMPLETED-SEASON EVIDENCE</p>
-        <h1>{{ state.league?.name || 'Your league history' }}</h1>
-        <p class="intro-copy">Explore completed-season manager patterns, auction spending, and category results.</p>
+        <p class="eyebrow">
+          {{ showingEvidence() ? 'COMPLETED-SEASON EVIDENCE' : '2027 · YOUR DRAFT WORKSPACE' }}
+        </p>
+        <h1>
+          {{
+            showingEvidence()
+              ? state.league?.name || 'Your league evidence'
+              : activeSection() === 'auction'
+                ? 'Stay oriented while the auction moves.'
+                : 'Build a shortlist you can use.'
+          }}
+        </h1>
+        @if (!showingEvidence() && state.league) {
+          <p class="league-context">{{ state.league.name }}</p>
+        }
+        <p class="intro-copy">
+          {{
+            showingEvidence()
+              ? 'Use historical spending and category results to investigate your draft decisions.'
+              : 'Compare projected contributions, save targets and personal ceilings, then track final auction purchases.'
+          }}
+        </p>
       </div>
       <div class="connection-actions">
         <button mat-button (click)="section.set('connection')">Connection</button>
-        <button mat-flat-button class="refresh-button" [disabled]="!canRefresh()" (click)="store.refresh()">Refresh data</button>
+        @if (showingEvidence() || activeSection() === 'connection') {
+          <button mat-flat-button [disabled]="!canRefresh()" (click)="store.refresh()">
+            Refresh data
+          </button>
+        }
       </div>
     </section>
-    @if (store.error()) { <div class="notice error" role="alert">{{ store.error() }} <button mat-button (click)="store.load()">Retry</button></div> }
-    @if (state.operation.status !== 'idle') { <div class="notice" role="status" aria-live="polite">@if (state.operation.status === 'running') { <mat-spinner diameter="20" /> } {{ state.operation.message }} @if (state.operation.kind === 'login' && state.operation.status === 'running') { <button mat-button (click)="store.cancel()">Cancel sign-in</button> }</div> }
+    @if (store.error()) {
+      <div class="notice error" role="alert">
+        {{ store.error() }} <button mat-button (click)="store.load()">Retry</button>
+      </div>
+    }
+    @if (state.operation.status !== 'idle') {
+      <div class="notice" role="status" aria-live="polite">
+        @if (state.operation.status === 'running') {
+          <mat-spinner diameter="20" />
+        }
+        {{ state.operation.message }}
+        @if (state.operation.kind === 'login' && state.operation.status === 'running') {
+          <button mat-button (click)="store.cancel()">Cancel sign-in</button>
+        }
+      </div>
+    }
     @if (!state.selection) {
-      <section class="setup-grid"><div class="setup-card"><h2>Connect your league</h2><p>Save league details, then sign in through the dedicated ESPN browser.</p><app-league-setup [selection]="state.selection" [busy]="store.busy()" (saved)="store.save($event)" /></div></section>
+      <section class="setup-grid">
+        <div class="setup-card">
+          <h2>Save your league details</h2>
+          <p>
+            Saved draft preparation works offline. Connect ESPN only when importing or refreshing
+            league evidence.
+          </p>
+          <app-league-setup
+            [selection]="state.selection"
+            [busy]="store.busy()"
+            (saved)="store.save($event)"
+          />
+        </div>
+      </section>
     } @else {
-      <nav class="workspace-nav" aria-label="Analytics navigation"><button mat-button [class.nav-active]="activeSection() === 'profile'" (click)="section.set('profile')">My profile</button><button mat-button [class.nav-active]="activeSection() === 'competitors'" (click)="section.set('competitors')">Competitor teams</button><button mat-button [class.nav-active]="activeSection() === 'league'" (click)="section.set('league')">League comparison</button></nav>
-      @if (activeSection() === 'profile') { <app-my-profile-page [leagueId]="state.selection.league_id" /> }
-      @if (activeSection() === 'competitors') { <app-competitor-teams-page [leagueId]="state.selection.league_id" /> }
-      @if (activeSection() === 'league') { <app-league-comparison-page [leagueId]="state.selection.league_id" /> }
-      @if (activeSection() === 'connection') { <section class="setup-grid"><div class="connection-card"><h2>{{ connectionLabel() }}</h2><p>Saved analytics stays available on this Mac. Sign in only when reconnecting or refreshing.</p><button mat-flat-button [disabled]="store.busy()" (click)="store.connect()">{{ state.connection === 'disconnected' ? 'Connect ESPN' : 'Reconnect ESPN' }}</button></div></section> }
+      <nav class="workspace-nav" aria-label="Workspace navigation">
+        <button
+          mat-button
+          [class.nav-active]="activeSection() === 'prepare'"
+          (click)="openDraft('prepare')"
+        >
+          Prepare</button
+        ><button
+          mat-button
+          [class.nav-active]="activeSection() === 'auction'"
+          (click)="openDraft('auction')"
+        >
+          Auction companion</button
+        ><button mat-button [class.nav-active]="showingEvidence()" (click)="openEvidence()">
+          League evidence
+        </button>
+      </nav>
+      @defer (when activeSection() === 'prepare' || activeSection() === 'auction') {
+        <app-draft-workspace
+          [leagueId]="state.selection.league_id"
+          [mode]="draftMode()"
+          [hidden]="showingEvidence() || activeSection() === 'connection'"
+        />
+      }
+      @defer (when historyOpened() || showingEvidence()) {
+        <div [hidden]="!showingEvidence()">
+          <nav class="workspace-nav" aria-label="Historical evidence">
+            <button
+              mat-button
+              [class.nav-active]="historySection() === 'profile'"
+              (click)="historySection.set('profile')"
+            >
+              My profile</button
+            ><button
+              mat-button
+              [class.nav-active]="historySection() === 'competitors'"
+              (click)="historySection.set('competitors')"
+            >
+              Competitor teams</button
+            ><button
+              mat-button
+              [class.nav-active]="historySection() === 'league'"
+              (click)="historySection.set('league')"
+            >
+              League comparison
+            </button>
+          </nav>
+          @if (historySection() === 'profile') {
+            <app-my-profile-page [leagueId]="state.selection.league_id" />
+          }
+          @if (historySection() === 'competitors') {
+            <app-competitor-teams-page [leagueId]="state.selection.league_id" />
+          }
+          @if (historySection() === 'league') {
+            <app-league-comparison-page [leagueId]="state.selection.league_id" />
+          }
+        </div>
+      }
+      @if (activeSection() === 'connection') {
+        <section class="setup-grid">
+          <div class="connection-card">
+            <h2>{{ connectionLabel() }}</h2>
+            <p>
+              Draft preparation and saved evidence stay available on this Mac. Sign in only when
+              connecting or refreshing ESPN. Refresh data updates the selected league snapshot;
+              completed-season archive imports remain separate.
+            </p>
+            <button mat-flat-button [disabled]="store.busy()" (click)="store.connect()">
+              {{ state.connection === 'disconnected' ? 'Connect ESPN' : 'Reconnect ESPN' }}
+            </button>
+          </div>
+        </section>
+      }
     }
   }
 </main>

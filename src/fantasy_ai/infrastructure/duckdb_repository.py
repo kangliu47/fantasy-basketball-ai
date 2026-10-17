@@ -19,11 +19,12 @@ from fantasy_ai.application.models import (
 )
 from fantasy_ai.domain.league import League, Player, Team
 
+from .draft_schema import DRAFT_SCHEMA
 from .history_schema import HISTORY_SCHEMA, TEAM_PREFERENCE_SCHEMA
 from .local_repository import LocalWorkspaceRepository
 from .planning_schema import PLANNING_SCHEMA
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS league_snapshots (
     snapshot_id UUID PRIMARY KEY,
@@ -83,12 +84,18 @@ class DuckDBWorkspaceRepository:
                 self.path.chmod(0o600)
                 connection.execute("CREATE TABLE IF NOT EXISTS schema_version (version INTEGER)")
                 versions = connection.execute("SELECT version FROM schema_version").fetchall()
-                if versions and versions not in ([(1,)], [(2,)], [(3,)], [(SCHEMA_VERSION,)]):
+                if versions and versions not in (
+                    [(1,)],
+                    [(2,)],
+                    [(3,)],
+                    [(4,)],
+                    [(SCHEMA_VERSION,)],
+                ):
                     raise WorkspaceError(
                         "This history database uses a different version. "
                         "Ask Codex to update the app."
                     )
-                if versions in ([(1,)], [(2,)], [(3,)]):
+                if versions in ([(1,)], [(2,)], [(3,)], [(4,)]):
                     # Flush the WAL before copying under the same process-wide connection lock.
                     connection.execute("CHECKPOINT")
                     backup_dir = self.root / "backups"
@@ -104,7 +111,9 @@ class DuckDBWorkspaceRepository:
                             connection.execute(HISTORY_SCHEMA)
                         elif versions == [(2,)]:
                             connection.execute(TEAM_PREFERENCE_SCHEMA)
-                        connection.execute(PLANNING_SCHEMA)
+                        if versions[0][0] <= 3:
+                            connection.execute(PLANNING_SCHEMA)
+                        connection.execute(DRAFT_SCHEMA)
                         connection.execute(
                             "UPDATE schema_version SET version = ?", [SCHEMA_VERSION]
                         )
@@ -118,6 +127,7 @@ class DuckDBWorkspaceRepository:
                         connection.execute(SCHEMA)
                         connection.execute(HISTORY_SCHEMA)
                         connection.execute(PLANNING_SCHEMA)
+                        connection.execute(DRAFT_SCHEMA)
                         connection.execute(
                             "INSERT INTO schema_version VALUES (?)", [SCHEMA_VERSION]
                         )

@@ -86,11 +86,12 @@ export class PreparationStore {
     note = '',
     bid: number | null = null,
     saved?: () => void,
+    editRevision?: number,
   ) {
     const plan = this.data()?.plan;
     if (!plan) return;
     this.mutate(
-      this.api.shortlist(plan.revision, player, priority, note, bid),
+      this.api.shortlist(editRevision ?? plan.revision, player, priority, note, bid),
       'Shortlist updated.',
       false,
       saved,

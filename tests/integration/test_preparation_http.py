@@ -61,7 +61,7 @@ def test_v3_migration_preserves_history_and_creates_backup(tmp_path: Path) -> No
     plans = DuckDBPlanRepository(upgraded)
     assert plans.load(12345, 2027) is None
     with upgraded.connection() as db:
-        assert db.execute("SELECT version FROM schema_version").fetchone() == (4,)
+        assert db.execute("SELECT version FROM schema_version").fetchone() == (5,)
         assert db.execute(
             "SELECT count(*) FROM archive_observations WHERE season = 2026"
         ).fetchone() == (count,)

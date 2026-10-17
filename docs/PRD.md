@@ -1,6 +1,17 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current scope:** [amendment 56](#56-category-strategy-publication--user-verified-release-2026-10-10)
+> **Current priority:** [amendment 58](#58-league-adjusted-auction-allocations--confirmed-context-2026-10-17).
+> Build the transparent player-dollar baseline first while the user handles
+> Hashtag access. Synthetic full-pool calculation and interface review can proceed
+> independently of acquisition. Real player allocations require reviewed coverage.
+>
+> **Existing draft journey:** [amendment 57](#57-draft-preparation-and-manual-auction-companion--confirmed-context-2026-10-11).
+> Prepare for the upcoming draft using projections, then carry targets and personal
+> ceilings into a manual auction companion. The user approved the reviewed interface and recommendations on October 11.
+> The bounded production implementation is in progress. Stable backend calculations and historical evidence
+> are preserved. See the [design review](draft-preparation-design-review.md).
+
+> **Previous release:** [amendment 56](#56-category-strategy-publication--user-verified-release-2026-10-10)
 > authorizes remote-main integration and synthetic public documentation after
 > user verification. [Amendment 55](#55-category-strategy-in-league-comparison--approved-mock-implementation-2026-10-10)
 > implements the approved Category strategy journey using saved historical evidence.
@@ -43,6 +54,93 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 59. Premium Hashtag projection acquisition — approved flow, 2026-10-17
+
+The user now has premium access and requests full upcoming-draft projections,
+with ESPN-style dedicated-browser authentication, no credentials in source or
+commit history, and Clean Architecture / DDD. They approve implementation after
+pressure-testing the [synthetic flow](hashtag-premium-preview.html).
+
+Use the existing Prepare → Data & coverage entry point. The user signs in directly
+on Hashtag, continues in the app, fetches the full unfiltered 2026–27 projection
+list, reviews source context and coverage, and explicitly activates a validated
+snapshot. Saved projections and draft decisions remain available offline.
+Full means the selected provider projection list, separate from a verified ESPN
+eligible pool. Provider ranks/totals stay metadata; eight-category valuation and
+eligibility declarations remain separate.
+
+Authentication stays browser-owned or in process memory. Do not export cookies,
+storage-state files, account details or authenticated debug artifacts. Paid
+projection facts stay in private local storage. Failed/partial/expired fetches,
+cancellation, failed saves and stale candidate activation preserve previous saved
+work. Candidate and browser lifetimes are bounded. Preserve unfinished target
+notes, reviewed evidence, import history and manual auction events.
+
+The approved contract is `HASHTAG-PREMIUM-2026-10-17-v1` in
+[the design review](hashtag-premium-design-review.md). This amendment authorizes
+provider acquisition after amendment 58's valuation-only delivery; it does not
+change that method or expand into live-season analytics or automated transactions.
+
+# 58. League-adjusted auction allocations — confirmed context, 2026-10-17
+
+**Local delivery — October 17:** the approved Angular panel and shared candidate
+inspector are implemented and verified against the existing saved-only endpoint.
+Coverage/eligibility declarations and calculation results are session-local.
+Targets and sales keep their existing durable revision paths. Values are static
+through sales, stale prices clear on changed inputs, and known partial imports
+remain unpriced. No formula or provider-access change is included.
+
+**Approval follow-up — October 17:** the user explicitly approved the reviewed
+`docs/auction-values-preview.html` flow for Angular integration. Reuse its shared
+style and the versioned method. Integrate the baseline into the existing candidate
+board and inspector; explicitly copy a rounded allocation into the personal
+ceiling without automatically saving or overwriting it. Preserve the target and
+ledger paths. Hashtag acquisition remains outside this implementation.
+
+The user describes their previous preparation: download projections, adjust
+player dollar allocations for league categories and roster depth, then use those
+figures to set targets and decide when to bid aggressively. They explicitly
+prioritize this outcome and handle Hashtag data access themselves.
+
+The user selects the proposed transparent baseline: volume-aware percentage
+impact, category z-scores, a replacement cutoff based on league depth, and
+allocations that reconcile to the room's total auction budget. The confirmed
+context remains 12 teams, eight-category ROTO, $200 each, 10 active plus 3 bench
+purchases, two separate IR spots and no keepers. IR does not silently add draft
+purchases. This baseline is a declared heuristic, not a forecast of clearing
+prices, optimal roster construction or final ROTO points.
+
+Implement and test with synthetic full-pool data while acquisition proceeds
+independently. Preserve the existing sample, imports, saved targets, manual
+ledger and historical calculations. Expose calculations through a local saved-only
+preview. Show a lightweight interactive mock before implementing the new Angular
+flow; that approval remains separate. Keep calculated allocations, editable
+personal ceilings and budget legality distinct. No acquisition, live observer,
+rehearsal launcher, commit or publication is included in this slice.
+
+# 57. Draft preparation and manual auction companion — confirmed context, 2026-10-11
+
+The user chose **Preparation → manual auction companion** as the next slice.
+Use the existing Hashtag sample to demonstrate projection comparisons, targets,
+reasons and personal bid ceilings; carry those decisions into a local final-sale
+ledger with budgets, open slots and available projected candidates. The user
+plans premium access. The sample remains partial and cannot support full-pool
+replacement value or trustworthy auction dollar estimates.
+
+The user confirmed upcoming-season participation and redraft rules; personal
+cohort details remain private local configuration, separate from imported ESPN
+settings. Preserve stable domain models, historical calculation services, plan
+revisions and stored observations. The UI may be reorganized around the draft
+journey, with historical reports as supporting evidence.
+
+The [synthetic interactive mock](draft-companion-preview.html) and
+[calculation/feasibility contract](draft-preparation-design-review.md) define the
+implemented local flow. **Approval follow-up:** the user explicitly approved the design and recommendations
+on October 11, authorizing the bounded production slice. The approved source is
+`docs/draft-companion-preview.html`, using `fantasy-analytics-v1`. Live ESPN observation is a separate, unproven
+integration; manual tracking is the first delivery. No automated ESPN writes,
+premium purchase, commit or publication is authorized by this amendment.
 
 # 56. Category strategy publication — user-verified release, 2026-10-10
 

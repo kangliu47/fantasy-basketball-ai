@@ -72,6 +72,28 @@ is safe: review each proposed diff before pushing, including screenshots and dat
 
 ## Subsequent updates
 
+### October 17, 2026 — draft preparation and premium acquisition audit
+
+Before committing the related draft, baseline and Hashtag changes, the lead checked
+354 eligible working files and 783 historical blobs across all fetched refs and
+local reflogs (33 reachable commits). Gitleaks 8.30.1, downloaded from its official
+release with its published checksum verified, found no secrets in either the
+eligible working tree or historical diffs. Scans used full redaction and ignored
+inline suppression comments. Reports and scanner files stayed outside the repository.
+
+The structural history check flagged four versions of retired Codex role files
+because their paths are no longer in the current public configuration allowlist.
+Review confirmed only role/model/sandbox instructions, with no credential,
+environment, endpoint or personal-path configuration. No history rewrite was needed.
+The current publication and notebook audits have zero findings. Dedicated browser
+state, environment files and local databases remain ignored and absent from the
+reviewed Git history. The adapter reads selected projection controls and table
+cells; failures and diagnostics do not return credentials or raw browser errors.
+New fixtures and public previews use synthetic data, not paid projection rows.
+
+These checks detect known secret patterns and structural privacy risks; they do
+not establish that every possible unknown secret format can be recognized.
+
 1. Inspect the proposed diff and use synthetic examples in documentation/tests.
 2. Run `.venv/bin/python -m tools.check_publication --working-tree` before staging.
 3. Stage the intended files, then run `.venv/bin/python -m tools.check_publication`.

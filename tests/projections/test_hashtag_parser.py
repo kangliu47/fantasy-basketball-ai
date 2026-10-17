@@ -31,6 +31,17 @@ def test_parser_selects_semantic_table_and_preserves_ratio_volume() -> None:
     assert second.adp is None
 
 
+def test_parser_keeps_rank_separate_from_nested_movement_indicator() -> None:
+    html = FIXTURE.read_text().replace(
+        "<td> 1 </td>",
+        '<td> 1 <span class="small text-muted"><i class="fa fa-arrow-circle-up"></i> 2</span></td>',
+    )
+    snapshot = parse_hashtag_projection_html(
+        html, season="2026-27", source_url="https://example.test/projections"
+    )
+    assert snapshot.players[0].provider_rank == 1
+
+
 def test_parser_handles_reordered_columns_and_absent_optional_columns() -> None:
     html = FIXTURE.read_text(encoding="utf-8")
     html = html.replace("<th>R#</th><th>PLAYER</th><th>ADP</th>", "<th>PLAYER</th><th>R#</th>")

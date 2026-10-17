@@ -1,5 +1,236 @@
 # Implementation plan
 
+## Publication review — October 17, 2026
+
+The user confirms the premium import works and authorizes an audit, commit and
+merge to main before the next baseline step. The related draft workspace,
+auction baseline and premium connection form one dependency-complete delivery.
+Pre-commit review covers eligible working files and all fetched/ref-log history;
+see [the redacted audit record](publication.md#october-17-2026--draft-preparation-and-premium-acquisition-audit).
+No credentials, paid rows, private league captures or browser artifacts are part
+of this delivery. Python tests (320), Angular tests (88), strict types, lint,
+formatting, notebook/publication guards and architecture inventory pass.
+Use a feature branch and audited pull request, merge only after its checks pass,
+then continue with the existing reviewed baseline flow. Full provider coverage
+does not establish ESPN draft eligibility.
+
+## Premium Hashtag projections — October 17, 2026, approved implementation
+
+**Scope:** user-approved [connected acquisition flow](hashtag-premium-preview.html),
+pressure-tested under `HASHTAG-PREMIUM-2026-10-17-v1`. Extend Data & coverage with
+dedicated-browser sign-in, fetch, staged source/coverage review and explicit
+activation into the existing draft workspace. Keep credentials browser-owned or
+in memory, outside source, logs, saved projection documents and Git.
+
+**Implemented:** application source port and bounded job/candidate lifecycle;
+Hashtag infrastructure adapter and structural full-list checks; typed local HTTP
+commands; Angular connection/review panel; stale-import protection and idempotent
+activation; preserved targets, unfinished text and previous snapshots; shutdown,
+cancel, expiry and safe failure handling. The source parser now distinguishes
+displayed rank from a nested movement indicator observed on the public page.
+No valuation method, league context or identity mapping changed.
+
+**Live compatibility fix — October 17:** authenticated sign-in can land on the
+Manage Leagues dashboard; fetching follows its category-projection link and checks
+visible login forms rather than an exact URL or hidden form. Hashtag updates
+filters with partial postbacks, so selection now waits for the actual request and
+ASP.NET completion. Missing options report a context error. The normal app
+successfully fetched and validated the All list for the approved season, per-game
+basis and unfiltered pool. The candidate is staged; the active import is unchanged.
+Typed diagnostics expose safe page/selector facts only. No provider values or
+credentials were saved as debug artifacts. New regressions cover both behaviors.
+
+**Repair verification:** all 320 Python tests, strict mypy (141 files), Ruff
+lint/format, source-ledger freshness and the 354-file publication audit pass.
+Intercepted Chromium pages exercise dashboard navigation, hidden login forms and
+actual AJAX completion. No frontend code or valuation formula changed.
+
+**Earlier local verification:** the 310-test Python suite passed, followed by
+19 focused acquisition tests including a new uncertain-save case; all 88 Angular
+tests, strict mypy, Ruff, production build, source-ledger freshness and publication
+checks pass. The compiled app against an isolated synthetic database verifies
+source/access separation, staging, navigation, failed activation/retry, retained
+unfinished text and offline reload at desktop/mobile sizes. The public 30-row page
+also parses with the rank-movement fix. The subsequent live check now passes
+without inspecting credentials or saving provider debug artifacts.
+Explicit All selection with no pagination is currently required;
+unexpected provider page controls fail with a useful error and preserve saved data.
+
+**Current stopping point:** the fixed implementation is running in the normal app,
+with a live validated candidate awaiting the user's Use these projections action.
+No commit or publication is included in this request.
+
+## Auction valuation Angular integration — October 17, 2026, mock approval
+
+**Delivered:** the approved panel, scenario selector and separate coverage/eligibility
+review call the saved-only Python endpoint. The existing candidate table can sort
+by server rank and show baseline cents; the inspector displays category z-scores
+and explicitly copies a rounded allocation to an unsaved personal ceiling. Targets
+and unfinished text follow the existing Prepare/Auction navigation. Known partial
+imports remain unpriced. Changed inputs, failed requests and cancellation hide
+old prices. A new import clears its review declarations; sale revisions preserve
+the static baseline. Unpriced outside-set candidates retain manual target entry.
+
+**Verification:** 81 Angular tests pass, including 10 additional valuation-flow
+checks. Production build passes at 468.35 kB initially, without a budget warning.
+All 291 Python tests, strict mypy (133 files), source/test/tool Ruff checks,
+Prettier for touched frontend files, source-ledger freshness, diff whitespace and
+publication structure checks pass. Existing broad notebook Ruff issues remain
+outside scope. No valuation formula changed and no additional specialist review
+was needed for this settled integration.
+
+**Observed runtime:** a compiled app against an isolated 240-player synthetic
+database calculates $2,400 across 156 purchases. A $49.86 baseline explicitly
+copies to a $50 personal ceiling; the saved ceiling/reason survive reload.
+The $50 sale leaves $150/12 slots/$139 legal maximum and keeps the $49.86
+baseline fixed; undo restores $200/13 slots/$188. Extra IR changes no purchases
+or prices, and the 14-team scenario allocates $2,800 across 182 purchases.
+Changed settings hide old values before calculation. No browser warnings/errors
+were observed. The normal local workspace starts with the rebuilt frontend.
+Synthetic decisions/sales were entered only in the separate temporary database.
+
+**Stopping point:** local implementation and checks complete. Hashtag acquisition,
+real full-pool validation, live repricing, live ESPN observation, commit and
+publication remain outside this delivery. Population declarations and calculated
+baselines are session-local; saved targets and sales persist through existing ports.
+
+The user explicitly approved the [auction value → personal ceiling flow](auction-values-preview.html)
+for Angular integration. The approved source uses `fantasy-analytics-v1` and
+extends the existing Prepare → Auction companion journey. Implement scenario
+calculation, visible population/budget evidence, baseline columns, category
+contributions and an explicit rounded-baseline action beside the saved personal
+ceiling. Preserve targets, unfinished text, revision checks and sales. Cover
+empty, partial, unavailable, busy, cancelled, failed and stale-input states.
+
+Reuse `AUCTION-VALUES-2026-10-17-v1` unchanged. Read the complete persisted
+contract before implementation. Coverage/eligibility review applies to the
+referenced import and must not upgrade known partial evidence. Scenario changes
+are previews, not saved league-rule changes; auction sales change legal budgets,
+not baseline values. Hashtag access and acquisition remain deferred.
+
+## Auction valuation baseline — October 17, 2026, confirmed scope
+
+**Delivered for review:** [interactive synthetic Prepare mock](auction-values-preview.html)
+and the complete [AUCTION-VALUES-2026-10-17-v1 contract](auction-valuation-contract.md).
+The lead implemented the pure calculation, explicit evidence model and saved-only
+`POST /api/draft/valuation` preview. Scenario changes do not alter saved draft rules;
+sales do not reprice this static baseline. Known partial imports cannot be upgraded
+by acknowledgement. Cents allocations are withheld for insufficient, incomplete,
+unreviewed or unsupported evidence, zero discretionary weights and initial-cap failure.
+
+**Evidence:** all 291 Python tests pass, including 25 additional valuation cases.
+Ruff lint/format checks pass for `src`, `tests` and `tools`; strict mypy passes
+133 files. The refreshed architecture source ledger and working-tree publication
+audit pass. Broad `ruff check .` / `ruff format --check .` still report existing
+issues in two unchanged analysis notebooks; no unrelated notebook edits were made.
+Browser checks at the in-app browser's narrow viewport verify the initial 156-sale,
+$2,400 room, target save/handoff, preserved personal ceiling, unchanged IR-only
+values, stale-setting handling and unavailable partial/missing-stat states. No
+browser warnings/errors were observed. Five precomputed synthetic scenarios
+reconcile their full room budgets; UI JavaScript does not implement the valuation.
+
+**Stopping point:** the value-to-ceiling UI proposal awaits user approval before
+Angular integration, as required by AGENTS.md. No production frontend changes,
+real projection valuation, provider acquisition, ESPN session, rehearsal launcher,
+live observer, commit or publication was performed in this slice. No new Angular
+test run/build is necessary for this backend and standalone mock change; the
+earlier 71-test result remains prior evidence.
+
+**Personal question:** Given our scoring categories, league depth and total
+auction dollars, what baseline allocation should help me choose a target price?
+
+**User decision:** Prioritize a transparent league-adjusted baseline. The user
+handles Hashtag access. Rehearsal isolation and live sale discovery move behind
+this slice. Keep projections, calculated allocation, personal ceilings and legal
+maximums separate. The confirmed example has 156 purchases and $2,400 across
+the room; IR contributes no extra auction purchase without an explicit rule.
+
+**Delivery boundary:** Establish the versioned calculation contract; implement
+the pure Python method and a saved-projection HTTP preview without saving targets,
+changing boards or accessing a provider; verify synthetic population, ratio,
+replacement, budget and evidence invariants. Show an interactive synthetic mock
+of the proposed Prepare flow. Angular changes await approval of that flow.
+Real-data readiness remains pending the user's full-pool input and coverage review.
+
+## Five-day auction readiness research — October 14, 2026
+
+The user confirms they will purchase Hashtag access themselves shortly.
+The agreed stopping point is research and recommendations.
+The user reports the auction is about five days away and requests product-direction
+review, Hashtag access guidance and research into mock-testing a live connection.
+The [readiness review](auction-readiness-2026-10-14.md) prioritizes current full-pool
+data, isolated practice and a complete manual rehearsal, followed by time-boxed
+read-only completed-sale discovery. Public NBA salary-cap mocks are listed;
+ordinary API live claims conflict and no authenticated room was observed.
+
+The current app supports manual entries, not automated source ingestion or separate
+practice sessions. A future adapter needs draft identity, reviewed player/team
+mapping, explicit source lineage and reconciliation. This entry authorizes no
+new frontend or observer implementation. Keep the existing mock approval for its
+implemented flow; review materially new source/recovery controls before building.
+
+
+## Draft preparation local delivery — October 11, 2026, approval follow-up
+
+**Approval:** the user explicitly approved the reviewed interface and recommendations.
+Implemented the bounded Prepare → manual Auction companion journey; live ESPN
+observation and automated valuation remain separate evidence-dependent work.
+
+**Delivered:** saved sample/file imports with basis and coverage, category sorting,
+two-player comparison, revision-safe targets/reasons/ceilings, trial roster profiles,
+all-team budget and slot accounting, outside-sample purchases, durable sales and undo.
+Prepare opens first; League evidence preserves the historical reports. Deferred
+feature loading reduces the initial production bundle from about 807 kB to 468 kB.
+
+**Storage:** schema v5 migrates with backup using the existing database lock.
+Projection imports and board revisions append; targets reuse the existing plan.
+No provider identity joins, credential reads, historical formula changes, ESPN
+writes, commit or publication are included.
+
+**Verification:** 71 Angular tests pass. Browser checks on isolated synthetic data
+cover target saves, comparison, weighted trial totals, unfinished text across
+history, sales, legal-budget rejection, outside-sample entries, reload and undo.
+All 266 Python tests pass, alongside Ruff, strict mypy (126 files), formatting,
+source-ledger freshness and publication audit (319 files, zero findings). The
+production build is 468 kB initially with no budget warning. Mobile containment
+and candidate/detail navigation pass at 390 px; no browser console errors appear.
+
+**Local readiness:** the real loopback app starts offline, applies the backed-up
+migration and retains the confirmed 12-team context plus the saved 30-player
+sample after reload. The user must select My draft team; no test targets or sales
+were entered into the real league. Sample source date is September 5, not current
+October projections. The input basis is recorded as an explicit declaration;
+source season and ESPN eligibility remain unverified. Exact position slots and
+premium-file compatibility remain unconfirmed. No ESPN session was opened.
+
+
+## Draft preparation design review — October 11, 2026
+
+**Confirmed context:** the user selected preparation followed by a manual auction
+companion, using the Hashtag sample first and premium projections after access is
+available. Stable backend domain/calculation services remain the foundation.
+
+**Delivered for review:** [interactive synthetic mock](draft-companion-preview.html)
+using the shared style; candidate filtering, two-player comparison, personal
+ceilings/reasons, trial roster profile, manual sales, budget validation, missing
+projections, undo, and empty/error/interrupted-sync examples. The
+[design and feasibility contract](draft-preparation-design-review.md) distinguishes
+projection contributions from scored production and describes the separate live
+ESPN experiment. The private confirmed cohort/rules record stays ignored locally.
+
+**Gate:** interface approval is pending. No production frontend implementation or
+Markdown user stories are included. After approval, deliver only the projection
+board, safe existing-plan integration and durable manual ledger needed for this
+journey. Fix plan revision/edit-base behavior before adding new research writes.
+Do not start full-pool valuation or live observation without their evidence checks.
+
+**Verification:** browser checks cover weighted ratios, per-game/season totals,
+target handoff, legal maximum, overspend rejection, missing-projection sales and
+undo. Desktop/mobile layout and empty/error states are checked on the synthetic
+mock. All 10 projection model/parser tests pass; diff whitespace is clean.
+Edits remain in page memory; no production storage or provider operation
+was performed. This entry does not claim the new journey works in Angular.
+
 ## Category strategy remote-main delivery — October 10, 2026
 
 **User verification / authorization:** The user confirmed the real application

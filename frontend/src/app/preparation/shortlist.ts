@@ -27,7 +27,9 @@ export class Shortlist {
     note: new FormControl('', { nonNullable: true }),
     max_bid: new FormControl<number | null>(null),
   });
+  private editRevision = 0;
   edit(row: ShortlistEntry) {
+    this.editRevision = this.store.data()?.plan?.revision ?? 0;
     this.editing.set(row.player_id);
     this.form.setValue({ priority: row.priority, note: row.note, max_bid: row.max_bid });
   }
@@ -35,8 +37,13 @@ export class Shortlist {
     const player = this.editing();
     if (!player) return;
     const value = this.form.getRawValue();
-    this.store.shortlist(player, value.priority, value.note, value.max_bid, () =>
-      this.editing.set(null),
+    this.store.shortlist(
+      player,
+      value.priority,
+      value.note,
+      value.max_bid,
+      () => this.editing.set(null),
+      this.editRevision,
     );
   }
 }
