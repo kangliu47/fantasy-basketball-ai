@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from fantasy_ai.application.draft.service import DraftService
 from fantasy_ai.application.history.service import HistoryService
 from fantasy_ai.application.models import (
     LeagueSelection,
@@ -20,10 +21,13 @@ from fantasy_ai.application.models import (
     WorkspaceError,
 )
 from fantasy_ai.application.planning.service import PreparationService
+from fantasy_ai.application.projections.premium import PremiumProjectionService
 from fantasy_ai.application.workspace import WorkspaceService
 
+from .draft_api import create_draft_router
 from .history_api import create_history_router
 from .planning_api import create_planning_router
+from .projection_api import create_projection_router
 from .schemas import (
     LeagueDTO,
     SelectionRequest,
@@ -32,6 +36,7 @@ from .schemas import (
     SnapshotSummaryDTO,
     StateDTO,
 )
+from .valuation_api import create_valuation_router
 
 APP_ID = "fantasy-basketball-ai"
 
@@ -41,16 +46,22 @@ def create_api(
     frontend: Path | None = None,
     history: HistoryService | None = None,
     planning: PreparationService | None = None,
+    draft: DraftService | None = None,
+    projections: PremiumProjectionService | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await service.initialize()
         if history:
             await history.initialize()
-        yield
-        if history:
-            await history.close()
-        await service.close()
+        try:
+            yield
+        finally:
+            if projections:
+                await projections.close()
+            if history:
+                await history.close()
+            await service.close()
 
     app = FastAPI(title="Fantasy Basketball Workspace", version="0.2.0", lifespan=lifespan)
     app.add_middleware(
@@ -109,7 +120,9 @@ def create_api(
             if request.url.path.startswith("/api/history")
             else (
                 "Check the archive selection and form values."
-                if request.url.path.startswith(("/api/archive", "/api/preparation"))
+                if request.url.path.startswith(
+                    ("/api/archive", "/api/preparation", "/api/draft", "/api/projections")
+                )
                 else "Enter a positive league ID and a valid ESPN season."
             )
         )
@@ -190,6 +203,12 @@ def create_api(
         app.include_router(create_history_router(history, service))
     if planning:
         app.include_router(create_planning_router(planning, service))
+
+    if draft:
+        app.include_router(create_draft_router(draft, service))
+        app.include_router(create_valuation_router(draft, service))
+    if projections:
+        app.include_router(create_projection_router(projections, service))
 
     if frontend is not None and frontend.is_dir():
         app.mount("/", StaticFiles(directory=frontend, html=True), name="frontend")

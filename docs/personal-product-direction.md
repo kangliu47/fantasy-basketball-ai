@@ -1,4 +1,71 @@
-# Personal product direction — September 5, 2026
+# Personal product direction
+
+## Current priority — October 17, 2026, auction dollar baseline
+
+**Same-day delivery:** the user approved `docs/auction-values-preview.html` for
+Angular integration. Prepare and Auction companion now share the calculated
+baseline, contributions and explicit rounded-value-to-ceiling action. Session-local
+coverage/eligibility review gates the saved-only calculation; known partial samples
+remain unpriced. Targets, evidence and sales retain their existing persistence.
+Real full-pool evidence still depends on the user's forthcoming input.
+
+The user explicitly prioritizes the preparation method they used in previous
+years: translate projections into player dollar allocations adjusted for the
+league's categories, team count and roster depth, then use those figures to set
+personal auction targets. The user will handle Hashtag access independently.
+This supersedes rehearsal isolation as the next implementation slice.
+
+The user selected a transparent baseline: volume-aware shooting impact,
+category z-scores, a depth-based replacement cutoff and allocations that reconcile
+to the room budget. Build and test against synthetic full-pool evidence now;
+real draft values require a reviewed complete projection population. Preserve
+the confirmed 12-team, $200, eight-category redraft context with 10 active plus
+3 bench purchases. Two IR slots remain separate from auction purchases; no
+additional IR-driven demand is inferred. Show the proposed Prepare flow before
+changing Angular. Calculated allocation, personal ceiling and legal bid limit
+remain distinct. Live observation, rehearsal tooling and acquisition are deferred.
+
+## Immediate readiness focus — October 14, 2026
+
+With the auction about five days away, the user asks for a readiness review and
+live-feed feasibility research. Prioritize fresh full-pool Hashtag inputs and
+a rehearsed manual companion. Isolate mock purchases from the real draft.
+A completed-sale observer is a conditional experiment until an actual salary-cap
+mock proves identities, prices, timing and recovery. Freeze optional feature
+growth; see the [ranked readiness plan](auction-readiness-2026-10-14.md).
+This research request does not approve new production interface flows or claim
+a live connection exists. The approved Prepare/Auction companion scope below
+continues to govern the implemented product.
+
+
+## Latest direction — October 11, 2026, confirmed draft context
+
+The active outcome is preparing for the upcoming draft and using those decisions
+in a manual auction companion. The user selected that first slice explicitly.
+Start from projection candidates, compare contributions, save targets/reasons
+and personal bid ceilings, then record final sales to track available projected
+players, budgets and open slots. The current partial Hashtag sample demonstrates
+the flow; full-pool valuations require more evidence and a separate method.
+
+The user confirmed participation and redraft rules. Keep personal names and
+cohort configuration local, distinguish user-confirmed planning context from
+imported settings, and preserve the existing backend domain/calculation services.
+The frontend can change to serve the draft journey. Historical reports become
+supporting evidence rather than the required entry point.
+
+**Approved and implemented:** the user explicitly approved [the synthetic mock](draft-companion-preview.html)
+and [decision contract](draft-preparation-design-review.md) on October 11. Prepare
+is now the entry point; Auction companion shares candidates and saved targets.
+Projection imports, trial profiles, manual sales, undo and exact budget accounting
+are stored locally. Historical reports remain under League evidence.
+
+Live ESPN sync needs a bounded current basketball salary-cap-room experiment.
+Do not depend on ordinary draft-result polling or premium access to provide live
+tracking. Keep the manual companion usable if observation fails. This direction
+supersedes historical-first backlog exclusions below; it does not activate broad
+live-season, waiver, predictive or multi-user work.
+
+## Earlier direction — retained history
 
 ## Latest MVP brief — September 5, 2026, confirmed context
 

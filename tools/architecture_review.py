@@ -260,7 +260,7 @@ def _mcp_content(data: dict[str, Any]) -> None:
     data["nodes"]["bootstrap"].update(
         {
             "role": "build_services constructs one concrete service bundle. FastAPI and the local MCP entry point each use that shared composition root.",
-            "contract": "One bundle contains WorkspaceService, HistoryService and PreparationService backed by shared local adapters.",
+            "contract": "One bundle contains WorkspaceService, HistoryService, PreparationService and DraftService backed by shared local adapters.",
             "guarantee": "Both presentation adapters reuse application behavior; MCP does not wrap REST or duplicate SQL.",
             "limit": "FastAPI and STDIO still run in separate processes, so each invocation creates its own service and lock owners.",
             "refs": [refs["shared-root"], refs["mcp-stdio"]],
@@ -269,9 +269,9 @@ def _mcp_content(data: dict[str, Any]) -> None:
     data["nodes"]["history-ui"].update(
         {
             "title": "Historical analytics workspace",
-            "role": "The streamlined Angular shell opens on My profile and exposes competitor-team and league-comparison views. Archive administration remains implemented but is not a primary navigation path.",
+            "role": "The Angular shell opens on Prepare. League evidence lazily mounts My profile, competitor teams and league comparison while preserving the draft workspace.",
             "contract": "Typed archive reads feed manager profiles, auction evidence and category results; connection and refresh remain supporting actions.",
-            "guarantee": "The current product journey centers historical analysis without deleting saved archive capabilities.",
+            "guarantee": "Historical reports support draft decisions without deleting saved archive capabilities.",
             "limit": "The shell uses signal-selected panels rather than URL routes, and manager attribution still depends on reviewed local mappings.",
             "refs": [
                 _add_ref(data, "frontend/src/app/app.ts", 1, 34),
@@ -282,12 +282,14 @@ def _mcp_content(data: dict[str, Any]) -> None:
     )
     data["nodes"]["prep-ui"].update(
         {
-            "title": "Preserved preparation components",
-            "role": "PlanEditor, Shortlist, PlayerResearch and CategoryResearch remain implemented, but the streamlined root shell no longer mounts them as a primary journey.",
-            "contract": "Their typed API and feature store preserve the earlier planning capability without expanding the current analytics navigation.",
+            "title": "Draft preparation and preserved planning",
+            "role": "DraftWorkspace presents projection candidates, existing-plan targets, comparisons and manual auction tracking. Earlier PlanEditor and research components remain implemented.",
+            "contract": "Typed draft endpoints return Python-calculated profiles, revision-safe plans and persistent sale accounting.",
             "guarantee": "Hiding the surface did not delete saved plans or historical evidence.",
-            "limit": "This feature map documents preserved code, not a currently visible product path.",
+            "limit": "The partial sample supports exploration, not modeled auction prices or a verified full eligible pool.",
             "refs": [
+                _add_ref(data, "frontend/src/app/draft/draft-workspace.ts", 1, 40),
+                _add_ref(data, "src/fantasy_ai/application/draft/service.py", 1, 40),
                 "frontend/src/app/preparation/preparation.ts:31",
                 "frontend/src/app/preparation/preparation-store.ts:19",
                 _add_ref(data, "frontend/src/app/app.ts", 1, 34),
@@ -296,7 +298,7 @@ def _mcp_content(data: dict[str, Any]) -> None:
     )
     data["nodes"]["workspace-ui"].update(
         {
-            "role": "WorkspaceStore owns selected league, connection and operation state. The streamlined shell keeps setup, connection and refresh as supporting actions around historical analytics.",
+            "role": "WorkspaceStore owns selected league, connection and operation state. The streamlined shell keeps setup, connection and refresh as supporting actions around draft preparation and historical evidence.",
             "guarantee": "Generation counters suppress older responses, and a saved session remains distinct from verified access.",
             "limit": "The local UI has one server-side selection and signal-selected panels rather than multi-user or URL-routed sessions.",
             "refs": [

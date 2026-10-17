@@ -1,0 +1,171 @@
+<section class="showcase-card" aria-label="Auction value baseline">
+  <div class="row between">
+    <div>
+      <h2>Auction value baseline</h2>
+      <small>FG% · FT% · 3PM · PTS · REB · AST · STL · BLK · equal weights</small>
+    </div>
+    <span class="showcase-scope">Pre-draft reference</span>
+  </div>
+  @if (store.context(); as context) {
+    <div class="controls">
+      <label
+        >Explore league depth or projection basis
+        <select [formControl]="store.presetControl">
+          <option value="league">
+            Saved league · {{ context.rules.team_count }} teams ·
+            {{ context.rules.active_slots + context.rules.bench_slots }} purchases ·
+            {{ context.rules.ir_slots }} IR · season totals
+          </option>
+          <option value="more-teams">
+            {{ context.rules.team_count + 2 }} teams · season totals
+          </option>
+          <option value="deeper-bench">One extra bench purchase per team · season totals</option>
+          <option value="more-ir">Two extra IR spots · same purchases · season totals</option>
+          <option value="per-game">Saved league · per-game comparison</option>
+        </select>
+      </label>
+      <button mat-flat-button [disabled]="!store.canCalculate()" (click)="store.calculate()">
+        Calculate baseline
+      </button>
+    </div>
+    <p class="caption">
+      Scenarios do not change your saved league rules or sales. IR adds no auction purchases.
+    </p>
+    @if (store.setupMessage(); as message) {
+      <p class="notice" role="status">{{ message }}</p>
+    } @else {
+      <details [open]="!store.result()">
+        <summary>Review this projection population</summary>
+        <form [formGroup]="store.review" class="review">
+          <p class="caption">
+            {{ context.projection?.player_count }} imported players. Row count alone does not
+            establish coverage or eligibility. These are your declarations, not verified ESPN
+            evidence.
+          </p>
+          <label class="check"
+            ><input type="checkbox" formControlName="coverage" /> I reviewed this file as a complete
+            candidate population for this draft.</label
+          >
+          <label class="check"
+            ><input type="checkbox" formControlName="eligibility" /> I reviewed the included players
+            as suitable candidates for this league.</label
+          >
+          <label
+            >Population scope and review notes<textarea
+              rows="2"
+              maxlength="1000"
+              formControlName="scope"
+              placeholder="Describe the source population and any eligibility limitations. All imported rows will be included."
+            ></textarea>
+          </label>
+        </form>
+      </details>
+    }
+    @if (store.loading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Calculating auction values" />
+      <p class="notice" role="status">
+        Calculating from saved projections…
+        <button mat-button (click)="store.cancel()">Cancel calculation</button>
+      </p>
+    }
+    @if (store.notice(); as notice) {
+      <p class="notice" role="status">{{ notice }}</p>
+    }
+    @if (store.error(); as error) {
+      <p class="notice error" role="alert">
+        {{ error }}
+        <button mat-button [disabled]="!store.canCalculate()" (click)="store.calculate()">
+          Retry calculation
+        </button>
+      </p>
+    }
+    @if (store.result(); as result) {
+      @if (result.status === 'available') {
+        <div class="metrics" aria-label="Allocation reconciliation">
+          <div>
+            <small>Modeled purchases</small><strong>{{ result.modeled_purchase_count }}</strong>
+          </div>
+          <div>
+            <small>Room auction dollars</small
+            ><strong>{{ money(result.room_budget_cents) }}</strong>
+          </div>
+          <div>
+            <small>Allocated dollars</small><strong>{{ money(result.allocated_cents) }}</strong>
+          </div>
+          <div>
+            <small>IR spots per team</small><strong>{{ result.scenario.ir_slots }} separate</strong>
+          </div>
+        </div>
+        <p class="caption">
+          {{ result.universe_count }} included players ·
+          {{ money(result.scenario.budget_cents_per_team) }} per team ·
+          {{ money(result.scenario.minimum_price_cents) }} minimum ·
+          {{
+            result.scenario.valuation_basis === 'season_totals'
+              ? 'projected season totals'
+              : 'per-game contributions'
+          }}.
+        </p>
+        <p class="notice" role="status">
+          @if (result.evidence.is_synthetic) {
+            Synthetic projections · no real player values.
+          } @else {
+            User-declared coverage and eligibility · not independently verified.
+          }
+          Baseline auction allocations are ready. Your personal ceilings are unchanged.
+        </p>
+        @if (result.cutoff_tie) {
+          <p class="caption">
+            A tie crosses the purchase cutoff. Player-reference order breaks it deterministically;
+            that order does not establish a value difference.
+          </p>
+        }
+      } @else {
+        <div class="notice error" role="status">
+          <h3>Baseline unavailable</h3>
+          @for (reason of result.unavailable_reasons; track $index) {
+            <p>{{ reason.message }}</p>
+            @if (reason.player_ids.length) {
+              <small
+                >{{ reason.player_ids.length }} affected player(s){{
+                  reason.fields.length ? ' · ' + reason.fields.join(', ') : ''
+                }}</small
+              >
+            }
+          }
+          <p>Projection browsing, personal ceilings and the sales ledger remain usable.</p>
+        </div>
+      }
+    }
+    <details>
+      <summary>How the baseline works</summary>
+      <p>
+        Category z-scores use the same declared population, with shooting impact weighted by
+        attempts. The first player outside the modeled purchase set sets the replacement score.
+        After reserving minimum bids, higher scores share the remaining room dollars.
+      </p>
+      <p>
+        Values use cents so the room reconciles exactly. Actual bids and personal ceilings use whole
+        dollars. Players outside the modeled purchase set are unpriced, rather than worth zero.
+      </p>
+      <p>
+        This is a budgeting heuristic. Positions, lineup use, streaming and team assignments are not
+        modeled. Values stay fixed as sales are recorded; the ledger updates your legal maximum.
+      </p>
+      @if (store.result(); as result) {
+        <small
+          >{{ result.calculation_version }} · source date
+          {{ result.evidence.source_updated_at || 'unknown' }} ·
+          {{ result.evidence.season_verification }}</small
+        >
+        <p class="caption">
+          Population: {{ result.evidence.scope_description }}<br />{{
+            result.evidence.coverage_reference
+          }}<br />{{ result.evidence.eligibility_reference }}
+        </p>
+      }
+    </details>
+  } @else {
+    <p>Import projections in Data & coverage before calculating.</p>
+  }
+</section>

@@ -75,6 +75,13 @@ def _parse_row(row: Tag, columns: dict[str, int]) -> PlayerProjection | None:
     if len(cells) < len(columns):
         return None
     values = {label: cells[index].get_text(" ", strip=True) for label, index in columns.items()}
+    if "R#" in columns:
+        # The provider appends a nested movement indicator beside the rank.
+        # Only direct text is the displayed rank; the nested change is metadata.
+        rank_cell = cells[columns["R#"]]
+        direct_rank = "".join(rank_cell.find_all(string=True, recursive=False)).strip()
+        if direct_rank:
+            values["R#"] = direct_rank
     player_cell = cells[columns["PLAYER"]]
     anchor = _player_anchor(player_cell)
     name = anchor.get_text(" ", strip=True) if anchor is not None else values["PLAYER"].strip()

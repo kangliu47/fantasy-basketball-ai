@@ -1,0 +1,179 @@
+<div class="row between">
+  <h3>Connect Hashtag</h3>
+  <span class="showcase-scope">{{ label() }}</span>
+</div>
+<p>
+  Sign in directly on Hashtag in a dedicated browser, just like ESPN. Your password is never entered
+  in this app. Fetch the full 2026–27 projection list for your 2027 draft preparation.
+</p>
+@if (busy()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Hashtag operation in progress" />
+}
+@if (error() || state()?.error) {
+  <div class="notice error" role="alert">
+    {{ error() || state()?.error }} Your active projections and draft decisions are retained.
+    <button mat-button [disabled]="sending() || saving()" (click)="reload()">
+      Reload connection status
+    </button>
+  </div>
+}
+@if (state(); as state) {
+  <div class="notice" role="status" aria-live="polite">
+    {{ saving() ? 'Saving projections on this Mac…' : state.message }}
+  </div>
+  <div class="row">
+    @if (state.connection === 'disconnected' || state.connection === 'expired') {
+      <button mat-flat-button [disabled]="busy() || disabled()" (click)="command('connect')">
+        {{ state.connection === 'expired' ? 'Reconnect Hashtag' : 'Connect Hashtag' }}
+      </button>
+    }
+    @if (state.connection === 'waiting') {
+      <button mat-flat-button [disabled]="busy() || disabled()" (click)="command('ready')">
+        I've signed in
+      </button>
+    }
+    <button mat-stroked-button [disabled]="!canFetch()" (click)="command('fetch')">
+      Fetch full projections
+    </button>
+    @if (
+      state.operation === 'opening' ||
+      state.operation === 'fetching' ||
+      state.connection === 'waiting'
+    ) {
+      <button
+        mat-button
+        [disabled]="sending() || saving() || disabled()"
+        (click)="command('cancel')"
+      >
+        {{ state.operation === 'fetching' ? 'Cancel fetch' : 'Cancel sign-in' }}
+      </button>
+    } @else if (state.connection === 'ready' || state.connection === 'verified') {
+      <button mat-button [disabled]="busy() || disabled()" (click)="command('disconnect')">
+        Disconnect
+      </button>
+    }
+  </div>
+  <p class="caption">
+    All teams and positions · no minimum-GP filter · per-game source inputs. GP, minutes, category
+    stats, shooting makes/attempts and available ADP/provider metadata are retained. Saved
+    projections work offline. Disconnect ends app access; the dedicated browser may remember your
+    login.
+  </p>
+  @if (state.candidate; as candidate) {
+    <section class="candidate" aria-labelledby="projection-review-title">
+      <div class="row between">
+        <h3 id="projection-review-title">Review fetched projections</h3>
+        <span class="showcase-scope">Not active yet</span>
+      </div>
+      <div class="facts">
+        <div>
+          <small>Projected players</small><strong>{{ candidate.player_count }}</strong>
+        </div>
+        <div>
+          <small>Source season</small><strong>{{ candidate.season }}</strong>
+        </div>
+        <div>
+          <small>Source updated</small
+          ><strong>{{ candidate.source_updated_at || 'Date unknown' }}</strong>
+        </div>
+        <div><small>Input basis</small><strong>Per game</strong></div>
+      </div>
+      @if (active(); as active) {
+        <p class="notice review">
+          Current snapshot: {{ active.player_count }} players. Fetched candidate:
+          {{ candidate.player_count }} players. Review a changed player count before updating. Your
+          targets and recorded sales stay saved.
+        </p>
+      }
+      @if (sourceOlder()) {
+        <p class="notice review">
+          The source update date is older than your active snapshot. Check the source before using
+          this candidate.
+        </p>
+      }
+      <details>
+        <summary>Coverage and validation evidence</summary>
+        <p>
+          Source selection: All · all teams and positions · minimum GP
+          {{ candidate.coverage.minimum_games }} · primary season projections · averages.
+        </p>
+        <p>
+          {{ candidate.coverage.parsed_rows }} / {{ candidate.coverage.displayed_rows }} displayed
+          rows validated on {{ candidate.coverage.pages_read }} full-list page; no pagination.
+          Required stats, shooting components and distinct provider IDs checked. Full provider
+          coverage does not verify ESPN draft eligibility.
+        </p>
+        <p>
+          Captured {{ candidate.captured_at | date: 'medium' }}. Unsaved candidate expires
+          {{ candidate.expires_at | date: 'shortTime' }}. Provider rankings/totals are metadata;
+          league valuation and eligibility review remain separate.
+        </p>
+      </details>
+      <div
+        class="scroll"
+        tabindex="0"
+        role="region"
+        aria-label="Fetched projection preview; scroll horizontally for all statistics"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>GP</th>
+              <th>MPG</th>
+              <th>FG% · M/A</th>
+              <th>FT% · M/A</th>
+              <th>3PM</th>
+              <th>PTS</th>
+              <th>REB</th>
+              <th>AST</th>
+              <th>STL</th>
+              <th>BLK</th>
+              <th>TO</th>
+              <th>ADP</th>
+              <th>Provider rank</th>
+              <th>Provider total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of candidate.preview; track $index) {
+              <tr>
+                <td>
+                  {{ p.name
+                  }}<small>{{ p.positions.join('/') }} · {{ p.team || 'Team unknown' }}</small>
+                </td>
+                <td>{{ stat(p.gp) }}</td>
+                <td>{{ stat(p.mpg) }}</td>
+                <td>{{ stat(p.fg_pct, true) }} · {{ stat(p.fgm) }}/{{ stat(p.fga) }}</td>
+                <td>{{ stat(p.ft_pct, true) }} · {{ stat(p.ftm) }}/{{ stat(p.fta) }}</td>
+                <td>{{ stat(p.three_pm) }}</td>
+                <td>{{ stat(p.points) }}</td>
+                <td>{{ stat(p.rebounds) }}</td>
+                <td>{{ stat(p.assists) }}</td>
+                <td>{{ stat(p.steals) }}</td>
+                <td>{{ stat(p.blocks) }}</td>
+                <td>{{ stat(p.turnovers) }}</td>
+                <td>{{ stat(p.adp) }}</td>
+                <td>{{ stat(p.provider_rank) }}</td>
+                <td>{{ stat(p.provider_total) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">
+        First {{ candidate.preview.length }} rows shown. TO is retained but excluded from this
+        league’s eight-category analysis.
+      </p>
+      <div class="row">
+        <button mat-flat-button [disabled]="busy() || disabled()" (click)="activate()">
+          Use these projections</button
+        ><button mat-button [disabled]="busy() || disabled()" (click)="discard()">
+          Discard fetched data
+        </button>
+      </div>
+    </section>
+  }
+} @else if (!sending()) {
+  <button mat-stroked-button (click)="reload()">Reload connection status</button>
+}

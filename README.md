@@ -4,13 +4,55 @@ A local, read-only ESPN league workspace built with **FastAPI**, **Angular**, an
 **Angular Material**. Domain Driven Design and Clean Architecture guide the
 boundaries between the fantasy model, use cases, adapters, and UI.
 
-**Current product direction — October 10, 2026:** use completed-season evidence
-to investigate **category priorities across returning managers**. Category strategy
-is implemented locally after user review. Occasional manager mapping belongs in
-an assisted conversation; team-level history stays available without full mapping.
-See the [scope and next delivery](docs/personal-product-direction.md) and
-[project learning journal](docs/learnings/README.md). The workflows below describe
-the existing implementation.
+**Latest addition — October 17, 2026:** connect Hashtag in **Data & coverage**, sign
+in directly in a dedicated Chrome window, then fetch and review the full 2026–27
+projection list before using it in the draft workspace. Credentials stay outside
+code, logs and saved projection data. Synthetic checks and a live premium fetch
+verify the dedicated-session flow, full-list coverage and asynchronous filters.
+See the [approved flow and access boundary](docs/hashtag-premium-design-review.md).
+
+**Earlier delivery — October 17, 2026:** league-adjusted baseline auction allocations
+are integrated into Prepare and Auction companion. Review a complete saved
+projection population, calculate a scenario, inspect category contributions and
+explicitly copy a rounded allocation into your personal ceiling. The
+[approved synthetic flow](docs/auction-values-preview.html) illustrates this journey.
+Real allocations require a complete, reviewed
+population. See the [versioned method](docs/auction-valuation-contract.md).
+
+**Current product direction — October 11, 2026:** prepare for the 2027 draft,
+then use a manual auction companion. Compare projections, save personal targets
+and ceilings, and track final purchases with budget and roster-slot constraints.
+Historical calculations remain available under League evidence. See the
+[scope](docs/personal-product-direction.md) and
+[design and live-sync feasibility](docs/draft-preparation-design-review.md).
+
+### Prepare for your draft
+
+1. Open **Prepare** and start the local draft workspace for the selected league.
+2. In **Data & coverage**, choose **Connect Hashtag**, sign in directly in the
+   dedicated browser and choose **I've signed in**. **Fetch full projections**
+   checks the 2026–27 source, per-game basis and unfiltered All list. Review the
+   candidate, then choose **Use these projections**. A failed fetch/save keeps
+   previous imports and decisions. The existing saved sample and HTML/normalized
+   JSON file import remain available under the file-import disclosure.
+3. With a complete file, review its population and eligibility in **Auction value
+   baseline**, then calculate. Compare the league-depth or per-game scenarios,
+   inspect contributions and use **Use rounded baseline** to fill your ceiling
+   for review. Save the target and reason explicitly. With a partial sample,
+   category comparison and your own ceilings remain available without dollar values.
+4. In **Auction companion**, record every final team/price, including players
+   outside the sample. Undo an incorrect sale and enter its correction.
+
+The partial sample demonstrates the workflow; it does not establish auction
+values or the full ESPN eligible pool. Full-roster projections are not scored
+lineup totals. Exact position slots are unconfirmed. Tracking is manual and
+persists locally; live ESPN synchronization has not been implemented.
+
+Hashtag browser access ends on disconnect, cancellation, shutdown or a 15-minute
+timeout. The dedicated browser may remember its own login. Unsaved fetched
+candidates expire after 30 minutes; active projections remain saved offline.
+An unexpected page layout or missing All list is reported without activating
+partial data. Never paste passwords or cookies into the app or send them to Codex.
 
 ## Explore the public showcase
 
@@ -39,7 +81,7 @@ create a Finder alias for convenient access elsewhere.
 
 The workspace is available at [127.0.0.1:8765](http://127.0.0.1:8765) while running.
 
-For initial setup, open **Connection & data**:
+For initial setup, open **Connection**:
 
 1. Enter your **League ID** and ESPN **Season**, then save the details. The help
    panel explains where to find them in ESPN.
@@ -170,6 +212,11 @@ establish which players or extra starts are available. See the
   spend curve and an interactive category-finish heatmap.
 - Category strategy with reviewed-cohort rescoring, historical gap summaries,
   exact counting-stat steps and games diagnostics, exposed through HTTP and MCP.
+- A saved-only `POST /api/draft/valuation` preview with explicit input declarations,
+  volume-aware shooting impact, replacement-relative scores and exact cents
+  allocation. The approved Angular flow preserves target revisions and unfinished
+  edits, clears stale prices and separates calculated allocations from personal
+  ceilings and legal bids. The calculation performs no writes or provider access.
 - The original read-only Python probe remains available for developer diagnosis.
 
 Browser sign-in and league refresh have been exercised locally. Offline tests

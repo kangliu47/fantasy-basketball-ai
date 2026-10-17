@@ -1,0 +1,357 @@
+:host {
+  display: block;
+}
+h2,
+h3 {
+  color: var(--showcase-heading);
+  letter-spacing: -0.025em;
+  margin: 0 0 10px;
+}
+h2 {
+  font-size: 20px;
+}
+p {
+  line-height: 1.5;
+}
+.muted,
+small {
+  color: var(--showcase-muted);
+}
+small {
+  font-size: 12px;
+}
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.between {
+  justify-content: space-between;
+}
+.showcase-card {
+  margin-bottom: 16px;
+  padding: 20px;
+}
+input,
+select,
+textarea {
+  background: var(--showcase-surface);
+  border: 1px solid var(--showcase-control-line);
+  border-radius: 7px;
+  color: var(--showcase-ink);
+  padding: 9px;
+  font: inherit;
+  max-width: 100%;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--showcase-green);
+  outline-offset: 2px;
+}
+label {
+  display: block;
+  font-size: 12px;
+  color: var(--showcase-muted);
+}
+label input,
+label select,
+label textarea {
+  display: block;
+  margin-top: 5px;
+  width: 100%;
+}
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(330px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 110px 120px;
+  gap: 8px;
+  margin: 16px 0;
+}
+.scroll {
+  overflow: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+th,
+td {
+  text-align: right;
+  padding: 12px 9px;
+  border-bottom: 1px solid var(--showcase-line);
+  white-space: nowrap;
+}
+th {
+  color: var(--showcase-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+th:first-child,
+td:first-child {
+  text-align: left;
+}
+td:first-child {
+  white-space: normal;
+}
+td button {
+  background: none;
+  border: 0;
+  color: var(--showcase-heading);
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  padding: 3px 0;
+}
+td small {
+  display: block;
+  font-size: 11px;
+  margin-top: 3px;
+}
+.selected {
+  background: var(--showcase-blue-soft);
+}
+.statgrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 16px 0;
+}
+.stat {
+  background: var(--showcase-surface-soft);
+  border-radius: 7px;
+  padding: 10px 8px;
+}
+.stat strong,
+.stat small {
+  display: block;
+}
+.stat strong {
+  margin-top: 4px;
+  font-size: 17px;
+}
+.budget {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.budget strong {
+  font-size: 24px;
+  display: block;
+  color: var(--showcase-heading);
+  margin-top: 3px;
+}
+.budget small {
+  display: block;
+}
+.notice {
+  background: var(--showcase-surface-soft);
+  border-left: 3px solid var(--showcase-green);
+  padding: 12px;
+  font-size: 13px;
+  margin: 14px 0;
+  line-height: 1.5;
+}
+.notice small {
+  display: block;
+}
+.notice.error {
+  border-color: var(--showcase-red);
+}
+.formgrid {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
+  margin: 14px 0;
+}
+.ceiling {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  align-items: end;
+  margin: 14px 0;
+}
+.chip {
+  color: var(--showcase-blue);
+  font-size: 11px;
+}
+.inspector {
+  position: sticky;
+  top: 15px;
+}
+.saved {
+  font-size: 12px;
+  color: var(--showcase-green);
+  min-height: 18px;
+}
+summary {
+  cursor: pointer;
+  color: var(--showcase-green);
+  padding: 5px 0;
+}
+details p {
+  font-size: 13px;
+}
+.logline {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--showcase-line);
+}
+.logline small {
+  display: block;
+}
+.caption {
+  font-size: 12px;
+  color: var(--showcase-muted);
+  margin: 10px 0 15px;
+}
+.source-row {
+  margin: 8px 0 16px;
+}
+.rules {
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.team-choice {
+  margin: 10px 0 18px;
+}
+.team-choice select {
+  min-width: 200px;
+  max-width: 360px;
+}
+.candidate-scroll {
+  max-height: 430px;
+  margin-top: 12px;
+}
+.candidate-scroll thead {
+  position: sticky;
+  top: 0;
+  background: var(--showcase-surface);
+  z-index: 1;
+}
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--showcase-green);
+  margin: 0 0 8px;
+}
+.baseline-detail {
+  margin: 16px 0;
+}
+.baseline-price {
+  font-size: 36px;
+  font-weight: 750;
+  color: var(--showcase-heading);
+  letter-spacing: -0.04em;
+  margin: 8px 0;
+}
+.category-row {
+  display: grid;
+  grid-template-columns: 35px 1fr 45px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.category-track {
+  height: 8px;
+  background: var(--showcase-bg);
+  position: relative;
+}
+.category-track::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  height: 100%;
+  border-left: 1px solid var(--showcase-control-line);
+}
+.category-track i {
+  position: absolute;
+  height: 100%;
+  background: var(--showcase-green);
+}
+.category-track i.negative {
+  background: var(--showcase-orange);
+}
+.mobile-only {
+  display: none;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
+}
+.check input {
+  width: auto;
+  margin: 0;
+}
+.import-actions {
+  margin: 15px 0;
+}
+.file-label input {
+  max-width: 300px;
+}
+.coverage label input[type='number'],
+label > input[type='number'] {
+  max-width: 150px;
+}
+@media (max-width: 900px) {
+  .board {
+    grid-template-columns: 1fr;
+  }
+  .inspector {
+    position: static;
+    display: none;
+  }
+  .mobile-detail .inspector {
+    display: block;
+  }
+  .mobile-detail .pool {
+    display: none;
+  }
+  .mobile-only {
+    display: inline-block;
+    margin-bottom: 15px;
+  }
+  .budget {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .toolbar {
+    grid-template-columns: 1fr 110px;
+  }
+  .toolbar label:first-child {
+    grid-column: 1/-1;
+  }
+  .team-choice select {
+    max-width: 100%;
+  }
+}
+@media (max-width: 450px) {
+  .statgrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .formgrid,
+  .ceiling {
+    grid-template-columns: 1fr;
+  }
+  .showcase-card {
+    padding: 15px;
+  }
+  .team-choice label {
+    max-width: 100%;
+  }
+}

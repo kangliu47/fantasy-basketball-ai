@@ -3,6 +3,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { App } from './app';
+import { DraftWorkspace } from './draft/draft-workspace';
+import { sampleDraft } from './draft/draft.fixture';
 import { LeagueSetup } from './league-setup/league-setup';
 import { WorkspaceState } from './core/workspace.models';
 
@@ -43,9 +45,11 @@ describe('League workspace', () => {
   afterEach(() => http.verify());
 
   it('guides an unconfigured user without inventing league data', () => {
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Your league history');
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
+      'Build a shortlist you can use.',
+    );
     expect(button('Refresh data').disabled).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Connect your league');
+    expect(fixture.nativeElement.textContent).toContain('Save your league details');
   });
 
   it('validates and saves league details through the HTTP interface', async () => {
@@ -117,17 +121,49 @@ describe('League workspace', () => {
     });
     fixture.componentInstance.section.set('profile');
     await settle();
-    http.expectOne('/api/archive/managers').flush({ managers: [], assignments: [], my_manager_id: null });
-    http.expectOne('/api/archive/catalog').flush({ candidates: [], imported_seasons: [], job: null });
+    http
+      .expectOne('/api/archive/managers')
+      .flush({ managers: [], assignments: [], my_manager_id: null });
+    http
+      .expectOne('/api/archive/catalog')
+      .flush({ candidates: [], imported_seasons: [], job: null });
     await settle();
     http.expectNone('/api/archive/category-allocation');
     await settle();
-    expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Synthetic League');
+    expect(fixture.nativeElement.querySelector('h1').textContent.trim()).toBe('Synthetic League');
     expect(button('Refresh data').disabled).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('My profile');
     expect(fixture.nativeElement.textContent).toContain('one reviewed manager link');
     expect(fixture.nativeElement.textContent).not.toContain('Example Player');
     expect(fixture.nativeElement.textContent).not.toContain('Data coverage & imports');
+  });
+
+  it('keeps the draft board and unsaved notes while opening supporting history', async () => {
+    void fixture.componentInstance.store.load();
+    http.expectOne('/api/state').flush({ ...empty, selection: { league_id: 12345, season: 2026 } });
+    fixture.componentInstance.openDraft('prepare');
+    await settle();
+    http.expectOne('/api/draft').flush(sampleDraft());
+    await settle();
+    http.expectNone('/api/archive/managers');
+    const draft = fixture.debugElement.query(By.directive(DraftWorkspace))
+      .componentInstance as DraftWorkspace;
+    draft.targetForm.controls.note.setValue('Keep my unfinished draft reason');
+    draft.targetForm.markAsDirty();
+    button('League evidence').click();
+    await settle();
+    http
+      .expectOne('/api/archive/managers')
+      .flush({ managers: [], assignments: [], my_manager_id: null });
+    http
+      .expectOne('/api/archive/catalog')
+      .flush({ candidates: [], imported_seasons: [], job: null });
+    await settle();
+    button('Prepare').click();
+    await settle();
+    expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
+    expect(draft.targetForm.controls.note.value).toBe('Keep my unfinished draft reason');
+    http.expectNone('/api/draft');
   });
 
   it('shows a recoverable API failure', async () => {

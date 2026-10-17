@@ -51,11 +51,27 @@ main {
   margin: auto;
   padding: 48px 32px 0;
 }
-.analytics-page { margin-top: 1.5rem; }
-.competitor-list { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0 1.5rem; }
-.competitor-list button { display: grid; gap: 0.2rem; text-align: left; }
-.competitor-list small { color: #65776b; }
-.selected-competitor { border-color: #397b54 !important; background: #edf4ef; }
+.analytics-page {
+  margin-top: 1.5rem;
+}
+.competitor-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+.competitor-list button {
+  display: grid;
+  gap: 0.2rem;
+  text-align: left;
+}
+.competitor-list small {
+  color: #65776b;
+}
+.selected-competitor {
+  border-color: #397b54 !important;
+  background: #edf4ef;
+}
 .intro {
   display: flex;
   justify-content: space-between;
@@ -476,4 +492,29 @@ footer span:first-child {
 .workspace-nav .nav-active {
   background: #e8f0ff;
   color: #28599d;
+}
+
+// Draft workspace shares the public preview tokens; history keeps its existing surfaces.
+main {
+  max-width: 1380px;
+  padding-top: 28px;
+}
+.topbar {
+  height: 76px;
+}
+.intro {
+  margin-bottom: 22px;
+}
+.brand {
+  display: block;
+}
+app-draft-workspace[hidden],
+[hidden] {
+  display: none !important;
+}
+
+.league-context {
+  color: #63766a;
+  font-size: 13px;
+  margin: 0 0 8px;
 }

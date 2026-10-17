@@ -34,12 +34,14 @@ export class PlanEditor {
     watched_manager_ids: new FormControl<string[]>([], { nonNullable: true }),
   });
   private loaded = '';
+  private baseline: Omit<PlanSettings, 'category_targets'> | null = null;
   constructor() {
     effect(() => {
       const plan = this.store.data()?.plan;
       if (!plan || (plan.id === this.loaded && this.form.dirty)) return;
       this.loaded = plan.id;
       const { category_targets, ...settings } = plan.settings;
+      this.baseline = structuredClone(settings);
       this.form.setValue(settings);
       this.form.markAsPristine();
     });
@@ -48,14 +50,30 @@ export class PlanEditor {
     const plan = this.store.data()?.plan;
     if (!plan) return;
     const values = this.form.getRawValue();
+    const merged = { ...plan.settings };
+    for (const key of Object.keys(values) as (keyof typeof values)[]) {
+      if (JSON.stringify(values[key]) === JSON.stringify(this.baseline?.[key])) continue;
+      if (
+        JSON.stringify(plan.settings[key]) !== JSON.stringify(this.baseline?.[key]) &&
+        JSON.stringify(plan.settings[key]) !== JSON.stringify(values[key])
+      ) {
+        this.store.error.set(
+          'This plan field changed in another view. Your draft text is retained; reload and review the newer decision before saving.',
+        );
+        return;
+      }
+      Object.assign(merged, { [key]: values[key] });
+    }
     this.store.saveSettings(
       {
-        ...values,
-        budget: values.draft_type === 'AUCTION' ? values.budget : null,
-        draft_slot: values.draft_type === 'SNAKE' ? values.draft_slot : null,
+        ...merged,
+        budget: merged.draft_type === 'AUCTION' ? merged.budget : null,
+        draft_slot: merged.draft_type === 'SNAKE' ? merged.draft_slot : null,
         category_targets: plan.settings.category_targets,
       },
       () => {
+        const { category_targets, ...settings } = merged;
+        this.baseline = structuredClone(settings);
         if (JSON.stringify(this.form.getRawValue()) === JSON.stringify(values))
           this.form.markAsPristine();
       },

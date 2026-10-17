@@ -177,6 +177,34 @@ describe('2027 preparation journey', () => {
     expect(editor().form.pristine).toBe(true);
   });
 
+  it('rejects overlapping stale settings and keeps newer unchanged fields', async () => {
+    const data = sample();
+    http.expectOne('/api/preparation').flush(data);
+    await settle();
+    editor().form.controls.strategy_notes.setValue('My local draft');
+    editor().form.markAsDirty();
+    const plan = {
+      ...data.plan!,
+      revision: 2,
+      settings: { ...data.plan!.settings, strategy_notes: 'A newer decision', budget: 175 },
+    };
+    editor().store.load(12345);
+    http.expectOne('/api/preparation').flush({ ...data, plan });
+    await settle();
+    editor().save();
+    http.expectNone('/api/preparation/plan');
+    expect(editor().store.error()).toContain('changed in another view');
+    expect(editor().form.controls.strategy_notes.value).toBe('My local draft');
+    editor().form.controls.strategy_notes.setValue('A newer decision');
+    editor().save();
+    const request = http.expectOne('/api/preparation/plan');
+    expect(request.request.body.budget).toBe(175);
+    expect(request.request.body.revision).toBe(2);
+    request.flush({ ...plan, revision: 3 });
+    http.expectOne('/api/preparation').flush({ ...data, plan: { ...plan, revision: 3 } });
+    await settle();
+  });
+
   it('retains notes after a save conflict and refreshes evidence after returning from history', async () => {
     const data = sample();
     http.expectOne('/api/preparation').flush(data);
@@ -265,16 +293,14 @@ describe('2027 preparation journey', () => {
     http.expectOne('/api/preparation').flush(data);
     await settle();
     fixture.componentInstance.store.load(12345);
-    http
-      .expectOne('/api/preparation')
-      .flush({
-        ...data,
-        plan: {
-          ...data.plan!,
-          revision: 2,
-          settings: { ...data.plan!.settings, strategy_notes: 'Saved elsewhere' },
-        },
-      });
+    http.expectOne('/api/preparation').flush({
+      ...data,
+      plan: {
+        ...data.plan!,
+        revision: 2,
+        settings: { ...data.plan!.settings, strategy_notes: 'Saved elsewhere' },
+      },
+    });
     await settle();
     expect(editor().form.controls.strategy_notes.value).toBe('Saved elsewhere');
   });

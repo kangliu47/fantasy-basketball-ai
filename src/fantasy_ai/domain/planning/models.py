@@ -23,6 +23,7 @@ class ShortlistEntry:
     max_bid: float | None
     observation_ids: tuple[str, ...]
     added_at: datetime
+    projection_snapshot_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -54,9 +55,12 @@ class DraftPlan:
     revision: int
     created_at: datetime
     updated_at: datetime
+    reference_kind: str = "historical"
 
 
 def validate_plan(plan: DraftPlan) -> None:
+    if plan.reference_kind not in {"historical", "user_confirmed"}:
+        raise ValueError("Choose an imported or user-confirmed rules reference.")
     settings = plan.settings
     if plan.planning_season <= plan.reference_season:
         raise ValueError("The planning season must follow the historical reference season.")

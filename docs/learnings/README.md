@@ -20,6 +20,23 @@ about building with an AI coding agent and managing a personal product.
 - [Current personal-product direction](../personal-product-direction.md): the
   decisions that now govern the backlog.
 
+## Premium acquisition boundaries — October 17, 2026
+
+[Premium projection boundaries](premium-projection-boundaries.md) records the
+separation of sign-in, access verification, complete provider coverage and ESPN
+eligibility, plus staged activation and credential isolation.
+
+## Auction allocation baseline — October 17, 2026
+
+[Auction allocation baseline](auction-allocation-baseline.md) records the user's
+valuation-first priority, separation of acquisition from method development,
+the declared population and budget contract, and numerical/interpretation limits.
+
+## Draft journey update — October 11, 2026
+
+[Draft preparation boundaries](draft-preparation-boundaries.md) records the approved
+manual companion, partial-data limits and browser verification lesson.
+
 ## How to maintain this journal
 
 Insert a dated entry at the top of the entries when a conversation changes our

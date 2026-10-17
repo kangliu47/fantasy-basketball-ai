@@ -8,7 +8,7 @@ from uuid import uuid4
 from fantasy_ai.application.history.ports import HistoryRepository
 from fantasy_ai.application.models import WorkspaceError
 from fantasy_ai.domain.history.analysis import ManagerProfile, manager_profile
-from fantasy_ai.domain.history.models import Dataset, Manager, SeasonArchive
+from fantasy_ai.domain.history.models import Dataset, Manager, SeasonArchive, SeasonRules
 from fantasy_ai.domain.history.patterns import LeaguePatterns, league_patterns
 from fantasy_ai.domain.planning.models import DraftPlan, PlanSettings, ShortlistEntry, validate_plan
 from fantasy_ai.domain.planning.research import DraftInterest, draft_interests
@@ -200,7 +200,10 @@ class PreparationService:
         async with self._lock:
             plan = await self._current(league_id, revision)
             archives = await self._archives(league_id)
-            if not set(settings.analysis_seasons) <= {a.season for a in archives}:
+            allowed_years = {a.season for a in archives}
+            if plan.reference_kind == "user_confirmed":
+                allowed_years.add(plan.reference_season)
+            if not set(settings.analysis_seasons) <= allowed_years:
                 raise WorkspaceError("Choose analysis seasons already imported for this league.")
             managers = {m.id for m in await asyncio.to_thread(self.history.managers, league_id)}
             if (settings.manager_id and settings.manager_id not in managers) or not set(
@@ -209,9 +212,9 @@ class PreparationService:
                 raise WorkspaceError("Choose reviewed manager aliases from this league.")
             if len(set(settings.watched_manager_ids)) != len(settings.watched_manager_ids):
                 raise WorkspaceError("Choose each watched manager only once.")
-            reference = next(a for a in archives if a.season == plan.reference_season)
+            reference = next((a for a in archives if a.season == plan.reference_season), None)
             if settings.reference_team_id and settings.reference_team_id not in {
-                t.id for t in reference.teams
+                t.id for t in (reference.teams if reference else ())
             }:
                 raise WorkspaceError("Choose your team from the plan's reference season.")
             updated = replace(
@@ -269,6 +272,92 @@ class PreparationService:
                 shortlist=tuple(p for p in plan.shortlist if p.player_id != player_id),
                 revision=revision + 1,
                 updated_at=datetime.now(UTC),
+            )
+            await self._save(updated, revision)
+            return updated
+
+    async def ensure_draft_context(
+        self, league_id: int, rules: "SeasonRules", team_count: int
+    ) -> DraftPlan:
+        """Keep one shortlist; a first-time draft need not manufacture archive evidence."""
+        async with self._lock:
+            current = await asyncio.to_thread(self.repository.load, league_id, PLANNING_SEASON)
+            if current:
+                return current
+            now = datetime.now(UTC)
+            archives = await self._archives(league_id)
+            source = next((a.get(Dataset.SETTINGS) for a in archives if a.season == 2026), None)
+            imported_rules = source.rules if source else None
+            plan = DraftPlan(
+                str(uuid4()),
+                league_id,
+                PLANNING_SEASON,
+                2026,
+                source.id if source and imported_rules else "user-confirmed:2027-draft-context",
+                imported_rules or rules,
+                len(next(a for a in archives if a.season == 2026).teams)
+                if imported_rules
+                else team_count,
+                "provisional" if imported_rules else "user_confirmed",
+                PlanSettings(
+                    tuple(a.season for a in archives if a.season >= 2024) or (2026,),
+                    await asyncio.to_thread(self.history.my_manager, league_id),
+                    await asyncio.to_thread(self.history.my_team, league_id, 2026),
+                    "AUCTION",
+                    rules.auction_budget,
+                    None,
+                    "",
+                    "",
+                    (),
+                    (),
+                ),
+                (),
+                1,
+                now,
+                now,
+                reference_kind="historical" if imported_rules else "user_confirmed",
+            )
+            await self._save(plan, 0)
+            return plan
+
+    async def projection_target(
+        self,
+        league_id: int,
+        revision: int,
+        player_id: str,
+        name: str,
+        import_id: str,
+        note: str,
+        max_bid: int | None,
+    ) -> DraftPlan:
+        """Application-validated projection identity, never a name-based ESPN merge."""
+        async with self._lock:
+            plan = await self._current(league_id, revision)
+            old = next((p for p in plan.shortlist if p.player_id == player_id), None)
+            refs = tuple(dict.fromkeys((old.projection_snapshot_ids if old else ()) + (import_id,)))
+            entry = (
+                replace(
+                    old, priority="target", note=note, max_bid=max_bid, projection_snapshot_ids=refs
+                )
+                if old
+                else ShortlistEntry(
+                    player_id,
+                    name,
+                    "target",
+                    note,
+                    max_bid,
+                    (),
+                    datetime.now(UTC),
+                    refs,
+                )
+            )
+            entries = (
+                tuple(entry if p.player_id == player_id else p for p in plan.shortlist)
+                if old
+                else plan.shortlist + (entry,)
+            )
+            updated = replace(
+                plan, shortlist=entries, revision=revision + 1, updated_at=datetime.now(UTC)
             )
             await self._save(updated, revision)
             return updated
