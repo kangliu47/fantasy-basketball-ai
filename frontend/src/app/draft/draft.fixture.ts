@@ -1,4 +1,20 @@
-import { DraftView, ProjectionProfile } from './draft.models';
+import { DraftView, ProjectionProfile, PlayerProjectionContext } from './draft.models';
+
+const context = (): PlayerProjectionContext => ({
+  state: 'no_prior_snapshot',
+  previous: null,
+  previous_team: null,
+  team_changed: false,
+  changes: [],
+  latest: {
+    import_id: '00000000-0000-4000-8000-000000000001',
+    source: 'hashtag_basketball',
+    source_updated_at: '2026-10-11',
+    captured_at: '2026-10-11T12:00:00Z',
+    imported_at: '2026-10-11T12:00:00Z',
+    stat_basis: 'per_game',
+  },
+});
 
 // Synthetic DTO fixtures only; Python tests own numerical semantics.
 const profile = (pts: number): ProjectionProfile => ({
@@ -90,6 +106,10 @@ export function sampleDraft(): DraftView {
         name: 'Alpha Example',
         positions: ['PG'],
         team: 'ABC',
+        team_name: 'Synthetic NBA team ABC',
+        projected_minutes: 30,
+        context: context(),
+        profile_url: null,
         projected_games: 70,
         per_game: profile(22),
         season_totals: profile(1540),
@@ -99,11 +119,46 @@ export function sampleDraft(): DraftView {
         name: 'B. Fiction',
         positions: ['C'],
         team: 'XYZ',
+        team_name: 'Synthetic NBA team XYZ',
+        projected_minutes: 25,
+        context: context(),
+        profile_url: null,
         projected_games: 65,
         per_game: profile(14),
         season_totals: profile(910),
       },
     ],
+    auction: {
+      calculation_version: 'auction-overview-v1',
+      available_players: 2,
+      pool_reference: { PTS: 18, AST: 7, 'FG%': 0.5 },
+      category_coverage: { PTS: 2, AST: 2, 'FG%': 2 },
+      chart_extents: { PTS: 4, AST: 0, 'FG%': 0 },
+      contributions: [
+        {
+          player_id: 'projection:hashtag_basketball:12345',
+          differences: { PTS: 4, AST: 0, 'FG%': 0 },
+        },
+        {
+          player_id: 'projection:hashtag_basketball:54321',
+          differences: { PTS: -4, AST: 0, 'FG%': 0 },
+        },
+      ],
+      teams: ['draft-team-1', 'draft-team-2'].map((team_id) => ({
+        team_id,
+        spent: 0,
+        picked: 0,
+        remaining: 200,
+        open_slots: 13,
+        legal_maximum: 188,
+        opening_minimum: 1,
+        average_paid: null,
+        average_left: 200 / 13,
+        largest_pick: null,
+        top_three_budget_share: 0,
+        profile: { ...profile(0), included_players: 0, values: { PTS: null } },
+      })),
+    },
     sales: [],
     budgets: [{ team_id: 'draft-team-1', remaining: 200, open_slots: 13, legal_maximum: 188 }],
     trial_profile: { ...profile(0), values: { PTS: null }, included_players: 0 },

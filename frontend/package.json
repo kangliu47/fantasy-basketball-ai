@@ -1,12 +1,13 @@
 {
   "name": "fantasy-workspace",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --host 127.0.0.1 --proxy-config proxy.conf.json",
-    "build": "NG_BUILD_CACHE_STORE=sqlite ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "start": "node scripts/write-build-info.mjs --development && ng serve --host 127.0.0.1 --proxy-config proxy.conf.json",
+    "build": "node scripts/write-build-info.mjs && NG_BUILD_CACHE_STORE=sqlite ng build",
+    "watch": "node scripts/write-build-info.mjs --development && ng build --watch --configuration development",
+    "test": "node scripts/write-build-info.mjs --if-missing && ng test",
+    "test:build-info": "node --test scripts/write-build-info.spec.mjs"
   },
   "private": true,
   "packageManager": "pnpm@11.19.0",

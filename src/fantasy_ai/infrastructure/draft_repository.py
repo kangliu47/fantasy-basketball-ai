@@ -67,6 +67,26 @@ class DuckDBDraftRepository:
             ).fetchone()
             return PROJECTION.validate_json(row[0]) if row else None
 
+    def previous_projection(self, current: ProjectionImport) -> ProjectionImport | None:
+        """Capture chronology, never activation/import order or name matching."""
+        with self.workspace.connection() as db:
+            row = db.execute(
+                "SELECT document FROM projection_imports WHERE season = ? "
+                "AND json_extract_string(document, '$.snapshot.source') = ? "
+                "AND json_extract_string(document, '$.stat_basis') = ? "
+                "AND CAST(json_extract_string(document, '$.snapshot.captured_at') "
+                "AS TIMESTAMPTZ) < ? "
+                "ORDER BY CAST(json_extract_string(document, '$.snapshot.captured_at') "
+                "AS TIMESTAMPTZ) DESC, imported_at DESC, import_id DESC LIMIT 1",
+                [
+                    current.snapshot.season,
+                    current.snapshot.source,
+                    current.stat_basis,
+                    current.snapshot.captured_at,
+                ],
+            ).fetchone()
+            return PROJECTION.validate_json(row[0]) if row else None
+
     def save_projection(self, item: ProjectionImport) -> None:
         with self.workspace.connection() as db:
             db.execute(

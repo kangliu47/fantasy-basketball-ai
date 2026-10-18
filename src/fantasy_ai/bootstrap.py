@@ -9,17 +9,24 @@ from fastapi import FastAPI
 from fantasy_ai.application.draft.service import DraftService
 from fantasy_ai.application.history.service import HistoryService
 from fantasy_ai.application.planning.service import PreparationService
+from fantasy_ai.application.projections.player_information import PlayerInformationService
+from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
 from fantasy_ai.application.workspace import WorkspaceService
 from fantasy_ai.infrastructure.browser_login import PlaywrightBrowserLogin
 from fantasy_ai.infrastructure.draft_repository import DuckDBDraftRepository
 from fantasy_ai.infrastructure.duckdb_repository import DuckDBWorkspaceRepository
 from fantasy_ai.infrastructure.espn_gateway import ESPNLeagueGateway
+from fantasy_ai.infrastructure.espn_player_information import ESPNPlayerInformationReader
 from fantasy_ai.infrastructure.history_gateway import ESPNHistoryGateway
 from fantasy_ai.infrastructure.history_repository import DuckDBHistoryRepository
 from fantasy_ai.infrastructure.planning_repository import DuckDBPlanRepository
+from fantasy_ai.infrastructure.player_information_repository import (
+    DuckDBPlayerInformationRepository,
+)
 from fantasy_ai.infrastructure.projections.browser import HashtagBrowserSource
 from fantasy_ai.infrastructure.projections.files import LocalProjectionFiles
+from fantasy_ai.infrastructure.projections.player_notes import DuckDBPlayerNotesRepository
 from fantasy_ai.infrastructure.session_store import MemorySessionStore
 from fantasy_ai.interfaces.http.api import create_api
 
@@ -33,6 +40,8 @@ class ApplicationServices:
     planning: PreparationService
     draft: DraftService | None = None
     projections: PremiumProjectionService | None = None
+    player_notes: PlayerNotesService | None = None
+    player_information: PlayerInformationService | None = None
 
 
 def build_services(root: Path | None = None) -> ApplicationServices:
@@ -63,7 +72,19 @@ def build_services(root: Path | None = None) -> ApplicationServices:
     projections = PremiumProjectionService(
         HashtagBrowserSource(root / ".local/hashtag-browser"), draft
     )
-    return ApplicationServices(workspace, history, planning, draft, projections)
+    player_notes = PlayerNotesService(
+        draft.repository,
+        DuckDBPlayerNotesRepository(repository),
+        projections,
+    )
+    player_information = PlayerInformationService(
+        draft.repository,
+        DuckDBPlayerInformationRepository(repository),
+        ESPNPlayerInformationReader(),
+    )
+    return ApplicationServices(
+        workspace, history, planning, draft, projections, player_notes, player_information
+    )
 
 
 def create_app() -> FastAPI:
@@ -81,4 +102,6 @@ def create_app() -> FastAPI:
         services.planning,
         services.draft,
         services.projections,
+        services.player_notes,
+        services.player_information,
     )

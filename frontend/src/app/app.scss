@@ -518,3 +518,38 @@ app-draft-workspace[hidden],
   font-size: 13px;
   margin: 0 0 8px;
 }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.primary-nav {
+  border-bottom: 1px solid var(--showcase-line);
+  padding-bottom: 16px;
+  margin: 0 0 16px;
+}
+.primary-nav .nav-active {
+  background: var(--showcase-green-soft);
+  color: var(--showcase-green-strong);
+}
+.secondary-nav {
+  margin: 0 0 24px;
+}
+.live-season-empty {
+  border: 1px solid var(--showcase-line);
+  margin-bottom: 24px;
+}
+.live-season-empty p {
+  color: var(--showcase-muted);
+  line-height: 1.6;
+  max-width: 680px;
+}
+@media (max-width: 550px) {
+  .header-actions {
+    gap: 4px;
+  }
+  .primary-nav {
+    gap: 2px;
+  }
+}

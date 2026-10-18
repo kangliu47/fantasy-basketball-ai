@@ -54,6 +54,25 @@ describe('Auction baseline evidence and request lifecycle', () => {
     ).toBeNull();
   });
 
+  it('supplies the approved planning scope and explains a blank note rather than silently disabling', async () => {
+    expect(store.review.controls.scope.value).toContain('provisional draft candidate pool');
+    expect(store.review.controls.scope.value).toContain('unverified');
+    expect(store.readinessMessage()).toContain('population coverage box');
+    store.review.controls.coverage.setValue(true);
+    store.review.controls.eligibility.setValue(true);
+    await settle();
+    expect(store.canCalculate()).toBe(true);
+    expect(fixture.nativeElement.querySelector('button').disabled).toBe(false);
+    store.review.controls.scope.setValue('   ');
+    await settle();
+    expect(store.canCalculate()).toBe(false);
+    expect(fixture.nativeElement.querySelector('#baseline-readiness').textContent).toContain(
+      'enter a population scope note',
+    );
+    store.calculate();
+    http.expectNone('/api/draft/valuation');
+  });
+
   it('sends only the pinned import, reviewed population and scenario and renders server cents', async () => {
     review();
     store.calculate();

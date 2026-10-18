@@ -150,7 +150,7 @@ describe('League workspace', () => {
       .componentInstance as DraftWorkspace;
     draft.targetForm.controls.note.setValue('Keep my unfinished draft reason');
     draft.targetForm.markAsDirty();
-    button('League evidence').click();
+    button('Historical patterns').click();
     await settle();
     http
       .expectOne('/api/archive/managers')
@@ -159,10 +159,70 @@ describe('League workspace', () => {
       .expectOne('/api/archive/catalog')
       .flush({ candidates: [], imported_seasons: [], job: null });
     await settle();
-    button('Prepare').click();
+    button('Auction prep').click();
     await settle();
     expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
     expect(draft.targetForm.controls.note.value).toBe('Keep my unfinished draft reason');
+    http.expectNone('/api/draft');
+  });
+
+  it('separates live-season entry without loading history and preserves unfinished draft notes', async () => {
+    void fixture.componentInstance.store.load();
+    http.expectOne('/api/state').flush({ ...empty, selection: { league_id: 12345, season: 2026 } });
+    fixture.componentInstance.openWorkspace('draft');
+    await settle();
+    http.expectOne('/api/draft').flush(sampleDraft());
+    await settle();
+    const draft = fixture.debugElement.query(By.directive(DraftWorkspace))
+      .componentInstance as DraftWorkspace;
+    draft.targetForm.controls.note.setValue('Still comparing two draft targets');
+    draft.targetForm.markAsDirty();
+    button('Live season').click();
+    await settle();
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
+      'Follow the season separately.',
+    );
+    expect(fixture.nativeElement.querySelector('app-draft-workspace').hidden).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('Live-season analysis is not ready yet');
+    expect(
+      fixture.nativeElement.querySelector('nav[aria-label="Main workspaces"] [aria-current="page"]')
+        .textContent,
+    ).toContain('Live season');
+    http.expectNone('/api/archive/managers');
+    http.expectNone('/api/archive/catalog');
+    button('Return to auction prep').click();
+    await settle();
+    expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
+    expect(draft.targetForm.controls.note.value).toBe('Still comparing two draft targets');
+    expect(draft.targetForm.dirty).toBe(true);
+    http.expectNone('/api/draft');
+  });
+
+  it('remembers the auction subtab through global connection and workspace navigation', async () => {
+    void fixture.componentInstance.store.load();
+    http.expectOne('/api/state').flush({ ...empty, selection: { league_id: 12345, season: 2026 } });
+    fixture.componentInstance.openDraft('auction');
+    await settle();
+    http.expectOne('/api/draft').flush(sampleDraft());
+    await settle();
+    const draft = fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance;
+    button('Connection').click();
+    await settle();
+    expect(fixture.componentInstance.activeWorkspace()).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-draft-workspace').hidden).toBe(true);
+    button('Back to previous workspace').click();
+    await settle();
+    expect(fixture.componentInstance.activeSection()).toBe('auction');
+    expect(
+      fixture.nativeElement.querySelector('nav[aria-label="Auction prep"] [aria-current="page"]')
+        .textContent,
+    ).toContain('Auction companion');
+    button('Live season').click();
+    await settle();
+    button('Auction prep').click();
+    await settle();
+    expect(fixture.componentInstance.activeSection()).toBe('auction');
+    expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
     http.expectNone('/api/draft');
   });
 

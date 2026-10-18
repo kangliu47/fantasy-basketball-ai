@@ -21,12 +21,15 @@ from fantasy_ai.application.models import (
     WorkspaceError,
 )
 from fantasy_ai.application.planning.service import PreparationService
+from fantasy_ai.application.projections.player_information import PlayerInformationService
+from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
 from fantasy_ai.application.workspace import WorkspaceService
 
 from .draft_api import create_draft_router
 from .history_api import create_history_router
 from .planning_api import create_planning_router
+from .player_information_api import create_player_information_router
 from .projection_api import create_projection_router
 from .schemas import (
     LeagueDTO,
@@ -48,6 +51,8 @@ def create_api(
     planning: PreparationService | None = None,
     draft: DraftService | None = None,
     projections: PremiumProjectionService | None = None,
+    player_notes: PlayerNotesService | None = None,
+    player_information: PlayerInformationService | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -99,7 +104,13 @@ def create_api(
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Frame-Options"] = "DENY"
-        if request.url.path.startswith("/api/"):
+        if request.url.path.startswith("/api/") or request.url.path in {
+            "/",
+            "/index.html",
+            "/build-info.json",
+        }:
+            # Re-read the entry document and served build identity after rebuilds.
+            # Content-hashed JS/CSS assets keep their normal cache behavior.
             response.headers["Cache-Control"] = "no-store"
         return response
 
@@ -208,7 +219,9 @@ def create_api(
         app.include_router(create_draft_router(draft, service))
         app.include_router(create_valuation_router(draft, service))
     if projections:
-        app.include_router(create_projection_router(projections, service))
+        app.include_router(create_projection_router(projections, service, player_notes))
+    if player_information:
+        app.include_router(create_player_information_router(player_information))
 
     if frontend is not None and frontend.is_dir():
         app.mount("/", StaticFiles(directory=frontend, html=True), name="frontend")

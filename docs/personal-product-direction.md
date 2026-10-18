@@ -1,5 +1,51 @@
 # Personal product direction
 
+## Navigation approval — October 18, 2026, latest
+
+The user approves the three-workspace mock: Auction prep leads with Prepare and
+Auction companion; Historical patterns keeps existing evidence; Live season has a
+separate not-ready entry. Connection is global. This supersedes the earlier
+pending-navigation status. Focus implementation on auction preparation; no new
+live-season tools are authorized by the navigation approval.
+
+
+## Current focus — October 18, 2026
+
+User decision: focus implementation on auction preparation, including the approved
+Team board for manual auction tracking. Keep draft planning, live-season decisions
+and completed-season patterns in distinct journeys. A new navigation proposal
+requires its own flow approval; the Team board itself is approved. Preserve the
+existing history and draft decisions. Live ESPN draft refresh is a separate
+unverified feasibility question, not a delivered capability.
+
+
+## Current priority — October 17, 2026, balanced league-specific draft research
+
+**Implementation follow-up:** the user authorizes the private prototype and
+confirms active position slots. The first report now combines saved manager
+evidence with complete-room scenarios, cost-to-buy diagnostics and balanced
+roster examples. Missing historical preseason pools keep price estimates
+exploratory. The [research contract](league-draft-research-contract.md) and
+[delivery record](implementation-plan.md) govern this bounded implementation.
+No app decisions or provider data are changed.
+
+The user prefers a balanced build for flexibility and asks whether historical
+manager spending and category patterns can expose underpriced contributions.
+They request the [analytical framework](league-adjusted-draft-value-framework.md)
+first and choose a private analysis prototype for the next implementation window.
+This turn delivers the plan, not a fitted price model or final target list.
+
+Keep the balanced baseline as a contribution reference. Estimate league purchase
+costs separately, with evidence labels and ranges. Manager outcomes can suggest
+scenarios but do not establish draft intent; historical price fitting requires
+expectations actually available before each draft. Evaluate complete balanced
+packages and backups before assigning personal ceilings. Future waiver/trade
+benefits remain an objective rather than an invented source of dollar value.
+
+The first implementation should remain private research, reuse saved evidence,
+and retain the exploratory fallback when historical preseason inputs are absent.
+No production navigation or saved decision changes are authorized by this plan.
+
 ## Current priority — October 17, 2026, auction dollar baseline
 
 **Same-day delivery:** the user approved `docs/auction-values-preview.html` for

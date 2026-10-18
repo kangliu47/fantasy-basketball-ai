@@ -1,0 +1,130 @@
+@let current = state();
+@let view = current?.value;
+@let saved = view?.saved;
+@if (section() === 'metadata') {
+  @if (saved) {
+    <section class="espn-metadata" aria-label="Current NBA team from ESPN">
+      <small>NBA team · ESPN</small
+      ><strong>{{ saved.metadata.team_name || 'Team not returned by ESPN' }}</strong>
+      <p>
+        {{ saved.metadata.position || 'Position unknown' }} · ESPN status:
+        {{ saved.metadata.status || 'Unknown' }}
+      </p>
+      <small
+        >Checked {{ saved.metadata.captured_at | date: 'medium' }}. Team as reported by ESPN; roster
+        status is not medical clearance.</small
+      >
+      @if (view?.team_disagrees) {
+        <p class="review">
+          ESPN lists {{ saved.metadata.team_name }}; the saved Hashtag projection lists
+          {{ player().team_name }}. Check the role before bidding.
+        </p>
+      }
+    </section>
+  }
+} @else {
+  <section class="espn-updates" aria-label="ESPN player updates">
+    <h3>ESPN player updates</h3>
+    @if (current?.loading) {
+      <p role="status">Loading saved ESPN information…</p>
+    }
+    @if (current?.error; as error) {
+      <p class="review" role="alert">{{ error }}</p>
+    }
+    @if (view?.link) {
+      <button
+        mat-stroked-button
+        [disabled]="current?.refreshing || current?.loading"
+        (click)="store.refresh(player().id)"
+      >
+        {{ current?.refreshing ? 'Refreshing ESPN…' : 'Refresh ESPN updates' }}
+      </button>
+      <p class="caption">
+        Public ESPN information · no sign-in needed. Independent of Hashtag notes. Your projections
+        and ceiling stay unchanged.
+      </p>
+      @if (saved) {
+        @if (saved.news_error) {
+          <p class="review" role="alert">
+            {{ saved.news_error }}
+            @if (saved.news_captured_at) {
+              Previous news was checked {{ saved.news_captured_at | date: 'medium' }}.
+            }
+          </p>
+        }
+        @if (!saved.news_captured_at && !saved.news_error) {
+          <p class="caption">
+            Team information is saved. Refresh ESPN updates to check this player's news.
+          </p>
+        }
+        @if (saved.fantasy_update; as update) {
+          <article class="news-item">
+            <strong>{{ update.headline }}</strong
+            ><small
+              >{{ update.attribution }} ·
+              @if (update.published_at) {
+                Published {{ update.published_at | date: 'medium' }}
+              } @else {
+                Publication time unknown
+              }
+            </small>
+            @if (update.summary !== update.headline) {
+              <p>{{ update.summary }}</p>
+            }
+            @if (sourceUrl(update.source_url); as url) {
+              <a mat-button [href]="url" target="_blank" rel="noopener noreferrer"
+                >Read player update on ESPN ↗</a
+              >
+            }
+          </article>
+        } @else if (saved.news_captured_at && !saved.news_error) {
+          <p class="caption">
+            No fantasy update was returned. This does not establish that there is no news.
+          </p>
+        }
+        @if (saved.news_captured_at) {
+          <h4>Recent articles mentioning this player</h4>
+          @for (article of saved.articles; track article.id) {
+            <article class="news-item">
+              <strong>{{ article.headline }}</strong
+              ><small
+                >ESPN ·
+                @if (article.published_at) {
+                  Published {{ article.published_at | date: 'medium' }}
+                } @else {
+                  Publication time unknown
+                }
+              </small>
+              <p>{{ article.summary }}</p>
+              @if (sourceUrl(article.source_url); as url) {
+                <a mat-button [href]="url" target="_blank" rel="noopener noreferrer"
+                  >Read article ↗</a
+                >
+              }
+            </article>
+          } @empty {
+            <p class="caption">
+              No player-tagged article was returned in this feed. General NBA headlines are
+              excluded.
+            </p>
+          }
+        }
+        @if (saved.news_captured_at) {
+          <p class="caption">
+            News checked {{ saved.news_captured_at | date: 'medium' }}. A new check does not make an
+            old report new.
+          </p>
+        }
+      } @else {
+        <p class="caption">
+          Player identity linked. Refresh ESPN to load team information and updates.
+        </p>
+      }
+    } @else if (!current?.loading && !current?.error) {
+      <p class="caption">
+        No reviewed ESPN identity link is saved for this player. Ask to link this player; news is
+        never attached by name alone.
+      </p>
+    }
+  </section>
+}

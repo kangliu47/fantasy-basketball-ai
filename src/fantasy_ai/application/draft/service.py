@@ -1,14 +1,19 @@
 """Offline projection decisions and a durable manual auction companion."""
 
 import asyncio
+import re
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from uuid import uuid4
 
+from fantasy_ai.application.draft.bid_guide import BidGuidePreview
+from fantasy_ai.application.draft.nba_teams import nba_team_name
 from fantasy_ai.application.draft.ports import DraftRepository, ProjectionFiles
 from fantasy_ai.application.history.ports import HistoryRepository
 from fantasy_ai.application.models import OperationBusy, WorkspaceError
 from fantasy_ai.application.planning.service import PreparationService
+from fantasy_ai.domain.draft.auction_analysis import AuctionOverview, auction_overview
+from fantasy_ai.domain.draft.bid_guide import calculate_bid_guide
 from fantasy_ai.domain.draft.models import (
     AuctionEvent,
     DraftBoard,
@@ -20,6 +25,10 @@ from fantasy_ai.domain.draft.models import (
     team_budget,
     validate_rules,
 )
+from fantasy_ai.domain.draft.player_context import (
+    PlayerProjectionContext,
+    player_projection_context,
+)
 from fantasy_ai.domain.draft.projections import (
     ProjectionImport,
     ProjectionProfile,
@@ -27,6 +36,7 @@ from fantasy_ai.domain.draft.projections import (
     projection_player_id,
     projection_profile,
 )
+from fantasy_ai.domain.draft.valuation_models import AuctionValueResult
 from fantasy_ai.domain.history.models import Category, SeasonRules
 from fantasy_ai.domain.planning.models import DraftPlan
 from fantasy_ai.domain.projections.acquisition import (
@@ -65,6 +75,10 @@ class Candidate:
     projected_games: float | None
     per_game: ProjectionProfile
     season_totals: ProjectionProfile
+    team_name: str
+    projected_minutes: float | None
+    context: PlayerProjectionContext
+    profile_url: str | None
 
 
 @dataclass(frozen=True)
@@ -77,6 +91,7 @@ class DraftView:
     budgets: tuple[TeamBudget, ...]
     trial_profile: ProjectionProfile
     roster_profile: ProjectionProfile
+    auction: AuctionOverview
 
 
 class DraftService:
@@ -96,8 +111,23 @@ class DraftService:
     async def view(self, league_id: int) -> DraftView:
         board = await asyncio.to_thread(self.repository.load_board, league_id, SEASON)
         item = await asyncio.to_thread(self.repository.latest_projection, PROVIDER_SEASON)
+        previous = (
+            await asyncio.to_thread(self.repository.previous_projection, item) if item else None
+        )
+        previous_players = (
+            {p.source_player_id: p for p in previous.snapshot.players if p.source_player_id}
+            if previous
+            else {}
+        )
         plan = await asyncio.to_thread(self.planning.repository.load, league_id, SEASON)
-        candidates = tuple(self._candidate(item, p) for p in item.snapshot.players) if item else ()
+        candidates = (
+            tuple(
+                self._candidate(item, p, previous, previous_players.get(p.source_player_id or ""))
+                for p in item.snapshot.players
+            )
+            if item
+            else ()
+        )
         metadata = (
             ProjectionMetadata(
                 item.id,
@@ -128,10 +158,70 @@ class DraftService:
             tuple(team_budget(board, t.id) for t in board.teams) if board else (),
             self._profile(item, trial_ids),
             self._profile(item, roster_ids),
+            auction_overview(board, item),
         )
 
+    async def bid_guide(
+        self,
+        league_id: int,
+        baseline: AuctionValueResult,
+        player_id: str,
+        board_revision: int,
+        plan_revision: int,
+        reserve_for_others: int | None,
+        discount_percent: int,
+        next_bid: int | None,
+    ) -> BidGuidePreview:
+        async with self._lock:
+            board = await asyncio.to_thread(self.repository.load_board, league_id, SEASON)
+            item = await asyncio.to_thread(self.repository.latest_projection, PROVIDER_SEASON)
+            plan = await asyncio.to_thread(self.planning.repository.load, league_id, SEASON)
+            if not board or not item or not plan:
+                raise WorkspaceError(
+                    "Open your saved draft workspace and import projections first."
+                )
+            if board.revision != board_revision or plan.revision != plan_revision:
+                raise OperationBusy(
+                    "Draft decisions changed. Reload the board to update the guide."
+                )
+            if item.id != baseline.evidence.projection_import_id:
+                raise WorkspaceError("The projection import changed. Calculate a new baseline.")
+            ceiling = next((p.max_bid for p in plan.shortlist if p.player_id == player_id), None)
+            guide = await asyncio.to_thread(
+                calculate_bid_guide,
+                baseline,
+                board,
+                player_id,
+                reserve_for_others=reserve_for_others,
+                discount_percent=discount_percent,
+                saved_ceiling=ceiling,
+                next_bid=next_bid,
+            )
+            # Target edits use the preparation service's own revision boundary.
+            # Do not present an old ceiling if another view changed it mid-read.
+            current = await asyncio.to_thread(self.planning.repository.load, league_id, SEASON)
+            if not current or current.revision != plan.revision:
+                raise OperationBusy("Your target ceiling changed. Reload to update the guide.")
+            return BidGuidePreview(
+                guide,
+                board.id,
+                plan.id,
+                league_id,
+                board.my_team_id,
+                board.revision,
+                plan.revision,
+                item.id,
+                baseline.calculation_version,
+                baseline.scenario.valuation_basis,
+            )
+
     @staticmethod
-    def _candidate(item: ProjectionImport, player: PlayerProjection) -> Candidate:
+    def _candidate(
+        item: ProjectionImport,
+        player: PlayerProjection,
+        previous: ProjectionImport | None = None,
+        previous_player: PlayerProjection | None = None,
+    ) -> Candidate:
         return Candidate(
             projection_player_id(item, player),
             player.source_display_name,
@@ -140,6 +230,15 @@ class DraftService:
             player.projected_games,
             projection_profile((player,), item.stat_basis, totals=False),
             projection_profile((player,), item.stat_basis),
+            nba_team_name(player.team),
+            player.projected_minutes,
+            player_projection_context(item, player, previous, previous_player),
+            (
+                f"https://hashtagbasketball.com/{player.source_player_id}/player"
+                if item.snapshot.source == "hashtag_basketball"
+                and re.fullmatch(r"\d{1,10}", player.source_player_id or "")
+                else None
+            ),
         )
 
     @staticmethod

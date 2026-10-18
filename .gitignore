@@ -70,3 +70,7 @@ frontend/dist/
 identity.key
 fantasy-architecture-review-notes*.json
 _site/
+
+# Generated public frontend build identity (regenerated before build/start/test)
+frontend/generated/
+frontend/public/build-info.json

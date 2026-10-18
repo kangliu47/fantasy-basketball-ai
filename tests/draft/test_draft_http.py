@@ -58,6 +58,12 @@ def test_local_draft_http_protects_mutations_and_reopens_typed_state(tmp_path: P
         sale = client.post("/api/draft/sales", json=body, headers=HEADERS)
         assert sale.status_code == 201
         assert sale.json()["budgets"][0]["legal_maximum"] == 144
+        auction = sale.json()["auction"]
+        assert auction["calculation_version"] == "auction-overview-v1"
+        assert auction["available_players"] == 1
+        assert auction["teams"][0]["remaining"] == 155
+        assert auction["teams"][0]["profile"]["values"]["PTS"] == 1540
+        assert auction["pool_reference"]["PTS"] == 14
         assert (
             client.post("/api/draft/sales", json=body, headers=HEADERS).json()["board"]
             == sale.json()["board"]

@@ -14,6 +14,7 @@ from fantasy_ai.application.projections.ports import UNAVAILABLE_PAGE, Projectio
 from fantasy_ai.application.projections.premium import PremiumProjectionService
 from fantasy_ai.domain.draft.models import DraftRules
 from fantasy_ai.domain.projections.acquisition import AcquiredProjection, validate_acquisition
+from fantasy_ai.domain.projections.notes import PlayerNotesCapture
 from fantasy_ai.infrastructure.projections.hashtag_capture import parse_full_capture
 from fantasy_ai.interfaces.http.api import create_api
 from tests.draft.test_draft import FIXTURE, draft_service
@@ -73,6 +74,9 @@ class FakeProjectionBrowser:
 
     async def diagnostics(self) -> ProjectionPageDiagnostic:
         return UNAVAILABLE_PAGE
+
+    async def read_player_notes(self, player_id: str) -> PlayerNotesCapture:
+        raise WorkspaceError("Synthetic notes unavailable.")
 
 
 async def finish(service: PremiumProjectionService) -> None:

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -75,3 +77,16 @@ def test_cross_site_mutations_and_host_rebinding_are_rejected() -> None:
             headers={"Origin": "https://example.com", "Access-Control-Request-Method": "POST"},
         )
         assert "access-control-allow-origin" not in response.headers
+
+
+def test_app_document_and_build_identity_are_not_cached(tmp_path: Path) -> None:
+    # Synthetic static artifacts only; no account or league data.
+    (tmp_path / "index.html").write_text("<!doctype html><title>Synthetic app</title>")
+    (tmp_path / "build-info.json").write_text('{"buildId":"synthetic-build"}')
+    (tmp_path / "main-example.js").write_text("// Synthetic content-hashed asset")
+    with TestClient(create_api(fake_service(), frontend=tmp_path)) as client:
+        for path in ("/", "/index.html", "/build-info.json?_check=1"):
+            response = client.get(path)
+            assert response.status_code == 200
+            assert response.headers["cache-control"] == "no-store"
+        assert client.get("/main-example.js").headers.get("cache-control") != "no-store"

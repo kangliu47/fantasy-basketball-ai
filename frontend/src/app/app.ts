@@ -8,15 +8,18 @@ import { CompetitorTeamsPage } from './analytics/competitor-teams-page';
 import { LeagueComparisonPage } from './analytics/league-comparison-page';
 import { DraftWorkspace } from './draft/draft-workspace';
 import { DraftMode } from './draft/draft.models';
+import { BuildStatus } from './core/build-status';
 
 type Section =
-  'prepare' | 'auction' | 'evidence' | 'profile' | 'competitors' | 'league' | 'connection';
+  'prepare' | 'auction' | 'evidence' | 'profile' | 'competitors' | 'league' | 'live' | 'connection';
+type Workspace = 'draft' | 'live' | 'history';
 @Component({
   selector: 'app-root',
   imports: [
     MatButtonModule,
     MatProgressSpinnerModule,
     LeagueSetup,
+    BuildStatus,
     DraftWorkspace,
     MyProfilePage,
     CompetitorTeamsPage,
@@ -30,12 +33,52 @@ export class App implements OnInit {
   readonly draftMode = signal<DraftMode>('prepare');
   readonly historySection = signal<'profile' | 'competitors' | 'league'>('profile');
   readonly historyOpened = signal(false);
+  private readonly previousSection = signal<Exclude<Section, 'connection'>>('prepare');
   readonly activeSection = computed(() =>
     this.store.state()?.selection ? this.section() : 'connection',
   );
   readonly showingEvidence = computed(() =>
     ['evidence', 'profile', 'competitors', 'league'].includes(this.activeSection()),
   );
+  readonly showingDraft = computed(() => ['prepare', 'auction'].includes(this.activeSection()));
+  readonly activeWorkspace = computed<Workspace | null>(() => {
+    if (this.showingDraft()) return 'draft';
+    if (this.showingEvidence()) return 'history';
+    return this.activeSection() === 'live' ? 'live' : null;
+  });
+  readonly introduction = computed(() => {
+    const section = this.activeSection();
+    if (this.showingEvidence())
+      return {
+        eyebrow: 'COMPLETED-SEASON EVIDENCE',
+        title: this.store.state()?.league?.name || 'Historical patterns',
+        copy: 'Explore past manager choices, auction spending and category results.',
+      };
+    if (section === 'live')
+      return {
+        eyebrow: '2027 · LIVE SEASON',
+        title: 'Follow the season separately.',
+        copy: 'Keep in-season decisions separate from auction preparation and completed-season patterns.',
+      };
+    if (section === 'connection' && this.store.state()?.selection)
+      return {
+        eyebrow: 'CONNECTION',
+        title: 'Refresh when you need new evidence.',
+        copy: 'Saved preparation and historical analysis stay available offline.',
+      };
+    return {
+      eyebrow:
+        section === 'auction' ? '2027 · AUCTION PREP / AUCTION COMPANION' : '2027 · AUCTION PREP',
+      title:
+        section === 'auction'
+          ? 'Track auction results. Keep your options open.'
+          : 'Build a shortlist you can use.',
+      copy:
+        section === 'auction'
+          ? 'Record final picks and follow the remaining players, team budgets and category contributions.'
+          : 'Compare projected contributions, save targets and personal ceilings, then carry your plan into the auction.',
+    };
+  });
   readonly store = inject(WorkspaceStore);
   readonly connectionLabel = computed(
     () =>
@@ -59,6 +102,19 @@ export class App implements OnInit {
   openEvidence() {
     this.historyOpened.set(true);
     this.section.set('evidence');
+  }
+  openWorkspace(workspace: Workspace) {
+    if (workspace === 'draft') this.openDraft(this.draftMode());
+    else if (workspace === 'history') this.openEvidence();
+    else this.section.set('live');
+  }
+  openConnection() {
+    const section = this.section();
+    if (section !== 'connection') this.previousSection.set(section);
+    this.section.set('connection');
+  }
+  backFromConnection() {
+    this.section.set(this.previousSection());
   }
   ngOnInit() {
     void this.store.load().then(() => {

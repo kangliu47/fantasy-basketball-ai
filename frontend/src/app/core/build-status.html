@@ -1,0 +1,35 @@
+<section class="build-strip" aria-label="UI build information">
+  <span class="identity"
+    ><strong>UI v{{ build.loaded.version }}</strong> · build {{ build.loaded.buildId }}</span
+  >
+  <span
+    class="build-state"
+    [class.review]="build.status() === 'update' || build.status() === 'unavailable'"
+    role="status"
+    >{{ build.message() }}</span
+  >
+  @if (!build.development) {
+    <button mat-button [disabled]="build.status() === 'checking'" (click)="build.check()">
+      Check version
+    </button>
+  }
+  <small>
+    Loaded in this tab ·
+    {{
+      build.loaded.builtAt
+        ? 'built ' + (build.loaded.builtAt | date: 'medium')
+        : 'automatic development rebuilds'
+    }}
+    · Angular {{ build.loaded.angularVersion }}
+    @if (build.status() === 'update') {
+      · Server build: {{ build.served()?.buildId }}. Save unfinished edits, then refresh this tab.
+    } @else if (build.status() === 'unavailable') {
+      · Check that Fantasy Basketball is running at http://127.0.0.1:8765/. The loaded label is
+      retained.
+    } @else if (build.status() === 'development') {
+      · Production build checks are unavailable in development mode.
+    } @else if (build.checkedAt(); as time) {
+      · Checked {{ time | date: 'mediumTime' }}
+    }
+  </small>
+</section>

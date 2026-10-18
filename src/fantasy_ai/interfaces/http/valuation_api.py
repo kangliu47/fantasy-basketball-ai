@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from pydantic import Field
 
+from fantasy_ai.application.draft.bid_guide import BidGuidePreview
 from fantasy_ai.application.draft.service import DraftService
 from fantasy_ai.application.draft.valuation import preview_auction_values
 from fantasy_ai.application.models import WorkspaceError
@@ -35,6 +36,15 @@ class ValuationRequest(LocalRequest):
     eligibility_reference: str = Field(default="", max_length=1000)
 
 
+class BidGuideRequest(ValuationRequest):
+    player_id: str = Field(min_length=1, max_length=150)
+    board_revision: int = Field(ge=0, strict=True)
+    plan_revision: int = Field(ge=0, strict=True)
+    reserve_for_others: int | None = Field(default=None, ge=0, le=1000000, strict=True)
+    discount_percent: int = Field(default=20, ge=0, le=50, strict=True)
+    next_bid: int | None = Field(default=None, ge=1, le=1000000, strict=True)
+
+
 def create_valuation_router(service: DraftService, workspace: WorkspaceService) -> APIRouter:
     router = APIRouter(prefix="/api/draft", tags=["Draft preparation"])
 
@@ -55,6 +65,23 @@ def create_valuation_router(service: DraftService, workspace: WorkspaceService) 
             scope_description=data.scope_description,
             coverage_reference=data.coverage_reference,
             eligibility_reference=data.eligibility_reference,
+        )
+
+    @router.post("/bid-guide", response_model=BidGuidePreview)
+    async def bid_guide(data: BidGuideRequest) -> BidGuidePreview:
+        selection = workspace.selection
+        if selection is None:
+            raise WorkspaceError("Save your league details before calculating bid guidance.")
+        baseline = await valuation(data)
+        return await service.bid_guide(
+            selection.league_id,
+            baseline,
+            data.player_id,
+            data.board_revision,
+            data.plan_revision,
+            data.reserve_for_others,
+            data.discount_percent,
+            data.next_bid,
         )
 
     return router

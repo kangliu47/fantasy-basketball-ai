@@ -19,6 +19,7 @@ from fantasy_ai.domain.projections.acquisition import (
     ProjectionCoverage,
     validate_acquisition,
 )
+from fantasy_ai.domain.projections.notes import PlayerNotesCapture
 
 Connection = Literal["disconnected", "waiting", "ready", "verified", "expired"]
 Operation = Literal["idle", "opening", "fetching", "saving"]
@@ -111,6 +112,23 @@ class PremiumProjectionService:
     def _ensure_idle(self) -> None:
         if self.operation != "idle":
             raise OperationBusy("A Hashtag operation is running. Wait or cancel it first.")
+
+    async def read_player_notes(self, player_id: str) -> PlayerNotesCapture:
+        async with self._lock:
+            self._ensure_idle()
+            if self.connection not in {"waiting", "ready", "verified"}:
+                raise WorkspaceError(
+                    "Connect Hashtag in Data & coverage before checking player notes."
+                )
+            self.operation = "fetching"
+            try:
+                return await asyncio.wait_for(self.source.read_player_notes(player_id), timeout=30)
+            except TimeoutError:
+                raise WorkspaceError(
+                    "The Hashtag notes check timed out. Saved notes are unchanged."
+                ) from None
+            finally:
+                self.operation = "idle"
 
     async def diagnostics(self) -> ProjectionPageDiagnostic:
         """Only safe page classification and recognized projection-list labels."""

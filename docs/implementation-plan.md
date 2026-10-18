@@ -1,5 +1,290 @@
 # Implementation plan
 
+## Auction bid guide — October 18, 2026, approved and implemented
+
+The user approves the mock and requests production implementation with a simpler
+UI. The existing selected-player panel now has aim-to-pay, stop-at and one reason;
+planning inputs and the explanation expand only when needed. The other-slot
+reserve is explicit. Discount/next-bid inputs are temporary, and the saved personal
+ceiling is a read-only constraint. The existing Prepare calculation supplies the
+reviewed baseline; no additional navigation or preference editor is added.
+
+The domain implements the separately versioned remaining-auction calculation,
+exact-cent reconciliation, unmatched/cap/full-team handling and minimum-bid
+context when no rivals remain. A saved-only HTTP operation pins source/board/plan
+identity and revisions. The Angular store updates after picks/undo/ceiling changes,
+cancels stale requests and retains unapplied plan text. No projection, target,
+ceiling, pick, credential or database schema is written by the guide.
+
+Verification and live activation evidence are recorded in the
+[design review](auction-bid-guide-design-review.md). The proposal history below
+is retained; the user's explicit approval supersedes its pending state.
+
+## Auction bid guide — October 18, 2026, proposal and mock pending review
+
+The user requests a baseline-based bidding range, transparent calculations and
+updates as the auction progresses. The lead inspects the fixed baseline and manual
+ledger, then delivers [the proposed framework](auction-bid-guide-framework.md),
+a private saved-board walkthrough and a [synthetic preview](auction-bid-guide-preview.html).
+No production domain, HTTP, Angular or saved decision changes are made.
+
+The proposed method preserves original scoring and baseline values, recalculates
+a separate remaining-auction allocation, protects other-slot reserves and keeps
+personal/legal ceilings distinct. The initial 20% discount target is an adjustable
+policy example, not a confidence interval or fitted price prediction. Full-team
+money cannot bid; unmatched picks suspend the reference; no active rivals calls
+for minimum-bid guidance rather than bidding up one's own remaining cash.
+
+Source review and arithmetic checks verify the starting baseline cent-for-cent,
+cash reconciliation, price-direction examples, cutoff handling and restoration.
+Desktop/mobile interaction checks cover player/scenario selection, reserve and
+ceiling constraints, unpriced/missing/failed states and the calculation explanation.
+UI flow and method acceptance are pending review before production work.
+
+## Independent ESPN context — October 18, 2026, delivered with batch review pending
+
+Implement the approved public ESPN feed in the existing player panel, independent
+of Hashtag comments and sign-in. The user approved the first sixteen target links
+and requested full-pool identity discovery. All imported players now have proposed
+links in an ignored private review table; additional link persistence awaits the
+batch review. Setup verifies metadata without downloading every news feed.
+
+The [contract](espn-player-context-contract.md) fixes identity checks, source/date
+semantics, safe cache retention and the narrow public-read authentication exception.
+Schema v7 adds append-only context/link documents through the existing connection
+lock and backup workflow. Typed Angular states reuse the approved flow. Preserve
+all saved draft decisions. Delivery checks and live coverage are recorded above
+prior verification entries in the [design review](player-context-design-review.md).
+
+Live delivery: the new build renders ESPN team and dated news in both existing
+player panels. Sixteen approved identities and news feeds succeeded; all saved
+draft decisions remained unchanged. Full-pool discovery found a distinct ESPN NBA
+identity for every imported player; persisting the remaining proposals awaits
+review. Tests, types, production build, responsive checks, source fingerprint and
+publication audit pass; see the design review for evidence and coverage limits.
+
+## Player context — October 18, 2026, approved and implemented
+
+The user approved the port-8774 synthetic mock. The same context panel now serves
+Prepare and Auction companion: NBA team/full name, GP/MPG, table/capture/save dates,
+and stable-ID projection comparisons with before/after bars and plain units.
+Search includes NBA team. First import, missing identity, missing prior player and
+unchanged projections remain distinct. Saved targets and price ceilings are not
+modified by context reads.
+
+Explicit Hashtag checks use the existing dedicated browser and a protected local
+endpoint. The live check reached Notebook Drop; its current format is unsupported
+for verified linked-player extraction. The UI provides the exact discovered source
+link and keeps notes unavailable rather than inferring identity from a name.
+ESPN current news/identity remains unavailable. Synthetic tests cover successful
+reads and failed/empty/unsupported reads retaining prior saved evidence. Supported
+captures persist transactionally in append-only DuckDB v6 documents; migration
+backs up and preserves prior evidence under the existing connection lock.
+
+Delivery verification is recorded in [the design review](player-context-design-review.md).
+
+## Build identity and baseline readiness — October 18, 2026, approved
+
+Implement the approved build strip from the synthetic port-8773 preview, with
+compiled UI version/build ID, a read-only check against the local served build,
+and current/update/unavailable states. Keep old tabs and unsaved text intact.
+Production builds generate matching public/compiled metadata; development mode
+is explicit. The app entry/manifest revalidate after builds.
+
+Fix the screenshot-reproduced baseline blocker by prefilling the user's approved
+full-import planning assumption and displaying missing requirements. Both boxes
+remain explicit, missing scope stays blocked with a clear message, and signal-based
+form change detection keeps the action synchronized. Existing formulas, candidate
+eligibility caveats and saved decisions remain unchanged. See
+[UI-BUILD-IDENTITY-2026-10-18-v1](ui-build-identity.md).
+
+**Delivered and verified:** 100 Angular tests, three Node build-identity checks,
+362 Python tests, production build, focused strict types/lint/format, architecture
+freshness and public-file privacy checks pass. The running local app serves the
+matching compiled/static identity and no-store entry/manifest headers. Live UI
+verification confirms the two checkboxes enable calculation with the suggested
+scope, the 430-player calculation reconciles the $2,400 room, and Check version
+reports the loaded build current. No pick/target writes or provider refresh were
+used. A new verification tab preserved any unfinished work in existing tabs.
+
+
+
+## Three-workspace navigation — October 18, 2026, approved and delivered
+
+The user approves the interactive navigation mock and the three-workspace scope.
+This supersedes the earlier pending review. Auction prep is the default, with
+Prepare / Auction companion below it. Historical patterns keeps the existing
+three analysis views; Live season is an explicit not-ready entry. Connection is
+global with a return action. Auction preparation remains the implementation focus.
+
+The Angular shell keeps deferred draft/history components mounted and hides them
+when switching workspaces, preserving unfinished draft notes, the last auction
+subtab and the current historical view/filter state. No new backend/schema change,
+provider read, season feature or auction-method change is introduced.
+
+Production build and 95 Angular tests pass. Isolated browser checks use synthetic
+HTTP data to verify workspace/subnav selection, connection return, note retention,
+no redundant draft/history loads, no navigation writes, and narrow layouts. The
+required architecture source fingerprint and publication privacy checks are updated.
+
+
+## Auction Team board — October 18, 2026
+
+**Approved:** the revised Team board's recording flow, budget/purchase visuals,
+and adjacent category insight. [Contract](auction-team-board-contract.md):
+`AUCTION-TEAM-BOARD-2026-10-18-v1`. Current product focus is auction preparation
+and the manual live auction companion. Three-workspace navigation has a separate
+synthetic review and is pending approval; do not implement new live-season tools.
+
+**Implemented:** Python descriptive overview from existing saved evidence and the
+active ledger; Angular CDK player-to-team drops; explicit final-price dialog;
+click/keyboard alternative; every-team budget cards; shared-scale purchase bars;
+per-game contribution chart; team budget/roster details; pick/undo and conflict
+recovery using existing application operations. No migration or live provider read.
+
+**Evidence:** backend draft tests cover weighted shooting, changing availability,
+missing evidence, minimum reserves and denominator handling. Frontend tests cover
+confirmation, invalid prices, full teams, retained fields and pending-submit guards.
+A separate synthetic HTTP app verifies real production Angular mouse dragging,
+emulated touch dragging and keyboard record/cancel,
+correct buyer, no write on drop/cancel, backend save/undo, 409 reload/retry with the
+same event identity, unmatched players, and responsive layouts. Test storage is
+separate from the personal workspace. The user's own browser/touch gesture remains
+a manual acceptance check; the earlier mock's drag result is not production proof.
+
+**Delivery checks:** production build; 361 Python tests; 93 Angular tests; strict
+Python types, focused lint/format, source-inventory freshness and public-file
+privacy checks pass. The updated local server is active; activation verified the
+new read model without changing any personal auction picks.
+
+
+## League-specific private prototype — October 17, 2026, delivered
+
+The user authorizes the framework's implementation and confirms ten active slots:
+PG, SG, SF, PF, C, G, F, UTIL, UTIL, UTIL; add three bench purchases.
+The saved draft board supplies the reviewed returning cohort and focal team.
+The complete [research contract](league-draft-research-contract.md) pins evidence
+gates, scenario mappings, discovery/evaluation seeds, buying policies and cost
+quantiles. The [framework](league-adjusted-draft-value-framework.md) remains the
+explanation and future promotion boundary.
+
+**Delivered:** saved-only sanitized evidence export; manager spending/outcome
+cards; time-ordered checks of returned spending shares; historical-price-model
+unavailability with an explicit exploratory fallback; complete room scenarios;
+strict-outbid purchase probes with censored failures; confirmed-slot matching;
+frozen discovery before independent evaluation; private plain Markdown/HTML and
+complete candidate/scenario CSVs. All price differences remain study quantities.
+
+The study completes 48 discovery plus 432 evaluation rooms. Baseline v1 remains
+frozen, including null values outside its purchase set. Personal ceilings cap
+simulated focal bids without being changed. The original projection study,
+workshop, application navigation, ledger and target notes remain intact.
+No provider refresh, database writer or historical projection acquisition occurs.
+Missing historical preseason pools prevent individual price validation; simulated
+opponent categories are hypotheses rather than learned bidding preferences.
+
+**Evidence:** 17 new synthetic research checks bring the Python suite to 357
+passing tests. Strict types, lint/format, architecture freshness and privacy guards
+pass. Independent result checks verify all 480 room budgets, unique ownership,
+confirmed slot assignments and ROTO conservation; candidate denominators and
+CSV columns reconcile. Private report browser checks remain screenshot-free.
+
+**Boundary:** this is an exploratory preparation report, not a calibrated auction
+forecast or saved target-list editor. Do not tune the frozen policies to make
+held-out findings more attractive. Later improvements require a new version and
+fresh evaluation where analytical meaning changes.
+
+## League-specific bargain analysis — October 17, 2026, framework first
+
+The user leans toward a balanced draft to preserve in-season options and requests
+a Markdown analytical framework before large implementation work. They select
+**private analysis prototype first** for the next five-hour window.
+
+The [framework](league-adjusted-draft-value-framework.md) separates the unchanged
+balanced baseline, estimated league acquisition costs and personal bid limits.
+Audit historical auction coverage, manager attribution and dated preseason inputs;
+describe spending and category outcomes; add price/manager modeling only where
+evidence and time-ordered validation support it. Missing draft-time inputs trigger
+an explicitly exploratory scenario fallback, rather than retrospective-stat fitting.
+Observed sales cannot identify all losing bids or each manager's bidding limits.
+
+**Next implementation slice:** private evidence inventory, manager cards, simplest
+supported price layer, bounded complete-room simulations and an explained
+candidate/package report. Pin a new research calculation contract before changing
+the simulator. Preserve baseline v1, targets, ceilings and ledger. No frontend
+integration, provider acquisition or publication is part of the first prototype.
+
+**This turn's stopping point:** the framework and evidence review only. No new
+price model, auction run, candidate recommendation or production code change.
+
+## Plain-language draft workshop — October 17, 2026, approved rewrite
+
+The user finds the report's language hard to follow and requests clear strategy
+definitions, real examples, manager actions and interactive exploration. They
+confirm an understanding-focused workshop that collects input for a later target
+list. The [synthetic mock](draft-strategy-workshop-preview.html) separates category
+tradeoffs from spending choices, compares examples and exports a discussion brief.
+Its [review record](draft-workshop-design-review.md) documents scope and checks.
+Forty-eight interaction combinations, budget illustrations, retained notes,
+clipboard fallback, export, missing examples and responsive layout pass.
+
+**Approval and delivery:** the user explicitly approves the reviewed flow for the
+real-player rewrite. The private HTML and plain Markdown now use the saved source
+players and outcomes, with the original report retained as a technical appendix.
+Python prepares 144 selectable examples across four category approaches, three
+spending preferences, two opponent bidding levels, three availability conditions
+and two example difficulties. Each comparison uses the same spending rule,
+opponent conditions and seed. Changing availability preserves purchases and prices.
+Examples are selected from their original projected outcome before inspecting names.
+
+Player drilldowns explain ordinary per-game contributions and shooting volume;
+visible position warnings prevent treating budget feasibility as lineup legality.
+The discussion brief retains notes and investigation choices during navigation,
+then supports copying or downloading. It does not save final targets or change
+the app. Five synthetic tests cover source matching, frozen purchases, missing
+comparisons, stat fields, provenance, escaping and private output boundaries.
+
+**Verification:** all 340 Python tests, strict types, lint and formatting pass.
+Screenshot-free private browser checks cover all 144 selections, drilldowns,
+retained notes, copy/export, missing data and desktop/mobile layout. No script
+errors or remote requests occur. Report links/images work; the loopback preview
+refuses raw input/result URLs. Publication/notebook audits have zero findings.
+
+**Stopping point:** an understandable guide and exportable preferences for the
+next target-list discussion. No simulation rerun, app plan writes or final $200
+allocation is part of this revision.
+
+## Draft pool and strategy analysis — October 17, 2026
+
+**User outcome:** understand category depth and concentration, compare punt and
+spending policies across auction conditions, and receive Markdown/HTML reasoning
+and results. The user permits assumptions; the lead uses the recommended
+projection-focused scope after offering an optional historical extension.
+No production frontend flow or saved draft decision changes.
+
+**Method:** persist the complete specialist contract
+`DRAFT-ROBUSTNESS-STUDY-2026-10-17-v1`. The lead implements complete budget-feasible
+auctions, exact full-roster ROTO scores, common stresses, training/held-out
+selection and adaptive sensitivity. Keep private inputs/results ignored.
+Expose realized category sacrifice, spending concentration, unsold supply and
+position-label gaps. Do not replace inconvenient median examples with prettier ones.
+
+**Stopping point:** reproducible private HTML/Markdown with plots, category
+contributors, investigation alternatives, median/downside rosters and bounded
+advice. Preserve the app baseline, ceilings, plan and ledger. No publication or
+additional merge is requested for this research slice.
+
+**Delivery evidence:** the predeclared grid completed 9,360 budget-feasible
+auctions, including training, held-out and adaptive stages. Fifteen synthetic
+research checks bring the full Python suite to 335 passing tests. Strict types,
+Ruff lint/format, architecture freshness and notebook/publication guards pass.
+The private report retains provenance hashes, all core-policy results and
+representative coverage failures. Desktop/mobile DOM checks find no page overflow,
+broken chart images or JavaScript errors; section links work. Automatic approval
+review rejected saving screenshots of paid-data-derived reports; verification
+uses the permitted screenshot-free alternative. No credentials or paid rows enter
+public source. The normal app and its stored decisions remain unchanged.
+
 ## Publication review — October 17, 2026
 
 The user confirms the premium import works and authorizes an audit, commit and

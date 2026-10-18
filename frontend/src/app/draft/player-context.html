@@ -1,0 +1,188 @@
+@let p = player();
+@let context = p.context;
+<section aria-label="NBA team and projection context">
+  <app-espn-context [player]="p" section="metadata" />
+  <div class="context-metrics">
+    <div>
+      <small>NBA team · saved projection</small><strong>{{ p.team_name }}</strong>
+    </div>
+    <div>
+      <small>Minutes / game</small><strong>{{ p.projected_minutes ?? 'Unknown' }}</strong>
+    </div>
+    <div>
+      <small>Projected games</small><strong>{{ p.projected_games ?? 'Unknown' }}</strong>
+    </div>
+  </div>
+  <div class="source-dates">
+    <p>
+      Projection source:
+      {{ context.latest.source === 'hashtag_basketball' ? 'Hashtag' : context.latest.source }}
+    </p>
+    <p>Table updated: {{ context.latest.source_updated_at || 'Unknown' }}</p>
+    <p>
+      Captured {{ context.latest.captured_at | date: 'medium' }} · saved
+      {{ context.latest.imported_at | date: 'medium' }}
+    </p>
+    <p>
+      The table date is not this player's last revision date. NBA team is as listed in that saved
+      projection.
+    </p>
+  </div>
+  <section class="context-section">
+    <h3>What changed in the saved projection?</h3>
+    <p class="context-state">{{ contextLabel() }}</p>
+    @if (context.previous; as previous) {
+      <p class="caption">
+        Previous capture: {{ previous.captured_at | date: 'medium' }} · table
+        {{ previous.source_updated_at || 'date unknown' }}<br />
+        Latest capture: {{ context.latest.captured_at | date: 'medium' }} · table
+        {{ context.latest.source_updated_at || 'date unknown' }}
+      </p>
+    }
+    @switch (context.state) {
+      @case ('no_prior_snapshot') {
+        <p class="context-message">
+          No earlier comparable saved projection is available. Compare again after another import.
+        </p>
+      }
+      @case ('missing_identity') {
+        <p class="context-message">
+          This row has no stable provider ID. We cannot safely match it to an earlier projection by
+          name.
+        </p>
+      }
+      @case ('missing_previous_player') {
+        <p class="context-message">
+          This player was not in the previous comparable import. There is no before-and-after
+          comparison.
+        </p>
+      }
+      @case ('unchanged') {
+        <p class="context-message">
+          No observed change between these saved projections. Updates between captures may be
+          missed.
+        </p>
+      }
+    }
+    @if (context.team_changed) {
+      <p class="context-review">
+        <strong
+          >Team in projection: {{ context.previous_team || 'Unknown' }} →
+          {{ p.team || 'Unknown' }}</strong
+        ><br />This is a source-record change; verify the move and role before bidding.
+      </p>
+    }
+    @for (change of context.changes; track change.field) {
+      <div class="projection-change">
+        <div class="change-heading">
+          <strong>{{ change.label }}</strong
+          ><span
+            >{{ change.previous === null ? 'Unknown' : (change.previous | number: '1.0-2') }} →
+            {{ change.current === null ? 'Unknown' : (change.current | number: '1.0-2') }}</span
+          >
+        </div>
+        <p class="caption">
+          @if (change.difference !== null) {
+            {{ change.difference > 0 ? '+' : '' }}{{ change.difference | number: '1.0-2' }}
+            {{ change.unit }}
+          } @else {
+            Missing value changed; difference unknown.
+          }
+        </p>
+        @if (change.chart_maximum) {
+          <div class="bar-pair" aria-hidden="true">
+            <small>Previous</small>
+            <div class="track">
+              <i [style.width.%]="bar(change.previous, change.chart_maximum)"></i>
+            </div>
+            <small>Latest</small>
+            <div class="track current">
+              <i [style.width.%]="bar(change.current, change.chart_maximum)"></i>
+            </div>
+          </div>
+        }
+      </div>
+    }
+    @if (context.changes.length) {
+      <p class="caption">
+        Changed fields shown · each bar pair uses its own scale. Counting stats use
+        {{ context.latest.stat_basis === 'per_game' ? 'per-game inputs' : 'season-total inputs' }}.
+        FG/FT changes are percentage points.
+      </p>
+    }
+  </section>
+  <section class="context-section" aria-label="Provider player updates">
+    <h3>What providers are saying</h3>
+    <app-espn-context [player]="p" section="updates" />
+    @if (supported()) {
+      <button
+        mat-stroked-button
+        [disabled]="!!notes.checking() || state()?.loading"
+        (click)="notes.check(p.id)"
+      >
+        {{ notes.checking() === p.id ? 'Checking Hashtag…' : 'Check Hashtag notes' }}
+      </button>
+      <p class="caption">
+        Uses the dedicated Hashtag browser. Connect through Data & coverage if needed. This checks
+        notes only; projection numbers and your ceiling stay unchanged.
+      </p>
+      @if (state()?.loading) {
+        <p class="caption" role="status">Loading saved notes…</p>
+      }
+      @if (state()?.error; as error) {
+        <p class="context-review" role="alert">{{ error }}</p>
+      }
+      @for (note of state()?.value?.saved?.notes ?? []; track $index) {
+        <article class="provider-note">
+          <strong>Hashtag · Notebook Drop</strong
+          ><small
+            >Published {{ note.published_on || 'date unknown' }} · captured
+            {{ note.captured_at | date: 'medium' }}</small
+          >
+          @if (note.published_on && note.published_on > context.latest.captured_at.slice(0, 10)) {
+            <p class="context-review">
+              This note has a later calendar date. Its time zone is unknown; check whether the
+              projection includes it.
+            </p>
+          }
+          <p>{{ note.text }}</p>
+          @if (safeUrl(note.source_url); as url) {
+            <a mat-button [href]="url" target="_blank" rel="noopener noreferrer"
+              >Open Notebook Drop ↗</a
+            >
+          }
+        </article>
+      } @empty {
+        <p class="context-message">
+          No Hashtag note is saved for this player. This does not mean there is no news.
+        </p>
+      }
+      @if (state()?.value; as value) {
+        @if (safeUrl(value.source_url); as url) {
+          <a mat-button [href]="url" target="_blank" rel="noopener noreferrer"
+            >Open Notebook Drop ↗</a
+          >
+        }
+        <p class="caption" role="status">
+          {{ value.message }}
+          @if (value.checked_at) {
+            Checked {{ value.checked_at | date: 'medium' }}.
+          }
+        </p>
+      }
+      @if (safeUrl(p.profile_url); as url) {
+        <a mat-button [href]="url" target="_blank" rel="noopener noreferrer"
+          >Open Hashtag player profile ↗</a
+        >
+      }
+    } @else {
+      <p class="context-message">
+        Provider notes need a verified player link. None is available for this imported row.
+      </p>
+    }
+    <p class="caption">
+      A provider comment does not establish why numbers changed or whether the projection includes
+      that information.
+    </p>
+  </section>
+</section>

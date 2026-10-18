@@ -1,42 +1,113 @@
 <header class="topbar">
-  <div class="brand">Fantasy Basketball<span class="brand-subtitle">Draft preparation</span></div>
-  <div class="local-label"><span></span>Local · ESPN read-only</div>
+  <div class="brand">
+    Fantasy Basketball<span class="brand-subtitle">Your league workspace</span>
+  </div>
+  <div class="header-actions">
+    <div class="local-label"><span></span>Local · ESPN read-only</div>
+    <button
+      mat-button
+      (click)="openConnection()"
+      [attr.aria-current]="activeSection() === 'connection' ? 'page' : null"
+    >
+      Connection
+    </button>
+  </div>
 </header>
+<app-build-status />
 <main>
   @if (store.state(); as state) {
+    @if (state.selection) {
+      <nav class="workspace-nav primary-nav" aria-label="Main workspaces">
+        <button
+          mat-button
+          [class.nav-active]="activeWorkspace() === 'draft'"
+          [attr.aria-current]="activeWorkspace() === 'draft' ? 'page' : null"
+          (click)="openWorkspace('draft')"
+        >
+          Auction prep
+        </button>
+        <button
+          mat-button
+          [class.nav-active]="activeWorkspace() === 'live'"
+          [attr.aria-current]="activeWorkspace() === 'live' ? 'page' : null"
+          (click)="openWorkspace('live')"
+        >
+          Live season
+        </button>
+        <button
+          mat-button
+          [class.nav-active]="activeWorkspace() === 'history'"
+          [attr.aria-current]="activeWorkspace() === 'history' ? 'page' : null"
+          (click)="openWorkspace('history')"
+        >
+          Historical patterns
+        </button>
+      </nav>
+      @if (showingDraft()) {
+        <nav class="workspace-nav secondary-nav" aria-label="Auction prep">
+          <button
+            mat-button
+            [class.nav-active]="activeSection() === 'prepare'"
+            [attr.aria-current]="activeSection() === 'prepare' ? 'page' : null"
+            (click)="openDraft('prepare')"
+          >
+            Prepare
+          </button>
+          <button
+            mat-button
+            [class.nav-active]="activeSection() === 'auction'"
+            [attr.aria-current]="activeSection() === 'auction' ? 'page' : null"
+            (click)="openDraft('auction')"
+          >
+            Auction companion
+          </button>
+        </nav>
+      }
+      @if (showingEvidence()) {
+        <nav class="workspace-nav secondary-nav" aria-label="Historical patterns">
+          <button
+            mat-button
+            [class.nav-active]="historySection() === 'profile'"
+            [attr.aria-current]="historySection() === 'profile' ? 'page' : null"
+            (click)="historySection.set('profile')"
+          >
+            My profile
+          </button>
+          <button
+            mat-button
+            [class.nav-active]="historySection() === 'competitors'"
+            [attr.aria-current]="historySection() === 'competitors' ? 'page' : null"
+            (click)="historySection.set('competitors')"
+          >
+            Competitor teams
+          </button>
+          <button
+            mat-button
+            [class.nav-active]="historySection() === 'league'"
+            [attr.aria-current]="historySection() === 'league' ? 'page' : null"
+            (click)="historySection.set('league')"
+          >
+            League comparison
+          </button>
+        </nav>
+      }
+    }
     <section class="intro">
       <div>
-        <p class="eyebrow">
-          {{ showingEvidence() ? 'COMPLETED-SEASON EVIDENCE' : '2027 · YOUR DRAFT WORKSPACE' }}
-        </p>
-        <h1>
-          {{
-            showingEvidence()
-              ? state.league?.name || 'Your league evidence'
-              : activeSection() === 'auction'
-                ? 'Stay oriented while the auction moves.'
-                : 'Build a shortlist you can use.'
-          }}
-        </h1>
-        @if (!showingEvidence() && state.league) {
+        <p class="eyebrow">{{ introduction().eyebrow }}</p>
+        <h1>{{ introduction().title }}</h1>
+        @if (state.league && !showingEvidence()) {
           <p class="league-context">{{ state.league.name }}</p>
         }
-        <p class="intro-copy">
-          {{
-            showingEvidence()
-              ? 'Use historical spending and category results to investigate your draft decisions.'
-              : 'Compare projected contributions, save targets and personal ceilings, then track final auction purchases.'
-          }}
-        </p>
+        <p class="intro-copy">{{ introduction().copy }}</p>
       </div>
-      <div class="connection-actions">
-        <button mat-button (click)="section.set('connection')">Connection</button>
-        @if (showingEvidence() || activeSection() === 'connection') {
+      @if (showingEvidence() || activeSection() === 'connection') {
+        <div class="connection-actions">
           <button mat-flat-button [disabled]="!canRefresh()" (click)="store.refresh()">
             Refresh data
           </button>
-        }
-      </div>
+        </div>
+      }
     </section>
     @if (store.error()) {
       <div class="notice error" role="alert">
@@ -70,53 +141,15 @@
         </div>
       </section>
     } @else {
-      <nav class="workspace-nav" aria-label="Workspace navigation">
-        <button
-          mat-button
-          [class.nav-active]="activeSection() === 'prepare'"
-          (click)="openDraft('prepare')"
-        >
-          Prepare</button
-        ><button
-          mat-button
-          [class.nav-active]="activeSection() === 'auction'"
-          (click)="openDraft('auction')"
-        >
-          Auction companion</button
-        ><button mat-button [class.nav-active]="showingEvidence()" (click)="openEvidence()">
-          League evidence
-        </button>
-      </nav>
       @defer (when activeSection() === 'prepare' || activeSection() === 'auction') {
         <app-draft-workspace
           [leagueId]="state.selection.league_id"
           [mode]="draftMode()"
-          [hidden]="showingEvidence() || activeSection() === 'connection'"
+          [hidden]="!showingDraft()"
         />
       }
       @defer (when historyOpened() || showingEvidence()) {
         <div [hidden]="!showingEvidence()">
-          <nav class="workspace-nav" aria-label="Historical evidence">
-            <button
-              mat-button
-              [class.nav-active]="historySection() === 'profile'"
-              (click)="historySection.set('profile')"
-            >
-              My profile</button
-            ><button
-              mat-button
-              [class.nav-active]="historySection() === 'competitors'"
-              (click)="historySection.set('competitors')"
-            >
-              Competitor teams</button
-            ><button
-              mat-button
-              [class.nav-active]="historySection() === 'league'"
-              (click)="historySection.set('league')"
-            >
-              League comparison
-            </button>
-          </nav>
           @if (historySection() === 'profile') {
             <app-my-profile-page [leagueId]="state.selection.league_id" />
           }
@@ -128,9 +161,22 @@
           }
         </div>
       }
+      @if (activeSection() === 'live') {
+        <section class="setup-card live-season-empty" aria-label="Live season availability">
+          <h2>Live-season analysis is not ready yet</h2>
+          <p>
+            Waiver, trade and remaining-season analysis will live here. Current work focuses on
+            auction preparation and the auction companion.
+          </p>
+          <button mat-stroked-button (click)="openWorkspace('draft')">
+            Return to auction prep
+          </button>
+        </section>
+      }
       @if (activeSection() === 'connection') {
         <section class="setup-grid">
           <div class="connection-card">
+            <button mat-button (click)="backFromConnection()">← Back to previous workspace</button>
             <h2>{{ connectionLabel() }}</h2>
             <p>
               Draft preparation and saved evidence stay available on this Mac. Sign in only when

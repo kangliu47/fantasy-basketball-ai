@@ -1,5 +1,188 @@
 # Architecture and learning guide
 
+## Auction bidding guide — October 18, 2026
+
+The approved [bid-guide framework](auction-bid-guide-framework.md),
+`AUCTION-BID-GUIDE-2026-10-18-v1`, adds a separate pure domain calculation.
+`remaining_auction_values` retains the original category scores, removes matched
+active picks, rebuilds the remaining purchase group/cutoff and allocates spendable
+cash in exact cents. Full-team cash is excluded. `calculate_bid_guide` applies an
+explicit other-slot reserve, adjustable discount policy, saved personal ceiling
+and legal limit. Unknown identities, infeasible allocations and no-rival cases
+remain explicit; the original baseline version and formula are unchanged.
+
+The protected `/api/draft/bid-guide` read-only POST recomputes the reviewed baseline
+from a saved import. `DraftService` pins board/import/plan state, reads the saved
+ceiling and verifies its revision again before returning. The result carries board,
+plan, league, own-team and import identities/revisions. No new repository, schema,
+provider request or credential use is introduced.
+
+A workspace-scoped Angular `BidGuideStore` preserves temporary planning inputs
+across Prepare/Auction companion, cancels superseded requests and rejects mismatched
+responses. The existing valuation store retains the exact reviewed request only
+after a successful baseline calculation. The Team board's selected-player panel
+shows two prices and a reason; plan controls and calculation details are collapsed.
+The first reserve is explicit rather than a silently invented roster plan.
+Draft writes and target text remain in the existing revisioned flows.
+
+## Independent public ESPN player context — October 18, 2026
+
+[ESPN-PLAYER-CONTEXT-2026-10-18-v1](espn-player-context-contract.md) supplements
+the earlier Hashtag context slice below. Pure domain source records and an
+application reader/repository boundary keep current ESPN metadata/news separate
+from private league sessions, projections and draft decisions. Fixed-host,
+credential-free HTTP reads verify reviewed athlete IDs/names before requesting
+an ID-scoped overview. Article relevance requires a matching NBA athlete category.
+Identity setup reads metadata only; news refresh remains an explicit action.
+
+The shared DuckDB workspace migrates v6 → v7 with a backup, adding append-only
+identity revisions and source captures under its existing lock. Local GETs are
+offline; protected typed mutations accept reviewed identities or an explicit
+refresh. Angular's keyed source store serves the existing context panel in both
+Prepare and Auction companion. Collection and publication dates remain distinct;
+failed news reads retain previous news while allowing successful metadata updates.
+The following earlier unavailable-ESPN record describes the preceding delivery.
+
+## Player context in auction preparation — October 18, 2026
+
+The approved [player-context contract](player-context-contract.md) adds a pure
+domain comparison of stable provider IDs across the nearest earlier compatible
+capture. `DraftRepository.previous_projection` selects by source/season/input
+basis and capture chronology, not import order. `DraftService` exposes team display
+names, MPG, safe Hashtag profile links, endpoint metadata and typed differences.
+Null values and unavailable comparison states remain explicit; price calculations
+and saved decisions are unchanged.
+
+One standalone Angular `PlayerContext` serves Prepare and AuctionTeamBoard.
+`PlayerNotesStore` loads only local saved notes automatically; explicit checks
+call `PlayerNotesService` through the protected HTTP adapter. That service verifies
+the selected Hashtag identity and uses a reader port. The premium service serializes
+browser access, and the Hashtag adapter opens a bounded temporary page in its
+existing dedicated context. It follows a verified same-host Notebook link and
+accepts only explicitly linked comment records; account UI and credentials are
+never serialized. The live layout currently reports unsupported and offers a
+source link. ESPN enrichment remains unavailable rather than guessed.
+
+`DuckDBPlayerNotesRepository` saves complete normalized note captures as append-only
+documents through the workspace's existing connection lock and transactions.
+Schema v6 adds `player_note_captures`; the existing backup/migration workflow
+preserves v1–v5 evidence before upgrading. No second database writer or file-based
+evidence store is introduced. Empty/unsupported/failed checks keep previous notes.
+
+## UI build identity and baseline readiness — October 18, 2026
+
+The approved [identity contract](ui-build-identity.md) adds a presentation-only
+build strip. A Node build step emits matching ignored compiled metadata and a
+public static manifest. Angular's `UiBuildStore` keeps the compiled identity fixed
+and uses typed same-origin HTTP to check the served identity, with timeout/error
+states. The app never reloads on its own or overwrites the loaded ID. Development
+mode makes no production freshness claim. No domain/repository port is needed for
+public build metadata. HTTP middleware marks the app entry and manifest no-store;
+existing API privacy and hashed-asset behavior remain intact.
+
+The baseline review supplies the already-approved full-import planning scope on
+new imports, while keeping both explicit declarations and backend validation.
+A signal tracks Reactive Forms edits for readiness messages and button state;
+the form remains authoritative during silent import resets. No valuation method,
+projection data, saved ceiling or persisted schema changes.
+
+
+## Three-workspace shell — October 18, 2026
+
+The user-approved navigation separates Auction prep (default Prepare / Auction
+companion), Live season (not-ready entry), and Historical patterns (existing
+profile / competitor / league views). Global Connection retains the previous
+section for its return action. `App` owns this presentation state; no analytical
+meaning or HTTP contract changes. The existing deferred draft/history components
+remain mounted and are hidden across workspace changes, retaining forms and
+current filters. Returning to Auction prep restores its prior subtab. This is a
+bounded extension of the current button-based shell; no new URL routing or season
+analytics is introduced. See PRD amendment 65 and the approval in the
+[Team board contract](auction-team-board-contract.md).
+
+
+## Auction Team board — October 18, 2026
+
+The approved [Team board contract](auction-team-board-contract.md) extends the
+existing draft slice. Pure `domain/draft/auction_analysis.py` derives a descriptive
+`AuctionOverview` from the active ledger and saved projection import: team budget
+summaries/profiles, available per-game pool references, weighted shooting impacts
+and chart extents. `DraftService.view` returns it with budgets and picks in the
+same application read model. No extra database or new persisted schema is needed.
+Existing HTTP mutation contracts, repository ports and append/void semantics stay
+compatible. Domain arithmetic remains framework independent.
+
+Angular `AuctionTeamBoard` renders the read model, uses CDK drag/drop and Material
+price/detail dialogs, and emits explicit pick/undo requests to `DraftWorkspace`.
+The parent reuses revisioned/idempotent HTTP mutations and updates one view on
+success. Drop never saves directly. Errors preserve dialog fields; reload and
+review precede a conflict retry. Price charts use configured-budget/common-price
+scales; category bars use server-provided extents with missing values retained.
+The preparation editor and saved target decisions remain separate. This slice
+adds no ESPN polling, new live-season calculations or automatic bid action.
+
+
+## League-specific private research adapter — October 17, 2026
+
+The user authorizes the [framework](league-adjusted-draft-value-framework.md) and
+confirms active slots. [LEAGUE-DRAFT-RESEARCH-2026-10-17-v1](league-draft-research-contract.md)
+adds an analysis-only slice without altering runtime domain or application APIs.
+`league_draft_evidence.py` reads fixed saved-only loopback endpoints and writes a
+minimal private snapshot; pure preparation checks attribution, rules and returned
+purchase evidence. Existing historical category results remain authoritative.
+
+`league_draft_simulation.py` uses frozen v1 features and the original study's pure
+willingness/sale/scoring functions, with scenario-specific opponents, exact cash
+reserves, strict acquisition thresholds and augmenting-path roster matching.
+Discovery is separate from evaluation. Unavailable purchase cases remain in
+quantiles, with slot/budget failures and closed/never-offered cases distinguished.
+`run_league_draft.py` validates the current import/rules and records hashes of
+inputs, manager profiles and calculation sources. `render_league_draft.py` checks
+those hashes before generating escaped, private HTML/Markdown and CSVs.
+
+This adapter does not estimate historical player prices without dated preseason
+inputs. Its spending checks are descriptive and its category hypotheses remain
+explicit scenarios. New source stays outside the runtime package; no migration,
+database connection, credentials or app decision write is introduced. Public tests
+use synthetic evidence only. The shared report helper also escapes paragraph
+content in Markdown to prevent imported names being interpreted as raw HTML.
+
+## Private draft workshop presentation — October 17, 2026
+
+The approved [workshop flow](draft-workshop-design-review.md) adds a separate
+presentation adapter, `analysis/render_draft_workshop.py`, and local HTML/JS
+templates. It verifies the saved input and calculation-code hashes, prepares
+matched comparisons and descriptive player profiles in Python, and preserves
+the original technical report. No runtime domain or application layer changes.
+
+Browser controls select saved cases and collect an in-memory discussion brief;
+they do not calculate new draft values or simulated outcomes. Availability controls
+retain the original case selection, purchases and prices. Missing comparisons stay
+missing. Imported names enter the DOM through text nodes; embedded JSON escapes
+script delimiters. Reports are permission-restricted, ignored local files using
+the shared showcase style. No credentials, app commands, database connection,
+provider requests or remote resources are involved.
+
+## Draft robustness research — October 17, 2026
+
+The analysis-only [versioned contract](draft-robustness-study-contract.md) adds a
+private pool-scarcity and auction-policy stress study without changing runtime
+domain calculations, provider adapters, HTTP interfaces or Angular navigation.
+`analysis/draft_strategy.py` is pure NumPy/decimal research calculation; an
+offline runner consumes a minimal normalized saved-data snapshot and retains
+source/code hashes. The report layer writes escaped HTML/Markdown and standalone
+plots only into ignored local directories. It reads no browser state, credentials
+or database; initial input comes through the normal read-only app.
+
+Nominal bids use frozen canonical v1 features; new weights, spending exponents
+and simulated transactions are study-only. Transactions enforce cash and open-slot
+reserves. Roster evaluation uses exact scaled integers, aggregate shooting ratios
+and overflow-safe cross-products; all eight ROTO categories remain scored for
+punts. Training selection, held-out conditions, availability stresses, isolated
+category diagnostics and adaptive bidding remain separate. Position flags expose
+missing coverage without claiming lineup feasibility. Model prices and full-roster
+points do not become predicted auction prices or championship probabilities.
+
 ## Premium projection connection — October 17, 2026
 
 **Live compatibility follow-up:** the authenticated browser may land on

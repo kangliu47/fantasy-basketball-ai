@@ -1,0 +1,65 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.espn-metadata {
+  margin: 14px 0;
+  padding: 13px;
+  background: var(--showcase-green-soft);
+  border-radius: 8px;
+}
+.espn-metadata strong,
+small {
+  display: block;
+}
+.espn-metadata strong {
+  color: var(--showcase-heading);
+  margin-top: 5px;
+  font-size: 16px;
+}
+p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.caption,
+small {
+  font-size: 12px;
+  color: var(--showcase-muted);
+  line-height: 1.55;
+}
+h3 {
+  color: var(--showcase-heading);
+  font-size: 15px;
+  margin: 10px 0;
+}
+h4 {
+  color: var(--showcase-heading);
+  font-size: 13px;
+  margin: 18px 0 8px;
+}
+.news-item {
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid var(--showcase-line);
+  border-radius: 8px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.news-item strong {
+  line-height: 1.5;
+}
+.news-item small {
+  margin-top: 6px;
+}
+.review {
+  background: #fff7e9;
+  border-left: 3px solid var(--showcase-orange);
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+a {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+}

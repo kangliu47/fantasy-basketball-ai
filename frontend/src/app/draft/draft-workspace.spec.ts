@@ -1,3 +1,4 @@
+import { sampleBidGuide } from './bid-guide.fixture';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
@@ -78,6 +79,35 @@ describe('Draft preparation and manual auction', () => {
     expect(retry.request.body.revision).toBe(2);
     retry.flush(newer.plan);
     await settle();
+  });
+  it('selects an available player on entering auction mode and retains the sold target note', async () => {
+    component.targetForm.setValue({ ceiling: 40, note: 'Keep my original draft reason' });
+    component.targetForm.markAsDirty();
+    const updated = sampleDraft();
+    updated.sales = [
+      {
+        id: 'synthetic-pick',
+        kind: 'sale',
+        at: '2026-10-18T12:00:00Z',
+        player_id: updated.candidates[0].id,
+        player_name: updated.candidates[0].name,
+        team_id: 'draft-team-1',
+        price: 40,
+        voids: null,
+        source: 'manual',
+        projection_import_id: updated.projection!.id,
+      },
+    ];
+    component.load();
+    http.expectOne('/api/draft').flush(updated);
+    await settle();
+    fixture.componentRef.setInput('mode', 'auction');
+    await settle();
+    expect(component.selectedId()).toBe(updated.candidates[1].id);
+    fixture.componentRef.setInput('mode', 'prepare');
+    await settle();
+    component.select(updated.candidates[0].id);
+    expect(component.targetForm.controls.note.value).toBe('Keep my original draft reason');
   });
   it('retains sale values after failure and retries with the same event identity', async () => {
     component.saleForm.setValue({ team_id: 'draft-team-1', price: 45 });
@@ -179,6 +209,8 @@ describe('Draft preparation and manual auction', () => {
     expect(component.targetForm.dirty).toBe(true);
     http.expectNone('/api/draft/target');
     fixture.componentRef.setInput('mode', 'auction');
+    await settle();
+    http.expectOne('/api/draft/bid-guide').flush(sampleBidGuide(completeDraft()));
     await settle();
     expect(component.selectedValue()?.baseline_value_cents).toBe(4986);
     expect(component.myBudget()?.legal_maximum).toBe(188);

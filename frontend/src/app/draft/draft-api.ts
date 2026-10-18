@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { DraftBoard, DraftView, StatBasis } from './draft.models';
 import { DraftPlan } from '../preparation/preparation.models';
 import { AuctionValueResult, ValuationRequest } from './valuation.models';
+import { BidGuidePreview, BidGuideRequest } from './bid-guide.models';
 
 @Injectable({ providedIn: 'root' })
 export class DraftApi {
@@ -13,6 +14,9 @@ export class DraftApi {
   }
   valuation(request: ValuationRequest) {
     return this.http.post<AuctionValueResult>('/api/draft/valuation', request, this.options);
+  }
+  bidGuide(request: BidGuideRequest) {
+    return this.http.post<BidGuidePreview>('/api/draft/bid-guide', request, this.options);
   }
   create(minimum_bid: number) {
     return this.http.post<DraftView>('/api/draft', { minimum_bid }, this.options);

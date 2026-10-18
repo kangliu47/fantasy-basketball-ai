@@ -31,8 +31,8 @@
         purchases; 2 IR spots are separate.
       </p>
       <p class="muted">
-        Your planning rules stay separate from imported ESPN settings. Exact position slots are
-        unconfirmed, so lineup legality is not modeled.
+        Your planning rules stay separate from imported ESPN settings. Position coverage is
+        provisional; this screen checks dollars and purchase count.
       </p>
       <label
         >Minimum bid ($)
@@ -68,7 +68,7 @@
       <p>
         Eight-category ROTO · ${{ data.board.rules.budget }} per team ·
         {{ data.board.rules.active_slots }} active + {{ data.board.rules.bench_slots }} bench +
-        {{ data.board.rules.ir_slots }} IR. Exact position slots remain unconfirmed. IR adds no
+        {{ data.board.rules.ir_slots }} IR. Position eligibility is unverified here. IR adds no
         draft purchases.
       </p>
       <p>{{ data.board.team_context }}</p>
@@ -193,563 +193,418 @@
         }
       </section>
     }
-    @if (mode() === 'auction') {
-      <section class="showcase-card">
-        <div class="row between">
-          <h2>My auction position</h2>
-          <span class="showcase-scope">Manual tracking · no ESPN sync</span>
-        </div>
-        <div class="budget">
-          <div>
-            <small>Budget left</small
-            ><strong>{{ myBudget() ? '$' + myBudget()!.remaining : '—' }}</strong>
-          </div>
-          <div>
-            <small>Open draft slots</small><strong>{{ myBudget()?.open_slots ?? '—' }}</strong>
-          </div>
-          <div>
-            <small>Legal maximum bid</small
-            ><strong>{{ myBudget() ? '$' + myBudget()!.legal_maximum : '—' }}</strong>
-          </div>
-          <div>
-            <small>Recorded league sales</small
-            ><strong
-              >{{ data.sales.length }} /
-              {{
-                data.board.rules.team_count *
-                  (data.board.rules.active_slots + data.board.rules.bench_slots)
-              }}</strong
-            >
-          </div>
-        </div>
-        <p class="caption">
-          @if (!myBudget()) {
-            Choose your draft team above.
-          }
-          Budgets reflect recorded sales only. Record every final purchase, including players
-          outside the sample. Your bid ceiling is a personal decision; the legal maximum reserves
-          ${{ data.board.rules.minimum_bid }} for each other open slot.
-        </p>
-      </section>
-    }
-    <app-auction-valuation />
-    @if (data.projection) {
-      <div class="board" [class.mobile-detail]="mobileDetail()">
-        <section class="showcase-card pool">
-          <div class="row between">
-            <div>
-              <h2>
-                {{ mode() === 'prepare' ? 'Find your next target' : 'Available projected players' }}
-              </h2>
-              <small
-                >{{ availableCount() }} of {{ data.candidates.length }} projected players remain ·
-                full ESPN pool unknown</small
+    @if (mode() === 'prepare') {
+      <app-auction-valuation />
+      @if (data.projection) {
+        <div class="board" [class.mobile-detail]="mobileDetail()">
+          <section class="showcase-card pool">
+            <div class="row between">
+              <div>
+                <h2>
+                  {{
+                    mode() === 'prepare' ? 'Find your next target' : 'Available projected players'
+                  }}
+                </h2>
+                <small
+                  >{{ availableCount() }} of {{ data.candidates.length }} projected players remain ·
+                  full ESPN pool unknown</small
+                >
+              </div>
+              <span class="showcase-scope"
+                >{{ data.plan?.shortlist?.length ?? 0 }} saved players</span
               >
             </div>
-            <span class="showcase-scope"
-              >{{ data.plan?.shortlist?.length ?? 0 }} saved players</span
-            >
-          </div>
-          <div class="toolbar">
-            <label
-              >Search players<input
-                matInput
-                type="search"
-                placeholder="Name or position"
-                [value]="search()"
-                (input)="search.set($any($event.target).value)" /></label
-            ><label
-              >Show<select
-                [value]="targetsOnly() ? 'targets' : 'all'"
-                (change)="targetsOnly.set($any($event.target).value === 'targets')"
+            <div class="toolbar">
+              <label
+                >Search players<input
+                  matInput
+                  type="search"
+                  placeholder="Name, NBA team or position"
+                  [value]="search()"
+                  (input)="search.set($any($event.target).value)" /></label
+              ><label
+                >Show<select
+                  [value]="targetsOnly() ? 'targets' : changesOnly() ? 'changed' : 'all'"
+                  (change)="
+                    targetsOnly.set($any($event.target).value === 'targets');
+                    changesOnly.set($any($event.target).value === 'changed')
+                  "
+                >
+                  <option value="all">All available</option>
+                  <option value="targets">My targets</option>
+                  <option value="changed">Changed projections</option>
+                </select></label
+              ><label
+                >Sort by projection<select
+                  [formControl]="focusControl"
+                  (change)="focus.set(focusControl.value)"
+                >
+                  @if (valuation.available()) {
+                    <option value="baseline">Baseline allocation</option>
+                  }
+                  @for (c of categories; track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select></label
               >
-                <option value="all">All available</option>
-                <option value="targets">My targets</option>
-              </select></label
-            ><label
-              >Sort by projection<select
-                [formControl]="focusControl"
-                (change)="focus.set(focusControl.value)"
+            </div>
+            <div class="row between">
+              <small>{{
+                focus() === 'baseline'
+                  ? 'Sorted by the server’s baseline rank.'
+                  : 'Single-stat sort.'
+              }}</small
+              ><label
+                >Display<select [value]="basis()" (change)="basis.set($any($event.target).value)">
+                  <option value="per_game">Per game</option>
+                  <option value="season_totals">Season totals</option>
+                </select></label
               >
-                @if (valuation.available()) {
-                  <option value="baseline">Baseline allocation</option>
-                }
+            </div>
+            <div class="scroll candidate-scroll">
+              <table aria-label="Projected candidates">
+                <thead>
+                  <tr>
+                    <th>Player</th>
+                    <th>{{ valuation.available() ? 'Rank' : 'GP' }}</th>
+                    @if (focus() !== 'baseline') {
+                      <th>{{ focus() }}</th>
+                    }
+                    @if (valuation.available()) {
+                      <th>Baseline</th>
+                    }
+                    <th>My ceiling</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of candidates(); track p.id) {
+                    <tr [class.selected]="p.id === selectedId()">
+                      <td>
+                        <button (click)="select(p.id)" [attr.aria-label]="'Inspect ' + p.name">
+                          {{ p.name }}</button
+                        ><small
+                          >{{ p.team || 'NBA team unknown' }} · {{ p.positions.join('/') }}
+                          @if (targets().has(p.id)) {
+                            · <span class="chip">Target</span>
+                          }
+                          @if (data.board.trial_player_ids.includes(p.id)) {
+                            · Trial
+                          }
+                        </small>
+                      </td>
+                      <td>
+                        {{
+                          valuation.available()
+                            ? (valuation.players().get(p.id)?.ordinal_rank ?? '—')
+                            : (p.projected_games ?? '—')
+                        }}
+                      </td>
+                      @if (focus() !== 'baseline') {
+                        <td>{{ format(focus(), projection(p).values[focus()]) }}</td>
+                      }
+                      @if (valuation.available()) {
+                        <td>{{ money(valuation.players().get(p.id)?.baseline_value_cents) }}</td>
+                      }
+                      <td>
+                        {{
+                          targets().get(p.id)?.max_bid != null
+                            ? '$' + targets().get(p.id)!.max_bid
+                            : '—'
+                        }}
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="5">
+                        No available candidates match. Try another search or show all available
+                        players.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (valuation.available()) {
+              <p class="caption">
+                Baseline allocations are a static pre-draft reference. Unpriced players sit outside
+                the modeled purchase set; they are not valued at zero.
+              </p>
+            }
+          </section>
+          <aside class="showcase-card inspector">
+            <button mat-stroked-button class="mobile-only" (click)="mobileDetail.set(false)">
+              ← Back to candidates
+            </button>
+            @if (selected(); as p) {
+              <p class="eyebrow">
+                {{ mode() === 'auction' ? 'PLAYER UNDER CONSIDERATION' : 'CANDIDATE DETAIL' }}
+              </p>
+              <h2>{{ p.name }}</h2>
+              <small
+                >{{ p.positions.join('/') }} · {{ p.projected_games ?? 'Unknown' }} projected games
+                · {{ basis() === 'per_game' ? 'per game' : 'season totals' }}</small
+              >
+              <app-player-context [player]="p" />
+              @if (selectedValue(); as value) {
+                <section aria-label="Selected player baseline" class="baseline-detail">
+                  <p class="baseline-price">
+                    {{
+                      value.baseline_value_cents === null
+                        ? 'Unpriced'
+                        : money(value.baseline_value_cents)
+                    }}
+                  </p>
+                  <p class="caption">
+                    Baseline allocation ·
+                    {{
+                      valuation.result()!.scenario.valuation_basis === 'season_totals'
+                        ? 'season totals'
+                        : 'per-game scenario'
+                    }}
+                    · {{ valuation.result()!.scenario.team_count }} teams ·
+                    {{ valuation.result()!.modeled_purchase_count }} modeled purchases.
+                  </p>
+                  @if (value.baseline_value_cents === null) {
+                    <p class="caption">
+                      Outside the modeled purchase set. You can still choose a personal ceiling.
+                    </p>
+                  }
+                  <details open>
+                    <summary>Category contributions (z-scores)</summary>
+                    @for (c of categories; track c) {
+                      <div class="category-row">
+                        <span>{{ c }}</span>
+                        <div class="category-track" aria-hidden="true">
+                          <i
+                            [class.negative]="categoryScore(c) < 0"
+                            [style.left.%]="categoryScore(c) < 0 ? 50 - barWidth(c) : 50"
+                            [style.width.%]="barWidth(c)"
+                          ></i>
+                        </div>
+                        <span
+                          >{{ categoryScore(c) > 0 ? '+' : ''
+                          }}{{ categoryScore(c) | number: '1.2-2' }}</span
+                        >
+                      </div>
+                    }
+                    <p class="caption">
+                      Green adds to the score; orange subtracts. Shooting impact accounts for
+                      attempts. The stat cards below use their own display basis.
+                    </p>
+                  </details>
+                  <button
+                    mat-stroked-button
+                    [disabled]="pending() || value.baseline_value_cents === null"
+                    (click)="useRoundedBaseline()"
+                  >
+                    Use rounded baseline
+                  </button>
+                  <p class="caption">
+                    Copies a whole-dollar value into your ceiling for review. Saving remains your
+                    decision.
+                  </p>
+                </section>
+              }
+              <div class="statgrid">
                 @for (c of categories; track c) {
-                  <option [value]="c">{{ c }}</option>
+                  <div class="stat">
+                    <small>{{ c }}</small
+                    ><strong>{{ format(c, projection(p).values[c]) }}</strong>
+                  </div>
                 }
-              </select></label
-            >
-          </div>
+              </div>
+              <details>
+                <summary>Shooting volume & projection basis</summary>
+                <p>
+                  FG: {{ projection(p).components['fgm'] | number: '1.0-2' }} /
+                  {{ projection(p).components['fga'] | number: '1.0-2' }} · FT:
+                  {{ projection(p).components['ftm'] | number: '1.0-2' }} /
+                  {{ projection(p).components['fta'] | number: '1.0-2' }} ({{
+                    basis() === 'per_game' ? 'per game' : 'season totals'
+                  }}).
+                </p>
+                <p>
+                  Ratios use makes/attempts. Counting totals use projected games when inputs are per
+                  game. ESPN identity and position eligibility remain unverified.
+                </p>
+              </details>
+              <form [formGroup]="targetForm" (ngSubmit)="saveTarget()">
+                <div class="ceiling">
+                  <label
+                    >My bid ceiling ($)<input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="data.board.rules.budget"
+                      step="1"
+                      formControlName="ceiling"
+                      placeholder="Your decision" /></label
+                  ><button mat-flat-button type="submit" [disabled]="pending()">
+                    {{ targets().has(p.id) ? 'Update target' : 'Save as target' }}
+                  </button>
+                </div>
+                <label
+                  >Why this player?<textarea
+                    matInput
+                    rows="2"
+                    maxlength="2000"
+                    formControlName="note"
+                    placeholder="A reason or tradeoff to remember"
+                  ></textarea>
+                </label>
+              </form>
+              <p class="saved">
+                {{
+                  targetForm.dirty
+                    ? 'Unsaved target changes'
+                    : targets().has(p.id)
+                      ? 'Target saved on this Mac.'
+                      : 'Set your own personal ceiling; save it when ready.'
+                }}
+              </p>
+              @if (targetForm.dirty && editImportId() !== data.projection.id) {
+                <p class="caption">
+                  These edits began with an earlier projection import. Saving preserves that
+                  evidence reference.
+                </p>
+              }
+              <div class="row">
+                <button mat-stroked-button (click)="compare()">
+                  {{ compareIds().includes(p.id) ? 'Remove from comparison' : 'Compare player' }}
+                </button>
+                @if (mode() === 'prepare') {
+                  <button
+                    mat-stroked-button
+                    [disabled]="pending() || salesIds().has(p.id)"
+                    (click)="trial()"
+                  >
+                    {{
+                      data.board.trial_player_ids.includes(p.id)
+                        ? 'Remove from trial'
+                        : 'Try on roster'
+                    }}
+                  </button>
+                }
+                @if (targets().has(p.id)) {
+                  <button mat-button [disabled]="pending()" (click)="removeTarget()">
+                    Remove target
+                  </button>
+                }
+                @if (targetForm.dirty) {
+                  <button mat-button [disabled]="pending()" (click)="useSavedTarget()">
+                    Use saved target
+                  </button>
+                }
+              </div>
+            } @else {
+              <h2>Select a player</h2>
+              <p>Choose a candidate to inspect its projection and save your decision.</p>
+            }
+          </aside>
+        </div>
+      } @else {
+        <section class="showcase-card">
+          <h2>Bring in projections to compare players</h2>
+          <p>
+            Review the input basis and load the saved sample above. Your draft ledger remains usable
+            without projections.
+          </p>
+        </section>
+      }
+      @if (comparison().length) {
+        <section class="showcase-card">
           <div class="row between">
-            <small>{{
-              focus() === 'baseline' ? 'Sorted by the server’s baseline rank.' : 'Single-stat sort.'
-            }}</small
-            ><label
-              >Display<select [value]="basis()" (change)="basis.set($any($event.target).value)">
-                <option value="per_game">Per game</option>
-                <option value="season_totals">Season totals</option>
-              </select></label
-            >
+            <h2>Compare before choosing</h2>
+            <button mat-button (click)="compareIds.set([])">Clear comparison</button>
           </div>
-          <div class="scroll candidate-scroll">
-            <table aria-label="Projected candidates">
+          <div class="scroll">
+            <table aria-label="Candidate comparison">
               <thead>
                 <tr>
                   <th>Player</th>
-                  <th>{{ valuation.available() ? 'Rank' : 'GP' }}</th>
-                  @if (focus() !== 'baseline') {
-                    <th>{{ focus() }}</th>
+                  @for (c of categories; track c) {
+                    <th>{{ c }}</th>
                   }
-                  @if (valuation.available()) {
-                    <th>Baseline</th>
-                  }
-                  <th>My ceiling</th>
                 </tr>
               </thead>
               <tbody>
-                @for (p of candidates(); track p.id) {
-                  <tr [class.selected]="p.id === selectedId()">
-                    <td>
-                      <button (click)="select(p.id)" [attr.aria-label]="'Inspect ' + p.name">
-                        {{ p.name }}</button
-                      ><small
-                        >{{ p.positions.join('/') }}
-                        @if (targets().has(p.id)) {
-                          · <span class="chip">Target</span>
-                        }
-                        @if (data.board.trial_player_ids.includes(p.id)) {
-                          · Trial
-                        }
-                      </small>
-                    </td>
-                    <td>
-                      {{
-                        valuation.available()
-                          ? (valuation.players().get(p.id)?.ordinal_rank ?? '—')
-                          : (p.projected_games ?? '—')
-                      }}
-                    </td>
-                    @if (focus() !== 'baseline') {
-                      <td>{{ format(focus(), projection(p).values[focus()]) }}</td>
-                    }
-                    @if (valuation.available()) {
-                      <td>{{ money(valuation.players().get(p.id)?.baseline_value_cents) }}</td>
-                    }
-                    <td>
-                      {{
-                        targets().get(p.id)?.max_bid != null
-                          ? '$' + targets().get(p.id)!.max_bid
-                          : '—'
-                      }}
-                    </td>
-                  </tr>
-                } @empty {
+                @for (p of comparison(); track p.id) {
                   <tr>
-                    <td colspan="5">
-                      No available candidates match. Try another search or show all available
-                      players.
-                    </td>
+                    <th>{{ p.name }}</th>
+                    @for (c of categories; track c) {
+                      <td>{{ format(c, projection(p).values[c]) }}</td>
+                    }
                   </tr>
                 }
               </tbody>
             </table>
           </div>
-          @if (valuation.available()) {
-            <p class="caption">
-              Baseline allocations are a static pre-draft reference. Unpriced players sit outside
-              the modeled purchase set; they are not valued at zero.
-            </p>
-          }
-        </section>
-        <aside class="showcase-card inspector">
-          <button mat-stroked-button class="mobile-only" (click)="mobileDetail.set(false)">
-            ← Back to candidates
-          </button>
-          @if (selected(); as p) {
-            <p class="eyebrow">
-              {{ mode() === 'auction' ? 'PLAYER UNDER CONSIDERATION' : 'CANDIDATE DETAIL' }}
-            </p>
-            <h2>{{ p.name }}</h2>
-            <small
-              >{{ p.positions.join('/') }} · {{ p.projected_games ?? 'Unknown' }} projected games ·
-              {{ basis() === 'per_game' ? 'per game' : 'season totals' }}</small
-            >
-            @if (selectedValue(); as value) {
-              <section aria-label="Selected player baseline" class="baseline-detail">
-                <p class="baseline-price">
-                  {{
-                    value.baseline_value_cents === null
-                      ? 'Unpriced'
-                      : money(value.baseline_value_cents)
-                  }}
-                </p>
-                <p class="caption">
-                  Baseline allocation ·
-                  {{
-                    valuation.result()!.scenario.valuation_basis === 'season_totals'
-                      ? 'season totals'
-                      : 'per-game scenario'
-                  }}
-                  · {{ valuation.result()!.scenario.team_count }} teams ·
-                  {{ valuation.result()!.modeled_purchase_count }} modeled purchases.
-                </p>
-                @if (value.baseline_value_cents === null) {
-                  <p class="caption">
-                    Outside the modeled purchase set. You can still choose a personal ceiling.
-                  </p>
-                }
-                <details open>
-                  <summary>Category contributions (z-scores)</summary>
-                  @for (c of categories; track c) {
-                    <div class="category-row">
-                      <span>{{ c }}</span>
-                      <div class="category-track" aria-hidden="true">
-                        <i
-                          [class.negative]="categoryScore(c) < 0"
-                          [style.left.%]="categoryScore(c) < 0 ? 50 - barWidth(c) : 50"
-                          [style.width.%]="barWidth(c)"
-                        ></i>
-                      </div>
-                      <span
-                        >{{ categoryScore(c) > 0 ? '+' : ''
-                        }}{{ categoryScore(c) | number: '1.2-2' }}</span
-                      >
-                    </div>
-                  }
-                  <p class="caption">
-                    Green adds to the score; orange subtracts. Shooting impact accounts for
-                    attempts. The stat cards below use their own display basis.
-                  </p>
-                </details>
-                <button
-                  mat-stroked-button
-                  [disabled]="pending() || value.baseline_value_cents === null"
-                  (click)="useRoundedBaseline()"
-                >
-                  Use rounded baseline
-                </button>
-                <p class="caption">
-                  Copies a whole-dollar value into your ceiling for review. Saving remains your
-                  decision.
-                </p>
-              </section>
-            }
-            <div class="statgrid">
-              @for (c of categories; track c) {
-                <div class="stat">
-                  <small>{{ c }}</small
-                  ><strong>{{ format(c, projection(p).values[c]) }}</strong>
-                </div>
-              }
-            </div>
-            <details>
-              <summary>Shooting volume & projection basis</summary>
-              <p>
-                FG: {{ projection(p).components['fgm'] | number: '1.0-2' }} /
-                {{ projection(p).components['fga'] | number: '1.0-2' }} · FT:
-                {{ projection(p).components['ftm'] | number: '1.0-2' }} /
-                {{ projection(p).components['fta'] | number: '1.0-2' }} ({{
-                  basis() === 'per_game' ? 'per game' : 'season totals'
-                }}).
-              </p>
-              <p>
-                Ratios use makes/attempts. Counting totals use projected games when inputs are per
-                game. ESPN identity and position eligibility remain unverified.
-              </p>
-            </details>
-            <form [formGroup]="targetForm" (ngSubmit)="saveTarget()">
-              <div class="ceiling">
-                <label
-                  >My bid ceiling ($)<input
-                    matInput
-                    type="number"
-                    min="1"
-                    [max]="data.board.rules.budget"
-                    step="1"
-                    formControlName="ceiling"
-                    placeholder="Your decision" /></label
-                ><button mat-flat-button type="submit" [disabled]="pending()">
-                  {{ targets().has(p.id) ? 'Update target' : 'Save as target' }}
-                </button>
-              </div>
-              <label
-                >Why this player?<textarea
-                  matInput
-                  rows="2"
-                  maxlength="2000"
-                  formControlName="note"
-                  placeholder="A reason or tradeoff to remember"
-                ></textarea>
-              </label>
-            </form>
-            <p class="saved">
-              {{
-                targetForm.dirty
-                  ? 'Unsaved target changes'
-                  : targets().has(p.id)
-                    ? 'Target saved on this Mac.'
-                    : 'Set your own personal ceiling; save it when ready.'
-              }}
-            </p>
-            @if (targetForm.dirty && editImportId() !== data.projection.id) {
-              <p class="caption">
-                These edits began with an earlier projection import. Saving preserves that evidence
-                reference.
-              </p>
-            }
-            <div class="row">
-              <button mat-stroked-button (click)="compare()">
-                {{ compareIds().includes(p.id) ? 'Remove from comparison' : 'Compare player' }}
-              </button>
-              @if (mode() === 'prepare') {
-                <button
-                  mat-stroked-button
-                  [disabled]="pending() || salesIds().has(p.id)"
-                  (click)="trial()"
-                >
-                  {{
-                    data.board.trial_player_ids.includes(p.id)
-                      ? 'Remove from trial'
-                      : 'Try on roster'
-                  }}
-                </button>
-              }
-              @if (targets().has(p.id)) {
-                <button mat-button [disabled]="pending()" (click)="removeTarget()">
-                  Remove target
-                </button>
-              }
-              @if (targetForm.dirty) {
-                <button mat-button [disabled]="pending()" (click)="useSavedTarget()">
-                  Use saved target
-                </button>
-              }
-            </div>
-            @if (mode() === 'auction') {
-              <div class="notice">
-                <strong
-                  >My legal maximum:
-                  {{ myBudget() ? '$' + myBudget()!.legal_maximum : 'choose my team' }}</strong
-                ><br />My saved ceiling:
-                {{
-                  targets().get(p.id)?.max_bid != null
-                    ? '$' + targets().get(p.id)!.max_bid
-                    : 'not set'
-                }}.
-                @if ((targets().get(p.id)?.max_bid ?? 0) > (myBudget()?.legal_maximum ?? 200)) {
-                  Your saved ceiling exceeds your current legal maximum.
-                }
-              </div>
-              @if (salesIds().has(p.id)) {
-                <p class="notice">Sale already recorded. Undo it below to correct it.</p>
-              } @else {
-                <form [formGroup]="saleForm" (ngSubmit)="record()">
-                  <div class="formgrid">
-                    <label
-                      >Purchased by<select formControlName="team_id">
-                        @for (t of data.board.teams; track t.id) {
-                          <option [value]="t.id">{{ t.name }}</option>
-                        }
-                      </select></label
-                    ><label
-                      >Final price ($)<input
-                        matInput
-                        type="number"
-                        min="1"
-                        step="1"
-                        formControlName="price"
-                    /></label>
-                  </div>
-                  <button mat-flat-button [disabled]="pending()" type="submit">
-                    Record final sale
-                  </button>
-                </form>
-                <p class="caption">Enter the final result from ESPN. This never submits a bid.</p>
-              }
-            }
-          } @else {
-            <h2>Select a player</h2>
-            <p>Choose a candidate to inspect its projection and save your decision.</p>
-          }
-        </aside>
-      </div>
-    } @else {
-      <section class="showcase-card">
-        <h2>Bring in projections to compare players</h2>
-        <p>
-          Review the input basis and load the saved sample above. Your draft ledger remains usable
-          without projections.
-        </p>
-      </section>
-    }
-    @if (mode() === 'auction') {
-      <section class="showcase-card">
-        <button mat-stroked-button (click)="outsideOpen.set(!outsideOpen())">
-          Record a player outside the sample
-        </button>
-        @if (outsideOpen()) {
           <p class="caption">
-            This sale changes budgets and slots. Projection contribution remains unknown.
+            Same source and display basis. No composite rank or dollar value is inferred.
           </p>
-          <form [formGroup]="outsideForm" (ngSubmit)="record(true)">
-            <label>Player name<input matInput formControlName="name" maxlength="100" /></label>
-            <div class="formgrid">
-              <label
-                >Purchased by<select formControlName="team_id">
-                  @for (t of data.board.teams; track t.id) {
-                    <option [value]="t.id">{{ t.name }}</option>
-                  }
-                </select></label
-              ><label
-                >Final price ($)<input
-                  matInput
-                  type="number"
-                  min="1"
-                  step="1"
-                  formControlName="price"
-              /></label>
-            </div>
-            <button mat-flat-button [disabled]="pending()" type="submit">
-              Record outside-sample sale
-            </button>
-          </form>
-        }
-      </section>
-    }
-    @if (comparison().length) {
+        </section>
+      }
       <section class="showcase-card">
         <div class="row between">
-          <h2>Compare before choosing</h2>
-          <button mat-button (click)="compareIds.set([])">Clear comparison</button>
+          <h2>
+            {{ mode() === 'prepare' ? 'Try a roster combination' : 'My drafted roster profile' }}
+          </h2>
+          <small
+            >{{ mode() === 'prepare' ? data.board.trial_player_ids.length : mySales().length }} /
+            {{ data.board.rules.active_slots + data.board.rules.bench_slots }} players</small
+          >
         </div>
-        <div class="scroll">
-          <table aria-label="Candidate comparison">
-            <thead>
-              <tr>
-                <th>Player</th>
-                @for (c of categories; track c) {
-                  <th>{{ c }}</th>
+        @if (profile(); as profile) {
+          <div class="statgrid">
+            @for (c of categories; track c) {
+              <div class="stat">
+                <small>{{ c }}</small
+                ><strong>{{ format(c, profile.values[c]) }}</strong>
+                @if (profile.category_coverage[c] < profile.included_players) {
+                  <small
+                    >{{ profile.category_coverage[c] }} / {{ profile.included_players }} with
+                    stats</small
+                  >
                 }
-              </tr>
-            </thead>
-            <tbody>
-              @for (p of comparison(); track p.id) {
-                <tr>
-                  <th>{{ p.name }}</th>
-                  @for (c of categories; track c) {
-                    <td>{{ format(c, projection(p).values[c]) }}</td>
-                  }
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <p class="caption">
-          Same source and display basis. No composite rank or dollar value is inferred.
-        </p>
-      </section>
-    }
-    <section class="showcase-card">
-      <div class="row between">
-        <h2>
-          {{ mode() === 'prepare' ? 'Try a roster combination' : 'My drafted roster profile' }}
-        </h2>
-        <small
-          >{{ mode() === 'prepare' ? data.board.trial_player_ids.length : mySales().length }} /
-          {{ data.board.rules.active_slots + data.board.rules.bench_slots }} players</small
-        >
-      </div>
-      @if (profile(); as profile) {
-        <div class="statgrid">
-          @for (c of categories; track c) {
-            <div class="stat">
-              <small>{{ c }}</small
-              ><strong>{{ format(c, profile.values[c]) }}</strong>
-              @if (profile.category_coverage[c] < profile.included_players) {
-                <small
-                  >{{ profile.category_coverage[c] }} / {{ profile.included_players }} with
-                  stats</small
-                >
-              }
-            </div>
-          }
-        </div>
-        <p class="caption">
-          Full-roster projected season production, not scored team totals: only
-          {{ data.board.rules.active_slots }} players can be active and lineup usage is not modeled.
-          {{ profile.missing_players }} player(s) lack a projection in this import; missing evidence
-          is excluded, not zero.
+              </div>
+            }
+          </div>
+          <p class="caption">
+            Full-roster projected season production, not scored team totals: only
+            {{ data.board.rules.active_slots }} players can be active and lineup usage is not
+            modeled. {{ profile.missing_players }} player(s) lack a projection in this import;
+            missing evidence is excluded, not zero.
+            @if (mode() === 'prepare') {
+              Trial choices do not spend auction money.
+            }
+          </p>
+        }
+        <div class="row">
           @if (mode() === 'prepare') {
-            Trial choices do not spend auction money.
+            @for (id of data.board.trial_player_ids; track id) {
+              <button mat-stroked-button [disabled]="pending()" (click)="trial(id)">
+                Remove {{ candidateName(id) }} from trial
+              </button>
+            }
+          } @else {
+            @for (s of mySales(); track s.id) {
+              <span class="showcase-scope">{{ s.player_name }} · ${{ s.price }}</span>
+            }
           }
-        </p>
-      }
-      <div class="row">
-        @if (mode() === 'prepare') {
-          @for (id of data.board.trial_player_ids; track id) {
-            <button mat-stroked-button [disabled]="pending()" (click)="trial(id)">
-              Remove {{ candidateName(id) }} from trial
-            </button>
-          }
-        } @else {
-          @for (s of mySales(); track s.id) {
-            <span class="showcase-scope">{{ s.player_name }} · ${{ s.price }}</span>
-          }
-        }
-      </div>
-    </section>
-    @if (mode() === 'auction') {
-      <section class="showcase-card">
-        <h2>Recorded sales</h2>
-        @for (s of data.sales.slice().reverse(); track s.id) {
-          <div class="logline">
-            <span
-              >{{ s.player_name }} → {{ teamName(s.team_id) }} · ${{ s.price }}
-              @if (!s.player_id) {
-                · projection unknown
-              }
-              <small>{{ s.at | date: 'short' }} · manual</small></span
-            ><button mat-button [disabled]="pending()" (click)="undo(s.id)">Undo sale</button>
-          </div>
-        } @empty {
-          <p class="muted">No sales yet. Record each final result from ESPN.</p>
-        }
-        <details>
-          <summary>All team budgets & slots</summary>
-          <div class="scroll">
-            <table aria-label="Team budgets">
-              <thead>
-                <tr>
-                  <th>Team</th>
-                  <th>Budget left</th>
-                  <th>Slots left</th>
-                  <th>Legal maximum</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (b of data.budgets; track b.team_id) {
-                  <tr>
-                    <th>{{ teamName(b.team_id) }}</th>
-                    <td>${{ b.remaining }}</td>
-                    <td>{{ b.open_slots }}</td>
-                    <td>${{ b.legal_maximum }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </details>
-        <details>
-          <summary>Correction history · {{ data.board.events.length }} events</summary>
-          @for (e of data.board.events; track e.id) {
-            <p class="caption">
-              {{ e.at | date: 'short' }} ·
-              {{ e.kind === 'sale' ? e.player_name + ' purchased for $' + e.price : 'Sale undone' }}
-              · {{ e.source }}
-            </p>
-          }
-        </details>
+        </div>
       </section>
+    } @else {
+      <app-auction-team-board
+        [baseline]="valuation.calculatedRequest()"
+        [data]="data"
+        [pending]="pending()"
+        [error]="error()"
+        [selectedId]="selectedId()"
+        (choose)="select($event, false)"
+        (recordPick)="recordBoardPick($event)"
+        (undoPick)="undo($event)"
+        (reload)="load()"
+      />
     }
   }
 }

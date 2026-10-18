@@ -7,6 +7,7 @@ from pydantic import Field
 
 from fantasy_ai.application.draft.service import DraftView
 from fantasy_ai.application.models import WorkspaceError
+from fantasy_ai.application.projections.player_notes import PlayerNotesService, PlayerNotesView
 from fantasy_ai.application.projections.ports import ProjectionPageDiagnostic
 from fantasy_ai.application.projections.premium import (
     PremiumProjectionService,
@@ -26,10 +27,28 @@ class CandidateRequest(LocalRequest):
             raise WorkspaceError("Use a valid fetched candidate reference.") from None
 
 
+class PlayerNotesRequest(LocalRequest):
+    player_id: str = Field(min_length=1, max_length=150)
+
+
 def create_projection_router(
-    service: PremiumProjectionService, workspace: WorkspaceService
+    service: PremiumProjectionService,
+    workspace: WorkspaceService,
+    notes: PlayerNotesService | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/projections/hashtag", tags=["Projection connection"])
+
+    if notes:
+
+        @router.get("/player-notes", response_model=PlayerNotesView)
+        async def saved_notes(player_id: str) -> PlayerNotesView:
+            league_id()
+            return await notes.view(player_id)
+
+        @router.post("/player-notes/check", response_model=PlayerNotesView)
+        async def check_notes(data: PlayerNotesRequest) -> PlayerNotesView:
+            league_id()
+            return await notes.check(data.player_id)
 
     def league_id() -> int:
         if workspace.selection is None:

@@ -24,10 +24,16 @@
           <option value="per-game">Saved league · per-game comparison</option>
         </select>
       </label>
-      <button mat-flat-button [disabled]="!store.canCalculate()" (click)="store.calculate()">
+      <button
+        mat-flat-button
+        [disabled]="!store.canCalculate()"
+        aria-describedby="baseline-readiness"
+        (click)="store.calculate()"
+      >
         Calculate baseline
       </button>
     </div>
+    <p id="baseline-readiness" class="caption" role="status">{{ store.readinessMessage() }}</p>
     <p class="caption">
       Scenarios do not change your saved league rules or sales. IR adds no auction purchases.
     </p>
@@ -55,9 +61,14 @@
               rows="2"
               maxlength="1000"
               formControlName="scope"
+              required
               placeholder="Describe the source population and any eligibility limitations. All imported rows will be included."
             ></textarea>
           </label>
+          <p class="caption">
+            A scope note is required. Suggested text uses the full imported pool as a planning
+            assumption; edit it if needed. It does not verify ESPN eligibility.
+          </p>
         </form>
       </details>
     }

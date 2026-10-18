@@ -1,9 +1,29 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
-> **Current priority:** [amendment 58](#58-league-adjusted-auction-allocations--confirmed-context-2026-10-17).
-> Build the transparent player-dollar baseline first while the user handles
-> Hashtag access. Synthetic full-pool calculation and interface review can proceed
-> independently of acquisition. Real player allocations require reviewed coverage.
+> [Amendment 69](#69-simple-dynamic-auction-bid-guide--approved-2026-10-18)
+> adds a compact aim-to-pay / stop-at guide using the approved baseline, current
+> recorded auction state and an explicit reserve for other roster slots.
+
+> [Amendment 68](#68-independent-public-espn-player-context--approved-2026-10-18)
+> adds independently refreshed ESPN team metadata and dated player updates to
+> the approved panel, with reviewed identities and no private-league sign-in.
+
+> [Amendment 67](#67-player-context-in-auction-preparation--approved-2026-10-18)
+> adds NBA team, expected minutes, projection revisions and explicit provider-note
+> checks to the existing auction preparation journey.
+
+> **Current priority:** [amendment 64](#64-auction-team-board--approved-implementation-2026-10-18):
+> auction preparation and the approved manual Team board.
+> [Amendment 65](#65-three-workspace-navigation--approved-flow-2026-10-18) separates
+> Auction prep, Live season and Historical patterns; live-season features remain deferred.
+> [Amendment 66](#66-visible-ui-build-identity-and-baseline-readiness--approved-2026-10-18)
+> adds visible UI build identity and makes baseline prerequisites explicit.
+> The earlier [private research prototype](#63-league-specific-private-prototype--authorized-implementation-2026-10-17) remains available.
+> Use the private prototype to investigate balanced draft options and distinguish
+> baseline contribution, modeled acquisition cost and personal bid limits.
+> Historical preseason pools remain missing, so costs are exploratory rather than
+> calibrated player-price forecasts. The approved workshop remains available.
+> The earlier baseline and premium acquisition are implemented and merged.
 >
 > **Existing draft journey:** [amendment 57](#57-draft-preparation-and-manual-auction-companion--confirmed-context-2026-10-11).
 > Prepare for the upcoming draft using projections, then carry targets and personal
@@ -54,6 +74,207 @@
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical
 context; the unchanged [original baseline](#1-product-vision) follows the amendments.
+
+# 69. Simple dynamic auction bid guide — approved, 2026-10-18
+
+The user explicitly approves the synthetic bidding-guide mock and requests
+implementation, emphasizing UI simplicity. Default to two actionable prices and a
+short reason. Keep the calculation and optional planning controls expandable inside
+the existing Auction companion selected-player panel; no new workspace.
+
+Keep the original balanced baseline unchanged. A separately versioned allocation
+uses remaining players and spendable team money after recorded picks/undo. Exclude
+full-team cash, require matched identities and expose infeasible references.
+An explicit reserve, existing saved ceiling and legal maximum constrain the stop;
+the adjustable discount is a buying policy, not a prediction interval. If no rivals
+have open slots, show minimum-bid context instead of inflating advice from one's
+own remaining money. All calculations are saved-only; no provider writes or bids.
+
+Planning inputs stay temporary and cannot overwrite saved targets or ceilings.
+The result must match source, board, own-team and plan identities/revisions.
+See [AUCTION-BID-GUIDE-2026-10-18-v1](auction-bid-guide-framework.md).
+
+# 68. Independent public ESPN player context — approved, 2026-10-18
+
+The user approves an independent public ESPN feed in the already-approved player
+panel. Credential-free fixed-host reads may fetch current team metadata and dated
+updates without Connect ESPN; private league reads retain the existing browser
+sign-in and memory-only session boundary. No projection or saved draft decision
+is changed. This supersedes amendment 67's unverified ESPN acquisition state.
+
+Identity associations require review. The user approved sixteen target links,
+then requested discovery for the full imported pool. Additional proposals are in
+a private review table and remain pending batch approval before persistence.
+Setup verifies metadata only; explicit per-player refresh checks news. Keep
+publication/collection times separate, reject unrelated articles and preserve
+saved sections on provider failure. Source captures and identity revisions use
+schema v7 and the shared workspace lock/backup workflow. See
+[ESPN-PLAYER-CONTEXT-2026-10-18-v1](espn-player-context-contract.md).
+
+# 67. Player context in auction preparation — approved, 2026-10-18
+
+The user approves [the synthetic player-context flow](player-context-design-review.md)
+and requests production implementation. Keep NBA team and projected minutes visible
+in Prepare and Auction companion; compare the same stable provider player across
+dated compatible saved projections. Show source dates, missing data and changes in
+plain units. The table-wide date is not the player's last revision date.
+
+Keep provider commentary separate from numerical changes and personal bid limits.
+An explicit Hashtag notes check uses the existing dedicated browser and preserves
+prior saved notes on failure. Unsupported linked-player layouts provide a direct
+Notebook Drop link and an honest unavailable state. ESPN current identity/news
+acquisition remains unverified; do not attach archived team records or guessed
+name matches. The live source check reached Notebook Drop but did not establish
+a supported linked-player extraction format. No synthetic comment enters the app.
+
+Verified note captures use append-only DuckDB documents under the shared lock;
+schema v6 adds the note table and backs up v5 before transactional migration.
+Targets, ceilings, auction events and valuation formulas remain unchanged.
+See [PLAYER-CONTEXT-2026-10-18-v1](player-context-contract.md).
+
+# 66. Visible UI build identity and baseline readiness — approved, 2026-10-18
+
+The user approves the synthetic build-strip preview: show the loaded UI version
+and build ID on every screen; compare it with a read-only served-build manifest;
+show current, different/newer, and unavailable states. Never reload automatically
+or label a tab with a server build it has not loaded. The canonical app address
+is `http://127.0.0.1:8765/`. The provided Chrome screenshot shows a loaded app.
+
+The screenshot's baseline action is disabled because its required scope note is
+blank despite checked declarations. Prefill the previously approved full-import
+planning assumption, keep ESPN eligibility unverified, and show exactly which
+requirements are missing. Preserve the existing valuation formula, explicit
+checkboxes, source coverage gates, saved ceilings and targets.
+
+[UI-BUILD-IDENTITY-2026-10-18-v1](ui-build-identity.md) records build metadata,
+cache/check semantics, privacy boundaries and acceptance checks. This extends the
+approved shell and existing baseline flow; it adds no season feature or provider
+request. Build metadata contains public application inputs only.
+
+# 65. Three-workspace navigation — approved flow, 2026-10-18
+
+The user explicitly approves the synthetic navigation at loopback port 8771 and
+confirms implementation alongside the Team board. This supersedes amendment 64's
+pending-navigation status. The navigation uses the current repository shell/theme.
+
+- **Auction prep** is the default, containing Prepare and Auction companion.
+  Remember its selected subtab when returning from another workspace.
+- **Live season** is a separate entry clearly labeled not ready. New waiver,
+  trade or remaining-season tools are not part of this delivery.
+- **Historical patterns** contains the existing My profile, Competitor teams and
+  League comparison, preserving their completed-season meaning and filters.
+- **Connection** is global with an explicit return to the previous workspace.
+  Preserve the mounted draft/history views, unsaved draft notes and saved data.
+
+Navigation performs no data mutation, provider refresh or analytical change.
+The updated shell retains the existing typed store, deferred feature loading and
+native accessible controls. Saved draft and history remain usable offline.
+
+# 64. Auction Team board — approved implementation, 2026-10-18
+
+The user approves the revised synthetic **Team board** for the real auction tab
+and makes auction preparation, including its live auction companion, the current
+product focus. Preparation, live-season decisions and historical patterns should
+be distinct journeys. A three-workspace navigation mock is under review;
+production navigation changes wait for explicit flow approval.
+
+Implement the approved player selection/drag → team → final-price check → saved
+pick → updated pool/budgets/contribution charts, with click/keyboard parity,
+error recovery and undo. Each team starts with the saved $200 cap; show spent,
+remaining, pick count, open slots, average paid/left and opening-bid range.
+Per-purchase charts use a shared dollar axis. Use “Record auction pick” and
+“auction results.” Budgets and analytical quantities come from Python.
+
+[AUCTION-TEAM-BOARD-2026-10-18-v1](auction-team-board-contract.md) pins the
+read-model definitions, approved preview, missing-evidence handling and checks.
+Keep the existing durable append/void ledger and revision/idempotency protections.
+Category bars describe current available-pool comparisons, not new auction values
+or forecast standings. Preserve saved targets, ceilings, trial choices and history.
+ESPN auto-refresh remains unverified and outside this slice. No account writes.
+
+# 63. League-specific private prototype — authorized implementation, 2026-10-17
+
+The user explicitly requests implementation of the framework, continued draft
+preparation work and front-loaded setup questions with attention to usage cost.
+They confirm PG, SG, SF, PF, C, G, F and three UTIL active slots, plus the existing
+three bench purchases. The saved board resolves the provisional returning cohort
+and focal team. The deliverable reuses the existing static research-report
+presentation; production frontend changes remain outside scope.
+
+Implement [LEAGUE-DRAFT-RESEARCH-2026-10-17-v1](league-draft-research-contract.md).
+Reuse sanitized saved evidence and frozen v1 baseline values. Explain manager
+spending, repeated selections and relative category outcomes without claiming
+intent. Separate observed sale prices from simulated strict-outbid thresholds;
+keep unavailable costs and opportunity denominators visible. Use complete-room
+reruns and full slot matching for focal packages. Retain the declared full-roster
+production proxy and provisional provider eligibility.
+
+Historical player-price fitting stays unavailable without dated preseason inputs.
+Deliver the exploratory fallback and time-ordered descriptive spending checks
+instead. Keep paid rows, manager identities and reports local and ignored. No
+automatic transactions, live provider acquisition, saved ceiling/target/ledger
+changes, new navigation or publication is authorized by this implementation slice.
+
+# 62. Balanced league-specific value research — framework first, 2026-10-17
+
+The user leans toward a balanced build to retain waiver/trade options, and asks
+for an analytical plan to use manager auction histories and category patterns to
+find underpriced player contributions. They request Markdown before large code
+changes and select a private analysis prototype first for the next five-hour
+implementation window. The [framework](league-adjusted-draft-value-framework.md)
+defines the evidence audit, staged price models, honest fallback, time-ordered
+validation, complete-room simulations and candidate/package deliverables.
+
+Keep baseline v1 unchanged. “League-adjusted” purchase estimates represent
+competition and cost, not a new claim of true player contribution. Historical
+final category outcomes do not prove draft preferences; historical preseason
+expectations and reviewed at-draft attribution gate stronger claims. Partial
+drafts and unknown nonselections cannot become complete data or $0 sales.
+Winning prices do not reveal all opponent bid ceilings. Keep assumed future
+waiver/trade returns out of dollar estimates.
+
+This amendment records the research direction and planning deliverable. It does
+not implement a new model, approve an unreviewed frontend flow, change saved
+ceilings/targets/ledger, publish private data or authorize auction transactions.
+
+# 61. Plain-language draft workshop — approved flow, 2026-10-17
+
+The user requests substantially less jargon, definitions for every strategy,
+concrete real-player examples, actionable manager advice and interactive exploration.
+They confirm **understanding and decisions for a target list**, then explicitly
+approve the [synthetic three-step workshop](draft-strategy-workshop-preview.html)
+for the real-player rewrite. The [design record](draft-workshop-design-review.md)
+captures the approval and acceptance criteria.
+
+Rewrite the private HTML and Markdown using the existing saved projections and
+auction results. Separate accepted category weaknesses from spending preferences;
+compare matching saved auctions; keep the same purchases when changing post-draft
+availability; expose actual roster gaps. Explain why a route might help and when
+to reconsider it. Preserve the numerical study and complete technical appendix.
+Browser controls select Python-prepared examples and retain an exportable discussion
+brief. They perform no new valuation or simulation, app writes or final allocation.
+Private paid rows and outcomes remain outside public source and screenshots.
+
+# 60. Player-pool scarcity and draft robustness — analysis request, 2026-10-17
+
+The user requests draft preparation advice grounded in player-pool/category
+scarcity and simulated auction outcomes, including punt strategies and spending
+patterns that survive more scenarios. They permit explicit assumptions and ask
+for Markdown or HTML reasoning/results rather than a production interface.
+
+Deliver a private, read-only projection-focused report. The complete methodology
+is [DRAFT-ROBUSTNESS-STUDY-2026-10-17-v1](draft-robustness-study-contract.md).
+Compare equal-category bidding, soft/hard single punts, training-selected double
+pairs and three spending shapes. Enforce disjoint rosters, budgets and minimum
+reserves; evaluate every category with exact aggregate shooting ratios. Use
+held-out auction conditions, separate availability/category stresses and a bounded
+adaptive sensitivity. Retain inconvenient position-coverage failures in examples.
+
+Full purchased-roster points are a declared proxy, not scored-lineup forecasts.
+No empirical winning probability, verified ESPN pool, actual price calibration or
+lineup feasibility is established. Keep private inputs/results outside public
+source; preserve the existing baseline, targets, plan and ledger. No Angular
+navigation, provider fetch or automated transaction is part of this slice.
 
 # 59. Premium Hashtag projection acquisition — approved flow, 2026-10-17
 

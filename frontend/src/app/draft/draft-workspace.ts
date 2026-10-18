@@ -7,6 +7,7 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -23,6 +24,9 @@ import { AuctionValuation } from './auction-valuation';
 import { ValuationStore } from './valuation-store';
 import { auctionMoney } from './valuation.models';
 import { HashtagProjections } from './hashtag-projections';
+import { AuctionPickRequest, AuctionTeamBoard } from './auction-team-board';
+import { PlayerContext } from './player-context';
+import { BidGuideStore } from './bid-guide-store';
 
 type TargetEdit = { ceiling: number | null; note: string; revision: number; importId: string };
 
@@ -37,8 +41,10 @@ type TargetEdit = { ceiling: number | null; note: string; revision: number; impo
     DecimalPipe,
     AuctionValuation,
     HashtagProjections,
+    AuctionTeamBoard,
+    PlayerContext,
   ],
-  providers: [ValuationStore],
+  providers: [ValuationStore, BidGuideStore],
   templateUrl: './draft-workspace.html',
   styleUrl: './draft-workspace.scss',
 })
@@ -58,6 +64,7 @@ export class DraftWorkspace {
   readonly compareIds = signal<string[]>([]);
   readonly search = signal('');
   readonly targetsOnly = signal(false);
+  readonly changesOnly = signal(false);
   readonly focus = signal('AST');
   readonly focusControl = new FormControl('AST', { nonNullable: true });
   readonly myTeamControl = new FormControl('', { nonNullable: true });
@@ -67,6 +74,7 @@ export class DraftWorkspace {
   readonly mobileDetail = signal(false);
   readonly importBasis = new FormControl<StatBasis>('per_game', { nonNullable: true });
   readonly basisReviewed = new FormControl(false, { nonNullable: true });
+  private readonly auctionBoard = viewChild(AuctionTeamBoard);
   readonly minimumBid = new FormControl(1, { nonNullable: true });
   readonly targetForm = new FormGroup({
     ceiling: new FormControl<number | null>(null),
@@ -105,7 +113,10 @@ export class DraftWorkspace {
         (p) =>
           !this.salesIds().has(p.id) &&
           (!this.targetsOnly() || this.targets().has(p.id)) &&
-          `${p.name} ${p.positions.join(' ')}`.toLowerCase().includes(this.search().toLowerCase()),
+          (!this.changesOnly() || p.context.state === 'changed') &&
+          `${p.name} ${p.positions.join(' ')} ${p.team ?? ''} ${p.team_name}`
+            .toLowerCase()
+            .includes(this.search().toLowerCase()),
       )
       .sort((a, b) =>
         this.focus() === 'baseline'
@@ -163,6 +174,15 @@ export class DraftWorkspace {
       });
     });
     effect(() => {
+      if (this.mode() === 'auction')
+        untracked(() => {
+          const data = this.data();
+          const taken = new Set(data?.sales.map((s) => s.player_id));
+          if (taken.has(this.selectedId()))
+            this.select(data?.candidates.find((p) => !taken.has(p.id))?.id ?? '', false);
+        });
+    });
+    effect(() => {
       const available = this.valuation.available();
       untracked(() => {
         if (available || this.focus() === 'baseline') {
@@ -204,8 +224,15 @@ export class DraftWorkspace {
     for (const [key, id] of this.attemptedUndos)
       if (observed.has(id)) this.attemptedUndos.delete(key);
     this.minimumBid.setValue(data.board?.rules.minimum_bid ?? 1);
-    if (!data.candidates.some((p) => p.id === this.selectedId()))
-      this.select(data.candidates[0]?.id ?? '', false);
+    const taken = new Set(data.sales.map((s) => s.player_id));
+    if (
+      !data.candidates.some((p) => p.id === this.selectedId()) ||
+      (this.mode() === 'auction' && taken.has(this.selectedId()))
+    )
+      this.select(
+        data.candidates.find((p) => this.mode() !== 'auction' || !taken.has(p.id))?.id ?? '',
+        false,
+      );
     else if (!this.targetForm.dirty && !this.edits.has(this.selectedId())) this.fillTarget();
     if (!this.saleForm.controls.team_id.value)
       this.saleForm.controls.team_id.setValue(
@@ -467,7 +494,18 @@ export class DraftWorkspace {
       'Stopped waiting for the import. Reload saved data to check whether it finished.',
     );
   }
-  record(outside = false) {
+  recordBoardPick(pick: AuctionPickRequest) {
+    if (this.pending()) return;
+    if (pick.player) {
+      if (this.selectedId() !== pick.player.id) this.select(pick.player.id, false);
+      this.saleForm.setValue({ team_id: pick.team_id, price: pick.price });
+    } else {
+      this.outsideForm.setValue({ name: pick.name, team_id: pick.team_id, price: pick.price });
+    }
+    this.record(!pick.player, () => this.auctionBoard()?.finishPick());
+  }
+  record(outside = false, saved?: () => void) {
+    if (this.pending()) return;
     const data = this.data(),
       board = data?.board,
       p = this.selected();
@@ -498,7 +536,7 @@ export class DraftWorkspace {
     this.attemptedSales.set(key, event_id);
     this.mutate(
       this.api.sale({ ...payload, event_id }),
-      'Final sale recorded. Budgets and availability updated.',
+      'Auction pick recorded. Budgets, availability and category views updated.',
       () => {
         this.attemptedSales.delete(key);
         if (
@@ -512,6 +550,7 @@ export class DraftWorkspace {
           JSON.stringify(this.saleForm.getRawValue()) === JSON.stringify(originalForm)
         )
           this.saleForm.controls.price.setValue(null);
+        saved?.();
       },
     );
   }
@@ -522,7 +561,7 @@ export class DraftWorkspace {
     this.attemptedUndos.set(id, event);
     this.mutate(
       this.api.undo(b.revision, id, event),
-      'Sale undone. Budget, slots and availability restored.',
+      'Pick undone. Budget, slots and availability restored.',
       () => this.attemptedUndos.delete(id),
     );
   }

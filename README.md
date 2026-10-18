@@ -80,6 +80,11 @@ again reuses the running server. Keep the launcher inside the project; you can
 create a Finder alias for convenient access elsewhere.
 
 The workspace is available at [127.0.0.1:8765](http://127.0.0.1:8765) while running.
+Use the complete **http://127.0.0.1:8765/** address in Chrome on this Mac.
+The UI build strip identifies the Angular bundle loaded in each tab. **Check
+version** compares it with the local server; save unfinished edits before manually
+refreshing an outdated tab. The check does not change league or draft data.
+
 
 For initial setup, open **Connection**:
 
@@ -287,6 +292,13 @@ pnpm build
 cd ..
 .venv/bin/python -m tools.create_launcher
 ```
+
+`pnpm build` generates matching compiled/static UI build metadata before compiling.
+`pnpm start` / `pnpm watch` label development mode explicitly. `pnpm test` creates
+metadata if needed; `pnpm test:build-info` checks the build-stamping utility. When
+invoking the Angular CLI directly, first run `node scripts/write-build-info.mjs`
+inside `frontend` (use `--development` for a development server). Generated metadata
+stays out of Git. See [build identity](docs/ui-build-identity.md).
 
 The launcher is generated locally and Git-ignored; it uses this checkout's
 `.venv`. This is a local development app, not a standalone distributable installer.

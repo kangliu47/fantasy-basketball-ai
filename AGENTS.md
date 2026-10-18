@@ -305,6 +305,10 @@ the V5 experiment, not settled best practice, and may be reduced later.
   never access Keychain or persist an API token to disk. Startup and saved-history
   analysis must not read credentials. Use the existing explicit Connect ESPN
   browser flow before provider reads; disconnect and shutdown clear the session.
+  Exception approved by the user on 2026-10-18: explicitly requested public ESPN
+  player metadata/news refreshes may use credential-free, fixed-host reads without
+  Connect ESPN. Never attach private league cookies to that client. Private league
+  reads still require the dedicated Connect ESPN flow and memory-only sessions.
   The dedicated browser may retain its own login. Never expose cookies in
   HTTP responses, Angular state, logs, snapshots, screenshots, test output, Git,
   or agent context. Do not inspect real `.env`, browser profile, or Keychain values.

@@ -1,0 +1,120 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+h3 {
+  color: var(--showcase-heading);
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+small,
+.caption {
+  color: var(--showcase-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.caption {
+  margin: 8px 0;
+}
+.context-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 13px;
+  margin: 14px 0;
+  background: var(--showcase-surface-soft);
+  border-radius: 8px;
+}
+.context-metrics > div:first-child {
+  grid-column: 1 / -1;
+}
+.context-metrics small,
+.context-metrics strong,
+.provider-note small {
+  display: block;
+}
+.context-metrics strong {
+  margin-top: 4px;
+  color: var(--showcase-heading);
+  font-size: 16px;
+}
+.source-dates {
+  border-left: 3px solid var(--showcase-green);
+  padding-left: 10px;
+}
+.source-dates p {
+  font-size: 11px;
+  color: var(--showcase-muted);
+  line-height: 1.5;
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.context-section {
+  border-top: 1px solid var(--showcase-line);
+  padding-top: 16px;
+  margin: 18px 0;
+}
+.context-state {
+  color: var(--showcase-green);
+  font-size: 12px;
+  font-weight: 650;
+}
+.context-message,
+.context-review {
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  border-left: 3px solid var(--showcase-green);
+  background: var(--showcase-surface-soft);
+}
+.context-review {
+  background: #fff7e9;
+  border-color: var(--showcase-orange);
+}
+.projection-change {
+  margin: 13px 0;
+}
+.change-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 5px;
+  font-size: 12px;
+}
+.bar-pair {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 4px 6px;
+  align-items: center;
+}
+.track {
+  height: 7px;
+  overflow: hidden;
+  background: var(--showcase-surface-soft);
+  border-radius: 2px;
+}
+.track i {
+  display: block;
+  height: 100%;
+  background: #aabdb0;
+}
+.track.current i {
+  background: var(--showcase-green);
+}
+.provider-note {
+  border: 1px solid var(--showcase-line);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.provider-note p {
+  line-height: 1.6;
+  white-space: pre-line;
+}
+a {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+}

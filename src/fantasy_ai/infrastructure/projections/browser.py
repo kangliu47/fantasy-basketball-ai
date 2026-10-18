@@ -10,11 +10,18 @@ from playwright.async_api import Error as BrowserError
 from playwright.async_api import TimeoutError as BrowserTimeout
 from pydantic import TypeAdapter
 
+from fantasy_ai.application.models import WorkspaceError
 from fantasy_ai.application.projections.errors import ProjectionSourceError
 from fantasy_ai.application.projections.ports import UNAVAILABLE_PAGE, ProjectionPageDiagnostic
 from fantasy_ai.domain.projections.acquisition import AcquiredProjection
+from fantasy_ai.domain.projections.notes import PlayerNotesCapture
 from fantasy_ai.infrastructure.projections.hashtag import HASHTAG_PROJECTION_URL
 from fantasy_ai.infrastructure.projections.hashtag_capture import CAPTURE_SCRIPT, parse_full_capture
+from fantasy_ai.infrastructure.projections.player_notes import (
+    NOTEBOOK_CAPTURE_SCRIPT,
+    NOTEBOOK_LINK_SCRIPT,
+    notes_capture,
+)
 
 LOGIN_URL = (
     "https://hashtagbasketball.com/premium/login?ReturnUrl=%2Ffantasy-basketball-projections"
@@ -79,6 +86,49 @@ class HashtagBrowserSource:
         self._context: BrowserContext | None = None
         self._page: Page | None = None
         self._last_diagnostic = UNAVAILABLE_PAGE
+
+    async def read_player_notes(self, player_id: str) -> PlayerNotesCapture:
+        if not re.fullmatch(r"\d{1,10}", player_id) or self._context is None:
+            raise WorkspaceError("Connect Hashtag in Data & coverage before checking player notes.")
+        page = await self._context.new_page()
+        try:
+            await page.goto(
+                "https://hashtagbasketball.com/import-v4/",
+                wait_until="domcontentloaded",
+                timeout=20000,
+            )
+            if await page.locator('input[type="password"]:visible').count():
+                raise WorkspaceError("Sign in in the dedicated Hashtag browser, then try again.")
+            link = await page.evaluate(NOTEBOOK_LINK_SCRIPT)
+            if not isinstance(link, str):
+                raise WorkspaceError(
+                    "Notebook Drop could not be located in the signed-in Hashtag dashboard. "
+                    "Saved notes are unchanged."
+                )
+            parsed = urlparse(link)
+            if (
+                parsed.scheme != "https"
+                or parsed.hostname != "hashtagbasketball.com"
+                or parsed.query
+                or parsed.fragment
+                or parsed.username
+                or parsed.password
+                or parsed.port not in (None, 443)
+                or "notebook" not in parsed.path.lower()
+            ):
+                raise WorkspaceError("The Hashtag notes link could not be verified.")
+            await page.goto(link, wait_until="domcontentloaded", timeout=20000)
+            if page.url != link:
+                raise WorkspaceError("Hashtag redirected the notes request. Sign in and try again.")
+            return notes_capture(
+                await page.evaluate(NOTEBOOK_CAPTURE_SCRIPT, player_id), player_id, link
+            )
+        except (BrowserError, OSError, ValueError):
+            raise WorkspaceError(
+                "Hashtag notes could not be read. Saved notes are unchanged."
+            ) from None
+        finally:
+            await page.close()
 
     async def diagnostics(self) -> ProjectionPageDiagnostic:
         if self._page is not None and not self._page.is_closed() and self._trusted_page():

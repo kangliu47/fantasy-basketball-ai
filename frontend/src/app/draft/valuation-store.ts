@@ -1,11 +1,11 @@
 import { Injectable, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { archiveError } from '../archive/archive-error';
 import { DraftApi } from './draft-api';
 import { DraftRules, DraftView } from './draft.models';
-import { AuctionValueResult, AuctionValueScenario } from './valuation.models';
+import { AuctionValueResult, AuctionValueScenario, ValuationRequest } from './valuation.models';
 
 type Preset = 'league' | 'more-teams' | 'deeper-bench' | 'more-ir' | 'per-game';
 type Context = { leagueId: number; projection: DraftView['projection']; rules: DraftRules };
@@ -17,6 +17,7 @@ export class ValuationStore {
   private readonly destroyRef = inject(DestroyRef);
   readonly context = signal<Context | null>(null);
   readonly result = signal<AuctionValueResult | null>(null);
+  readonly calculatedRequest = signal<ValuationRequest | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
@@ -27,6 +28,13 @@ export class ValuationStore {
     eligibility: new FormControl(false, { nonNullable: true }),
     scope: new FormControl('', { nonNullable: true }),
   });
+  // Track form edits for Angular's signal-based change detection; the form remains
+  // authoritative, including silent resets when a different import becomes active.
+  private readonly reviewChanges = toSignal(this.review.valueChanges);
+  private currentReview() {
+    this.reviewChanges();
+    return this.review.getRawValue();
+  }
   private key = '';
   private request?: Subscription;
   private sequence = 0;
@@ -66,7 +74,9 @@ export class ValuationStore {
         this.invalidate('Settings changed. Calculate to update the board.');
       });
     this.review.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.invalidate('Population review changed. Calculate to update the board.');
+      this.invalidate(
+        'Population review changed. Check the requirements above before calculating.',
+      );
     });
   }
 
@@ -81,7 +91,16 @@ export class ValuationStore {
     this.key = key;
     this.context.set(context);
     if (newImport)
-      this.review.reset({ coverage: false, eligibility: false, scope: '' }, { emitEvent: false });
+      this.review.reset(
+        {
+          coverage: false,
+          eligibility: false,
+          scope: data.projection
+            ? `Use all ${data.projection.player_count} imported Hashtag players as a provisional draft candidate pool. ESPN eligibility and position coverage are unverified. This is a planning assumption for eight-category draft preparation.`
+            : '',
+        },
+        { emitEvent: false },
+      );
   }
 
   reset() {
@@ -98,12 +117,27 @@ export class ValuationStore {
     this.request?.unsubscribe();
     this.loading.set(false);
     this.result.set(null);
+    this.calculatedRequest.set(null);
     this.error.set(null);
     this.notice.set(notice);
   }
 
+  readinessMessage() {
+    if (this.loading()) return 'Calculating from saved projections…';
+    const setup = this.setupMessage();
+    if (setup) return setup;
+    const review = this.currentReview();
+    const missing = [];
+    if (!review.coverage) missing.push('check the population coverage box');
+    if (!review.eligibility) missing.push('check the league suitability box');
+    if (!review.scope.trim()) missing.push('enter a population scope note');
+    return missing.length
+      ? `Before calculating: ${missing.join('; ')}.`
+      : 'Ready to calculate. Your personal ceilings will stay unchanged.';
+  }
+
   canCalculate() {
-    const review = this.review.getRawValue();
+    const review = this.currentReview();
     return (
       !this.loading() &&
       !this.setupMessage() &&
@@ -117,25 +151,27 @@ export class ValuationStore {
   calculate() {
     if (!this.canCalculate()) return;
     const projection = this.context()!.projection!;
-    const review = this.review.getRawValue();
+    const review = this.currentReview();
     this.invalidate();
     const sequence = this.sequence;
     this.loading.set(true);
+    const request: ValuationRequest = {
+      import_id: projection.id,
+      scenario: this.scenario(),
+      coverage_reviewed: review.coverage,
+      eligibility_reviewed: review.eligibility,
+      scope_description: review.scope.trim(),
+      coverage_reference: `User reviewed all rows of import ${projection.id} for coverage.`,
+      eligibility_reference: `User reviewed the candidate population of import ${projection.id} for eligibility.`,
+    };
     this.request = this.api
-      .valuation({
-        import_id: projection.id,
-        scenario: this.scenario(),
-        coverage_reviewed: review.coverage,
-        eligibility_reviewed: review.eligibility,
-        scope_description: review.scope.trim(),
-        coverage_reference: `User reviewed all rows of import ${projection.id} for coverage.`,
-        eligibility_reference: `User reviewed the candidate population of import ${projection.id} for eligibility.`,
-      })
+      .valuation(request)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
           if (sequence !== this.sequence) return;
           this.result.set(result);
+          this.calculatedRequest.set(result.status === 'available' ? request : null);
           this.loading.set(false);
         },
         error: (error) => {

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Your $200 draft workshop</title>
+  <style>__SHARED_CSS__</style>
+  <style>
+    h2,h3 {color:var(--showcase-heading);letter-spacing:-.025em}
+    h2 {font-size:24px;margin:0 0 12px} h3 {font-size:18px;margin:0 0 8px}
+    p,li {line-height:1.6} p {margin:10px 0} small,.muted {color:var(--showcase-muted)}
+    button {cursor:pointer} button:disabled {opacity:.5;cursor:not-allowed}
+    .steps,.choices,.actions,.row {display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .steps {margin:24px 0} .steps button {flex:1;text-align:left;padding:15px;min-width:170px}
+    .grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:18px 0}
+    .grid > * {min-width:0} select {max-width:100%;width:100%} fieldset {min-width:0}
+    .wide {grid-column:1/-1} .stack {display:grid;gap:16px}
+    .choices {align-items:stretch}
+    .choice {background:var(--showcase-surface);border:1px solid var(--showcase-control-line);
+      border-radius:10px;padding:15px;text-align:left;color:var(--showcase-ink);flex:1;min-width:180px}
+    .choice strong,.choice span {display:block} .choice span {margin-top:6px;line-height:1.5}
+    .choice[aria-pressed=true] {background:var(--showcase-blue-soft);border-color:var(--showcase-blue)}
+    .recommendation {border-left:4px solid var(--showcase-green);padding-left:16px}
+    .note {background:var(--showcase-surface-soft);border-radius:8px;padding:12px 15px;line-height:1.6}
+    .review {background:var(--showcase-blue-soft);padding:14px 16px;border-radius:8px}
+    .caution {border-left:3px solid var(--showcase-orange);padding:5px 14px}
+    .price-plan {display:flex;gap:5px;align-items:end;margin:16px 0;height:110px}
+    .price {flex:1;background:var(--showcase-green-soft);color:var(--showcase-heading);
+      min-width:0;display:flex;align-items:end;justify-content:center;padding-bottom:5px;border-radius:4px 4px 0 0;font-size:12px}
+    .table-wrap {overflow-x:auto} table {border-collapse:collapse;width:100%;font-size:14px}
+    th,td {text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid var(--showcase-line)}
+    th {color:var(--showcase-heading);background:var(--showcase-surface-soft)}
+    td:first-child {font-weight:600} .table-wrap table {min-width:530px}
+    .score-row {display:grid;grid-template-columns:135px 1fr 40px;gap:10px;align-items:center;margin:9px 0;font-size:14px}
+    .track {height:12px;background:var(--showcase-surface-soft);border-radius:3px;overflow:hidden}
+    .fill {height:100%;background:var(--showcase-green)}
+    .comparison .fill {background:var(--showcase-blue)}
+    .big-number {font-size:29px;font-weight:700;color:var(--showcase-heading)}
+    .chip {display:inline-flex;gap:8px;align-items:center;padding:7px 10px;
+      border-radius:7px;background:var(--showcase-surface-soft);margin:4px 4px 4px 0}
+    input,select,textarea {font:inherit;color:var(--showcase-ink);padding:9px;border:1px solid var(--showcase-control-line);border-radius:7px;background:var(--showcase-surface)}
+    input[type=checkbox] {width:18px;height:18px} textarea {width:100%;resize:vertical;line-height:1.6}
+    label {display:block;line-height:1.5} .form-row {margin:15px 0} .form-row select {display:block;margin-top:7px;max-width:100%}
+    .check {display:flex;gap:9px;margin:12px 0;align-items:start} details {margin:15px 0}
+    summary {cursor:pointer;color:var(--showcase-green-strong);font-weight:600}
+    .primary {background:var(--showcase-green-strong);color:var(--showcase-surface)}
+    .roster-name {border:0;background:transparent;color:var(--showcase-blue);text-align:left;padding:0;text-decoration:underline;font:inherit}
+    .roster-table {min-width:0!important;font-size:13px} .roster-table th,.roster-table td {padding:8px 5px}
+    .player-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .player-grid > * {min-width:0} .stat-list {line-height:1.7;padding-left:18px}
+    .selected-player {outline:2px solid var(--showcase-blue);outline-offset:2px}
+    .status {min-height:24px;color:var(--showcase-green-strong);margin:10px 0}
+    [hidden] {display:none!important} .page-heading {max-width:780px}
+    @media(max-width:760px) {.player-grid {grid-template-columns:1fr}.grid {grid-template-columns:1fr}.wide {grid-column:auto}
+      .steps button {min-width:140px}.score-row {grid-template-columns:110px 1fr 30px;gap:6px}
+      .choice {min-width:145px}.showcase-header {gap:18px}.price-plan {gap:3px}.price {font-size:10px}}
+  </style>
+</head>
+<body>
+<header class="showcase-header"><div class="showcase-brand">Fantasy Basketball<small>Draft workshop</small></div><span class="showcase-status">Private · saved projection study</span></header>
+<main class="showcase-page">
+  <div class="page-heading"><p class="showcase-eyebrow">From understanding to a $200 player list</p>
+    <h1 class="showcase-title">See what each draft plan buys you.</h1>
+    <p class="showcase-intro">Understand what each approach buys you, see what it gives up, and tell me which tradeoffs you are comfortable making.</p>
+  </div>
+  <div class="showcase-banner"><strong>Your saved player projections.</strong> Source date <span id="source-date"></span>. Prices below come from computer test auctions, not observed market sales or recommended bids. Your app's targets and auction plan are unchanged.</div>
+  <nav class="steps" aria-label="Workshop steps">
+    <button class="showcase-button" data-step="learn" aria-pressed="true">1. Understand the choices</button>
+    <button class="showcase-button" data-step="compare" aria-pressed="false">2. Try an auction example</button>
+    <button class="showcase-button" data-step="decide" aria-pressed="false">3. Prepare my draft brief</button>
+  </nav>
+
+  <section id="learn" class="step">
+    <section class="showcase-card recommendation">
+      <h2>Start with several useful players. Keep a second route open.</h2>
+      <p>Before the draft, prepare an all-category shopping list and an alternative that accepts weaker free throws. Then follow the route where players are affordable. Do not pay any price just to stick to a plan.</p>
+      <p><strong>Your first decision:</strong> which weaknesses could you accept, and which categories do you want to protect?</p>
+    </section>
+    <div class="grid">
+      <section class="showcase-card wide">
+        <h2>Choice A: what are you willing to give up?</h2>
+        <p>These approaches change how you choose players. They do not change your league's scoring: every category still counts.</p>
+        <div class="choices" id="strategy-buttons"></div>
+        <div id="strategy-story" class="note" aria-live="polite"></div>
+        <details><summary>What do “soft punt” and “hard punt” mean?</summary>
+          <p><strong>A punt is accepting a weak category to buy more help elsewhere.</strong> It is a trade, not free value.</p>
+          <p><strong>Soft punt:</strong> you still care about the category, but you will not pay as much to protect it. Example: accept a guard who takes difficult shots if his assists and threes are worth that cost.</p>
+          <p><strong>Hard punt:</strong> you give that category no extra credit when deciding what to bid. The category still affects your final standing. You might finish last, but that is not automatic.</p>
+          <p><strong>Two-category punt:</strong> the same choice for two categories. Be careful: if both actually finish last, even first place in every other category only gives 74 out of 96 points in a 12-team league.</p>
+        </details>
+      </section>
+      <section class="showcase-card wide">
+        <h2>Choice B: how do you spread the $200?</h2>
+        <p>This is a separate decision. You can spread your money while accepting weak free throws, or buy expensive stars while caring about every category.</p>
+        <div class="choices" id="spending-buttons"></div>
+        <div id="spending-story" class="note" aria-live="polite"></div>
+        <div class="price-plan" id="price-plan" aria-label="Illustrative prices for thirteen players"></div>
+        <p class="muted" id="price-caption"></p><p id="observed-spending" class="note"></p>
+      </section>
+      <section class="showcase-card">
+        <h2>What does a category win mean?</h2>
+        <p>In your 12-team league, finishing first in assists gives 12 points; finishing last gives 1. Add the points from all eight categories.</p>
+        <p>You do not win by simply winning five categories against one opponent. Giving up one category costs points that the other seven must recover.</p>
+        <details><summary>Basketball stats versus standings points</summary><p><strong>Basketball points</strong> are what a player scores in games. <strong>Standings points</strong> are what your team earns for its place in a category. A team with the most basketball points gets 12 standings points in that category; the other seven categories earn their own standings points.</p><p><strong>The eight categories:</strong> field-goal percentage (shots made out of shots taken, excluding free throws); free-throw percentage; made three-pointers; basketball points; rebounds; assists; steals; and blocked shots.</p></details>
+      </section>
+      <section class="showcase-card">
+        <h2>Why shooting volume matters</h2>
+        <p>Your team has made 80 of 100 free throws. Now add a player who makes 60%:</p>
+        <div class="choices"><button class="showcase-button" data-shoot="small" aria-pressed="true">3 makes in 5 attempts</button><button class="showcase-button" data-shoot="large" aria-pressed="false">9 makes in 15 attempts</button></div>
+        <p id="shooting-story" class="note" aria-live="polite"></p>
+        <p>The same percentage can do very different damage. A player who shoots often can outweigh several good low-volume shooters.</p>
+      </section>
+    </div>
+    <details class="showcase-card" style="margin-bottom:18px"><summary>Which contributions are hardest to replace?</summary><p><strong>Blocks:</strong> a smaller group of leading players supplies a large share. Prepare more than one way to buy this help, rather than depending on one favorite being affordable.</p><p><strong>Passing and scoring:</strong> this pool has few strong alternatives outside the usual draft range. Leaving the whole job until late is risky.</p><p><strong>Threes and steals:</strong> there are specialists further down the pool, but their other contributions may be weak. A lower-ranked specialist is not automatically available or a $1 bargain. Click through an example to inspect the whole player.</p><p>These are patterns in the saved projections, not promises about who will be left at the auction. The appendix shows the full category analysis.</p></details>
+    <details class="showcase-card" style="margin-bottom:18px"><summary>What did the saved tests suggest?</summary><div id="study-summary"></div><p>The scores compare these imagined rooms; they are not a target score for winning your real league. Some tested teams also need position repairs. Read the player mix and tradeoffs before choosing a route.</p></details>
+    <button class="showcase-button primary" data-next="compare">Show me a concrete auction example →</button>
+  </section>
+
+  <section id="compare" class="step" hidden>
+    <section class="showcase-card">
+      <h2>Compare two approaches under the same auction conditions</h2>
+      <p>Follow the players and category tradeoffs first. The scores are supporting evidence, not the explanation.</p>
+      <div class="grid">
+        <label>Approach to explore<select id="compare-strategy"></select></label>
+        <label>How to spend<select id="compare-spending"></select></label>
+        <label>Other managers' bidding<select id="competition"><option value="quiet">They bid cautiously</option><option value="aggressive">They bid aggressively</option></select></label>
+        <label>Player availability after the draft<select id="availability"><option value="expected">Games go as projected</option><option value="missing">Leading players produce 25% less</option><option value="dispersed">A scattered group of players produces half as much</option></select></label>
+      </div>
+      <div class="choices"><button class="showcase-button" data-example="typical" aria-pressed="true">A middle-of-the-pack example</button><button class="showcase-button" data-example="difficult" aria-pressed="false">An example where this goes badly</button></div>
+      <p class="muted">These controls select saved test auctions. The comparison uses the same opponent rules, spending approach and auction conditions. Changing availability keeps the same purchases and prices.</p>
+    </section>
+    <p id="example-caption" class="note" aria-live="polite"></p><div id="example-content" class="grid"></div><section id="tradeoff-summary" class="showcase-card" style="margin:18px 0"></section>
+    <section class="showcase-card" id="player-explanation"></section>
+    <section class="showcase-card" style="margin-top:18px">
+      <h2>What should I do with this?</h2>
+      <div id="manager-action" class="recommendation"></div>
+      <p class="caution" id="position-warning"></p>
+    </section>
+    <details class="showcase-card" style="margin-top:18px"><summary>What we tested, and what these numbers cannot tell you</summary>
+      <p>The computer compared different ways of choosing bids and spending money. It tries several kinds of opponents and then reduces some players' production to see which approaches suffer most.</p>
+      <p>These are imagined auctions using projections. Their prices are not observed market prices, and “first in 30 tests” does not mean a 30% chance of winning your league. The study counts all 13 purchased players' production; real lineups may use less.</p>
+      <p>The full definitions, original tables, tests of changing bidding priorities, and all results are in the <a href="draft-strategy-technical.html">technical appendix</a>.</p>
+    </details>
+    <div class="actions" style="margin-top:18px"><button class="showcase-button" data-next="learn">← Revisit the choices</button><button class="showcase-button primary" data-next="decide">Tell me what to build around →</button></div>
+  </section>
+
+  <section id="decide" class="step" hidden>
+    <section class="showcase-card">
+      <h2>Your input for the next $200 target list</h2>
+      <p>You do not need to pick a final strategy yet. Tell me which tradeoffs you accept; I can use that to prepare a concrete list with backup players and price limits.</p>
+      <div class="grid">
+        <div>
+          <div class="form-row"><label>Which direction do you want to investigate?<select id="preference"><option value="unsure">Keep both routes open</option><option value="all">Try to compete in all eight categories</option><option value="ft">Accept weak free throws if the rest improves</option><option value="fg">Accept weaker field-goal shooting to buy guards</option></select></label></div>
+          <div class="form-row"><label>How much should we rely on expensive players?<select id="risk"><option>Several solid players; fewer cheap fillers</option><option>A mix of stars and mid-priced players</option><option>Explore two expensive stars and a cheaper supporting cast</option></select></label></div>
+          <fieldset><legend>What do you especially want to protect?</legend><label class="check"><input type="checkbox" name="protect" value="assists">Assists — don't leave me hunting for point guards late</label><label class="check"><input type="checkbox" name="protect" value="shooting">Shooting percentages — avoid a difficult repair later</label><label class="check"><input type="checkbox" name="protect" value="flexibility">Budget flexibility — keep several affordable alternatives</label></fieldset>
+        </div>
+        <div><label>Players, concerns or questions for me<textarea id="notes" rows="7" placeholder="For example: I like the blocks this route buys, but do not want to lose all my threes. Can we prepare two lists around that tradeoff?"></textarea></label>
+          <p class="muted">This brief stays here while you click around. Download or copy it before closing the page. It does not save player targets or change the app's auction plan.</p>
+          <div id="investigate" aria-live="polite"></div>
+        </div>
+      </div>
+      <h3>Brief to discuss with me</h3><textarea id="brief" rows="8" readonly aria-label="Your draft brief"></textarea>
+      <div class="actions" style="margin-top:12px"><button class="showcase-button primary" id="copy-brief">Copy my draft brief</button><button class="showcase-button" id="download-brief">Download brief</button></div>
+      <div class="status" id="brief-status" role="status"></div>
+      <p><strong>What comes next:</strong> confirm your actual position slots, choose a starting route, then assign prices to primary and backup players while reserving money for every remaining purchase.</p>
+    </section>
+    <button class="showcase-button" data-next="compare" style="margin-top:18px">← Explore more examples</button>
+  </section>
+
+  <details class="showcase-card" style="margin-top:24px"><summary>Translate the original report's labels</summary>
+    <div class="table-wrap"><table><thead><tr><th>Original name</th><th>What it means for your draft</th></tr></thead><tbody>
+      <tr><td>Equal-category weights</td><td>Give help in each of the eight categories equal importance when choosing bids. This does not guarantee a balanced final roster.</td></tr>
+      <tr><td>Soft [category]</td><td>Accept weakness there to buy more elsewhere, but still give that category some credit. The study gives it one quarter of the usual credit.</td></tr>
+      <tr><td>Hard / zero weight [category]</td><td>Do not pay extra for that category when choosing bids. It still earns or loses standings points.</td></tr>
+      <tr><td>Double / zero weights A+B</td><td>The same rule for two named categories. Actual weaknesses may be different because players help several categories together.</td></tr>
+      <tr><td>Depth / exponent 0.75</td><td>Reduce the price gap between leading players and the supporting cast. Usually spreads the spending more widely; check what was actually bought.</td></tr>
+      <tr><td>Reference / exponent 1</td><td>The middle spending rule used for comparison. It is not a recommendation or proof of the right market price.</td></tr>
+      <tr><td>Stars / exponent 1.35</td><td>Put more money toward leading players, leaving less for the rest of the roster.</td></tr>
+      <tr><td>Static / adaptive</td><td>Choose bidding priorities before the draft / adjust them after each purchase to help weaker categories.</td></tr>
+      <tr><td>Regime / held-out test / median</td><td>A set of auction conditions / a test not used to choose the featured strategies / the middle result.</td></tr>
+      <tr><td>Lower decile</td><td>A result near the bottom tenth of the tests: useful for asking how badly a plan can go.</td></tr>
+      <tr><td>Scarcity / concentration / z-score</td><td>How hard help is to replace / how much leading players supply / how far a player's contribution sits above or below the pool average. The main guide uses actual player contributions first.</td></tr>
+    </tbody></table></div>
+  </details>
+  <footer class="showcase-footer">Private draft workshop · unchanged numerical study · <a href="draft-strategy-technical.html">Full technical appendix</a> · <a href="draft-strategy-report.md">Plain-text guide</a></footer>
+</main>
+<script id="workshop-data" type="application/json">__WORKSHOP_DATA__</script>
+<script>__WORKSHOP_SCRIPT__</script>
+</body>
+</html>

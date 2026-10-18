@@ -20,6 +20,48 @@ about building with an AI coding agent and managing a personal product.
 - [Current personal-product direction](../personal-product-direction.md): the
   decisions that now govern the backlog.
 
+## Simple bidding guidance delivery — October 18, 2026, latest
+
+The approved [bid-guide delivery](../auction-bid-guide-design-review.md) uses two
+prices and progressive disclosure. An explicit reserve is preferable to silently
+calling a minimum-only completion plan prudent. Treat legal capacity, current
+room allocation and a personal stop as different quantities. Pin board and plan
+identities/revisions so a correct calculation is not shown for the wrong context.
+
+## Auction bidding guide — October 18, 2026, latest
+
+[Bid-guide framework](../auction-bid-guide-framework.md) separates an original
+contribution baseline, a remaining-room allocation, a personal stopping rule and
+legal affordability. A proposed discount range is a buying policy, not a price
+confidence interval. Full-team cash and a room with no remaining rivals expose
+why a money-ratio adjustment alone can mislead near the end of an auction.
+The feature proposal and mock remain pending review.
+
+## Player context — October 18, 2026, latest
+
+[Player context](player-context.md) records capture-versus-import chronology,
+stable player identity, separate provider notes and the live-source compatibility
+boundary.
+
+## UI build identity — October 18, 2026
+
+[UI build identity](ui-build-identity.md) records loaded-versus-served version
+semantics, safe build stamping, and the blank-note/readiness diagnosis.
+
+## Auction Team board — October 18, 2026
+
+[Auction Team board](auction-team-board.md) records the approved recording flow,
+spending/category chart definitions, real-drag verification boundary and shared
+ledger recovery requirements.
+
+## Draft strategy stress tests — October 17, 2026
+
+[Draft strategy stress tests](draft-strategy-stress-tests.md) records the separation
+of contribution value, opponent demand and acquisition cost, with a framework-first
+balanced-draft follow-up. Earlier entries cover bidding weights versus realized
+outcomes, complete-room budget feasibility, held-out comparisons and visible
+position-coverage failures.
+
 ## Premium acquisition boundaries — October 17, 2026
 
 [Premium projection boundaries](premium-projection-boundaries.md) records the
