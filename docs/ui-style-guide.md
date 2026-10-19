@@ -64,6 +64,16 @@ font stack, header, button or card language.
 6. Record the approved mock and its style baseline in the PRD or active design
    document before production implementation.
 
+## Supplementary explanations in Angular
+
+Use the shared `HelpTip` for short method, rule or provider explanations. Supply
+a specific accessible label and plain-text explanation. Its Material tooltip is
+available by hover, keyboard focus and click/tap, with Escape dismissal. Keep
+errors/recovery, dates, unknown data, eligibility/manual-tracking labels and
+decision values visible. Larger formulas and interactive controls belong in
+disclosure panels or dialogs. Place decision controls before supporting context;
+tall panels must remain reachable with normal page scrolling.
+
 ## Consistency review
 
 Before publishing or handing a mock to another coder, compare it beside the

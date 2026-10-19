@@ -1,5 +1,164 @@
 # Implementation plan
 
+## Desktop auction-night polish — October 19, 2026, latest
+
+Delivered, built and relaunched; see [delivery QA](qa/2026-10-19-auction-night-delivery.md).
+
+Approved `auction-night-preview.html`; user specifies regular desktop monitors.
+Implement search/prices together, compact money/slots/legal maximum, manual
+Target/Stretch/Pass cue with $40 exceptions, compact dated news, recent picks/Undo,
+expandable full board, and shorter explicit population review. Preserve the
+pricing method and editable rounded baseline default. Verify with Angular tests,
+production build and disposable synthetic record/undo/reset QA; relaunch the real
+loopback app only after checking it is idle, preserving its complete saved draft.
+Phone-specific navigation is outside this delivery. See
+[review and scope](auction-night-ux-review.md).
+
+## Dynamic balanced prices and faster recording — October 19, 2026, latest
+
+The user approves the prices-first mock and requests an editable baseline default
+in Record pick. Implemented the report method as a bounded domain/application/solver
+slice, preserve original baselines and saved ceilings, and put Baseline/Bargain/Stop
+above supporting team/news evidence. Background shortlist pricing is revision
+pinned. Persist only explicit compatible population review for reload/phone reuse;
+new imports/rules require fresh review. Opening a pick prefills its rounded
+original baseline, with ±$1 controls and explicit save. See the
+[approved contract](auction-prices-first-design.md) and
+[delivery QA](qa/2026-10-19-balanced-prices-delivery.md).
+
+## Auction prices first — October 19, 2026, earlier proposal, now approved
+
+The user selects integrating the balanced-roster report method. Show baseline,
+bargain target and conditional stop before team charts and source context, with
+current price cues in player cards and automatic modeled roster reserve. Preserve
+manual tracking and existing evidence. The shared-theme interactive mock is
+[ready for flow review](auction-prices-preview.html); that pending status is superseded by explicit layout approval and the delivery above. See the
+[decision and semantic acceptance](auction-prices-first-design.md).
+
+## Clear board delivery — October 19, 2026, latest
+
+The relaunch/UX follow-up confirms the existing Clear board preview scope. The
+production Auction companion now connects its heading action to a Cancel-first
+Material confirmation and the reviewed-revision reset endpoint. Saving blocks
+dismissal and duplicate submissions; ambiguous failures require a reload and
+fresh confirmation. Reset clears temporary bidding inputs and restores all-team
+budgets/availability while retaining projections, setup and saved/unfinished
+research. The action is disabled on a truly empty board. Earlier pending-flow
+notes below are superseded. See the [delivery QA](qa/2026-10-19-clear-board-delivery.md).
+
+## Baseline pending QA — October 19, 2026, latest
+
+The reported remote-phone delay prompted local timing and a phone-sized synthetic
+fault test. Local 430-player requests take roughly 21 ms; a missing client timeout
+can independently leave a stalled request loading forever. The existing baseline
+flow now times out after 30 seconds with a useful Retry message. Negotiated gzip
+reduces the measured baseline transfer by 75% with identical decoded results.
+All 132 Angular and 72 draft/integration backend tests pass; production build and
+local launch succeed. The actual phone path remains unverified pending its URL
+and observed message. Browser-session-only baseline state is an explicit finding,
+not silently changed to cross-device persistence. See the
+[QA record](qa/2026-10-19-baseline-pending.md).
+
+
+## Player outlook before technical details — October 19, 2026, delivered
+
+The user approves the [synthetic preview](player-news-preview.html), recommended
+inspection refresh and full-pool identity batch. Prepare and Auction companion
+now show ESPN season outlook and the latest dated update after prices/actions.
+Additional articles and projection details are collapsed. The existing reader
+retains the previously ignored outlook field; stale checks refresh on inspection
+with duplicate suppression, attempt cooldown and manual retry. Publication/check
+dates, missing coverage and retained prior text on failures remain explicit.
+
+All 430 distinct player links are active after current metadata verification:
+414 new and 16 existing, no failures. No bulk news download or draft-decision
+change. All 130 Angular tests and 61 draft/player-context backend tests pass;
+production compilation passes at 490.19 kB initial. The local app is restarted
+and browser checks verify both inspectors and real automatic loading for an
+inspected player. See the [delivery record](qa/2026-10-19-player-outlook-delivery.md).
+
+## Clear practice tracking and correct current guidance — October 19, 2026, latest
+
+User correction: all saved board purchases were disposable tests. Clear active
+picks through the running application, preserve prior snapshots privately, and
+refresh current private reports from the empty board. Baselines, projections,
+saved targets and real historical winning bids remain intact. Exact equality
+with the already certified opening-state inputs permits certificate reuse;
+independently revalidate every completion and regenerate all player tables and
+nomination notes. Old test-state recommendations are superseded.
+
+The backend reset operation and protected endpoint are implemented; all 51 draft
+tests pass. A shared-theme [synthetic popup preview](clear-board-preview.html)
+was presented for flow review. Its pending implementation status is superseded
+by the confirmed Clear board delivery recorded above. The popup defaults to
+Cancel and must submit its reviewed revision, prevent duplicate writes, show
+busy/error/reload states and preserve preparation research.
+
+## Established-star nomination follow-up — October 19, 2026, latest
+
+Deliver a private, script-free watchlist connecting unchanged report values to
+actual saved earlier draft prices and separately dated public player updates.
+An exact canonical baseline reconstruction supports a one-player games
+sensitivity. Qualitative nomination guidance distinguishes a contribution-model
+gap from a market discount and retains the opening-offer/remaining-budget rules.
+Partial history, provisional returning participation and unobserved bidder
+willingness remain explicit. No app, saved ceiling, player link or ledger changes.
+See the [methodological lesson](learnings/balanced-auction-ceilings.md).
+
+## Report visibility repair — October 19, 2026, latest
+
+The private report now embeds every player row and native detail disclosure
+before script execution. The optional search/scenario controls activate only
+after successful initialization. A script-free readable edition retains both
+scenarios and full player projections. Twenty-eight generated-file/DOM/data
+checks include all rows without scripts and the packaged runtime/data together.
+The stored numerical calculations remain unchanged. See the
+[delivery lesson](learnings/balanced-auction-ceilings.md).
+
+## Balanced foundation ceilings — October 18, 2026, latest
+
+The user confirms a report-first private analysis of all imported players,
+including baseline, buying target, conditional stop, projections and reasons.
+A preferred maximum spend is a guideline with flagged exceptions; severe
+shooting drags are excluded from new foundation recommendations. Preserve
+original valuation and saved decisions. Compare opening and saved-board states,
+declare hypothetical acquisition costs and retain complete roster witnesses,
+source hashes and one-at-a-time sensitivity results. Integration into the
+nominated-player card remains outside this report's approved stopping point;
+a materially changed production flow needs its own synthetic mock approval.
+See the [learning record](learnings/balanced-auction-ceilings.md).
+
+Delivery: the private searchable HTML, complete Markdown and player-state CSV
+cover the full saved import. Main central/stressed prices are certified under
+the declared model. Independent checks verify 7,506 roster witnesses and 6,316
+monotonic price comparisons; 18 report DOM/data checks pass without screenshots.
+Bounded optional sensitivity runs retain explicit unproved statuses. These
+checks establish implementation semantics, not empirical price accuracy.
+
+## Streamlined UI and QA recovery — October 18, 2026
+
+The user approved the shared-theme synthetic preview, and its presentation scope
+is implemented: compact shell/build details, source/team toolbar, decision
+controls before supporting context, accessible info icons, collapsible successful
+baseline review, and normal scrolling for tall panels. Existing navigation,
+calculations, charts and saved actions remain intact. The final suite passes
+120 Angular tests; production compilation is within the configured bundle
+budgets. Desktop/mobile browser checks use only disposable synthetic data. The
+[remediation record](qa/2026-10-18-ui-remediation.md) gives exact checks and limits.
+
+### Earlier QA repair delivery
+
+All five findings from the latest UI QA report are repaired: team-dialog Undo
+feedback/reload, retryable saved ESPN reads, identifiable correction history,
+single empty-note messages, and historical load errors separated from missing
+manager setup with local Retry controls. The Angular suite passes 119 tests and
+production compilation succeeds. See the [remediation record](qa/2026-10-18-ui-remediation.md).
+
+The requested interface simplification initially had a shared-theme
+[synthetic preview](ui-streamline-preview.html) for Prepare and Auction companion.
+Its initial pending status is superseded by the approval and implementation
+record above, including the short-viewport scrolling repair.
+
 ## Auction bid guide — October 18, 2026, approved and implemented
 
 The user approves the mock and requests production implementation with a simpler

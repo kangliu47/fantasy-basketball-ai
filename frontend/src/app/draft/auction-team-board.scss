@@ -41,7 +41,7 @@ small {
 }
 .auction-board {
   display: grid;
-  grid-template-columns: minmax(200px, 0.8fr) minmax(380px, 1.5fr) minmax(245px, 1fr);
+  grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.65fr);
   gap: 14px;
   align-items: start;
 }
@@ -52,8 +52,7 @@ small {
 }
 .available-pool,
 .player-insight {
-  position: sticky;
-  top: 12px;
+  position: static;
 }
 label {
   display: block;
@@ -369,14 +368,7 @@ fieldset {
 }
 @media (max-width: 950px) {
   .auction-board {
-    grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.2fr);
-  }
-  .player-insight {
-    grid-column: 1/-1;
-    position: static;
-  }
-  .available-pool {
-    top: 12px;
+    grid-template-columns: minmax(230px, 0.85fr) minmax(0, 1.2fr);
   }
 }
 @media (max-width: 700px) {
@@ -385,6 +377,14 @@ fieldset {
   }
   .available-pool {
     position: static;
+  }
+  .player-insight {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .team-board {
+    grid-column: 1;
+    grid-row: auto;
   }
   .player-list {
     max-height: 300px;
@@ -427,5 +427,153 @@ fieldset {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+  }
+}
+
+.projection-details {
+  border-top: 1px solid var(--showcase-line);
+  padding-top: 14px;
+  margin-top: 16px;
+  > summary {
+    color: var(--showcase-heading);
+    cursor: pointer;
+    font-size: 13px;
+  }
+}
+
+.team-board-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.clear-board:not(:disabled) {
+  color: var(--showcase-red);
+  border-color: var(--showcase-red);
+}
+.confirm-clear:not(:disabled) {
+  background: var(--showcase-red);
+  color: white;
+}
+
+.auction-decision {
+  border-top: 4px solid var(--showcase-green-strong);
+  margin-bottom: 14px;
+}
+.auction-decision > h2 {
+  font-size: 26px;
+}
+.decision-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.player-prices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 9px 0;
+}
+.player-prices small {
+  font-size: 10px;
+}
+.player-prices b {
+  font-size: 15px;
+  color: var(--showcase-heading);
+}
+.player-insight {
+  grid-column: 2;
+}
+.price-adjust {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+@media (max-width: 760px) {
+  .auction-board {
+    grid-template-columns: 1fr;
+  }
+  .player-insight {
+    grid-column: auto;
+  }
+  .decision-actions button {
+    width: 100%;
+  }
+}
+
+// Approved auction-night desktop journey.
+.auction-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+  > div {
+    padding: 12px 16px;
+    border: 1px solid var(--showcase-line);
+    background: var(--showcase-surface);
+    border-radius: 10px;
+  }
+  .plan-label {
+    font-size: 18px;
+  }
+}
+.auction-board {
+  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.6fr);
+}
+.pool-column {
+  min-width: 0;
+}
+.recent-results {
+  margin-top: 14px;
+}
+.auction-decision {
+  position: sticky;
+  top: 12px;
+  margin-bottom: 0;
+  > .eyebrow {
+    margin-top: 0;
+  }
+}
+.decision-actions {
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 2px;
+  margin-top: 12px;
+  > button {
+    width: 100%;
+    min-height: 42px;
+  }
+  > .caption {
+    margin: 6px 0;
+  }
+}
+.nomination-reminder,
+.full-board {
+  margin-top: 14px;
+  border-top: 1px solid var(--showcase-line);
+  padding-top: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  > summary {
+    cursor: pointer;
+    color: var(--showcase-green-strong);
+  }
+}
+.full-board > .team-board {
+  margin-top: 14px;
+}
+@media (max-width: 760px) {
+  .auction-board {
+    grid-template-columns: 1fr;
+  }
+  .auction-decision {
+    position: static;
+  }
+  .auction-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -1,75 +1,139 @@
 <section class="showcase-card" aria-label="Auction value baseline">
   <div class="row between">
     <div>
-      <h2>Auction value baseline</h2>
-      <small>FG% · FT% · 3PM · PTS · REB · AST · STL · BLK · equal weights</small>
+      <h2>
+        Auction value baseline
+        <app-help-tip
+          label="Baseline allocation details"
+          text="Static pre-draft allocation across FG%, FT%, 3PM, PTS, REB, AST, STL and BLK with equal weights. A baseline differs from your ceiling and legal bid maximum. Unpriced players are outside the modeled group; missing evidence is not zero."
+        />
+      </h2>
     </div>
     <span class="showcase-scope">Pre-draft reference</span>
   </div>
   @if (store.context(); as context) {
-    <div class="controls">
-      <label
-        >Explore league depth or projection basis
-        <select [formControl]="store.presetControl">
-          <option value="league">
-            Saved league · {{ context.rules.team_count }} teams ·
-            {{ context.rules.active_slots + context.rules.bench_slots }} purchases ·
-            {{ context.rules.ir_slots }} IR · season totals
-          </option>
-          <option value="more-teams">
-            {{ context.rules.team_count + 2 }} teams · season totals
-          </option>
-          <option value="deeper-bench">One extra bench purchase per team · season totals</option>
-          <option value="more-ir">Two extra IR spots · same purchases · season totals</option>
-          <option value="per-game">Saved league · per-game comparison</option>
-        </select>
-      </label>
+    @if (compact()) {
+      <p class="caption">
+        {{ context.projection?.player_count }} imported players · source
+        {{ context.projection?.source_updated_at || 'date unknown' }} ·
+        {{ context.rules.team_count }} teams · ${{ context.rules.budget }} ·
+        {{ context.rules.active_slots }} active + {{ context.rules.bench_slots }} bench · ${{
+          context.rules.minimum_bid
+        }}
+        minimum · season totals
+      </p>
+      @if (store.setupMessage(); as message) {
+        <p class="notice" role="status">{{ message }}</p>
+      } @else {
+        <form [formGroup]="store.review" class="review">
+          <label class="check"
+            ><input type="checkbox" formControlName="coverage" /> Use all imported rows as the
+            complete planning pool.</label
+          >
+          <label class="check"
+            ><input type="checkbox" formControlName="eligibility" /> Treat this pool as suitable for
+            my league; ESPN eligibility is unverified.</label
+          >
+          <p class="caption">
+            These are your planning declarations, saved for this import and league rules and reused
+            on reload.
+          </p>
+          <details>
+            <summary>Source scope & review notes</summary>
+            <label
+              >Population scope and review notes<textarea
+                rows="3"
+                maxlength="1000"
+                formControlName="scope"
+                required
+              ></textarea>
+            </label>
+            <p class="caption">
+              All imported rows are included. The suggested scope is a planning assumption, not
+              verified eligibility.
+            </p>
+          </details>
+        </form>
+      }
       <button
         mat-flat-button
-        [disabled]="!store.canCalculate()"
-        aria-describedby="baseline-readiness"
-        (click)="store.calculate()"
+        [disabled]="disabled() || !store.canCalculate()"
+        (click)="calculate()"
       >
-        Calculate baseline
+        Use these projections
       </button>
-    </div>
-    <p id="baseline-readiness" class="caption" role="status">{{ store.readinessMessage() }}</p>
-    <p class="caption">
-      Scenarios do not change your saved league rules or sales. IR adds no auction purchases.
-    </p>
-    @if (store.setupMessage(); as message) {
-      <p class="notice" role="status">{{ message }}</p>
+      <p class="caption" role="status">{{ store.readinessMessage() }}</p>
     } @else {
-      <details [open]="!store.result()">
-        <summary>Review this projection population</summary>
-        <form [formGroup]="store.review" class="review">
-          <p class="caption">
-            {{ context.projection?.player_count }} imported players. Row count alone does not
-            establish coverage or eligibility. These are your declarations, not verified ESPN
-            evidence.
-          </p>
-          <label class="check"
-            ><input type="checkbox" formControlName="coverage" /> I reviewed this file as a complete
-            candidate population for this draft.</label
-          >
-          <label class="check"
-            ><input type="checkbox" formControlName="eligibility" /> I reviewed the included players
-            as suitable candidates for this league.</label
-          >
+      <details [open]="!store.available()">
+        <summary>Review calculation</summary>
+        <div class="controls">
           <label
-            >Population scope and review notes<textarea
-              rows="2"
-              maxlength="1000"
-              formControlName="scope"
-              required
-              placeholder="Describe the source population and any eligibility limitations. All imported rows will be included."
-            ></textarea>
+            >Explore league depth or projection basis
+            <select [formControl]="store.presetControl">
+              <option value="league">
+                Saved league · {{ context.rules.team_count }} teams ·
+                {{ context.rules.active_slots + context.rules.bench_slots }} purchases ·
+                {{ context.rules.ir_slots }} IR · season totals
+              </option>
+              <option value="more-teams">
+                {{ context.rules.team_count + 2 }} teams · season totals
+              </option>
+              <option value="deeper-bench">
+                One extra bench purchase per team · season totals
+              </option>
+              <option value="more-ir">Two extra IR spots · same purchases · season totals</option>
+              <option value="per-game">Saved league · per-game comparison</option>
+            </select>
           </label>
-          <p class="caption">
-            A scope note is required. Suggested text uses the full imported pool as a planning
-            assumption; edit it if needed. It does not verify ESPN eligibility.
-          </p>
-        </form>
+          <button
+            mat-flat-button
+            [disabled]="disabled() || !store.canCalculate()"
+            aria-describedby="baseline-readiness"
+            (click)="calculate()"
+          >
+            Calculate baseline
+          </button>
+        </div>
+        <p id="baseline-readiness" class="caption" role="status">{{ store.readinessMessage() }}</p>
+        <app-help-tip
+          label="Baseline scenarios"
+          text="Scenarios do not change your saved league rules or sales. IR adds no auction purchases."
+        />
+        @if (store.setupMessage(); as message) {
+          <p class="notice" role="status">{{ message }}</p>
+        } @else {
+          <details [open]="!store.result()">
+            <summary>Review this projection population</summary>
+            <form [formGroup]="store.review" class="review">
+              <p class="caption">
+                {{ context.projection?.player_count }} imported players. Row count alone does not
+                establish coverage or eligibility. These are your declarations, not verified ESPN
+                evidence.
+              </p>
+              <label class="check"
+                ><input type="checkbox" formControlName="coverage" /> I reviewed this file as a
+                complete candidate population for this draft.</label
+              >
+              <label class="check"
+                ><input type="checkbox" formControlName="eligibility" /> I reviewed the included
+                players as suitable candidates for this league.</label
+              >
+              <label
+                >Population scope and review notes<textarea
+                  rows="2"
+                  maxlength="1000"
+                  formControlName="scope"
+                  required
+                  placeholder="Describe the source population and any eligibility limitations. All imported rows will be included."
+                ></textarea>
+              </label>
+              <p class="caption">
+                A scope note is required. Suggested text uses the full imported pool as a planning
+                assumption; edit it if needed. It does not verify ESPN eligibility.
+              </p>
+            </form>
+          </details>
+        }
       </details>
     }
     @if (store.loading()) {
@@ -85,7 +149,7 @@
     @if (store.error(); as error) {
       <p class="notice error" role="alert">
         {{ error }}
-        <button mat-button [disabled]="!store.canCalculate()" (click)="store.calculate()">
+        <button mat-button [disabled]="disabled() || !store.canCalculate()" (click)="calculate()">
           Retry calculation
         </button>
       </p>
@@ -123,7 +187,7 @@
           } @else {
             User-declared coverage and eligibility · not independently verified.
           }
-          Baseline auction allocations are ready. Your personal ceilings are unchanged.
+          Allocations ready · personal ceilings unchanged.
         </p>
         @if (result.cutoff_tie) {
           <p class="caption">

@@ -1,5 +1,6 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
 import { ArchiveApi } from '../archive/archive-api';
 import { archiveError } from '../archive/archive-error';
@@ -9,7 +10,12 @@ import { HistoricalCategoryAllocationComponent } from './historical-category-all
 
 @Component({
   selector: 'app-my-profile-page',
-  imports: [MatProgressBarModule, ManagerProfiles, HistoricalCategoryAllocationComponent],
+  imports: [
+    MatButtonModule,
+    MatProgressBarModule,
+    ManagerProfiles,
+    HistoricalCategoryAllocationComponent,
+  ],
   templateUrl: './my-profile-page.html',
 })
 export class MyProfilePage {
@@ -19,15 +25,24 @@ export class MyProfilePage {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   private readonly api = inject(ArchiveApi);
+  private readonly retryVersion = signal(0);
+
+  retry() {
+    if (!this.loading()) this.retryVersion.update((version) => version + 1);
+  }
 
   constructor() {
     effect((cleanup) => {
       this.leagueId();
+      this.retryVersion();
       this.data.set({ managers: [], assignments: [], my_manager_id: null });
       this.catalog.set({ candidates: [], imported_seasons: [], job: null });
       this.loading.set(true);
       this.error.set(null);
-      const request = forkJoin({ managers: this.api.managers(), catalog: this.api.catalog() }).subscribe({
+      const request = forkJoin({
+        managers: this.api.managers(),
+        catalog: this.api.catalog(),
+      }).subscribe({
         next: ({ managers, catalog }) => {
           this.data.set(managers);
           this.catalog.set(catalog);

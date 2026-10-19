@@ -75,7 +75,7 @@ class PlayerInformationService:
             link,
             saved,
             disagree,
-            "Saved ESPN information. Refresh explicitly for new updates."
+            "Saved ESPN information; publication and check times are shown separately."
             if saved
             else "ESPN player linked. Refresh to get team information and updates."
             if link
@@ -103,6 +103,7 @@ class PlayerInformationService:
                     fantasy_update=view.saved.fantasy_update,
                     articles=view.saved.articles,
                     news_captured_at=view.saved.news_captured_at,
+                    season_outlook=view.saved.season_outlook,
                 )
             await asyncio.to_thread(self.repository.save, capture)
             return await asyncio.to_thread(self.view, candidate_id)

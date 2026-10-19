@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Auction tonight · synthetic UX review</title>
+    <link rel="stylesheet" href="showcase-theme.css" />
+    <style>
+      .showcase-header {
+        padding: 14px 24px;
+      }
+      .showcase-page {
+        max-width: 1420px;
+        padding: 16px 24px;
+      }
+      .nav,
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .nav {
+        border-bottom: 1px solid var(--showcase-line);
+        padding: 8px 24px;
+      }
+      .nav button {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+      .active {
+        background: var(--showcase-green-soft);
+      }
+      h1,
+      h2,
+      h3 {
+        color: var(--showcase-heading);
+        letter-spacing: -0.025em;
+      }
+      h1 {
+        font-size: 24px;
+        margin: 7px 0 13px;
+      }
+      h2 {
+        font-size: 22px;
+        margin: 0;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .caption,
+      small {
+        color: var(--showcase-muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .caption {
+        margin: 8px 0;
+      }
+      .muted {
+        color: var(--showcase-muted);
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .metric {
+        border: 1px solid var(--showcase-line);
+        background: var(--showcase-surface);
+        padding: 10px 14px;
+        border-radius: 9px;
+      }
+      .metric strong {
+        display: block;
+        font-size: 22px;
+        color: var(--showcase-heading);
+        font-variant-numeric: tabular-nums;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(290px, 0.85fr) minmax(0, 1.4fr);
+        gap: 14px;
+        align-items: start;
+      }
+      .showcase-card {
+        padding: 16px;
+        min-width: 0;
+        margin-bottom: 14px;
+      }
+      .decision {
+        position: sticky;
+        top: 12px;
+        border-top: 4px solid var(--showcase-green-strong);
+      }
+      label {
+        font-size: 12px;
+        color: var(--showcase-muted);
+        display: block;
+      }
+      input,
+      select {
+        border: 1px solid var(--showcase-control-line);
+        background: var(--showcase-surface);
+        color: var(--showcase-ink);
+        border-radius: 7px;
+        padding: 10px;
+        min-width: 0;
+        font-size: 14px;
+      }
+      input[type="search"] {
+        width: 100%;
+        margin: 7px 0 10px;
+      }
+      .filter {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        margin: 0 0 12px;
+      }
+      .filter select {
+        padding: 6px 8px;
+        flex: 1;
+      }
+      .player-list {
+        max-height: 500px;
+        overflow: auto;
+      }
+      .player {
+        width: 100%;
+        display: block;
+        text-align: left;
+        border: 0;
+        border-bottom: 1px solid var(--showcase-line);
+        background: var(--showcase-surface);
+        color: var(--showcase-ink);
+        padding: 12px 10px;
+        cursor: pointer;
+      }
+      .player[aria-pressed="true"] {
+        background: var(--showcase-blue-soft);
+      }
+      .player strong {
+        font-size: 14px;
+      }
+      .player small {
+        display: block;
+        margin-top: 4px;
+      }
+      .player-prices {
+        display: flex;
+        gap: 10px;
+        margin-top: 7px;
+        font-size: 12px;
+      }
+      .player-prices b {
+        color: var(--showcase-heading);
+      }
+      .player-prices span:last-child {
+        margin-left: auto;
+        font-weight: 700;
+      }
+      .prices {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+        margin: 14px 0;
+      }
+      .price {
+        padding: 13px;
+        background: var(--showcase-surface-soft);
+        border-radius: 9px;
+        min-width: 0;
+      }
+      .price small {
+        display: block;
+      }
+      .price strong {
+        display: block;
+        font-size: 32px;
+        margin: 4px 0;
+        color: var(--showcase-heading);
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+      .price.stop {
+        border: 1px solid var(--showcase-green);
+        background: var(--showcase-green-soft);
+      }
+      .tag {
+        display: inline-flex;
+        padding: 4px 8px;
+        border-radius: 5px;
+        background: var(--showcase-green-soft);
+        color: var(--showcase-green-strong);
+        font-size: 12px;
+      }
+      .tag.caution,
+      .warning {
+        background: var(--showcase-surface-soft);
+        border-left: 3px solid var(--showcase-orange);
+        color: var(--showcase-ink);
+      }
+      .warning {
+        padding: 10px;
+        font-size: 13px;
+        line-height: 1.5;
+        margin: 9px 0;
+      }
+      .danger {
+        border-color: var(--showcase-red);
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 14px 0;
+      }
+      .check label {
+        flex-shrink: 0;
+      }
+      .check input {
+        width: 88px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .bid-result {
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .record {
+        width: 100%;
+        background: var(--showcase-green-strong);
+        border-color: var(--showcase-green-strong);
+        color: white;
+        margin: 8px 0;
+      }
+      .info {
+        border: 1px solid var(--showcase-control-line);
+        border-radius: 50%;
+        background: var(--showcase-surface);
+        color: var(--showcase-muted);
+        height: 21px;
+        width: 21px;
+        padding: 0;
+        cursor: help;
+      }
+      .tip {
+        padding: 10px;
+        border: 1px solid var(--showcase-line);
+        background: var(--showcase-surface-soft);
+        font-size: 12px;
+        line-height: 1.5;
+        margin: 9px 0;
+      }
+      .news {
+        border-top: 1px solid var(--showcase-line);
+        padding-top: 13px;
+        margin-top: 14px;
+      }
+      .headline {
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 7px 0;
+      }
+      .news small {
+        display: block;
+      }
+      summary {
+        cursor: pointer;
+        color: var(--showcase-green-strong);
+        font-size: 13px;
+      }
+      details {
+        border-top: 1px solid var(--showcase-line);
+        margin-top: 12px;
+        padding-top: 12px;
+      }
+      details p {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .recent {
+        font-size: 13px;
+      }
+      .sale {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--showcase-line);
+      }
+      .sale button {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .team {
+        padding: 10px;
+        border: 1px solid var(--showcase-line);
+        border-radius: 8px;
+        font-size: 13px;
+      }
+      .team strong,
+      .team small {
+        display: block;
+      }
+      .bar {
+        height: 6px;
+        background: var(--showcase-green);
+        margin: 8px 0;
+      }
+      .bar i {
+        display: block;
+        background: var(--showcase-blue);
+        height: 100%;
+      }
+      .tools {
+        background: var(--showcase-surface-soft);
+      }
+      .tools .row > label {
+        flex: 1;
+        min-width: 180px;
+      }
+      .tools select {
+        display: block;
+        width: 100%;
+        margin-top: 6px;
+      }
+      .dialog {
+        max-width: 500px;
+        width: calc(100vw - 32px);
+        border: 1px solid var(--showcase-control-line);
+        border-radius: 14px;
+        padding: 22px;
+        background: var(--showcase-surface);
+        color: var(--showcase-ink);
+      }
+      .dialog::backdrop {
+        background: #0006;
+      }
+      .dialog label {
+        margin: 14px 0;
+      }
+      .dialog label input,
+      .dialog label select {
+        display: block;
+        width: 100%;
+        margin-top: 6px;
+      }
+      .dialog .checks input {
+        display: inline-block;
+        width: auto;
+        margin-right: 8px;
+      }
+      .adjust {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .steps {
+        font-size: 12px;
+        color: var(--showcase-muted);
+        line-height: 1.5;
+      }
+      .review-banner {
+        font-size: 12px;
+        color: var(--showcase-muted);
+        margin-bottom: 10px;
+      }
+      .status {
+        font-size: 13px;
+        line-height: 1.5;
+        margin: 9px 0;
+      }
+      .nomination p {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (min-width: 1180px) {
+        .player-list {
+          max-height: 570px;
+        }
+      }
+      @media (max-width: 760px) {
+        .showcase-page {
+          padding: 14px 12px;
+        }
+        .showcase-header,
+        .nav {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .decision {
+          position: static;
+          grid-row: 1;
+        }
+        .pool-wrap {
+          grid-row: 2;
+        }
+        .metrics {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .metric {
+          padding: 8px 10px;
+        }
+        .metric strong {
+          font-size: 20px;
+        }
+        .prices {
+          gap: 6px;
+        }
+        .price {
+          padding: 9px;
+        }
+        .price strong {
+          font-size: clamp(21px, 7vw, 28px);
+        }
+        .price:first-child strong {
+          font-size: clamp(17px, 5.4vw, 23px);
+        }
+        .price small {
+          font-size: 11px;
+        }
+        .player-list {
+          max-height: 320px;
+        }
+        .team-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .phone-search {
+          display: block !important;
+        }
+        h1 {
+          font-size: 22px;
+        }
+      }
+      .phone-search {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="showcase-header">
+      <div class="showcase-brand">Fantasy Basketball</div>
+      <div class="showcase-status">Local · ESPN read-only</div>
+    </header>
+    <nav class="nav" aria-label="Main workspaces">
+      <button class="showcase-button active">Auction prep</button
+      ><button class="showcase-button" disabled>Live season</button
+      ><button class="showcase-button" disabled>Historical patterns</button>
+    </nav>
+    <nav class="nav" aria-label="Auction prep">
+      <button class="showcase-button" disabled>Prepare</button
+      ><button class="showcase-button active" id="top">
+        Auction companion
+      </button>
+    </nav>
+    <main class="showcase-page">
+      <p class="review-banner">
+        Synthetic UX review · invented players, news and prices · no changes to
+        your app or draft
+      </p>
+      <div class="row between">
+        <h1>Auction companion</h1>
+        <span class="caption" id="manual"></span>
+      </div>
+      <div class="metrics" aria-label="My auction status">
+        <div class="metric">
+          <small>My money left</small><strong id="cash"></strong>
+        </div>
+        <div class="metric">
+          <small>Players bought / open slots</small><strong id="slots"></strong>
+        </div>
+        <div class="metric">
+          <small
+            >My legal maximum
+            <button
+              class="info"
+              data-tip="legal-help"
+              aria-label="Legal maximum details"
+            >
+              i
+            </button></small
+          ><strong id="legal"></strong>
+        </div>
+        <div class="metric">
+          <small>Plan</small
+          ><strong style="font-size: 16px">10 core + 3 flex</strong
+          ><small>$40 guideline · flag exceptions</small>
+        </div>
+      </div>
+      <p class="tip" id="legal-help" hidden>
+        Legal maximum reserves $1 for every other open slot. It is an
+        affordability limit, not a recommended price.
+      </p>
+      <div class="layout">
+        <div class="pool-wrap">
+          <section class="showcase-card">
+            <h2>Find the nominated player</h2>
+            <label
+              >Search players<input
+                type="search"
+                id="search"
+                placeholder="Name, team or position · / to search"
+            /></label>
+            <div class="filter">
+              <label for="filter">Show</label
+              ><select id="filter">
+                <option value="all">All available</option>
+                <option value="targets">My targets</option></select
+              ><button
+                class="info"
+                data-tip="pool-help"
+                aria-label="Player price labels"
+              >
+                i
+              </button>
+            </div>
+            <p class="tip" id="pool-help" hidden>
+              Baseline is the original allocation. Target is an attractive price
+              or less. Stop is conditional on the current balanced plan. Missing
+              or pending values are not zero.
+            </p>
+            <div class="player-list" id="players"></div>
+          </section>
+          <section class="showcase-card recent">
+            <h3>Recent recorded picks</h3>
+            <div id="recent"></div>
+            <p class="caption">
+              Select Undo to correct a result. No ESPN transactions.
+            </p>
+            <details>
+              <summary>All team budgets & board details</summary>
+              <div class="team-grid" id="teams"></div>
+              <p class="caption">
+                Example teams only · full app retains all teams, purchase charts
+                and correction history here.
+              </p>
+              <button class="showcase-button" id="clear">Clear board…</button>
+            </details>
+          </section>
+        </div>
+        <section
+          class="showcase-card decision"
+          aria-label="Selected player decision"
+        >
+          <div class="row between">
+            <h2 id="name"></h2>
+            <span class="tag" id="fit"></span>
+          </div>
+          <p class="caption" id="player-meta"></p>
+          <div class="prices" aria-label="Auction price guidance">
+            <div class="price">
+              <small>Baseline</small><strong id="baseline"></strong>
+            </div>
+            <div class="price">
+              <small>Target or less</small><strong id="aim"></strong>
+            </div>
+            <div class="price stop">
+              <small
+                >Conditional stop
+                <button
+                  class="info"
+                  data-tip="stop-help"
+                  aria-label="Conditional stop details"
+                >
+                  i
+                </button></small
+              ><strong id="stop"></strong>
+            </div>
+          </div>
+          <p class="tip" id="stop-help" hidden>
+            A verified balanced completion permits this price under stated
+            alternative-price assumptions. It is not a winning-price prediction
+            or proof this is the best purchase. Your $40 preference is a
+            guideline, and exceptions stay flagged.
+          </p>
+          <p id="warning" class="warning" hidden></p>
+          <p id="guide-state" class="status" role="status"></p>
+          <div class="check">
+            <label for="bid"
+              >Check my next bid
+              <button
+                class="info"
+                data-tip="bid-help"
+                aria-label="Manual bid check details"
+              >
+                i
+              </button></label
+            ><input
+              type="number"
+              id="bid"
+              min="1"
+              step="1"
+              placeholder="$"
+            /><span
+              class="bid-result"
+              id="bid-result"
+              aria-live="polite"
+            ></span>
+          </div>
+          <p class="tip" id="bid-help" hidden>
+            You enter this bid manually. Target / Stretch / Pass compares it
+            with the existing target, stop and legal maximum; above $40 is
+            flagged as an exception. It does not observe the live ESPN bid or
+            decide whether current news makes a player safe.
+          </p>
+          <button class="showcase-button record" id="record">
+            Record auction pick…
+          </button>
+          <p class="caption" id="freshness"></p>
+          <button class="showcase-button phone-search" id="find-phone">
+            Find another player
+          </button>
+          <div class="news">
+            <div class="row between">
+              <h3>Latest player update</h3>
+              <button
+                class="showcase-button"
+                id="refresh"
+                style="padding: 6px 10px; font-size: 12px"
+              >
+                Refresh
+              </button>
+            </div>
+            <p class="headline" id="headline"></p>
+            <small id="news-date"></small>
+            <details>
+              <summary>Season outlook & projected stats</summary>
+              <p id="outlook"></p>
+              <p id="stats"></p>
+              <p class="caption">
+                Source text and projections remain separate. News does not
+                automatically change prices.
+              </p>
+            </details>
+          </div>
+          <details>
+            <summary>Why this price? · assumptions & completion</summary>
+            <p id="reason"></p>
+            <p>
+              Existing model: 10-player foundation, 3 bench, $6 bench envelope,
+              severe-shooting exclusion, central and +15% alternative costs. The
+              $40 guideline is advisory. Current eligibility/positions remain
+              provisional. Each player's completion is separate.
+            </p>
+            <p>
+              Original baseline, current room reference, saved personal ceiling,
+              legal cap, completion witness and category checks remain available
+              here. No new valuation formula is proposed tonight.
+            </p>
+          </details>
+          <details class="nomination">
+            <summary>Nomination reminder from the research</summary>
+            <p>
+              A famous former premium player may draw spending, but historical
+              prices do not establish current demand. Nominate only at an
+              opening price you accept if nobody counters. Never bid above your
+              own stop just to raise someone else's bill.
+            </p>
+            <p class="caption">
+              Dated research guidance · not a refreshed player-specific
+              nomination ranking.
+            </p>
+          </details>
+        </section>
+      </div>
+      <section class="showcase-card tools">
+        <h3>Try the flow · review controls only</h3>
+        <div class="row">
+          <label
+            >Guidance state<select id="mode">
+              <option value="ready">Ready</option>
+              <option value="pending">Updating after a pick</option>
+              <option value="error">Failed calculation</option>
+              <option value="review">First-use review needed</option>
+              <option value="unproved">Solver time limit</option>
+            </select></label
+          ><label
+            >Room spending example<select id="scenario">
+              <option value="opening">Opening room</option>
+              <option value="expensive">Rivals spend more</option>
+              <option value="cheap">Rivals find bargains</option>
+            </select></label
+          >
+        </div>
+        <div class="row">
+          <button class="showcase-button" id="example">
+            Record example rival pick</button
+          ><button class="showcase-button" id="review-button" hidden>
+            Review projections</button
+          ><button class="showcase-button" id="retry" hidden>
+            Retry example
+          </button>
+        </div>
+        <p class="caption">
+          Examples are display fixtures, not model validation. The real app
+          preserves existing calculation versions and records.
+        </p>
+      </section>
+      <dialog class="dialog" id="pick">
+        <h2>Record auction pick</h2>
+        <p id="pick-name"></p>
+        <label
+          >Picked by<select id="buyer">
+            <option value="mine">My team</option>
+            <option value="rival">Harbor</option>
+          </select></label
+        ><label
+          >Final price ($)<input id="price" type="number" min="1" step="1"
+        /></label>
+        <div class="adjust">
+          <button
+            class="showcase-button"
+            id="minus"
+            aria-label="Decrease price by one dollar"
+          >
+            − $1</button
+          ><button
+            class="showcase-button"
+            id="plus"
+            aria-label="Increase price by one dollar"
+          >
+            + $1
+          </button>
+        </div>
+        <p class="steps">
+          Starts at the original rounded baseline. Adjust to the final ESPN
+          price; this is a recorded result, not a bid.
+        </p>
+        <p id="pick-error" class="warning" hidden></p>
+        <div class="row">
+          <button class="showcase-button" id="cancel-pick">Cancel</button
+          ><button
+            class="showcase-button record"
+            id="save-pick"
+            style="width: auto"
+          >
+            Record final result
+          </button>
+        </div>
+      </dialog>
+      <dialog class="dialog" id="review">
+        <h2>Use the saved projections</h2>
+        <p class="caption">
+          Synthetic full import · Oct 19 · $200 · 10 active + 3 bench · $1
+          minimum
+        </p>
+        <label class="checks"
+          ><input id="coverage" type="checkbox" />Use all imported rows as the
+          complete planning pool.</label
+        ><label class="checks"
+          ><input id="eligibility" type="checkbox" />Treat the pool as suitable
+          for my league; ESPN eligibility is unverified.</label
+        >
+        <p class="caption">
+          These are planning declarations. They are saved for this import and
+          rules, and reused on reload or another device.
+        </p>
+        <details>
+          <summary>Source scope & advanced scenarios</summary>
+          <p>
+            The existing population scope note and scenario controls remain
+            here. A changed import/rules needs review again; a known partial
+            sample cannot be upgraded by checking these boxes.
+          </p>
+        </details>
+        <div class="row">
+          <button class="showcase-button" id="close-review">Cancel</button
+          ><button class="showcase-button" id="confirm-review" disabled>
+            Use these projections
+          </button>
+        </div>
+      </dialog>
+      <dialog class="dialog" id="reset">
+        <h2>Clear the entire board?</h2>
+        <p>
+          Remove example picks and correction history, restore $200 and 13 slots
+          per team, and keep research/setup.
+        </p>
+        <div class="row">
+          <button class="showcase-button" id="cancel-reset" autofocus>
+            Cancel</button
+          ><button class="showcase-button" id="confirm-reset">
+            Clear example board
+          </button>
+        </div>
+      </dialog>
+    </main>
+    <script>
+      const $ = (id) => document.getElementById(id),
+        players = [
+          {
+            id: "a",
+            name: "Alex Foundation",
+            position: "SF/PF",
+            gp: 68,
+            base: 38.2,
+            aim: 30,
+            stop: 32,
+            target: true,
+            headline: "Stable role through the final preseason game.",
+            outlook:
+              "Fictional outlook: broad contributions, with role and availability still worth checking.",
+          },
+          {
+            id: "b",
+            name: "Morgan Playmaker",
+            position: "PG",
+            gp: 72,
+            base: 29.08,
+            aim: 23,
+            stop: 28,
+            target: true,
+            headline: "Expected to handle the first-unit offense.",
+            outlook:
+              "Fictional outlook: passing and free throws complement frontcourt production.",
+          },
+          {
+            id: "c",
+            name: "Jordan Premium",
+            position: "C",
+            gp: 70,
+            base: 56.1,
+            aim: 45,
+            stop: 45,
+            headline: "Practiced fully; rotation remains unchanged.",
+            outlook:
+              "Fictional outlook: expensive broad production. Consider the spending-shape exception deliberately.",
+          },
+          {
+            id: "d",
+            name: "Taylor Specialist",
+            position: "PF/C",
+            gp: 69,
+            base: 24.02,
+            aim: null,
+            stop: null,
+            excluded: true,
+            headline: "No new availability update returned.",
+            outlook:
+              "Fictional outlook: high-volume weak free throws conflict with the selected foundation policy.",
+          },
+          {
+            id: "e",
+            name: "Casey Veteran",
+            position: "PG",
+            gp: 50,
+            base: 15.91,
+            aim: 12,
+            stop: 15,
+            headline:
+              "Left practice with a minor ankle issue; further checks pending.",
+            outlook:
+              "Fictional outlook: premium per-game skill but only 50 games in this projection. Missed-game replacement production is not modeled.",
+          },
+          {
+            id: "f",
+            name: "Riley Upside",
+            position: "SG",
+            gp: 58,
+            base: null,
+            aim: 1,
+            stop: 3,
+            bench: true,
+            headline: "Competing for a regular bench role.",
+            outlook:
+              "Fictional outlook: uncertain minutes. Bench cap is a buying policy, not a dollar valuation.",
+          },
+        ];
+      let selected = "a",
+        revision = 1,
+        picks = [],
+        timer;
+      const money = (v, dec = false) =>
+          v == null ? "—" : "$" + (dec ? v.toFixed(2) : v),
+        current = () => players.find((p) => p.id === selected),
+        quote = (p) => {
+          const shift = { opening: 0, expensive: -2, cheap: 2 }[
+              $("scenario").value
+            ],
+            stop = p.stop == null ? null : Math.max(1, p.stop + shift);
+          return {
+            stop,
+            aim:
+              p.aim == null ? null : Math.min(stop, Math.max(1, p.aim + shift)),
+          };
+        };
+      function drawPlayers() {
+        const query = $("search").value.toLowerCase(),
+          found = players.filter(
+            (p) =>
+              !picks.some((s) => s.id === p.id) &&
+              (p.name + " " + p.position).toLowerCase().includes(query) &&
+              ($("filter").value === "all" || p.target),
+          );
+        $("players").innerHTML =
+          found
+            .map((p) => {
+              const q = quote(p),
+                ready = $("mode").value === "ready";
+              return (
+                '<button class="player" data-player="' +
+                p.id +
+                '" aria-pressed="' +
+                (p.id === selected) +
+                '"><strong>' +
+                p.name +
+                "</strong><small>" +
+                p.position +
+                " · " +
+                p.gp +
+                " projected GP" +
+                (p.excluded
+                  ? " · Pass for foundation"
+                  : p.bench
+                    ? " · Bench only"
+                    : "") +
+                '</small><span class="player-prices"><span>Base ' +
+                money(p.base, true) +
+                "</span><span>Target " +
+                (ready ? money(q.aim) : "—") +
+                "</span><span>Stop " +
+                (ready ? money(q.stop) : "—") +
+                "</span></span></button>"
+              );
+            })
+            .join("") ||
+          '<p class="caption">No available matches. Clear search or show all players.</p>';
+      }
+      function draw() {
+        const p = current(),
+          q = quote(p),
+          mode = $("mode").value,
+          ready = mode === "ready",
+          own = picks.filter((s) => s.buyer === "mine"),
+          cash = 200 - own.reduce((n, s) => n + s.price, 0),
+          slots = 13 - own.length;
+        $("cash").textContent = money(cash);
+        $("slots").textContent = own.length + " / " + slots;
+        $("legal").textContent = money(slots ? cash - (slots - 1) : 0);
+        $("manual").textContent =
+          "Manual board · " + picks.length + " recorded · revision " + revision;
+        $("name").textContent = p.name;
+        $("player-meta").textContent =
+          p.position + " · Value reflects " + p.gp + " projected games";
+        $("fit").textContent = p.excluded
+          ? "Foundation pass"
+          : p.bench
+            ? "Bench policy"
+            : q.stop > 40
+              ? "$40 exception"
+              : "Balanced plan";
+        $("fit").className =
+          "tag" + (p.excluded || q.stop > 40 ? " caution" : "");
+        $("baseline").textContent =
+          mode === "review" ? "—" : money(p.base, true);
+        $("aim").textContent = ready ? money(q.aim) : "—";
+        $("stop").textContent = ready ? money(q.stop) : "—";
+        $("warning").hidden = !(ready && (p.excluded || q.stop > 40));
+        $("warning").textContent = p.excluded
+          ? "Severe FT impact · this build has no foundation buying range."
+          : "Above your $40 preference. This conditional model limit is an exception, not an instruction to spend this much.";
+        $("guide-state").textContent = {
+          ready: p.bench
+            ? "Bench cap, not valuation."
+            : p.excluded
+              ? ""
+              : "Stop reflects room spending, your budget and a modeled balanced completion.",
+          pending: "Updating prices… Previous target and stop are paused.",
+          error:
+            "Prices unavailable. Retry or reload before relying on a stop.",
+          review: "One-time projection review needed to show prices.",
+          unproved:
+            "No certified stop yet. Time limit is not proof of infeasibility.",
+        }[mode];
+        $("freshness").textContent = ready
+          ? "Prices match recorded board · revision " + revision
+          : "No current actionable range";
+        $("headline").textContent = p.headline;
+        $("news-date").textContent =
+          "Synthetic ESPN-style example · published Oct 18 · checked Oct 19";
+        $("outlook").textContent = p.outlook;
+        $("stats").textContent =
+          `Fictional projection: ${p.gp} games. The real inspector retains per-game and total contributions, plus makes/attempts for shooting ratios.`;
+        $("reason").textContent =
+          "Synthetic example: preserve the existing baseline and stop calculation. A higher legal maximum is not extra value; a completion reserve is one feasible example, not always the minimum required.";
+        $("review-button").hidden = mode !== "review";
+        $("retry").hidden = !["error", "unproved"].includes(mode);
+        $("record").disabled = slots === 0;
+        $("clear").disabled = !picks.length;
+        $("recent").innerHTML = picks.length
+          ? picks
+              .slice(-3)
+              .reverse()
+              .map(
+                (s) =>
+                  '<div class="sale"><span><strong>' +
+                  s.name +
+                  "</strong><br><small>" +
+                  (s.buyer === "mine" ? "My team" : "Harbor") +
+                  " · " +
+                  money(s.price) +
+                  '</small></span><button class="showcase-button" data-undo="' +
+                  s.key +
+                  '">Undo</button></div>',
+              )
+              .join("")
+          : '<p class="caption">No picks recorded. Your latest three results appear here.</p>';
+        $("teams").innerHTML = [
+          "My team",
+          "Harbor",
+          "Oak City",
+          "Northside",
+          "River",
+          "Metro",
+        ]
+          .map((name, i) => {
+            const sales = picks.filter((s) =>
+                s.buyer === "mine" ? i === 0 : i === 1,
+              ),
+              spent = sales.reduce((n, s) => n + s.price, 0);
+            return (
+              '<div class="team"><strong>' +
+              name +
+              '</strong><div class="bar"><i style="width:' +
+              spent / 2 +
+              '%"></i></div><small>' +
+              money(200 - spent) +
+              " left · " +
+              (13 - sales.length) +
+              " slots</small></div>"
+            );
+          })
+          .join("");
+        drawPlayers();
+        checkBid();
+      }
+      function checkBid() {
+        const p = current(),
+          q = quote(p),
+          bid = Number($("bid").value),
+          mode = $("mode").value,
+          result = $("bid-result"),
+          own = picks.filter((s) => s.buyer === "mine"),
+          cash = 200 - own.reduce((n, s) => n + s.price, 0),
+          legal = cash - (12 - own.length);
+        result.style.color = "var(--showcase-ink)";
+        if (!$("bid").value) {
+          result.textContent = "";
+          return;
+        }
+        if (!Number.isInteger(bid) || bid < 1) {
+          result.textContent = "Enter whole dollars";
+          return;
+        }
+        if (mode !== "ready") {
+          result.textContent = "Wait for current prices";
+          return;
+        }
+        if (p.excluded || q.stop === null || bid > q.stop || bid > legal) {
+          result.textContent = "Pass at " + money(bid);
+          result.style.color = "var(--showcase-red)";
+          return;
+        }
+        if (bid > 40) {
+          result.textContent = "Review $40 exception";
+          result.style.color = "var(--showcase-orange)";
+          return;
+        }
+        result.textContent =
+          bid <= q.aim ? "Within target" : "Stretch · below stop";
+        result.style.color =
+          bid <= q.aim
+            ? "var(--showcase-green-strong)"
+            : "var(--showcase-orange)";
+      }
+      function update() {
+        clearTimeout(timer);
+        revision++;
+        $("mode").value = "pending";
+        draw();
+        timer = setTimeout(() => {
+          $("mode").value = "ready";
+          draw();
+        }, 450);
+      }
+      $("players").onclick = (e) => {
+        const b = e.target.closest("[data-player]");
+        if (b) {
+          selected = b.dataset.player;
+          $("bid").value = "";
+          draw();
+          if (innerWidth <= 760)
+            document
+              .querySelector(".decision")
+              .scrollIntoView({ block: "start", behavior: "smooth" });
+        }
+      };
+      $("search").oninput = drawPlayers;
+      $("filter").onchange = drawPlayers;
+      $("bid").oninput = checkBid;
+      $("mode").onchange = () => {
+        clearTimeout(timer);
+        draw();
+      };
+      $("scenario").onchange = update;
+      $("example").onclick = () => {
+        picks.push({
+          key: Date.now(),
+          name: "Example rival player",
+          buyer: "rival",
+          price: 45,
+        });
+        $("scenario").value = "expensive";
+        update();
+      };
+      $("recent").onclick = (e) => {
+        const b = e.target.closest("[data-undo]");
+        if (b) {
+          picks = picks.filter((s) => String(s.key) !== b.dataset.undo);
+          if (!picks.length) $("scenario").value = "opening";
+          update();
+        }
+      };
+      $("record").onclick = () => {
+        $("pick-name").textContent = current().name;
+        $("price").value =
+          current().base === null ? "" : Math.round(current().base);
+        $("pick-error").hidden = true;
+        $("pick").showModal();
+        $("price").focus();
+      };
+      $("cancel-pick").onclick = () => $("pick").close();
+      $("minus").onclick = () => {
+        $("price").value = Math.max(1, Number($("price").value || 1) - 1);
+      };
+      $("plus").onclick = () => {
+        $("price").value = Number($("price").value || 0) + 1;
+      };
+      $("save-pick").onclick = () => {
+        const p = current(),
+          price = Number($("price").value),
+          own = picks.filter((s) => s.buyer === $("buyer").value),
+          maximum =
+            200 - own.reduce((n, s) => n + s.price, 0) - (12 - own.length);
+        if (
+          !$("price").value ||
+          !Number.isInteger(price) ||
+          price < 1 ||
+          price > maximum
+        ) {
+          $("pick-error").hidden = false;
+          $("pick-error").textContent =
+            "Enter a legal whole-dollar final price from $1 to $" +
+            maximum +
+            ".";
+          return;
+        }
+        picks.push({
+          key: Date.now(),
+          id: p.id,
+          name: p.name,
+          buyer: $("buyer").value,
+          price,
+        });
+        $("pick").close();
+        selected =
+          players.find((p) => !picks.some((s) => s.id === p.id))?.id ||
+          selected;
+        $("search").value = "";
+        $("bid").value = "";
+        update();
+        if (innerWidth > 760) $("search").focus();
+      };
+      $("retry").onclick = update;
+      $("review-button").onclick = () => $("review").showModal();
+      $("close-review").onclick = () => $("review").close();
+      function reviewed() {
+        $("confirm-review").disabled =
+          !$("coverage").checked || !$("eligibility").checked;
+      }
+      $("coverage").onchange = reviewed;
+      $("eligibility").onchange = reviewed;
+      $("confirm-review").onclick = () => {
+        $("review").close();
+        update();
+      };
+      $("clear").onclick = () => $("reset").showModal();
+      $("cancel-reset").onclick = () => $("reset").close();
+      $("confirm-reset").onclick = () => {
+        picks = [];
+        selected = "a";
+        $("scenario").value = "opening";
+        $("search").value = "";
+        $("bid").value = "";
+        $("reset").close();
+        update();
+      };
+      $("refresh").onclick = () => {
+        $("news-date").textContent =
+          "Synthetic ESPN-style example · published Oct 18 · checked just now";
+      };
+      $("find-phone").onclick = () => {
+        $("search").scrollIntoView({ block: "center", behavior: "smooth" });
+        $("search").focus();
+      };
+      $("top").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "/" &&
+          !["INPUT", "TEXTAREA", "SELECT"].includes(
+            document.activeElement.tagName,
+          ) &&
+          !document.querySelector("dialog[open]")
+        ) {
+          e.preventDefault();
+          $("search").focus();
+        }
+      });
+      document.querySelectorAll("[data-tip]").forEach((b) => {
+        const tip = $(b.dataset.tip);
+        b.onclick = () => (tip.hidden = !tip.hidden);
+        b.onmouseenter = b.onfocus = () => (tip.hidden = false);
+        b.onmouseleave = b.onblur = () => (tip.hidden = true);
+        b.onkeydown = (e) => {
+          if (e.key === "Escape") tip.hidden = true;
+        };
+      });
+      draw();
+    </script>
+  </body>
+</html>

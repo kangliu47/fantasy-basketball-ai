@@ -92,6 +92,14 @@ export interface DraftRules {
   keepers: number;
 }
 export interface DraftBoard {
+  baseline_review?: {
+    import_id: string;
+    rules: DraftRules;
+    scope_description: string;
+    coverage_reference: string;
+    eligibility_reference: string;
+    reviewed_at: string;
+  } | null;
   id: string;
   league_id: number;
   season: number;

@@ -35,6 +35,7 @@ export interface ESPNContextView {
     news_captured_at: string | null;
     news_error: string | null;
     captured_at: string;
+    season_outlook?: string | null;
   } | null;
   team_disagrees: boolean | null;
   message: string;

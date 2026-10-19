@@ -35,7 +35,55 @@ describe('Auction baseline evidence and request lifecycle', () => {
     fixture.destroy();
     http.verify();
   });
+  it('requires both explicit declarations in compact review and emits the reviewed saved-league request', async () => {
+    fixture.componentRef.setInput('compact', true);
+    fixture.componentRef.setInput('remember', true);
+    await settle();
+    const button = [...fixture.nativeElement.querySelectorAll('button')].find((b: unknown) =>
+      (b as HTMLButtonElement).textContent?.includes('Use these projections'),
+    ) as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+    store.review.controls.coverage.setValue(true);
+    await settle();
+    expect(button.disabled).toBe(true);
+    store.review.controls.eligibility.setValue(true);
+    await settle();
+    expect(button.disabled).toBe(false);
+    const emitted: unknown[] = [];
+    fixture.componentInstance.calculateRequested.subscribe((r) => emitted.push(r));
+    button.click();
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0]).toMatchObject({ coverage_reviewed: true, eligibility_reviewed: true });
+    http.expectNone('/api/draft/valuation');
+    expect(fixture.nativeElement.querySelector('form details').open).toBe(false);
+  });
 
+  it('reuses a matching explicitly saved review after reload, but never a changed import', async () => {
+    const data = completeDraft();
+    data.board!.baseline_review = {
+      import_id: data.projection!.id,
+      rules: data.board!.rules,
+      scope_description: 'Reviewed synthetic population',
+      coverage_reference: 'Synthetic coverage',
+      eligibility_reference: 'Synthetic suitability',
+      reviewed_at: '2026-10-19T12:00:00Z',
+    };
+    store.reset();
+    store.updateContext(data, 12345);
+    const request = http.expectOne('/api/draft/valuation');
+    expect(request.request.body.coverage_reviewed).toBe(true);
+    expect(request.request.body.scope_description).toBe('Reviewed synthetic population');
+    request.flush(sampleValuation());
+    await settle();
+    store.updateContext(data, 12345);
+    http.expectNone('/api/draft/valuation');
+    data.projection!.id = '00000000-0000-4000-8000-000000000099';
+    store.updateContext(data, 12345);
+    await settle();
+    expect(store.review.controls.coverage.value).toBe(false);
+    expect(store.result()).toBeNull();
+    http.expectNone('/api/draft/valuation');
+  });
   it('requires separate coverage and eligibility declarations and keeps a known partial sample unpriced', async () => {
     store.calculate();
     http.expectNone('/api/draft/valuation');
@@ -62,7 +110,11 @@ describe('Auction baseline evidence and request lifecycle', () => {
     store.review.controls.eligibility.setValue(true);
     await settle();
     expect(store.canCalculate()).toBe(true);
-    expect(fixture.nativeElement.querySelector('button').disabled).toBe(false);
+    expect(
+      [...(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)].find(
+        (b) => b.textContent?.includes('Calculate baseline'),
+      )!.disabled,
+    ).toBe(false);
     store.review.controls.scope.setValue('   ');
     await settle();
     expect(store.canCalculate()).toBe(false);
@@ -135,6 +187,60 @@ describe('Auction baseline evidence and request lifecycle', () => {
     await settle();
     expect(store.available()).toBe(true);
     expect(store.error()).toBeNull();
+  });
+
+  it('ends a stalled request after 30 seconds and permits an explicit retry', async () => {
+    review();
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      store.calculate();
+      const stalled = http.expectOne('/api/draft/valuation');
+      await vi.advanceTimersByTimeAsync(29_999);
+      expect(store.loading()).toBe(true);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(store.loading()).toBe(false);
+      expect(stalled.cancelled).toBe(true);
+      expect(store.error()).toContain('timed out after 30 seconds');
+      expect(store.result()).toBeNull();
+      expect(store.calculatedRequest()).toBeNull();
+      expect(store.canCalculate()).toBe(true);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
+        'timed out after 30 seconds',
+      );
+    } finally {
+      store.cancel();
+      vi.useRealTimers();
+    }
+    store.calculate();
+    http.expectOne('/api/draft/valuation').flush(sampleValuation());
+    await settle();
+    expect(store.available()).toBe(true);
+    expect(store.error()).toBeNull();
+  });
+
+  it('keeps cancellation final after the old deadline and explains a dropped connection', async () => {
+    review();
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      store.calculate();
+      const cancelled = http.expectOne('/api/draft/valuation');
+      store.cancel();
+      await vi.advanceTimersByTimeAsync(30_000);
+      expect(cancelled.cancelled).toBe(true);
+      expect(store.loading()).toBe(false);
+      expect(store.error()).toBeNull();
+      expect(store.notice()).toContain('cancelled');
+    } finally {
+      vi.useRealTimers();
+    }
+    store.calculate();
+    http.expectOne('/api/draft/valuation').error(new ProgressEvent('error'));
+    await settle();
+    expect(store.loading()).toBe(false);
+    expect(store.error()).toContain('connection to the Mac');
+    expect(store.error()).not.toContain('archive');
+    expect(store.canCalculate()).toBe(true);
   });
 
   it('keeps server-unavailable diagnostics unpriced even when scores are present', async () => {

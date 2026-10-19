@@ -1,5 +1,13 @@
 # Current app UI/UX review — 2026-10-18
 
+## Follow-up — October 18, 2026, latest
+
+QA-01 through QA-05 are repaired in source and compiled. The approved streamlined
+layout is implemented, with 120 Angular tests
+passing. See the [remediation record](2026-10-18-ui-remediation.md) for individual
+checks and delivery boundaries.
+The audit below describes the original tested build and is preserved as evidence.
+
 ## What you can rely on
 
 **Undo pick works for the cases tested.** It restores the player's availability, the team's money and open roster slot, and recalculates projected totals. Both Undo buttons work: the recent-results list and the team-detail window. It also works when a full roster needs to reopen a slot.

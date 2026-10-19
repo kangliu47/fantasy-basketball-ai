@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Auction prices first · synthetic review</title>
+    <link rel="stylesheet" href="showcase-theme.css" />
+    <style>
+      .showcase-page {
+        max-width: 1400px;
+        padding-top: 20px;
+      }
+      .nav,
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .nav {
+        padding: 10px max(5vw, 22px);
+        border-bottom: 1px solid var(--showcase-line);
+      }
+      .active {
+        background: var(--showcase-green-soft);
+      }
+      .between {
+        justify-content: space-between;
+      }
+      h1,
+      h2,
+      h3 {
+        color: var(--showcase-heading);
+        letter-spacing: -0.025em;
+      }
+      h2 {
+        font-size: 20px;
+        margin: 0 0 8px;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 0 0 10px;
+      }
+      p {
+        line-height: 1.5;
+      }
+      small,
+      .caption {
+        color: var(--showcase-muted);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      .caption {
+        margin: 8px 0;
+      }
+      .showcase-card {
+        min-width: 0;
+        margin-bottom: 14px;
+        padding: 18px;
+      }
+      .hero {
+        border-top: 4px solid var(--showcase-green-strong);
+      }
+      .identity {
+        margin-bottom: 15px;
+      }
+      .identity h2 {
+        font-size: 26px;
+        margin: 4px 0;
+      }
+      .numbers {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .number {
+        padding: 15px;
+        background: var(--showcase-surface-soft);
+        border-radius: 9px;
+      }
+      .number strong {
+        display: block;
+        font-size: 36px;
+        letter-spacing: -0.04em;
+        color: var(--showcase-heading);
+        font-variant-numeric: tabular-nums;
+        margin: 5px 0;
+      }
+      .number.stop {
+        background: var(--showcase-green-soft);
+        border: 1px solid var(--showcase-green);
+      }
+      .number small {
+        display: block;
+      }
+      .reason {
+        font-size: 14px;
+        margin: 14px 0 10px;
+      }
+      .action {
+        background: var(--showcase-green-strong);
+        color: white;
+        border-color: var(--showcase-green-strong);
+      }
+      .guide-state {
+        padding: 15px;
+        background: var(--showcase-surface-soft);
+        border-left: 3px solid var(--showcase-green);
+        margin-bottom: 12px;
+      }
+      .warning {
+        border-left: 3px solid var(--showcase-orange);
+        background: var(--showcase-surface-soft);
+        padding: 12px;
+        font-size: 13px;
+      }
+      .error {
+        border-color: var(--showcase-red);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+        gap: 16px;
+        align-items: start;
+      }
+      .players {
+        display: grid;
+        gap: 4px;
+        max-height: 440px;
+        overflow: auto;
+      }
+      .player {
+        text-align: left;
+        width: 100%;
+        background: var(--showcase-surface);
+        border: 1px solid var(--showcase-line);
+        border-radius: 8px;
+        padding: 12px;
+        cursor: pointer;
+        color: var(--showcase-ink);
+      }
+      .player[aria-pressed="true"] {
+        background: var(--showcase-blue-soft);
+        border-color: var(--showcase-blue);
+      }
+      .player strong {
+        display: block;
+      }
+      .mini {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin-top: 9px;
+      }
+      .mini b {
+        font-size: 15px;
+        display: block;
+      }
+      .mini small {
+        font-size: 10px;
+      }
+      .teams {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .team {
+        border: 1px solid var(--showcase-line);
+        padding: 10px;
+        border-radius: 8px;
+      }
+      .team small {
+        display: block;
+      }
+      .bar {
+        height: 8px;
+        background: var(--showcase-green);
+        margin: 8px 0;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--showcase-blue);
+      }
+      summary {
+        cursor: pointer;
+        color: var(--showcase-green-strong);
+        font-size: 13px;
+      }
+      details {
+        margin-top: 14px;
+        border-top: 1px solid var(--showcase-line);
+        padding-top: 13px;
+      }
+      details p,
+      details li {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        font-size: 13px;
+      }
+      dd {
+        margin: 0;
+        text-align: right;
+      }
+      dt {
+        color: var(--showcase-muted);
+      }
+      label {
+        font-size: 12px;
+        color: var(--showcase-muted);
+        display: block;
+      }
+      select,
+      input {
+        display: block;
+        border: 1px solid var(--showcase-control-line);
+        border-radius: 7px;
+        background: var(--showcase-surface);
+        color: var(--showcase-ink);
+        padding: 9px;
+        width: 100%;
+        margin: 6px 0 12px;
+      }
+      .info {
+        border: 1px solid var(--showcase-control-line);
+        background: var(--showcase-surface);
+        color: var(--showcase-muted);
+        border-radius: 50%;
+        height: 22px;
+        width: 22px;
+        cursor: help;
+      }
+      .tip {
+        font-size: 13px;
+        padding: 12px;
+        border: 1px solid var(--showcase-line);
+        background: var(--showcase-surface-soft);
+        margin: 10px 0;
+        max-width: 560px;
+      }
+      .news {
+        margin-top: 18px;
+        border-top: 1px solid var(--showcase-line);
+        padding-top: 18px;
+      }
+      .preview-controls {
+        background: var(--showcase-surface-soft);
+        margin-top: 22px;
+      }
+      .review-label {
+        font-size: 12px;
+        color: var(--showcase-muted);
+        margin: 0 0 12px;
+      }
+      .preview-controls .row > label {
+        flex: 1;
+        min-width: 180px;
+      }
+      input[type="checkbox"] {
+        width: auto;
+        display: inline-block;
+        margin-right: 8px;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .negative {
+        color: var(--showcase-red);
+      }
+      .policy {
+        font-size: 13px;
+      }
+      .ledger {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .status-line {
+        min-height: 18px;
+      }
+      .mock-dialog {
+        border: 1px solid var(--showcase-control-line);
+        border-radius: 14px;
+        max-width: 460px;
+        width: calc(100vw - 32px);
+        background: var(--showcase-surface);
+        color: var(--showcase-ink);
+        padding: 22px;
+      }
+      .mock-dialog::backdrop {
+        background: #0006;
+      }
+      @media (max-width: 760px) {
+        .showcase-page {
+          padding: 16px 12px;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .numbers {
+          gap: 6px;
+        }
+        .number {
+          padding: 10px;
+        }
+        .number strong {
+          font-size: 28px;
+        }
+        .number small {
+          font-size: 11px;
+        }
+        .teams {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .hero .row .action {
+          width: 100%;
+        }
+        .showcase-header {
+          padding: 16px;
+        }
+        .players {
+          max-height: 350px;
+        }
+        .identity h2 {
+          font-size: 23px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="showcase-header">
+      <div class="showcase-brand">
+        Fantasy Basketball<small>Local · ESPN read-only</small>
+      </div>
+      <span class="showcase-status">Synthetic design review</span>
+    </header>
+    <nav class="nav" aria-label="Main workspaces">
+      <button class="showcase-button active">Auction prep</button
+      ><button class="showcase-button" disabled>Live season</button
+      ><button class="showcase-button" disabled>Historical patterns</button>
+    </nav>
+    <nav class="nav" aria-label="Auction prep">
+      <button class="showcase-button" disabled>Prepare</button
+      ><button class="showcase-button active" aria-current="page">
+        Auction companion
+      </button>
+    </nav>
+    <main class="showcase-page">
+      <p class="review-label">
+        Interactive mock · invented players and example outputs · no real
+        calculations or saved-board changes
+      </p>
+      <div class="row between">
+        <h1 class="showcase-title">Auction companion</h1>
+        <p class="caption" id="budget"></p>
+      </div>
+      <section
+        class="showcase-card hero"
+        aria-label="Selected player bidding decision"
+      >
+        <div class="row between identity">
+          <div>
+            <p class="showcase-eyebrow">Player under consideration</p>
+            <h2 id="name"></h2>
+            <p class="caption" id="meta"></p>
+          </div>
+          <button
+            class="info"
+            data-tip="method"
+            aria-label="About these prices"
+          >
+            i
+          </button>
+        </div>
+        <p class="tip" id="method" hidden>
+          Baseline uses the saved projection. Bargain is a buying target, not a
+          minimum bid. The stop uses the current room reference, your saved
+          ceiling and a modeled balanced roster completion. Alternative players
+          are priced at stated assumptions; availability at those prices is not
+          guaranteed.
+        </p>
+        <div
+          class="numbers"
+          id="numbers"
+          aria-label="Baseline, bargain and recommended stop"
+        >
+          <div class="number">
+            <small>Baseline</small><strong id="baseline"></strong
+            ><small>Before auction spending</small>
+          </div>
+          <div class="number">
+            <small>Bargain target</small><strong id="aim"></strong
+            ><small id="aim-label">Aim for this or less</small>
+          </div>
+          <div class="number stop">
+            <small>Recommended stop</small><strong id="stop"></strong
+            ><small id="stop-label">Based on your balanced plan</small>
+          </div>
+        </div>
+        <div class="guide-state" id="state-message" role="status" hidden></div>
+        <p class="reason" id="reason"></p>
+        <p class="warning" id="warning" hidden></p>
+        <div class="row between">
+          <div>
+            <p class="caption status-line" id="freshness"></p>
+            <p class="caption" id="reference"></p>
+          </div>
+          <button class="showcase-button action" id="record">
+            Record auction pick…
+          </button>
+        </div>
+        <details>
+          <summary>Your balanced plan & why this stop</summary>
+          <p class="policy">
+            10 foundation players · 3 flexible bench spots · $6 starting bench
+            envelope · $40 preferred maximum, with exceptions flagged
+          </p>
+          <dl>
+            <dt>Room reference now</dt>
+            <dd id="ref-detail"></dd>
+            <dt>Saved personal ceiling</dt>
+            <dd id="saved"></dd>
+            <dt>Required reserve for other players</dt>
+            <dd id="reserve"></dd>
+            <dt>Legal maximum bid</dt>
+            <dd id="legal"></dd>
+            <dt>More expensive alternatives</dt>
+            <dd id="stress"></dd>
+          </dl>
+          <p id="witness"></p>
+          <p>
+            Synthetic policy example: exclude severe FG/FT drags from new
+            foundation purchases. Balance uses total makes/attempts for shooting
+            ratios and projected totals for counting stats. No extra injury or
+            news haircut. A feasible completion is conditional, not proof these
+            players can be bought at these prices.
+          </p>
+          <button
+            class="info"
+            data-tip="calculation"
+            aria-label="Calculation details"
+          >
+            i
+          </button>
+          <p class="tip" id="calculation" hidden>
+            The original baseline stays fixed. Recorded picks change room cash,
+            open slots, the remaining-player cutoff and possible roster
+            completions. Stop cannot exceed the room reference, saved ceiling or
+            legal maximum. Your preferred $40 is a guideline. Each player's
+            completion is separate: the stops cannot be added as one shopping
+            list.
+          </p>
+        </details>
+      </section>
+      <div class="layout">
+        <section class="showcase-card" aria-label="Available players">
+          <h2>Available players</h2>
+          <p class="caption">Compact prices for quick comparison</p>
+          <label
+            >Find a player<input
+              id="search"
+              type="search"
+              placeholder="Name or position"
+          /></label>
+          <div class="players" id="players"></div>
+        </section>
+        <div>
+          <section class="showcase-card">
+            <div class="row between">
+              <h2>Team budgets & auction picks</h2>
+              <button class="showcase-button" id="clear">Clear board</button>
+            </div>
+            <p class="caption" id="room"></p>
+            <div class="teams" id="teams"></div>
+            <details>
+              <summary>Recent recorded picks</summary>
+              <p class="ledger" id="ledger"></p>
+              <button class="showcase-button" id="undo">
+                Undo last example pick
+              </button>
+            </details>
+          </section>
+          <section
+            class="showcase-card"
+            aria-label="Supporting player evidence"
+          >
+            <h2>Supporting player evidence</h2>
+            <p class="caption" id="support-name"></p>
+            <h3>Outlook & latest news</h3>
+            <p id="news"></p>
+            <p class="caption">
+              Fictional news example · checked Oct 19, 2026 · news does not
+              silently change prices
+            </p>
+            <details>
+              <summary>Projected stats & projection changes</summary>
+              <p>
+                Synthetic Hashtag-style inputs: 68 projected games · 21.5 PTS ·
+                6.2 REB · 5.4 AST · .485 FG · .835 FT. Actual implementation
+                shows each selected player's saved Hashtag evidence.
+              </p>
+            </details>
+            <details>
+              <summary>Completion assumptions & source evidence</summary>
+              <p>
+                View the modeled ten-player foundation, three bench slots,
+                positions, assumed acquisition prices, pooled shooting
+                percentages and each category floor here. Solver time limits
+                remain distinguishable from proved infeasibility.
+              </p>
+            </details>
+          </section>
+        </div>
+      </div>
+      <section class="showcase-card preview-controls">
+        <h2>Try the proposed flow</h2>
+        <div class="row">
+          <label
+            >Example auction state<select
+              id="scenario"
+              aria-label="Example auction state"
+            >
+              <option value="opening">Opening board</option>
+              <option value="expensive">Rivals paid above reference</option>
+              <option value="cheap">Rivals found bargains</option>
+              <option value="tight">My budget is tighter</option>
+            </select></label
+          ><label
+            >Recommendation state<select
+              id="mode"
+              aria-label="Recommendation state"
+            >
+              <option value="ready">Ready</option>
+              <option value="pending">Recalculating after a pick</option>
+              <option value="error">Calculation failed / retry</option>
+              <option value="review">New projection needs review</option>
+              <option value="infeasible">No balanced completion found</option>
+              <option value="unproved">
+                Time limit / no certified ceiling
+              </option>
+              <option value="full">My roster is full</option>
+              <option value="alone">Only my team has slots</option>
+              <option value="unmatched">Unmatched recorded pick</option>
+            </select></label
+          >
+        </div>
+        <div class="row">
+          <button class="showcase-button" id="example">
+            Record an example rival sale</button
+          ><button class="showcase-button" id="retry" hidden>
+            Retry example calculation
+          </button>
+        </div>
+        <p class="caption">
+          Changing these controls only updates invented examples in this mock.
+          They are design fixtures, not output from the production model.
+        </p>
+      </section>
+      <dialog class="mock-dialog" id="review-dialog">
+        <h2>Review this projection population</h2>
+        <p class="caption">
+          Synthetic import · 430 players · saved league rules. A changed import
+          requires a fresh review; an existing matching review can be reused
+          across devices.
+        </p>
+        <label
+          ><input type="checkbox" id="coverage" />I reviewed this file as a
+          complete candidate population for this draft.</label
+        ><label
+          ><input type="checkbox" id="eligibility" />I reviewed the included
+          players as suitable candidates for this league.</label
+        >
+        <div class="row">
+          <button class="showcase-button" id="cancel-review">Cancel</button
+          ><button class="showcase-button action" id="confirm-review" disabled>
+            Calculate example baseline
+          </button>
+        </div>
+      </dialog>
+      <dialog class="mock-dialog" id="pick-dialog">
+        <h2>Record auction pick</h2>
+        <p id="pick-name"></p>
+        <label
+          >Final price ($)<input id="price" type="number" min="1" value="30"
+        /></label>
+        <p class="caption">
+          Synthetic review only · records this player to My team.
+        </p>
+        <div class="row">
+          <button class="showcase-button" id="cancel-pick">Cancel</button
+          ><button class="showcase-button action" id="confirm-pick">
+            Record example pick
+          </button>
+        </div>
+      </dialog>
+      <dialog class="mock-dialog" id="clear-dialog">
+        <h2>Clear the entire board?</h2>
+        <p>
+          Clear synthetic picks and restore the opening example. Setup and
+          research stay saved.
+        </p>
+        <div class="row">
+          <button class="showcase-button" id="cancel-clear" autofocus>
+            Cancel</button
+          ><button class="showcase-button" id="confirm-clear">
+            Clear example board
+          </button>
+        </div>
+      </dialog>
+    </main>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const players = [
+        {
+          id: "a",
+          name: "Alex Foundation",
+          role: "SF/PF",
+          base: 38,
+          stop: 32,
+          stress: 29,
+          reserve: 168,
+          news: "Fictional outlook: established role and contributions across categories. Check availability updates before bidding.",
+        },
+        {
+          id: "b",
+          name: "Morgan Playmaker",
+          role: "PG",
+          base: 29,
+          stop: 28,
+          stress: 25,
+          reserve: 172,
+          news: "Fictional outlook: assists and free throws support the balanced foundation.",
+        },
+        {
+          id: "c",
+          name: "Jordan Premium",
+          role: "C",
+          base: 56,
+          stop: 45,
+          stress: 41,
+          reserve: 155,
+          news: "Fictional outlook: broad production, but buying above your preferred spend changes the remaining plan.",
+        },
+        {
+          id: "d",
+          name: "Taylor Specialist",
+          role: "PF/C",
+          base: 24,
+          excluded: true,
+          news: "Fictional outlook: productive inside, with high-volume poor free throws. Excluded from new foundation purchases by your policy.",
+        },
+        {
+          id: "e",
+          name: "Casey Upside",
+          role: "SG",
+          base: null,
+          bench: true,
+          news: "Fictional outlook: uncertain minutes and development upside. Consider only as a flexible bench purchase.",
+        },
+      ];
+      let selected = "a",
+        revision = 1,
+        picks = [],
+        timer;
+      const money = (v) =>
+        v == null ? "—" : "$" + (Number.isInteger(v) ? v : v.toFixed(2));
+      function quote(p) {
+        const scenario = $("scenario").value,
+          shift = { opening: 0, expensive: -4, cheap: 2, tight: -8 }[scenario];
+        const ref = p.base == null ? null : Math.max(1, p.base + shift);
+        const stop = p.excluded
+          ? null
+          : p.bench
+            ? 3
+            : Math.min(
+                p.stop,
+                Math.floor(ref),
+                scenario === "tight" ? 26 : 200,
+              );
+        return {
+          ref,
+          stop,
+          aim:
+            stop == null
+              ? null
+              : p.bench
+                ? 1
+                : Math.min(Math.floor(1 + 0.8 * (ref - 1)), stop),
+        };
+      }
+      function render() {
+        const p = players.find((p) => p.id === selected),
+          q = quote(p),
+          mode = $("mode").value,
+          sold = picks.some((x) => x.id === p.id),
+          ready = mode === "ready" && !sold,
+          spent = picks.filter((x) => x.mine).reduce((n, x) => n + x.price, 0),
+          left = 200 - spent;
+        const old = $("scenario").value === "tight";
+        $("budget").textContent =
+          "My team · " +
+          money(old ? 54 : left) +
+          " left · " +
+          (old ? 8 : 13 - picks.filter((x) => x.mine).length) +
+          " slots";
+        $("name").textContent = p.name;
+        $("support-name").textContent = p.name + " · supporting evidence";
+        $("meta").textContent = p.role + " · Balanced foundation plan";
+        $("baseline").textContent = mode === "review" ? "—" : money(p.base);
+        $("aim").textContent = ready ? money(q.aim) : "—";
+        $("stop").textContent = ready ? money(q.stop) : "—";
+        $("aim-label").textContent = p.bench
+          ? "Bench policy target"
+          : "Aim for this or less";
+        $("stop-label").textContent = p.bench
+          ? "Bench policy cap · not valuation"
+          : "Based on your balanced plan";
+        $("reason").textContent = !ready
+          ? ""
+          : p.excluded
+            ? "Pass for foundation · severe FT impact conflicts with your plan."
+            : p.bench
+              ? "Bench only · baseline is unpriced; $3 is a policy cap."
+              : "Protect " +
+                money(old ? 28 : p.reserve) +
+                " for your other players; modeled roster reserve limits this stop.";
+        $("warning").hidden = !(ready && q.stop > 40);
+        $("warning").textContent =
+          "Above your $40 guideline · review this exception before bidding.";
+        $("state-message").hidden = mode === "ready" && !sold;
+        $("state-message").textContent = sold
+          ? "Already recorded · choose an available player."
+          : {
+              pending:
+                "Updating for the latest recorded pick… Previous target and stop are paused.",
+              error:
+                "Could not update prices. Retry or reload the saved board before using a stop.",
+              review:
+                "New projection inputs need your review. Review and calculate the baseline here before bidding.",
+              infeasible:
+                "No balanced roster completion at the minimum price under this plan. Pass or review the plan.",
+              unproved:
+                "Calculation reached its time limit. No certified stop is available yet; retry or inspect assumptions.",
+              full: "Your roster is full. No further bid.",
+              alone:
+                "Only your team has open slots. Try the $1 minimum permitted by the live room; leftover cash is not a reason to bid more.",
+              unmatched:
+                "A recorded pick has no reviewed player match. Match it before using dynamic prices.",
+            }[mode] || "";
+        $("record").disabled = sold || mode === "full";
+        $("retry").hidden = ![
+          "error",
+          "review",
+          "unproved",
+          "pending",
+        ].includes(mode);
+        $("retry").textContent =
+          mode === "review"
+            ? "Review & calculate example baseline"
+            : "Retry example calculation";
+        $("freshness").textContent = ready
+          ? "Updated for recorded board · revision " + revision + " · synthetic"
+          : "No current actionable range";
+        $("reference").textContent =
+          ready && q.ref !== null
+            ? "Room reference now " +
+              money(q.ref) +
+              " · changes with recorded spending"
+            : "";
+        $("ref-detail").textContent = money(q.ref);
+        $("saved").textContent = "None set";
+        $("reserve").textContent = money(old ? 28 : p.reserve);
+        $("legal").textContent = money(
+          old ? 47 : left - (12 - picks.filter((x) => x.mine).length),
+        );
+        $("stress").textContent =
+          q.stop == null
+            ? "No foundation ceiling"
+            : money(Math.min(p.stress || 3, q.stop)) +
+              " stop at +15% alternative prices";
+        $("witness").textContent =
+          "Example completion includes the selected player in a foundation slot, retains owned players and funds the remaining foundation plus three bench slots. Expand source evidence below to inspect the assumptions.";
+        $("news").textContent = p.news;
+        $("room").textContent =
+          "Manual tracking · " +
+          money(2400 - picks.reduce((n, x) => n + x.price, 0)) +
+          " room money left · no ESPN live sync";
+        $("teams").innerHTML = [
+          "My team",
+          "Harbor",
+          "Oak City",
+          "Northside",
+          "River",
+          "Metro",
+        ]
+          .map((name, i) => {
+            let used = picks
+              .filter((x) => (x.mine ? i === 0 : i === 1))
+              .reduce((n, x) => n + x.price, 0);
+            return (
+              '<div class="team"><strong>' +
+              name +
+              '</strong><div class="bar"><i style="width:' +
+              Math.min(100, used / 2) +
+              '%"></i></div><small>' +
+              money(used) +
+              " spent · " +
+              money(200 - used) +
+              " left</small><small>" +
+              picks.filter((x) => (x.mine ? i === 0 : i === 1)).length +
+              "/13 picked</small></div>"
+            );
+          })
+          .join("");
+        $("ledger").textContent = picks.length
+          ? picks
+              .map(
+                (x) =>
+                  x.name +
+                  " → " +
+                  (x.mine ? "My team" : "Harbor") +
+                  " · " +
+                  money(x.price),
+              )
+              .join(" | ")
+          : "No example picks recorded.";
+        $("clear").disabled = !picks.length;
+        $("undo").disabled = !picks.length;
+        renderList();
+      }
+      function renderList() {
+        const mode = $("mode").value;
+        const ready = mode === "ready";
+        $("players").innerHTML =
+          players
+            .filter(
+              (p) =>
+                !picks.some((x) => x.id === p.id) &&
+                (p.name + " " + p.role)
+                  .toLowerCase()
+                  .includes($("search").value.toLowerCase()),
+            )
+            .map((p) => {
+              const q = quote(p);
+              return (
+                '<button class="player" data-player="' +
+                p.id +
+                '" aria-pressed="' +
+                (selected === p.id) +
+                '"><strong>' +
+                p.name +
+                "</strong><small>" +
+                p.role +
+                (p.excluded
+                  ? " · Pass for foundation"
+                  : p.bench
+                    ? " · Bench only"
+                    : "") +
+                '</small><span class="mini"><span><small>Baseline</small><b>' +
+                (mode === "review" ? "—" : money(p.base)) +
+                "</b></span><span><small>Bargain" +
+                (p.bench ? " policy" : "") +
+                "</small><b>" +
+                (ready ? money(q.aim) : "—") +
+                "</b></span><span><small>Stop" +
+                (p.bench ? " policy" : "") +
+                "</small><b>" +
+                (ready ? money(q.stop) : "—") +
+                "</b></span></span></button>"
+              );
+            })
+            .join("") ||
+          '<p class="caption">No available players match this search.</p>';
+      }
+      function update() {
+        clearTimeout(timer);
+        revision++;
+        $("mode").value = "pending";
+        render();
+        timer = setTimeout(() => {
+          $("mode").value = "ready";
+          render();
+        }, 450);
+      }
+      $("players").onclick = (e) => {
+        const b = e.target.closest("[data-player]");
+        if (b) {
+          selected = b.dataset.player;
+          render();
+        }
+      };
+      $("search").oninput = renderList;
+      $("scenario").onchange = update;
+      $("mode").onchange = () => {
+        clearTimeout(timer);
+        render();
+      };
+      $("example").onclick = () => {
+        picks.push({ name: "Example rival purchase", price: 45, mine: false });
+        $("scenario").value = "expensive";
+        update();
+      };
+      $("undo").onclick = () => {
+        picks.pop();
+        $("scenario").value = picks.length ? "expensive" : "opening";
+        update();
+      };
+      $("retry").onclick = () => {
+        if ($("mode").value === "review") $("review-dialog").showModal();
+        else update();
+      };
+      $("cancel-review").onclick = () => $("review-dialog").close();
+      function checkReview() {
+        $("confirm-review").disabled =
+          !$("coverage").checked || !$("eligibility").checked;
+      }
+      $("coverage").onchange = checkReview;
+      $("eligibility").onchange = checkReview;
+      $("confirm-review").onclick = () => {
+        $("review-dialog").close();
+        update();
+      };
+      $("record").onclick = () => {
+        $("pick-name").textContent = players.find(
+          (p) => p.id === selected,
+        ).name;
+        $("pick-dialog").showModal();
+      };
+      $("cancel-pick").onclick = () => $("pick-dialog").close();
+      $("confirm-pick").onclick = () => {
+        const p = players.find((p) => p.id === selected),
+          price = Number($("price").value);
+        if (!Number.isInteger(price) || price < 1 || price > 188) {
+          $("price").reportValidity();
+          return;
+        }
+        picks.push({ id: p.id, name: p.name, price, mine: true });
+        $("pick-dialog").close();
+        selected =
+          players.find((x) => !picks.some((y) => y.id === x.id))?.id ||
+          selected;
+        update();
+      };
+      $("clear").onclick = () => $("clear-dialog").showModal();
+      $("cancel-clear").onclick = () => $("clear-dialog").close();
+      $("confirm-clear").onclick = () => {
+        picks = [];
+        selected = "a";
+        $("scenario").value = "opening";
+        $("search").value = "";
+        $("clear-dialog").close();
+        update();
+      };
+      document.querySelectorAll("[data-tip]").forEach((b) => {
+        const tip = $(b.dataset.tip);
+        b.onclick = () => (tip.hidden = !tip.hidden);
+        b.onmouseenter = () => (tip.hidden = false);
+        b.onmouseleave = () => (tip.hidden = true);
+        b.onfocus = () => (tip.hidden = false);
+        b.onblur = () => (tip.hidden = true);
+        b.onkeydown = (e) => {
+          if (e.key === "Escape") tip.hidden = true;
+        };
+      });
+      render();
+    </script>
+  </body>
+</html>

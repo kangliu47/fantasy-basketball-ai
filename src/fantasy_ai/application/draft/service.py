@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from uuid import uuid4
 
+from fantasy_ai.application.draft.balanced_guide import BalancedCalculator, RosterSolver
 from fantasy_ai.application.draft.bid_guide import BidGuidePreview
 from fantasy_ai.application.draft.nba_teams import nba_team_name
 from fantasy_ai.application.draft.ports import DraftRepository, ProjectionFiles
@@ -13,15 +14,18 @@ from fantasy_ai.application.history.ports import HistoryRepository
 from fantasy_ai.application.models import OperationBusy, WorkspaceError
 from fantasy_ai.application.planning.service import PreparationService
 from fantasy_ai.domain.draft.auction_analysis import AuctionOverview, auction_overview
+from fantasy_ai.domain.draft.balanced_plan import BalancedGuide
 from fantasy_ai.domain.draft.bid_guide import calculate_bid_guide
 from fantasy_ai.domain.draft.models import (
     AuctionEvent,
+    BaselineReview,
     DraftBoard,
     DraftRules,
     DraftTeam,
     TeamBudget,
     active_sales,
     append_event,
+    clear_board,
     team_budget,
     validate_rules,
 )
@@ -101,12 +105,14 @@ class DraftService:
         files: ProjectionFiles,
         planning: PreparationService,
         history: HistoryRepository,
+        roster_solver: RosterSolver | None = None,
     ) -> None:
         self.repository = repository
         self.files = files
         self.planning = planning
         self.history = history
         self._lock = asyncio.Lock()
+        self.balanced = BalancedCalculator(roster_solver)
 
     async def view(self, league_id: int) -> DraftView:
         board = await asyncio.to_thread(self.repository.load_board, league_id, SEASON)
@@ -214,6 +220,93 @@ class DraftService:
                 baseline.calculation_version,
                 baseline.scenario.valuation_basis,
             )
+
+    async def remember_baseline(
+        self, league_id: int, revision: int, baseline: AuctionValueResult
+    ) -> DraftView:
+        async with self._lock:
+            board = await self._current(league_id, revision)
+            item = await asyncio.to_thread(self.repository.latest_projection, PROVIDER_SEASON)
+            s, r = baseline.scenario, board.rules
+            if (
+                not item
+                or item.id != baseline.evidence.projection_import_id
+                or baseline.status != "available"
+                or s.valuation_basis != "season_totals"
+                or (
+                    s.team_count,
+                    s.active_slots,
+                    s.bench_slots,
+                    s.ir_slots,
+                    s.budget_cents_per_team,
+                    s.minimum_price_cents,
+                )
+                != (
+                    r.team_count,
+                    r.active_slots,
+                    r.bench_slots,
+                    r.ir_slots,
+                    r.budget * 100,
+                    r.minimum_bid * 100,
+                )
+            ):
+                raise WorkspaceError(
+                    "Review the current import with saved-league season-total settings."
+                )
+            e = baseline.evidence
+            review = BaselineReview(
+                item.id,
+                board.rules,
+                e.scope_description,
+                e.coverage_reference,
+                e.eligibility_reference,
+                datetime.now(UTC),
+            )
+            await asyncio.to_thread(
+                self.repository.save_board,
+                replace(
+                    board,
+                    baseline_review=review,
+                    revision=board.revision + 1,
+                    updated_at=review.reviewed_at,
+                ),
+                board.revision,
+            )
+            return await self.view(league_id)
+
+    async def balanced_guide(
+        self,
+        league_id: int,
+        baseline: AuctionValueResult,
+        player_id: str,
+        board_revision: int,
+        plan_revision: int,
+    ) -> tuple[BalancedGuide, DraftBoard, DraftPlan]:
+        async with self._lock:
+            board = await asyncio.to_thread(self.repository.load_board, league_id, SEASON)
+            item = await asyncio.to_thread(self.repository.latest_projection, PROVIDER_SEASON)
+            plan = await asyncio.to_thread(self.planning.repository.load, league_id, SEASON)
+            if not board or not item or not plan:
+                raise WorkspaceError("Open your saved draft and import projections first.")
+            if board.revision != board_revision or plan.revision != plan_revision:
+                raise OperationBusy("Draft decisions changed. Reload the saved board.")
+            if item.id != baseline.evidence.projection_import_id:
+                raise OperationBusy("The projection import changed. Calculate a new baseline.")
+        # No application/database lock is held while the bounded CPU work runs.
+        guide = await self.balanced.calculate(baseline, board, item, plan, player_id)
+        current = await asyncio.to_thread(self.repository.load_board, league_id, SEASON)
+        current_plan = await asyncio.to_thread(self.planning.repository.load, league_id, SEASON)
+        current_import = await asyncio.to_thread(self.repository.latest_projection, PROVIDER_SEASON)
+        if (
+            not current
+            or current != board
+            or not current_plan
+            or current_plan != plan
+            or not current_import
+            or current_import.id != item.id
+        ):
+            raise OperationBusy("The draft changed during calculation. Reload to update prices.")
+        return guide, board, plan
 
     @staticmethod
     def _candidate(
@@ -533,6 +626,14 @@ class DraftService:
                 revision,
                 AuctionEvent(event_id, "void", datetime.now(UTC), voids=sale_id),
             )
+
+    async def reset(self, league_id: int, revision: int) -> DraftView:
+        async with self._lock:
+            board = await self._current(league_id, revision)
+            updated = clear_board(board, datetime.now(UTC))
+            if updated is not board:
+                await asyncio.to_thread(self.repository.save_board, updated, revision)
+            return await self.view(league_id)
 
     async def _event(self, league_id: int, revision: int, event: AuctionEvent) -> DraftView:
         board = await asyncio.to_thread(self.repository.load_board, league_id, SEASON)

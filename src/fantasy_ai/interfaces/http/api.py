@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from fantasy_ai.application.draft.service import DraftService
@@ -72,6 +73,9 @@ def create_api(
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"]
     )
+    # Compress large projection/valuation JSON for slower connections. The decoded
+    # DTO and the local request protections stay identical.
+    app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
     def workspace() -> WorkspaceService:
         return service

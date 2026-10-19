@@ -1,0 +1,22 @@
+.build-details {
+  display: grid;
+  gap: 14px;
+  padding-top: 8px;
+  font-size: 13px;
+  color: var(--showcase-ink);
+}
+.identity {
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.build-state {
+  color: var(--showcase-green);
+}
+.build-state.review {
+  color: var(--showcase-orange);
+}
+small {
+  color: var(--showcase-muted);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

@@ -1,8 +1,8 @@
 import { Injectable, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { Subscription } from 'rxjs';
-import { archiveError } from '../archive/archive-error';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Subscription, TimeoutError, timeout } from 'rxjs';
 import { DraftApi } from './draft-api';
 import { DraftRules, DraftView } from './draft.models';
 import { AuctionValueResult, AuctionValueScenario, ValuationRequest } from './valuation.models';
@@ -82,7 +82,11 @@ export class ValuationStore {
 
   updateContext(data: DraftView, leagueId: number) {
     if (!data.board) return;
-    const context = { leagueId, projection: data.projection, rules: data.board.rules };
+    const context = {
+      leagueId,
+      projection: data.projection ? { ...data.projection } : null,
+      rules: { ...data.board.rules, categories: [...data.board.rules.categories] },
+    };
     const key = JSON.stringify(context);
     if (key === this.key) return;
     const previous = this.context();
@@ -101,6 +105,21 @@ export class ValuationStore {
         },
         { emitEvent: false },
       );
+    const saved = data.board.baseline_review;
+    if (
+      saved &&
+      saved.import_id === data.projection?.id &&
+      JSON.stringify(Object.entries(saved.rules).sort()) ===
+        JSON.stringify(Object.entries(data.board.rules).sort())
+    ) {
+      this.preset.set('league');
+      this.presetControl.setValue('league', { emitEvent: false });
+      this.review.setValue(
+        { coverage: true, eligibility: true, scope: saved.scope_description },
+        { emitEvent: false },
+      );
+      this.calculate();
+    }
   }
 
   reset() {
@@ -148,14 +167,10 @@ export class ValuationStore {
     );
   }
 
-  calculate() {
-    if (!this.canCalculate()) return;
+  reviewedRequest(): ValuationRequest {
     const projection = this.context()!.projection!;
     const review = this.currentReview();
-    this.invalidate();
-    const sequence = this.sequence;
-    this.loading.set(true);
-    const request: ValuationRequest = {
+    return {
       import_id: projection.id,
       scenario: this.scenario(),
       coverage_reviewed: review.coverage,
@@ -164,9 +179,17 @@ export class ValuationStore {
       coverage_reference: `User reviewed all rows of import ${projection.id} for coverage.`,
       eligibility_reference: `User reviewed the candidate population of import ${projection.id} for eligibility.`,
     };
+  }
+
+  calculate() {
+    if (!this.canCalculate()) return;
+    const request = this.reviewedRequest();
+    this.invalidate();
+    const sequence = this.sequence;
+    this.loading.set(true);
     this.request = this.api
       .valuation(request)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(timeout(30_000), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
           if (sequence !== this.sequence) return;
@@ -176,7 +199,15 @@ export class ValuationStore {
         },
         error: (error) => {
           if (sequence !== this.sequence) return;
-          this.error.set(archiveError(error));
+          this.error.set(
+            error instanceof TimeoutError
+              ? 'The baseline request timed out after 30 seconds. Check your connection to the Mac, then retry.'
+              : error instanceof HttpErrorResponse && typeof error.error?.message === 'string'
+                ? error.error.message
+                : error instanceof HttpErrorResponse && error.status === 0
+                  ? 'Could not reach the baseline service. Check your connection to the Mac, then retry.'
+                  : 'The baseline could not be calculated. Please retry.',
+          );
           this.loading.set(false);
         },
       });

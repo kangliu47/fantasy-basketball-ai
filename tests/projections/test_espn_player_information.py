@@ -10,10 +10,11 @@ import duckdb
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import TypeAdapter
 
 from fantasy_ai.application.models import OperationBusy, WorkspaceError
 from fantasy_ai.application.projections.player_information import PlayerInformationService
-from fantasy_ai.domain.projections.player_information import ReviewedPlayerLink
+from fantasy_ai.domain.projections.player_information import PlayerInformation, ReviewedPlayerLink
 from fantasy_ai.infrastructure.draft_repository import DuckDBDraftRepository
 from fantasy_ai.infrastructure.espn_player_information import (
     ESPNPlayerInformationReader,
@@ -56,6 +57,7 @@ def article(identity: str, athlete: int, day: str) -> dict[str, Any]:
 
 def news() -> dict[str, Any]:
     return {
+        "fantasy": {"projection": "<p>Synthetic season outlook: a larger role is possible.</p>"},
         "rotowire": {
             "headline": "Synthetic practice report",
             "story": "A short synthetic update.",
@@ -93,6 +95,7 @@ def test_reader_verifies_metadata_filters_unrelated_news_and_preserves_original_
         2026, 10, 17, 4, 26, 47, tzinfo=UTC
     )
     assert capture.fantasy_update.attribution == "RotoWire via ESPN"
+    assert capture.season_outlook == "Synthetic season outlook: a larger role is possible."
     assert capture.news_captured_at and capture.fantasy_update.published_at
     assert capture.news_captured_at > capture.fantasy_update.published_at
     assert published_time("unrecognized timezone/date") is None
@@ -101,6 +104,24 @@ def test_reader_verifies_metadata_filters_unrelated_news_and_preserves_original_
         reader(wrong_identity=True).read(LINK)
     partial = reader(fail_news=True).read(LINK)
     assert partial.metadata and partial.news_error and partial.news_captured_at is None
+
+
+def test_outlook_only_feed_is_bounded_and_old_saved_captures_remain_readable() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        payload = {"fantasy": {"projection": "<p>" + "Season role. " * 100 + "</p>"}}
+        return httpx.Response(
+            200, json=payload if request.url.path.endswith("/overview") else metadata()
+        )
+
+    capture = ESPNPlayerInformationReader(transport=httpx.MockTransport(handle)).read(LINK)
+    assert capture.season_outlook and len(capture.season_outlook) <= 801
+    assert capture.season_outlook.endswith("…") and "<p>" not in capture.season_outlook
+    assert capture.news_error is None and capture.news_captured_at
+    assert capture.fantasy_update is None and capture.articles == ()
+    adapter = TypeAdapter(PlayerInformation)
+    legacy = adapter.dump_python(capture, mode="json")
+    legacy.pop("season_outlook")
+    assert adapter.validate_python(legacy).season_outlook is None
 
 
 def test_identity_setup_does_not_fetch_news() -> None:
@@ -151,11 +172,13 @@ def test_service_keeps_offline_cache_and_prior_news_on_partial_failure(tmp_path:
         fake.read.assert_not_called()
         saved = await service.refresh(candidate)
         assert saved.saved and saved.saved.fantasy_update
+        assert saved.saved.season_outlook
         before = await draft.view(12345)
         fake.read.return_value = reader(fail_news=True).read(LINK)
         partial = await service.refresh(candidate)
         assert partial.saved and partial.saved.fantasy_update == saved.saved.fantasy_update
         assert partial.saved.news_captured_at == saved.saved.news_captured_at
+        assert partial.saved.season_outlook == saved.saved.season_outlook
         assert partial.saved.news_error
         fake.read.side_effect = WorkspaceError("Synthetic network outage")
         with pytest.raises(WorkspaceError):

@@ -184,8 +184,7 @@ td small {
   font-size: 11px;
 }
 .inspector {
-  position: sticky;
-  top: 15px;
+  position: static;
 }
 .saved {
   font-size: 12px;
@@ -217,17 +216,26 @@ details p {
   margin: 10px 0 15px;
 }
 .source-row {
-  margin: 8px 0 16px;
+  margin: 8px 0 14px;
 }
 .rules {
   font-size: 13px;
   margin-bottom: 14px;
 }
 .team-choice {
-  margin: 10px 0 18px;
+  margin: 0;
+}
+.team-choice label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.team-choice label select {
+  margin-top: 0;
 }
 .team-choice select {
-  min-width: 200px;
+  min-width: 160px;
   max-width: 360px;
 }
 .candidate-scroll {
@@ -354,4 +362,30 @@ label > input[type='number'] {
   .team-choice label {
     max-width: 100%;
   }
+}
+
+.projection-details {
+  border-top: 1px solid var(--showcase-line);
+  padding-top: 14px;
+  margin-top: 16px;
+  > summary {
+    color: var(--showcase-heading);
+    cursor: pointer;
+    font-size: 13px;
+  }
+}
+
+.auction-setup {
+  font-size: 12px;
+  color: var(--showcase-muted);
+  margin: 8px 0;
+}
+.auction-setup > summary {
+  cursor: pointer;
+  color: var(--showcase-green-strong);
+}
+.auction-source {
+  font-size: 12px;
+  color: var(--showcase-muted);
+  margin: 8px 0;
 }

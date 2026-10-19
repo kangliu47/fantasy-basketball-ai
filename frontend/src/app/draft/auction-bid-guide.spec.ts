@@ -2,13 +2,17 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuctionBidGuide } from './auction-bid-guide';
-import { BidGuideStore } from './bid-guide-store';
-import { reviewedBaseline, sampleBidGuide } from './bid-guide.fixture';
+import { BalancedGuideStore } from './balanced-guide-store';
+import { reviewedBaseline } from './bid-guide.fixture';
+import { sampleBalanced } from './balanced-guide.fixture';
 import { completeDraft } from './valuation.fixture';
 
-describe('Simple auction bid guide', () => {
-  let fixture: ComponentFixture<AuctionBidGuide>, http: HttpTestingController, store: BidGuideStore;
-  const endpoint = '/api/draft/bid-guide';
+describe('Balanced auction prices and request lifecycle', () => {
+  let fixture: ComponentFixture<AuctionBidGuide>,
+    http: HttpTestingController,
+    store: BalancedGuideStore;
+  const endpoint = '/api/draft/balanced-guide';
+  const pid = completeDraft().candidates[0].id;
   const settle = async () => {
     await fixture.whenStable();
     fixture.detectChanges();
@@ -16,141 +20,149 @@ describe('Simple auction bid guide', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AuctionBidGuide],
-      providers: [provideHttpClient(), provideHttpClientTesting(), BidGuideStore],
+      providers: [provideHttpClient(), provideHttpClientTesting(), BalancedGuideStore],
     }).compileComponents();
     fixture = TestBed.createComponent(AuctionBidGuide);
     http = TestBed.inject(HttpTestingController);
-    store = TestBed.inject(BidGuideStore);
-    fixture.componentRef.setInput('data', completeDraft());
-    fixture.componentRef.setInput('playerId', completeDraft().candidates[0].id);
-    fixture.componentRef.setInput('baseline', reviewedBaseline());
+    store = TestBed.inject(BalancedGuideStore);
+    fixture.componentRef.setInput('playerId', pid);
+    fixture.componentRef.setInput('baselineCents', 3800);
+    fixture.componentRef.setInput('baselineReady', true);
+    store.update(completeDraft(), reviewedBaseline(), pid, []);
     await settle();
   });
   afterEach(() => {
     fixture.destroy();
     http.verify();
   });
-
-  it('asks for an explicit reserve then shows two prices with the extra details collapsed', async () => {
-    const initial = http.expectOne(endpoint);
-    expect(initial.request.body.reserve_for_others).toBeNull();
-    expect(initial.request.body).not.toHaveProperty('saved_ceiling');
-    const needsReserve = sampleBidGuide();
-    Object.assign(needsReserve.guide, {
-      status: 'reserve_needed',
-      aim_bid: null,
-      stop_bid: null,
-      message: 'Choose how much to protect for other players.',
-      reserve_for_others: null,
-    });
-    initial.flush(needsReserve);
+  it('compares manual bids with the target, stop and exception guideline without writing', async () => {
+    http.expectOne(endpoint).flush(sampleBalanced());
     await settle();
-    expect(fixture.nativeElement.querySelector('details').open).toBe(true);
-    expect(
-      fixture.nativeElement.querySelector('[aria-label="Aim and stopping prices"]'),
-    ).toBeNull();
-    store.form.controls.reserve.setValue(28);
-    store.apply();
-    const applied = http.expectOne(endpoint);
-    expect(applied.request.body.reserve_for_others).toBe(28);
-    expect(applied.request.headers.get('X-Fantasy-Client')).toBe('local-ui');
-    applied.flush(sampleBidGuide());
+    const component = fixture.componentInstance;
+    component.nextBid.set('30');
+    expect(component.bidCheck()?.text).toBe('Within target');
+    component.nextBid.set('31');
+    expect(component.bidCheck()?.text).toBe('Stretch · below stop');
+    component.nextBid.set('32');
+    expect(component.bidCheck()?.text).toBe('At stop · no higher');
+    component.nextBid.set('33');
+    expect(component.bidCheck()?.text).toBe('Pass at $33');
+    component.nextBid.set('1.5');
+    expect(component.bidCheck()?.text).toContain('whole dollars');
+    store.retry(pid);
+    const premium = sampleBalanced();
+    Object.assign(premium.guide, { aim_bid: 44, stop_bid: 45, guideline_exception: true });
+    http.expectOne(endpoint).flush(premium);
     await settle();
-    expect(fixture.nativeElement.textContent).toContain('$23 or less');
-    expect(fixture.nativeElement.textContent).toContain('$26');
-    expect(
-      [...fixture.nativeElement.querySelectorAll('details')].every(
-        (d: HTMLDetailsElement) => !d.open,
-      ),
-    ).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Saved personal ceiling');
-    http.expectNone('/api/draft/target');
-    http.expectNone('/api/draft/sales');
+    component.nextBid.set('42');
+    expect(component.bidCheck()?.text).toBe('Review $40 exception');
+    component.nextBid.set('46');
+    expect(component.bidCheck()?.text).toBe('Pass at $46');
+    fixture.componentRef.setInput('pending', true);
+    await settle();
+    expect(component.bidCheck()?.text).toBe('Wait for current prices');
+    fixture.componentRef.setInput('boardRevision', 2);
+    await settle();
+    expect(component.nextBid()).toBe('');
   });
-
-  it('updates on ledger and ceiling revisions, cancels stale requests and preserves planning edits', async () => {
+  it('does not offer a bid cue from a different board revision', async () => {
+    http.expectOne(endpoint).flush(sampleBalanced());
+    const data = completeDraft();
+    data.board!.revision++;
+    fixture.componentRef.setInput('data', data);
+    await settle();
+    fixture.componentInstance.nextBid.set('10');
+    expect(fixture.componentInstance.bidCheck()?.text).toBe('No current buying range');
+    expect(fixture.componentInstance.usable()).toBe(false);
+  });
+  it('shows three prices without a manual reserve and collapses supporting explanations', async () => {
+    const request = http.expectOne(endpoint);
+    expect(request.request.headers.get('X-Fantasy-Client')).toBe('local-ui');
+    expect(request.request.body).not.toHaveProperty('reserve_for_others');
+    request.flush(sampleBalanced());
+    await settle();
+    const prices = fixture.nativeElement.querySelector('.prices').textContent;
+    expect(prices).toContain('$38.00');
+    expect(prices).toContain('$30');
+    expect(prices).toContain('$32');
+    expect(fixture.nativeElement.querySelector('details').open).toBe(false);
+    http.expectNone('/api/draft/sales');
+    http.expectNone('/api/draft/target');
+  });
+  it('invalidates all cached ranges on board/plan changes and rejects mismatched envelopes', async () => {
     const first = http.expectOne(endpoint);
     const updated = completeDraft();
     updated.board!.revision++;
-    fixture.componentRef.setInput('data', updated);
-    await settle();
+    store.update(updated, reviewedBaseline(), pid, []);
     expect(first.cancelled).toBe(true);
     const second = http.expectOne(endpoint);
     expect(second.request.body.board_revision).toBe(updated.board!.revision);
-    second.flush(sampleBidGuide(updated));
+    second.flush(sampleBalanced(updated));
     await settle();
-    store.form.controls.reserve.setValue(35);
-    store.form.markAsDirty();
-    const changedPlan = {
-      ...updated,
-      plan: { ...updated.plan!, revision: updated.plan!.revision + 1 },
-    };
-    fixture.componentRef.setInput('data', changedPlan);
+    expect(store.results().has(pid)).toBe(true);
+    updated.plan!.revision++;
+    store.update(updated, reviewedBaseline(), pid, []);
+    const wrong = sampleBalanced(updated);
+    wrong.plan_revision--;
+    http.expectOne(endpoint).flush(wrong);
     await settle();
-    const third = http.expectOne(endpoint);
-    expect(third.request.body.plan_revision).toBe(changedPlan.plan.revision);
-    expect(store.form.controls.reserve.value).toBe(35);
-    third.flush(sampleBidGuide(changedPlan));
-    await settle();
-    expect(fixture.nativeElement.textContent).toContain('Planning edits are not applied yet.');
-    fixture.componentRef.setInput('baseline', null);
-    await settle();
-    expect(fixture.nativeElement.textContent).toContain('Calculate the baseline in Prepare first');
-    expect(
-      fixture.nativeElement.querySelector('[aria-label="Aim and stopping prices"]'),
-    ).toBeNull();
+    expect(store.results().size).toBe(0);
+    expect(store.errors().get(pid)).toContain('context changed');
   });
-
-  it('hides advice during pick submission and failed reads, and offers a reload without writes', async () => {
-    http.expectOne(endpoint).flush(sampleBidGuide());
+  it('pauses prices during writes, recovers errors and reuses only current cached results', async () => {
+    http.expectOne(endpoint).flush(sampleBalanced());
     await settle();
     fixture.componentRef.setInput('pending', true);
     await settle();
-    expect(
-      fixture.nativeElement.querySelector('[aria-label="Aim and stopping prices"]'),
-    ).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.prices strong')[1].textContent.trim()).toBe(
+      '—',
+    );
     fixture.componentRef.setInput('pending', false);
-    await settle();
-    store.calculate();
+    store.retry(pid);
     http
       .expectOne(endpoint)
-      .flush({ message: 'Synthetic stale board' }, { status: 409, statusText: 'Conflict' });
+      .flush({ message: 'Synthetic conflict' }, { status: 409, statusText: 'Conflict' });
     await settle();
-    expect(fixture.nativeElement.textContent).toContain('Synthetic stale board');
-    expect(
-      fixture.nativeElement.querySelector('[aria-label="Aim and stopping prices"]'),
-    ).toBeNull();
-    let reloads = 0;
-    fixture.componentInstance.reload.subscribe(() => reloads++);
-    [...fixture.nativeElement.querySelectorAll('button')]
-      .find((b: HTMLButtonElement) => b.textContent?.includes('Reload saved board'))
-      .click();
-    expect(reloads).toBe(1);
-    http.expectNone('/api/draft/sales');
-  });
-
-  it('rejects a mismatched result and resets a considered bid on player change', async () => {
-    const initial = http.expectOne(endpoint);
-    const wrong = sampleBidGuide();
-    wrong.board_revision++;
-    initial.flush(wrong);
+    expect(fixture.nativeElement.textContent).toContain('Synthetic conflict');
+    store.retry(pid);
+    http.expectOne(endpoint).flush(sampleBalanced());
     await settle();
-    expect(store.value()).toBeNull();
-    expect(store.error()).toContain('context changed');
-    store.form.setValue({ reserve: 28, discount: 20, nextBid: 24 });
-    store.apply();
-    http.expectOne(endpoint).flush(sampleBidGuide());
-    await settle();
-    fixture.componentRef.setInput('playerId', completeDraft().candidates[1].id);
-    await settle();
-    const changed = http.expectOne(endpoint);
-    expect(changed.request.body.next_bid).toBeNull();
-    expect(changed.request.body.reserve_for_others).toBe(28);
-    changed.flush(sampleBidGuide(completeDraft(), completeDraft().candidates[1].id));
-    await settle();
-    store.form.controls.reserve.setValue(0.5);
-    store.apply();
-    expect(store.inputError()).toContain('whole-dollar');
+    store.update(completeDraft(), reviewedBaseline(), pid, []);
     http.expectNone(endpoint);
+    fixture.componentRef.setInput('baselineReady', false);
+    store.update(completeDraft(), null, pid, []);
+    await settle();
+    expect(fixture.nativeElement.querySelectorAll('.prices strong')[2].textContent.trim()).toBe(
+      '—',
+    );
+  });
+  it('keeps exclusions and time limits distinct from zero-dollar recommendations', async () => {
+    const value = sampleBalanced();
+    Object.assign(value.guide, {
+      status: 'excluded_shooting',
+      message: 'Pass for foundation',
+      aim_bid: null,
+      stop_bid: null,
+    });
+    http.expectOne(endpoint).flush(value);
+    await settle();
+    expect(fixture.nativeElement.textContent).toContain('Pass for foundation');
+    expect(fixture.nativeElement.querySelectorAll('.prices strong')[0].textContent).toContain(
+      '$38.00',
+    );
+    store.retry(pid);
+    const timed = sampleBalanced();
+    Object.assign(timed.guide, {
+      status: 'unproved',
+      message: 'No certified stop',
+      aim_bid: null,
+      stop_bid: null,
+    });
+    http.expectOne(endpoint).flush(timed);
+    await settle();
+    expect(fixture.nativeElement.textContent).toContain('Retry prices');
+    expect(fixture.nativeElement.querySelectorAll('.prices strong')[2].textContent.trim()).toBe(
+      '—',
+    );
   });
 });

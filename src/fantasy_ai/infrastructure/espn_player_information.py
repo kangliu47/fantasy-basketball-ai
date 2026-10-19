@@ -210,10 +210,20 @@ class ESPNPlayerInformationReader:
             try:
                 payload = self._read(client, f"{BASE}/{link.espn_id}/overview")
                 now = datetime.now(UTC)
-                if not any(key in payload for key in ("rotowire", "news")):
+                outlook = text(obj(payload.get("fantasy")).get("projection"), 800) or None
+                if not any(key in payload for key in ("rotowire", "news")) and not outlook:
                     raise WorkspaceError("ESPN news has an unsupported format. Saved news is kept.")
                 fantasy, articles = parse_news(payload, link.espn_id)
-                return PlayerInformation(link.espn_id, metadata, fantasy, articles, now, None, now)
+                return PlayerInformation(
+                    link.espn_id,
+                    metadata,
+                    fantasy,
+                    articles,
+                    now,
+                    None,
+                    now,
+                    season_outlook=outlook,
+                )
             except WorkspaceError as error:
                 return PlayerInformation(
                     link.espn_id, metadata, None, (), None, str(error), datetime.now(UTC)

@@ -20,7 +20,89 @@ about building with an AI coding agent and managing a personal product.
 - [Current personal-product direction](../personal-product-direction.md): the
   decisions that now govern the backlog.
 
-## Simple bidding guidance delivery — October 18, 2026, latest
+## Auction decision density — October 19, 2026, latest
+
+User decision: regular desktop monitors are the auction target. Assistant synthesis:
+search and price guidance need to remain visible together; reducing explanatory
+text alone leaves too much navigation cost. A manual bid comparison should name
+an exact-stop bid explicitly, retain uncertainty, and never imply a live provider
+feed or a guaranteed purchase. Short source headlines can stay visible while
+long reports expand. See [approved review](../auction-night-ux-review.md).
+
+## Completion feasibility versus bidding certainty — October 19, 2026, latest
+
+The [balanced price delivery](../qa/2026-10-19-balanced-prices-delivery.md) separates
+original value, room cash allocation and personal completion limits. A maximum
+candidate price can bind at its reference while many completion costs remain
+possible: label the returned witness reserve as an example, not a proved minimum.
+Prefilling a recorded price is data-entry convenience, never evidence of a sale.
+
+## Confirmed resets and ambiguous responses — October 19, 2026, latest
+
+The [delivery QA](../qa/2026-10-19-clear-board-delivery.md) tests a reset that saves
+but returns an error. Recovery must reload the authoritative revision before a
+new confirmation. API readiness alone does not establish that the visible action
+is connected; verify the built interface using a disposable board.
+
+## Calculation, transport and pending states — October 19, 2026, latest
+
+The [baseline QA lesson](balanced-auction-ceilings.md) separates arithmetic time,
+compressed transfer, browser review state and an unanswered HTTP request. A
+synthetic mobile viewport cannot establish the actual phone network's behavior.
+
+## Source outlook at the decision — October 19, 2026, latest
+
+The [player-context lesson](balanced-auction-ceilings.md) records the approved
+news-first inspector, a previously omitted source field, independently meaningful
+dates, and failed-check cooldown alongside successful-cache freshness.
+
+## Practice reset and evidence correction — October 19, 2026, latest
+
+The [reset lesson](balanced-auction-ceilings.md) distinguishes disposable tracking
+from actual historical purchases, requires current recommendations to follow the
+cleared state, and protects newer picks from stale reset confirmations.
+
+## Established-star nominations — October 19, 2026, latest
+
+[Established stars and nomination evidence](balanced-auction-ceilings.md)
+distinguishes low projected-game value, current market discounts, earlier winning
+bids and conditional nomination tactics. A hypothetical games sensitivity must
+not silently become a new bid ceiling or an assumed waiver-recovery value.
+
+## Report visibility — October 19, 2026
+
+The [report-rendering lesson](balanced-auction-ceilings.md) records why a complete
+embedded dataset can still leave an empty table, and why generated-file checks
+and a useful script-free view are necessary alongside numerical validation.
+
+## Balanced auction ceilings — October 18, 2026
+
+[Balanced auction ceilings](balanced-auction-ceilings.md) records the user's
+report-first scope, separate suitability policy, conditional completion limits,
+spending-shape exceptions and the boundary between model verification and
+predictive validation. Private player rows and league evidence remain ignored.
+
+## Supplementary guidance and interaction — October 18, 2026
+
+User decision: approve the compact Prepare/Auction mock and implement it.
+Assistant synthesis from the [delivered UI](../qa/2026-10-18-ui-remediation.md):
+move methods to accessible help while retaining dates, warnings and recovery at
+the decision. A hover trigger and click trigger can interfere when both toggle
+visibility; explicitly showing on click preserves access after hover. A small
+global detail control can also pull a large dialog dependency into startup;
+deferring the dialog keeps the initial bundle within the existing budget.
+
+## Recovery at the point of action — October 18, 2026
+
+Assistant synthesis from the [QA repairs](../qa/2026-10-18-ui-remediation.md): a
+page-level error cannot recover an action inside a modal that hides the page.
+Show recovery beside the failed action. Cache presence is also not cache success;
+retain successful evidence while allowing failed first reads to retry. A failed
+read does not establish missing identity setup. The user's request to reduce
+explanatory text is a product decision; the proposed info-icon layout still needs
+its own mock approval.
+
+## Simple bidding guidance delivery — October 18, 2026
 
 The approved [bid-guide delivery](../auction-bid-guide-design-review.md) uses two
 prices and progressive disclosure. An explicit reserve is preferable to silently

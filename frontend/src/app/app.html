@@ -1,7 +1,5 @@
 <header class="topbar">
-  <div class="brand">
-    Fantasy Basketball<span class="brand-subtitle">Your league workspace</span>
-  </div>
+  <div class="brand">Fantasy Basketball</div>
   <div class="header-actions">
     <div class="local-label"><span></span>Local · ESPN read-only</div>
     <button
@@ -11,9 +9,9 @@
     >
       Connection
     </button>
+    <app-build-status />
   </div>
 </header>
-<app-build-status />
 <main>
   @if (store.state(); as state) {
     @if (state.selection) {
@@ -92,14 +90,26 @@
         </nav>
       }
     }
-    <section class="intro">
+    <section class="intro" [class.compact-intro]="showingDraft()">
       <div>
-        <p class="eyebrow">{{ introduction().eyebrow }}</p>
-        <h1>{{ introduction().title }}</h1>
-        @if (state.league && !showingEvidence()) {
+        @if (!showingDraft()) {
+          <p class="eyebrow">{{ introduction().eyebrow }}</p>
+        }
+        <h1>
+          {{
+            showingDraft()
+              ? activeSection() === 'auction'
+                ? 'Auction companion'
+                : 'Prepare'
+              : introduction().title
+          }}
+        </h1>
+        @if (state.league && !showingEvidence() && !showingDraft()) {
           <p class="league-context">{{ state.league.name }}</p>
         }
-        <p class="intro-copy">{{ introduction().copy }}</p>
+        @if (!showingDraft()) {
+          <p class="intro-copy">{{ introduction().copy }}</p>
+        }
       </div>
       @if (showingEvidence() || activeSection() === 'connection') {
         <div class="connection-actions">
