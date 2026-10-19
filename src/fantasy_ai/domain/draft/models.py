@@ -54,6 +54,16 @@ class AuctionEvent:
 
 
 @dataclass(frozen=True)
+class BaselineReview:
+    import_id: str
+    rules: DraftRules
+    scope_description: str
+    coverage_reference: str
+    eligibility_reference: str
+    reviewed_at: datetime
+
+
+@dataclass(frozen=True)
 class DraftBoard:
     id: str
     league_id: int
@@ -66,6 +76,7 @@ class DraftBoard:
     events: tuple[AuctionEvent, ...]
     revision: int
     updated_at: datetime
+    baseline_review: BaselineReview | None = None
 
 
 @dataclass(frozen=True)
@@ -93,6 +104,13 @@ def team_budget(board: DraftBoard, team_id: str) -> TeamBudget:
         slots,
         max(0, remaining - board.rules.minimum_bid * (slots - 1)) if slots > 0 else 0,
     )
+
+
+def clear_board(board: DraftBoard, at: datetime) -> DraftBoard:
+    """Start fresh tracking; earlier immutable board revisions retain the audit trail."""
+    if not board.events:
+        return board
+    return replace(board, events=(), revision=board.revision + 1, updated_at=at)
 
 
 def append_event(board: DraftBoard, event: AuctionEvent) -> DraftBoard:

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Streamlined auction workspace · synthetic preview</title>
+  <link rel="stylesheet" href="showcase-theme.css">
+  <style>
+    .showcase-page { max-width: 1400px; padding-top: 12px; }
+    .showcase-header { padding: 16px 26px; gap: 16px; flex-wrap: wrap; }
+    .row, .nav, .metrics, .section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .between, .section-head { justify-content: space-between; }
+    .nav { margin: 8px 0; }
+    .nav button { border-color: transparent; padding: 7px 12px; }
+    h1 { font-size: 24px; letter-spacing: -.03em; margin: 8px 0; }
+    h2 { font-size: 18px; margin: 0; }
+    h3 { font-size: 15px; margin: 14px 0 8px; }
+    p { line-height: 1.5; }
+    small, .muted, label { color: var(--showcase-muted); font-size: 12px; }
+    .showcase-card { padding: 18px; min-width: 0; }
+    .showcase-banner { margin: 0 0 10px; padding: 8px 12px; }
+    .showcase-banner label { margin: 0; }
+    .metrics { align-items: stretch; margin: 16px 0; gap: 28px; }
+    .metrics strong { display: block; color: var(--showcase-heading); font-size: 24px; font-variant-numeric: tabular-nums; }
+    .metrics small { display: block; margin-bottom: 6px; }
+    .grid { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(300px, 1.3fr); gap: 14px; align-items: start; }
+    .grid.auction { grid-template-columns: minmax(210px, .85fr) minmax(290px, 1.3fr) minmax(240px, 1fr); }
+    .teams { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 12px; }
+    .team { text-align: left; padding: 14px; white-space: normal; }
+    .team strong, .team small { display: block; margin: 5px 0; }
+    .team strong { font-size: 19px; }
+    .team small { color: inherit; }
+    .spend-track { height: 7px; background: var(--showcase-green-soft); margin: 10px 0; border-radius: 4px; }
+    .spend-track i { display: block; height: 100%; background: var(--showcase-green); border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+    th, td { text-align: left; padding: 12px 7px; border-bottom: 1px solid var(--showcase-line); }
+    th { color: var(--showcase-muted); font-weight: 500; }
+    td small { display: block; margin-top: 4px; }
+    .player { border: 0; padding: 0; text-align: left; background: transparent; color: var(--showcase-blue); font: inherit; cursor: pointer; }
+    tr.selected { background: var(--showcase-blue-soft); }
+    .list { margin: 12px 0; }
+    .list > button { display: block; width: 100%; text-align: left; margin: 7px 0; }
+    .list small { display: block; margin-top: 4px; }
+    label { display: block; margin: 12px 0; }
+    input, select, textarea { background: var(--showcase-surface); color: var(--showcase-ink); border: 1px solid var(--showcase-control-line); border-radius: 8px; padding: 9px; max-width: 100%; }
+    label > input, label > textarea { display: block; width: 100%; margin-top: 6px; }
+    textarea { min-height: 70px; resize: vertical; }
+    .primary { background: var(--showcase-green-strong); color: var(--showcase-surface); }
+    .primary:hover { background: var(--showcase-green); }
+    .icon { display: inline-flex; justify-content: center; align-items: center; min-width: 28px; min-height: 28px; border: 0; border-radius: 50%; color: var(--showcase-muted); background: transparent; font-size: 16px; }
+    #help { position: fixed; z-index: 20; max-width: min(320px,calc(100vw - 24px)); padding: 12px 14px; border: 1px solid var(--showcase-control-line); border-radius: 8px; background: var(--showcase-surface); color: var(--showcase-ink); box-shadow: 0 4px 18px #183c3020; font-size: 13px; line-height: 1.5; }
+    .error { border-left: 3px solid var(--showcase-red); padding: 12px; background: var(--showcase-surface-soft); margin: 12px 0; }
+    .warning { color: var(--showcase-red); font-size: 12px; }
+    .prices { display: flex; gap: 35px; margin: 16px 0; }
+    .prices strong { display: block; font-size: 28px; font-variant-numeric: tabular-nums; }
+    details { margin: 14px 0; }
+    summary { cursor: pointer; color: var(--showcase-green-strong); font-size: 13px; }
+    .source { margin: 4px 0 8px; }
+    .result { margin-top: 14px; }
+    dialog { color: var(--showcase-ink); background: var(--showcase-surface); border: 1px solid var(--showcase-line); border-radius: 14px; width: min(480px,calc(100vw - 30px)); max-height: calc(100dvh - 40px); overflow-y: auto; }
+    dialog::backdrop { background: #183c3055; }
+    .right { text-align: right; }
+    [hidden] { display: none !important; }
+    @media(max-width: 1000px) { .grid.auction { grid-template-columns: 1fr 1fr; } .grid.auction #team-board { grid-column: 1 / -1; grid-row: 2; } .grid.auction aside { grid-column: 2; grid-row: 1; } }
+    @media(max-width: 640px) { .grid, .grid.auction { grid-template-columns: minmax(0,1fr); } .grid.auction aside { grid-column: 1; grid-row: 2; } .grid.auction #team-board { grid-column: 1; grid-row: 3; } .showcase-page { padding: 15px; } .metrics { gap: 18px; } .teams { grid-template-columns: minmax(0,1fr); } th, td { padding: 10px 4px; } .nav { gap: 2px; } .nav button { padding: 9px; } }
+    @media(pointer:coarse) { .icon, button { min-height: 44px; } input, select, textarea { font-size: 16px; } }
+  </style>
+</head>
+<body>
+  <header class="showcase-header">
+    <div class="showcase-brand">Fantasy Basketball</div>
+    <div class="row"><span class="showcase-status"><i></i>Local · ESPN read-only</span><button class="showcase-button" data-panel="connection">Connection</button><button class="icon" aria-label="Build information" data-help="UI v0.2.0 · synthetic review build. In the app, this opens loaded build identity, version checking, and build dates. A newer build or failed version check remains visible.">ⓘ</button></div>
+  </header>
+  <main class="showcase-page">
+    <div class="showcase-banner row between"><span>Synthetic preview · changes stay in this preview</span><label>Preview scenario <select id="scenario"><option value="ready">Ready</option><option value="empty">No matching players</option><option value="espn-error">Saved ESPN read fails</option><option value="undo-error">Undo fails in team dialog</option></select></label></div>
+    <nav class="nav" aria-label="Main workspaces"><button class="showcase-button active" data-workspace="draft" aria-current="page">Auction prep</button><button class="showcase-button" data-workspace="live">Live season</button><button class="showcase-button" data-workspace="history">Historical patterns</button></nav>
+    <nav class="nav" id="draft-nav" aria-label="Auction prep"><button class="showcase-button active" data-mode="prepare" aria-current="page">Prepare</button><button class="showcase-button" data-mode="auction">Auction companion</button></nav>
+    <div id="other" hidden class="showcase-card"></div>
+    <div id="draft">
+      <div class="row between"><h1 id="title">Prepare</h1><span id="manual" class="showcase-scope" hidden>Manual tracking · no live sync</span></div>
+      <div class="row between source">
+        <small>Hashtag · 239 players · per game · source Oct 18, 2026 <button class="icon" aria-label="Projection source details" data-help="Synthetic complete provider list for this mock. Capture: Oct 18, 2026 at noon; imported at 12:05. Provider coverage does not establish ESPN eligibility. Projection and collection dates are different.">ⓘ</button></small>
+        <div class="row"><label>My draft team <select aria-label="My draft team"><option>Synthetic North</option></select></label><button class="icon" aria-label="League rules" data-help="12 teams, $200 each, eight-category ROTO, no keepers. 10 active plus 3 bench purchases; 2 IR spots add no draft demand. Position eligibility remains unverified. Planning rules are separate from imported ESPN settings.">ⓘ</button><button class="showcase-button" id="coverage">Data &amp; coverage</button></div>
+      </div>
+      <section id="baseline" class="showcase-card">
+        <div class="section-head"><h2>Auction value baseline <button class="icon" aria-label="How baseline allocations work" data-help="Static pre-draft allocation from the reviewed projection population, league categories, and purchase depth. It differs from your personal ceiling and legal maximum. Unpriced players are outside the modeled group; missing evidence is not zero.">ⓘ</button></h2><button class="showcase-button" id="review-baseline">Review calculation</button></div>
+        <div class="row"><strong>156 purchases · $2,400 allocated</strong><span class="showcase-scope">Population reviewed</span></div>
+      </section>
+      <section id="budget" class="metrics" aria-label="Auction budget summary" hidden>
+        <div><small>My remaining</small><strong id="remaining">$200</strong></div><div><small>My open slots</small><strong id="slots">13</strong></div><div><small>Room remaining <button class="icon" aria-label="Room budget details" data-help="Includes all unspent cash, including money on full teams. The bidding reference excludes cash stranded on full teams. Average left per slot is a guide; the legal maximum reserves the minimum bid for every other open slot.">ⓘ</button></small><strong id="room">$2,400</strong></div>
+      </section>
+      <div id="content" class="grid" style="margin-top:14px">
+        <section class="showcase-card">
+          <div class="section-head"><h2 id="pool-heading">Projected candidates</h2><button class="icon" aria-label="Using the player list" data-help="Select a player to inspect contributions and save a target in Prepare. In Auction companion, select a player and choose Record pick. Dropping a player on a team opens a price check; it never saves a pick by itself.">ⓘ</button></div>
+          <label>Find a player<input id="search" type="search" placeholder="Name, NBA team or position"></label>
+          <div class="row"><label>Show <select id="filter"><option value="all">All available</option><option value="targets">My targets</option></select></label><small>ESPN eligibility unverified</small></div>
+          <div id="players"></div>
+          <button id="outside" class="showcase-button" hidden>Record outside import</button>
+        </section>
+        <section id="team-board" class="showcase-card" hidden><div class="section-head"><h2>Team board</h2><button class="icon" aria-label="Team board details" data-help="Team cards show remaining money and open purchase slots. Open a team to inspect purchases and undo a recorded result. The app tracks final results you enter; it never places an ESPN bid.">ⓘ</button></div><div id="teams" class="teams"></div></section>
+        <aside class="showcase-card">
+          <div class="section-head"><h2 id="player-name">Alpha Example</h2><button class="icon" aria-label="Player evidence details" data-help="Projection context compares compatible saved imports by stable player identity. First import and unknown values remain explicit. A provider comment does not establish why projections changed or whether that information was included.">ⓘ</button></div>
+          <p class="muted" id="player-meta">ABC · PG · 72 GP · 31.2 MPG</p>
+          <small>First comparable projection · captured Oct 18</small>
+          <div id="prepare-decision">
+            <div class="prices"><div><small>Baseline</small><strong id="allocation">$28.50</strong></div></div>
+            <label>My ceiling ($)<input id="ceiling" type="number" min="1" max="200" value="30"></label>
+            <label>My reason<textarea id="reason" placeholder="Why this player fits my plan"></textarea></label>
+            <div class="row"><button class="showcase-button primary" id="save-target">Save target</button><button class="icon" aria-label="Personal ceiling details" data-help="Your personal ceiling is saved with your reason. Copying a rounded baseline into it is an explicit decision. A legal bid limit may be lower during the auction.">ⓘ</button></div>
+          </div>
+          <div id="auction-decision" hidden>
+            <h3>Bidding guide <button class="icon" aria-label="Bidding guide method" data-help="Aim applies your discount preference to the remaining-auction reference. Stop is constrained by your reserve, saved ceiling, and legal maximum. The discount is a preference, not a probability or a predicted clearing price.">ⓘ</button></h3>
+            <p id="advice" class="muted">Set a reserve to get a bidding range.</p>
+            <div id="guide-prices" class="prices" hidden><div><small>Aim to pay</small><strong>$22</strong></div><div><small>Stop at</small><strong>$28</strong></div></div>
+            <details id="reserve-details" open><summary>Set my roster reserve</summary><label>Protect for other players ($)<input id="reserve" type="number" min="12" max="199" placeholder="Enter your total reserve"></label><button class="showcase-button" id="apply-reserve">Apply to guide</button></details>
+            <button class="showcase-button primary" id="record">Record pick</button>
+          </div>
+          <details><summary>Projection contributions</summary><p>FG% .490 · FT% .820 · 3PM 2.4 · PTS 21.1 · REB 4.2 · AST 6.8 · STL 1.1 · BLK 0.3</p><small>Synthetic per-game inputs</small></details>
+          <details open><summary>ESPN updates <button class="icon" aria-label="ESPN update details" data-help="Public ESPN information uses a reviewed identity link and needs no private league sign-in. Saved information loads locally. Refresh is explicit. Provider status is not medical clearance, and a new capture date does not make an old article new.">ⓘ</button></summary><div id="espn"></div></details>
+          <details><summary>Hashtag notes <button class="icon" aria-label="Hashtag notes details" data-help="Explicit checks use the dedicated Hashtag browser. Notes are independent of ESPN updates and do not change projections or your ceiling.">ⓘ</button></summary><p class="muted">No Hashtag note saved. This does not mean there is no news.</p><button class="showcase-button" id="check-notes">Check notes</button></details>
+        </aside>
+      </div>
+      <section id="results" class="showcase-card result" hidden><h2>Recent auction results</h2><div id="sales"></div><details><summary>Correction history</summary><div id="corrections"></div></details></section>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
+  <div id="help" role="tooltip" hidden></div>
+  <dialog id="pick-dialog"><form id="pick-form"><h2>Record auction pick</h2><label>Player<input id="pick-name" required maxlength="100"></label><label>Picked by<select id="pick-team"><option value="0">Synthetic North</option><option value="1">Synthetic South</option></select></label><p id="legal" class="muted"></p><label>Final price ($)<input id="pick-price" type="number" required min="1" step="1"></label><p class="muted">Check the final ESPN result before recording.</p><div class="row"><button type="button" class="showcase-button" data-close="pick-dialog">Cancel</button><button class="showcase-button primary">Record pick</button></div></form></dialog>
+  <dialog id="team-dialog"><div class="section-head"><h2 id="team-title"></h2><button class="showcase-button" data-close="team-dialog">Close</button></div><div id="team-error" class="error" role="alert" hidden>Undo failed. Your saved pick is retained. Review saved data, then retry.<p><button class="showcase-button" id="reload-team">Reload saved data</button></p></div><div id="team-picks"></div></dialog>
+  <dialog id="coverage-dialog"><h2>Data &amp; coverage</h2><p>Hashtag · 239 synthetic players · provider-full population reviewed for this preview.</p><p class="warning">ESPN eligibility is unverified.</p><p>Source Oct 18 · captured noon · imported 12:05 · per-game inputs.</p><button class="showcase-button" data-close="coverage-dialog">Close</button></dialog>
+  <dialog id="baseline-dialog"><h2>Review calculation</h2><p>Population and eligibility review stay explicit before calculating in the app.</p><p>Eight equally weighted categories · 156 modeled purchases · $2,400 allocated.</p><p class="muted">Static baseline, personal ceiling, and legal bid limit are separate quantities.</p><button class="showcase-button" data-close="baseline-dialog">Close</button></dialog>
+  <script>
+    const $ = id => document.getElementById(id);
+    const players = [{id:'alpha',name:'Alpha Example',meta:'ABC · PG · 72 GP · 31.2 MPG',baseline:'$28.50'}, {id:'beta',name:'Beta Example',meta:'XYZ · C · 70 GP · 29.1 MPG',baseline:'$24.20'}, {id:'gamma',name:'Gamma Example',meta:'DEF · SF · 74 GP · 30.5 MPG',baseline:'$18.10'}];
+    const teams = ['Synthetic North','Synthetic South'];
+    let mode='prepare', selected=players[0], sales=[], corrections=[], target={}, currentTeam=0, failUndo=false;
+    const say = text => $('status').textContent=text;
+    const active = (selector,value,key) => document.querySelectorAll(selector).forEach(b=>{const on=b.dataset[key]===value;b.classList.toggle('active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+    function renderPlayers(){
+      const query=$('search').value.toLowerCase();
+      const matches=players.filter(p=>!sales.some(s=>s.id===p.id)&&(p.name+' '+p.meta).toLowerCase().includes(query)&&($('filter').value!=='targets'||target[p.id]));
+      $('players').innerHTML=matches.length ? '<table><thead><tr><th>Player</th><th>Baseline</th><th>My ceiling</th></tr></thead><tbody>'+matches.map(p=>'<tr class="'+(p.id===selected.id?'selected':'')+'"><td><button class="player" data-player="'+p.id+'">'+p.name+'</button><small>'+p.meta.split(' · ').slice(0,2).join(' · ')+'</small></td><td>'+p.baseline+'</td><td>'+ (target[p.id]?'$'+target[p.id].ceiling:'—')+'</td></tr>').join('')+'</tbody></table>' : '<p role="status">No matching available players. Clear search or show all players.</p>';
+    }
+    function renderTeams(){
+      const spent=i=>sales.filter(s=>s.team===i).reduce((n,s)=>n+s.price,0), count=i=>sales.filter(s=>s.team===i).length;
+      $('teams').innerHTML=Array.from({length:12},(_,i)=>'<button class="showcase-button team" data-team="'+i+'">'+(teams[i]||'Synthetic Team '+(i+1))+'<strong>$'+(200-spent(i))+' left</strong><small>'+(13-count(i))+' slots · max $'+(188-spent(i)+count(i))+'</small><div class="spend-track"><i style="width:'+(spent(i)/2)+'%"></i></div></button>').join('');
+      $('remaining').textContent='$'+(200-spent(0));$('slots').textContent=13-count(0);$('room').textContent='$'+(2400-sales.reduce((n,s)=>n+s.price,0));
+      $('sales').replaceChildren();
+      if(!sales.length)$('sales').textContent='No picks recorded.';
+      sales.slice().reverse().forEach(s=>{const p=document.createElement('p');p.textContent=s.name+' → '+(teams[s.team]||'Synthetic Team '+(s.team+1))+' · $'+s.price+' ';const b=document.createElement('button');b.className='showcase-button';b.textContent='Undo pick';b.onclick=()=>undo(s.key);p.append(b);$('sales').append(p);});
+      $('corrections').replaceChildren();corrections.forEach(text=>{const p=document.createElement('p');p.textContent=text;$('corrections').append(p);});
+    }
+    function renderTeamDialog(){
+      $('team-title').textContent=teams[currentTeam]||'Synthetic Team '+(currentTeam+1);$('team-picks').replaceChildren();
+      const picks=sales.filter(s=>s.team===currentTeam);if(!picks.length)$('team-picks').textContent='No picks recorded.';
+      picks.forEach(s=>{const p=document.createElement('p');p.textContent=s.name+' · $'+s.price+' ';const b=document.createElement('button');b.className='showcase-button';b.textContent='Undo pick';b.onclick=()=>undo(s.key);p.append(b);$('team-picks').append(p);});
+    }
+    function undo(key){if(failUndo){$('team-error').hidden=false;return;}const s=sales.find(p=>p.key===key);if(!s)return;corrections.unshift('Pick undone: '+s.name+' · '+(teams[s.team]||'Synthetic Team '+(s.team+1))+' · $'+s.price);sales=sales.filter(p=>p.key!==key);renderPlayers();renderTeams();renderTeamDialog();say('Pick undone. Budget and slot restored in this preview.');}
+    function renderEspn(error=false){$('espn').replaceChildren();if(error){const p=document.createElement('p');p.className='error';p.setAttribute('role','alert');p.textContent='Saved ESPN information could not load.';const b=document.createElement('button');b.className='showcase-button';b.textContent='Retry saved information';b.onclick=()=>{renderEspn();say('Saved information loaded locally in this preview.');};$('espn').append(p,b);}else{$('espn').innerHTML='<p><strong>Synthetic practice update</strong><br><small>Published Oct 17 · RotoWire via ESPN<br>News checked Oct 18, noon</small></p><button class="showcase-button" id="refresh-news">Refresh ESPN updates</button>';$('refresh-news').onclick=()=>say('Synthetic update checked. No provider request was made.');}}
+    function setMode(value){mode=value;$('draft').hidden=false;$('other').hidden=true;$('draft-nav').hidden=false;active('[data-workspace]','draft','workspace');active('[data-mode]',mode,'mode');const auction=mode==='auction';$('title').textContent=auction?'Auction companion':'Prepare';$('pool-heading').textContent=auction?'Available players':'Projected candidates';$('content').classList.toggle('auction',auction);['team-board','budget','results','auction-decision','outside','manual'].forEach(id=>$(id).hidden=!auction);['baseline','prepare-decision'].forEach(id=>$(id).hidden=auction);renderPlayers();renderTeams();}
+    function openPick(outside=false){$('pick-name').value=outside?'':selected.name;$('pick-name').readOnly=!outside;$('pick-price').value='';updateLegal();$('pick-dialog').showModal();}
+    function updateLegal(){const i=Number($('pick-team').value),picks=sales.filter(s=>s.team===i),left=200-picks.reduce((n,s)=>n+s.price,0),slots=13-picks.length;const max=slots>0?left-(slots-1):0;$('pick-price').max=max;$('legal').textContent='$'+left+' left · '+slots+' open slots · legal maximum $'+max;}
+    document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.mode)setMode(b.dataset.mode);if(b.dataset.workspace&&b.dataset.workspace!=='draft'){$('draft').hidden=true;$('draft-nav').hidden=true;$('other').hidden=false;$('other').textContent=b.dataset.workspace==='live'?'Live-season analysis is not ready yet.':'Historical patterns retain the existing My profile, Competitor teams, and League comparison views. This preview focuses on Prepare and Auction companion.';active('[data-workspace]',b.dataset.workspace,'workspace');}if(b.dataset.workspace==='draft')setMode(mode);if(b.dataset.panel){$('draft').hidden=true;$('other').hidden=false;$('other').textContent='Connection: saved draft preparation works offline. The app’s dedicated ESPN sign-in and refresh flow is unchanged.';}if(b.dataset.player){selected=players.find(p=>p.id===b.dataset.player);$('player-name').textContent=selected.name;$('player-meta').textContent=selected.meta;$('allocation').textContent=selected.baseline;$('ceiling').value=target[selected.id]?.ceiling??'';$('reason').value=target[selected.id]?.reason??'';renderPlayers();}if(b.dataset.team){currentTeam=Number(b.dataset.team);$('team-error').hidden=true;renderTeamDialog();$('team-dialog').showModal();}if(b.dataset.close)$(b.dataset.close).close();});
+    $('search').oninput=renderPlayers;$('filter').onchange=renderPlayers;$('record').onclick=()=>openPick();$('outside').onclick=()=>openPick(true);$('pick-team').onchange=updateLegal;
+    $('pick-form').onsubmit=e=>{e.preventDefault();const name=$('pick-name').value.trim();if(!name)return;sales.push({id:$('pick-name').readOnly?selected.id:null,key:crypto.randomUUID(),name,team:Number($('pick-team').value),price:Number($('pick-price').value)});$('pick-dialog').close();renderPlayers();renderTeams();say('Pick recorded in this preview.');};
+    $('save-target').onclick=()=>{const n=Number($('ceiling').value);if(!Number.isInteger(n)||n<1||n>200){say('Enter a whole-dollar ceiling from $1 to $200.');return;}target[selected.id]={ceiling:n,reason:$('reason').value};renderPlayers();say('Target saved in this preview.');};
+    $('apply-reserve').onclick=()=>{const n=Number($('reserve').value);if(n<12||n>172||!Number.isInteger(n)){say('For this synthetic $28 stop, enter a reserve from $12 to $172.');return;}$('guide-prices').hidden=false;$('advice').textContent='Synthetic range · reserve applied';$('reserve-details').open=false;};
+    $('reload-team').onclick=()=>{failUndo=false;$('team-error').hidden=true;renderTeamDialog();say('Saved picks reloaded. Review the retained pick and retry Undo.');};
+    $('coverage').onclick=()=>$('coverage-dialog').showModal();$('review-baseline').onclick=()=>$('baseline-dialog').showModal();$('check-notes').onclick=()=>say('No linked note returned. Saved information is kept.');
+    $('scenario').onchange=()=>{const value=$('scenario').value;$('search').value=value==='empty'?'no matching player':'';renderPlayers();renderEspn(value==='espn-error');failUndo=value==='undo-error';if(failUndo){setMode('auction');if(!sales.some(s=>s.team===0))sales.push({id:'alpha',key:'synthetic-failure-pick',name:'Alpha Example',team:0,price:35});renderPlayers();renderTeams();currentTeam=0;$('team-error').hidden=true;renderTeamDialog();$('team-dialog').showModal();say('Choose Undo pick to see the in-dialog failure and recovery.');}};
+    let helpButton=null, pinned=false;const hideHelp=()=>{$('help').hidden=true;helpButton?.removeAttribute('aria-describedby');helpButton=null;pinned=false;};
+    const showHelp=b=>{helpButton=b;$('help').textContent=b.dataset.help;$('help').hidden=false;b.setAttribute('aria-describedby','help');const r=b.getBoundingClientRect(),tip=$('help').getBoundingClientRect();$('help').style.left=Math.max(12,Math.min(r.left,innerWidth-tip.width-12))+'px';$('help').style.top=Math.max(12,Math.min(r.bottom+6,innerHeight-tip.height-12))+'px';};
+    document.querySelectorAll('[data-help]').forEach(b=>{b.addEventListener('mouseenter',()=>{if(!pinned)showHelp(b);});b.addEventListener('mouseleave',()=>{if(!pinned)hideHelp();});b.addEventListener('focus',()=>showHelp(b));b.addEventListener('blur',hideHelp);b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(pinned&&helpButton===b)hideHelp();else {showHelp(b);pinned=true;}});});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')hideHelp();});document.addEventListener('click',e=>{if(!e.target.closest('[data-help]'))hideHelp();});window.addEventListener('scroll',hideHelp,true);window.addEventListener('resize',hideHelp);
+    renderEspn();setMode('prepare');
+  </script>
+</body>
+</html>

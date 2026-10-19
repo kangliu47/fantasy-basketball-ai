@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ESPNContext } from './espn-context';
-import { ESPNContextView } from './espn-context.models';
+import { sampleESPNContext } from './espn-context.fixture';
 import { sampleDraft } from './draft.fixture';
 
 describe('Independent ESPN context', () => {
@@ -12,55 +12,7 @@ describe('Independent ESPN context', () => {
     ...sampleDraft().candidates[0],
     profile_url: 'https://hashtagbasketball.com/12345/player',
   });
-  const view = (): ESPNContextView => ({
-    candidate_id: candidate().id,
-    team_disagrees: true,
-    message: 'Saved ESPN context.',
-    link: {
-      hashtag_id: '12345',
-      espn_id: '98765',
-      hashtag_name: 'Alpha Example',
-      espn_name: 'Synthetic Guard',
-      reviewed_at: '2026-10-18T12:00:00Z',
-      revision: 1,
-    },
-    saved: {
-      espn_id: '98765',
-      metadata: {
-        player_id: '98765',
-        name: 'Synthetic Guard',
-        team_name: 'Portland Trail Blazers',
-        team_abbreviation: 'POR',
-        position: 'Point Guard',
-        status: 'Active',
-        profile_url: 'https://www.espn.com/nba/player/_/id/98765',
-        captured_at: '2026-10-18T12:00:00Z',
-      },
-      fantasy_update: {
-        id: 'syn-update',
-        headline: 'Synthetic practice update',
-        summary: 'Synthetic role context.',
-        published_at: '2026-10-17T12:00:00Z',
-        published_raw: null,
-        source_url: 'https://www.espn.com/nba/player/_/id/98765',
-        attribution: 'RotoWire via ESPN',
-      },
-      articles: [
-        {
-          id: 'syn-news',
-          headline: 'Synthetic article',
-          summary: 'Synthetic article context.',
-          published_at: null,
-          published_raw: null,
-          source_url: 'https://www.espn.com/nba/story/_/id/98765/synthetic',
-          attribution: 'ESPN',
-        },
-      ],
-      news_captured_at: '2026-10-18T12:00:00Z',
-      news_error: null,
-      captured_at: '2026-10-18T12:00:00Z',
-    },
-  });
+  const view = sampleESPNContext;
   const settle = async () => {
     await fixture.whenStable();
     fixture.detectChanges();
@@ -85,9 +37,16 @@ describe('Independent ESPN context', () => {
     await settle();
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Synthetic practice update');
+    expect(text).toContain('Synthetic season outlook');
+    expect(fixture.nativeElement.querySelector('details.more-coverage').open).toBe(false);
+    expect(fixture.nativeElement.querySelector('.season-outlook').closest('details').open).toBe(
+      true,
+    );
     expect(text).toContain('RotoWire via ESPN');
     expect(text).toContain('Publication time unknown');
-    expect(text).toContain('no sign-in needed');
+    expect(
+      fixture.nativeElement.querySelector('app-help-tip button').getAttribute('aria-label'),
+    ).toBe('About outlook and news');
     http.expectNone('/api/projections/hashtag/player-notes/check');
     fixture.componentRef.setInput('section', 'metadata');
     await settle();
@@ -95,10 +54,24 @@ describe('Independent ESPN context', () => {
     expect(fixture.nativeElement.textContent).toContain('saved Hashtag projection');
     http.expectNone((r) => r.url === base);
   });
-  it('requires explicit refresh, prevents double clicks and retains saved news on failure', async () => {
+  it('keeps a dated headline visible while collapsing long outlook and news in the auction card', async () => {
+    fixture.componentRef.setInput('compact', true);
+    http.expectOne((r) => r.url === base && r.method === 'GET').flush(view());
+    await settle();
+    expect(fixture.nativeElement.querySelector('.latest-headline').textContent).toContain(
+      'Synthetic practice update',
+    );
+    expect(fixture.nativeElement.querySelector('.full-news').open).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Published');
+    expect(fixture.nativeElement.textContent).toContain('checked');
+    http.expectNone(base + '/refresh');
+  });
+  it('allows manual refresh, prevents double clicks and retains saved outlook/news on failure', async () => {
     http.expectOne((r) => r.url === base).flush(view());
     await settle();
-    const button = fixture.nativeElement.querySelector('button');
+    const button = [
+      ...(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>),
+    ].find((b) => b.textContent?.includes('Refresh ESPN'))!;
     button.click();
     button.click();
     const request = http.expectOne(base + '/refresh');
@@ -112,17 +85,68 @@ describe('Independent ESPN context', () => {
     expect(fixture.componentInstance.sourceUrl('javascript:alert(1)')).toBeNull();
   });
 
+  it('retries a failed first saved read in the panel without a provider refresh or duplicate reads', async () => {
+    http
+      .expectOne((r) => r.url === base)
+      .flush(
+        { message: 'Synthetic saved-read outage' },
+        { status: 503, statusText: 'Unavailable' },
+      );
+    await settle();
+    http.expectNone((r) => r.url === base);
+    const button = [
+      ...(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>),
+    ].find((b) => b.textContent?.includes('Retry saved ESPN information'))!;
+    expect(button.textContent).toContain('Retry saved ESPN information');
+    button.click();
+    button.click();
+    const retry = http.expectOne((r) => r.url === base && r.method === 'GET');
+    await settle();
+    expect(fixture.nativeElement.textContent).toContain('Loading saved ESPN information');
+    retry.flush(view());
+    await settle();
+    expect(fixture.nativeElement.textContent).toContain('Synthetic practice update');
+    expect(fixture.nativeElement.textContent).not.toContain('Synthetic saved-read outage');
+    http.expectNone(base + '/refresh');
+  });
+
+  it('retries a failed saved read when returning to the player, while retaining successful cache entries', async () => {
+    http.expectOne((r) => r.url === base).flush({}, { status: 503, statusText: 'Unavailable' });
+    await settle();
+    fixture.componentRef.setInput('player', { ...candidate(), id: 'synthetic-other-player' });
+    await settle();
+    http
+      .expectOne((r) => r.url === base && r.params.get('player_id') === 'synthetic-other-player')
+      .flush({ ...view(), candidate_id: 'synthetic-other-player' });
+    fixture.componentRef.setInput('player', candidate());
+    await settle();
+    http
+      .expectOne((r) => r.url === base && r.params.get('player_id') === candidate().id)
+      .flush(view());
+    await settle();
+    fixture.componentRef.setInput('player', { ...candidate(), id: 'synthetic-other-player' });
+    await settle();
+    http.expectNone((r) => r.url === base);
+    expect(fixture.nativeElement.textContent).toContain('Synthetic practice update');
+  });
+
   it('distinguishes metadata-only setup from a news feed that was checked and empty', async () => {
     const metadataOnly = view();
     metadataOnly.saved!.fantasy_update = null;
     metadataOnly.saved!.articles = [];
     metadataOnly.saved!.news_captured_at = null;
+    metadataOnly.saved!.season_outlook = null;
     http.expectOne((r) => r.url === base).flush(metadataOnly);
     await settle();
-    expect(fixture.nativeElement.textContent).toContain('Refresh ESPN updates to check');
-    expect(fixture.nativeElement.textContent).not.toContain('No fantasy update was returned');
-    expect(fixture.nativeElement.textContent).not.toContain('No player-tagged article');
-    http.expectNone(base + '/refresh');
+    const check = http.expectOne(base + '/refresh');
+    expect(fixture.nativeElement.textContent).toContain('Checking ESPN');
+    metadataOnly.saved!.news_captured_at = new Date().toISOString();
+    metadataOnly.saved!.season_outlook = null;
+    check.flush(metadataOnly);
+    await settle();
+    expect(
+      fixture.nativeElement.textContent.match(/No season outlook or player news/g),
+    ).toHaveLength(1);
   });
   it('shows unlinked state without fetching a provider and keeps late responses with the original player', async () => {
     http.expectOne((r) => r.url === base).flush(view());
@@ -134,7 +158,7 @@ describe('Independent ESPN context', () => {
     request.flush(view());
     await settle();
     expect(fixture.nativeElement.textContent).not.toContain('Synthetic practice update');
-    expect(fixture.nativeElement.textContent).toContain('No reviewed ESPN identity');
+    expect(fixture.nativeElement.textContent).toContain('ESPN player link needed');
     fixture.componentInstance.store.refresh(sampleDraft().candidates[1].id);
     http.expectNone(base + '/refresh');
     fixture.componentRef.setInput('player', candidate());

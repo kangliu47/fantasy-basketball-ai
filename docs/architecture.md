@@ -1,5 +1,134 @@
 # Architecture and learning guide
 
+## Auction-night decision layout — October 19, 2026, latest
+
+The approved desktop flow keeps the searchable pool beside a sticky decision
+card. The existing balanced-guide store still owns revision-pinned prices; a
+presentation-only manual bid cue compares an entered integer with target, stop,
+legal maximum and the $40 guideline. It never submits a bid or changes the model.
+The card projects Record controls and compact ESPN context before calculation
+details. News text does not modify projections. Full news and contribution stats
+remain expandable; recent three results use the existing Undo path, while full
+team charts/history/reset live in a disclosure. Saved review uses the same two
+explicit declarations and API. Successful recording clears search and restores
+focus; failure/cancel retain text. No backend, schema or credential change. See
+[approved review](auction-night-ux-review.md).
+
+## Dynamic balanced-foundation guidance — October 19, 2026, latest
+
+A separate domain module builds integer roster/cash/category constraints and
+verifies solver witnesses from raw totals. Application code converts saved
+projections, coordinates bounded/coalesced cached work and checks state revisions
+before/after calculation. A SciPy/HiGHS adapter implements the solver port; the
+composition root supplies it. Domain modules import no numerical framework.
+Original baseline and remaining-room allocation remain unchanged.
+
+The protected `/api/draft/balanced-guide` read computes one candidate, with a
+three-second limit for each of central and +15% alternative-price scenarios.
+Selected-player requests precede a small background shortlist; browser results
+are fenced by board, plan, own-team, import and player identity. Computation does
+not hold draft/database mutation locks. Unproved/failure results have no stop.
+
+Explicit population review uses `/api/draft/valuation-review` with an expected
+board revision. Optional `BaselineReview` on append-only board JSON preserves
+older documents and other decisions; matching import/rules permit automatic
+recalculation on another browser, while changed inputs require review. No schema
+migration or provider read. Record pick copies the original baseline once when
+opened; later advice cannot overwrite edited factual prices. See the
+[approved contract](auction-prices-first-design.md) and
+[delivery QA](qa/2026-10-19-balanced-prices-delivery.md).
+
+## Clear board confirmation integration — October 19, 2026, latest
+
+The existing Angular board owns a reviewed revision/count snapshot and emits it
+only after confirmation. The workspace uses its existing mutation/apply path and
+shared API protections. A 30-second request timeout leaves outcome ambiguous: the
+dialog offers reload before another review. Local revision changes block stale
+confirmation; server revision checks protect changes from other views. Successful
+reset cancels stale bid guidance and clears temporary bid inputs/filters, while
+retaining saved research and unsaved target edits. No new persistence layer.
+See the [delivery QA](qa/2026-10-19-clear-board-delivery.md).
+
+## Bounded baseline requests and HTTP compression — October 19, 2026, latest
+
+The existing valuation store bounds HTTP completion at 30 seconds and reuses its
+error/Retry UI after timeout or dropped connections. Stale/cancelled responses
+remain fenced; no request persistence, population-review bypass or formula change.
+Standard Starlette gzip negotiation compresses large responses without changing
+decoded DTOs, local host/origin protections or append-only evidence storage.
+See the [QA evidence and remote-path limit](qa/2026-10-19-baseline-pending.md).
+
+
+## ESPN season-outlook capture — October 19, 2026, latest
+
+The existing public ESPN overview adapter now retains its previously ignored
+`fantasy.projection` text in an optional `PlayerInformation.season_outlook` field.
+Old saved JSON remains readable; existing append-only captures need no migration.
+The partial-failure merge preserves prior outlook and original news-check time.
+No publication date or season is invented for the outlook. The approved compact
+inspector displays source text before collapsed projection details. Its store
+tracks active inspections, shares cached reads and refreshes linked players after
+30 minutes. An attempt cooldown prevents failed/partial checks from looping;
+manual retry stays available. No timer polls hidden or visible players. See the
+[behavior contract](player-outlook-news-contract.md).
+
+
+## Practice-board reset — October 19, 2026, latest
+
+A pure domain operation empties the current board's event tuple and increments
+its revision. The application service holds the existing draft lock, checks the
+reviewed revision and saves through the existing repository. The protected
+`POST /api/draft/reset` accepts only that revision. Empty boards are no-ops;
+stale requests cannot clear newer practice picks. Prior board snapshots remain
+in the append-only revision table. No schema, provider or credential change.
+Rules, teams, selected own team, trial identities, imported projections and
+saved targets/ceilings are preserved. Synthetic domain/service/HTTP tests check
+preservation, failed saves, stale/replayed requests and durable reloads.
+The [reset contract](auction-board-reset-contract.md) records the boundary.
+
+## Private report rendering — October 19, 2026, latest
+
+Report rendering uses progressive enhancement: complete player tables and
+native disclosures are emitted as HTML; JavaScript adds filtering and scenario
+selection after initialization. A separate readable edition removes scripts.
+Regression checks inspect the generated artifact, rather than only its script
+source. This packaging correction changes no domain calculation or app contract.
+
+## Private balanced-ceiling report — October 18, 2026, latest
+
+The user authorizes a report experiment before application integration. Saved
+read-only HTTP responses provide the evidence snapshot; offline Python calls the
+existing pure baseline/remaining-room domain types and a report-local MILP solver.
+No second database connection, provider session, application dependency, endpoint
+or persistence change is introduced. Original contribution values remain intact;
+personal suitability and conditional roster-completion limits are separate.
+Inputs, decision contract, generated player rows and reproducibility artifacts
+remain under ignored `.local/reports/`. See the
+[methodological learning record](learnings/balanced-auction-ceilings.md).
+
+## Compact UI and supplementary help — October 18, 2026
+
+The approved [UI delivery](qa/2026-10-18-ui-remediation.md) is a presentation-only
+Angular change. `HelpTip` centralizes labeled Material tooltips and explicit tap
+access. Draft templates put decisions before supporting provider context and keep
+errors, dates and missing-data states visible. `BuildStatus` keeps the compiled
+identity/check store in the header and defers `BuildDetails` and its Material
+dialog until requested. Update/failure signals remain visible without opening
+the dialog; closing details preserves the root store and loaded identity. Tall
+panels use normal page scrolling. Existing domain methods, HTTP contracts,
+revision checks and persistence are unchanged.
+
+## Frontend error recovery — October 18, 2026, latest
+
+The [QA repairs](qa/2026-10-18-ui-remediation.md) remain inside Angular. The team
+dialog binds its owning workspace error/reload outputs, preserving existing
+idempotent undo requests. ESPN's keyed store distinguishes successful cached
+values and in-flight reads from failed initial reads; the player-driven effect
+uses `untracked` for the cache load so cache updates cannot drive a retry loop.
+Historical page Retry signals rerun their existing effects with subscription
+cleanup. Empty identity states require a successful read. No backend port,
+calculation, schema or credential boundary changes.
+
 ## Auction bidding guide — October 18, 2026
 
 The approved [bid-guide framework](auction-bid-guide-framework.md),

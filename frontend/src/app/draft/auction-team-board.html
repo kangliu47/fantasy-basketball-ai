@@ -2,121 +2,284 @@
   <p class="tracking-note">Manual auction tracking · saved on this Mac · no ESPN live sync</p>
   <section class="auction-summary" aria-label="Auction budget summary">
     <div>
-      <small>Starting budget per team</small><strong>${{ board.rules.budget }}</strong>
-    </div>
-    <div>
-      <small>My spent / remaining</small
-      ><strong>{{
-        myBudget()
-          ? '$' + myBudget()!.spent + ' / $' + myBudget()!.remaining
-          : 'Choose my team above'
-      }}</strong>
+      <small>My money left</small
+      ><strong>{{ myBudget() ? '$' + myBudget()!.remaining : 'Choose my team above' }}</strong>
     </div>
     <div>
       <small>My picked / open slots</small
       ><strong>{{ myBudget() ? myBudget()!.picked + ' / ' + myBudget()!.open_slots : '—' }}</strong>
     </div>
     <div>
-      <small>Room budget remaining</small><strong>${{ roomRemaining() }}</strong>
+      <small
+        >My legal maximum
+        <app-help-tip
+          label="Legal maximum details"
+          text="Reserves the minimum bid for every other open slot. This is an affordability limit, not a recommended price." /></small
+      ><strong>{{ myBudget()?.open_slots ? '$' + myBudget()!.legal_maximum : '—' }}</strong>
+    </div>
+    <div>
+      <small>Balanced plan</small><strong class="plan-label">10 core + 3 flex</strong
+      ><small>$40 guideline · flag exceptions</small>
     </div>
   </section>
   <div class="auction-board">
-    <section class="showcase-card available-pool" aria-label="Available players">
-      <h2>Available players</h2>
-      <p class="caption">
-        {{ available().length }} imported players remain · ESPN eligibility unverified
-      </p>
-      <label
-        >Find a player<input
-          matInput
-          type="search"
-          placeholder="Name, NBA team or position"
-          [value]="search()"
-          (input)="search.set($any($event.target).value)"
-      /></label>
-      <label class="target-filter"
-        ><input
-          type="checkbox"
-          [checked]="targetsOnly()"
-          (change)="targetsOnly.set($any($event.target).checked)"
-        />
-        My targets only</label
-      >
-      <label class="target-filter"
-        ><input
-          type="checkbox"
-          [checked]="changesOnly()"
-          (change)="changesOnly.set($any($event.target).checked)"
-        />
-        Changed projections only</label
-      >
-      <p class="caption">Drag the grip onto a team, or select a player and choose Record pick.</p>
-      <div
-        cdkDropList
-        id="auction-player-pool"
-        [cdkDropListConnectedTo]="teamDropIds()"
-        [cdkDropListSortingDisabled]="true"
-        class="player-list"
-      >
-        @for (p of matches(); track p.id) {
-          <div
-            cdkDrag
-            [cdkDragData]="p"
-            [cdkDragDisabled]="pending()"
-            [cdkDragStartDelay]="{ touch: 180, mouse: 0 }"
-            class="player-card"
-            [class.selected]="p.id === selectedId()"
-          >
-            <button
-              cdkDragHandle
-              type="button"
-              class="drag-grip"
-              [disabled]="pending()"
-              [attr.aria-label]="'Drag ' + p.name"
-              matTooltip="Drag onto a team; or select the player and use Record pick"
+    <div class="pool-column">
+      <section class="showcase-card available-pool" aria-label="Available players">
+        <h2>
+          Available players
+          <app-help-tip
+            label="Recording a player"
+            text="Select a player and choose Record pick, or expand All team budgets to drag the grip onto a team. Choose the team and enter the final ESPN price before saving. Dropping alone never records a pick. The app never submits an ESPN bid."
+          />
+        </h2>
+        <p class="caption">
+          {{ available().length }} imported players remain · ESPN eligibility unverified
+        </p>
+        <label
+          >Find the nominated player<input
+            #playerSearch
+            matInput
+            type="search"
+            placeholder="Name, NBA team or position · / to search"
+            [value]="search()"
+            (input)="search.set($any($event.target).value)"
+        /></label>
+        <label class="target-filter"
+          ><input
+            type="checkbox"
+            [checked]="targetsOnly()"
+            (change)="targetsOnly.set($any($event.target).checked)"
+          />
+          My targets only</label
+        >
+        <label class="target-filter"
+          ><input
+            type="checkbox"
+            [checked]="changesOnly()"
+            (change)="changesOnly.set($any($event.target).checked)"
+          />
+          Changed projections only</label
+        >
+        <div
+          cdkDropList
+          id="auction-player-pool"
+          [cdkDropListConnectedTo]="teamDropIds()"
+          [cdkDropListSortingDisabled]="true"
+          class="player-list"
+        >
+          @for (p of matches(); track p.id) {
+            <div
+              cdkDrag
+              [cdkDragData]="p"
+              [cdkDragDisabled]="pending()"
+              [cdkDragStartDelay]="{ touch: 180, mouse: 0 }"
+              class="player-card"
+              [class.selected]="p.id === selectedId()"
             >
-              ⠿
-            </button>
-            <button
-              type="button"
-              class="player-select"
-              [attr.aria-pressed]="p.id === selectedId()"
-              (click)="choose.emit(p.id)"
-            >
-              <strong>{{ p.name }}</strong
-              ><small
-                >{{ p.team || 'NBA team unknown' }} · {{ p.positions.join('/') }} ·
-                {{ format('AST', p.per_game.values['AST']) }} AST ·
-                {{ format('BLK', p.per_game.values['BLK']) }} BLK</small
+              <button
+                cdkDragHandle
+                type="button"
+                class="drag-grip"
+                [disabled]="pending()"
+                [attr.aria-label]="'Drag ' + p.name"
+                matTooltip="Drag onto a team; or select the player and use Record pick"
               >
-              @if (savedCeiling(p.id) != null) {
-                <small>My ceiling ${{ savedCeiling(p.id) }}</small>
-              }
+                ⠿
+              </button>
+              <button
+                type="button"
+                class="player-select"
+                [attr.aria-pressed]="p.id === selectedId()"
+                (click)="choose.emit(p.id)"
+              >
+                <strong>{{ p.name }}</strong
+                ><small
+                  >{{ p.team || 'NBA team unknown' }} · {{ p.positions.join('/') }} ·
+                  {{ p.projected_games ?? 'Unknown' }} projected GP</small
+                >
+                @if (savedCeiling(p.id) != null) {
+                  <small>My ceiling ${{ savedCeiling(p.id) }}</small>
+                }
+                <span class="player-prices"
+                  ><span
+                    ><small>Baseline</small
+                    ><b>{{
+                      currency(baselineValue(p.id) === null ? null : baselineValue(p.id)! / 100)
+                    }}</b></span
+                  ><span
+                    ><small>Target</small
+                    ><b>{{
+                      priceQuote(p.id)?.aim_bid == null ? '—' : '$' + priceQuote(p.id)!.aim_bid
+                    }}</b></span
+                  ><span
+                    ><small>Stop</small
+                    ><b>{{
+                      priceQuote(p.id)?.stop_bid == null ? '—' : '$' + priceQuote(p.id)!.stop_bid
+                    }}</b></span
+                  ></span
+                >
+                @if (priceQuote(p.id); as quote) {
+                  @if (quote.status === 'excluded_shooting') {
+                    <small>Pass for foundation</small>
+                  } @else if (quote.bench_only) {
+                    <small>Bench policy cap · not valuation</small>
+                  }
+                } @else {
+                  <small>{{
+                    baseline() ? 'Select to calculate current range' : 'Baseline review needed'
+                  }}</small>
+                }
+              </button>
+            </div>
+          } @empty {
+            <p class="caption" role="status">
+              {{
+                available().length
+                  ? 'No matches. Clear your search or show all players.'
+                  : 'No imported players remain. You can still record a player outside the import.'
+              }}
+            </p>
+          }
+        </div>
+        <button mat-stroked-button [disabled]="pending()" (click)="openPick(null)">
+          Record a player outside the import
+        </button>
+      </section>
+      <section class="showcase-card recent-results" aria-label="Recent recorded picks">
+        <h3>Recent recorded picks</h3>
+        @for (pick of data().sales.slice(-3).reverse(); track pick.id) {
+          <div class="result-row">
+            <span
+              ><strong>{{ pick.player_name }}</strong
+              ><small>{{ teamName(pick.team_id) }} · ${{ pick.price }}</small></span
+            >
+            <button mat-button [disabled]="pending()" (click)="undoPick.emit(pick.id)">
+              Undo pick
             </button>
           </div>
         } @empty {
-          <p class="caption" role="status">
-            {{
-              available().length
-                ? 'No matches. Clear your search or show all players.'
-                : 'No imported players remain. You can still record a player outside the import.'
-            }}
-          </p>
+          <p class="caption">No picks recorded. Record each final result from ESPN.</p>
         }
-      </div>
-      <button mat-stroked-button [disabled]="pending()" (click)="openPick(null)">
-        Record a player outside the import
-      </button>
+      </section>
+    </div>
+    <section class="showcase-card auction-decision" aria-label="Selected player bidding decision">
+      @if (selected(); as p) {
+        <p class="eyebrow">Player under consideration</p>
+        <h2>{{ p.name }}</h2>
+        <p class="caption">
+          {{ p.positions.join('/') }} · Value reflects
+          {{ p.projected_games ?? 'unknown' }} projected games
+        </p>
+        <app-auction-bid-guide
+          [data]="data()"
+          [playerId]="p.id"
+          [baselineCents]="baselineValue(p.id)"
+          [baselineReady]="baselineSupported()"
+          [pending]="pending()"
+          [boardRevision]="board.revision"
+          (reload)="reload.emit()"
+        >
+          @if (!baselineSupported() && canReview()) {
+            <button mat-stroked-button [disabled]="pending()" (click)="openBaseline()">
+              Review & calculate baseline
+            </button>
+          }
+          <div class="decision-actions">
+            <span class="caption"
+              >My saved ceiling:
+              {{ savedCeiling(p.id) == null ? 'not set' : '$' + savedCeiling(p.id) }}</span
+            ><button mat-flat-button [disabled]="pending() || !hasOpenTeam()" (click)="openPick(p)">
+              Record auction pick…
+            </button>
+          </div>
+          <app-espn-context [player]="p" section="updates" [compact]="true" />
+          <details class="projection-details player-insight">
+            <summary>Projected stats & projection changes</summary>
+            <h3>
+              Player contribution
+              <app-help-tip
+                label="Reading player contributions"
+                text="Center is the available pool average. Each row has its own scale. FG/FT impact accounts for attempts; extra makes are relative to the pool shooting rate. Missing is unknown."
+              />
+            </h3>
+            <p class="caption">
+              Compared with {{ data().auction.available_players }} available imported players · per
+              game
+            </p>
+            @for (c of categories; track c) {
+              <div class="contribution-row">
+                <div class="contribution-label">
+                  <strong>{{ c }}</strong
+                  ><span>{{ format(c, p.per_game.values[c]) }}</span>
+                </div>
+                <div class="contribution-track" aria-hidden="true">
+                  <i
+                    [class.negative]="(delta(c) ?? 0) < 0"
+                    [style.left.%]="(delta(c) ?? 0) < 0 ? 50 - width(c) : 50"
+                    [style.width.%]="width(c)"
+                  ></i>
+                </div>
+                <small
+                  >{{
+                    delta(c) == null
+                      ? 'Contribution unknown'
+                      : (delta(c)! > 0 ? '+' : '') +
+                        (delta(c) | number: '1.0-2') +
+                        (c.endsWith('%') ? ' extra makes/game' : '/game')
+                  }}
+                  · {{ data().auction.category_coverage[c] }} known</small
+                >
+              </div>
+            }
+            <p class="legend">
+              <span><i class="remaining-key"></i>Above pool average</span
+              ><span><i class="negative-key"></i>Below</span>
+            </p>
+
+            <app-player-context [player]="p" />
+          </details>
+        </app-auction-bid-guide>
+        <details class="nomination-reminder">
+          <summary>Nomination reminder</summary>
+          <p>
+            Historical purchases do not prove current demand. Nominate only at an opening price you
+            accept if nobody counters. Never bid above your own stop to raise another team’s bill.
+          </p>
+        </details>
+      } @else {
+        <p class="caption">Select an available player to inspect their prices.</p>
+      }
     </section>
+  </div>
+  <details class="full-board">
+    <summary>All team budgets, picks & board details</summary>
+    <p class="caption">
+      Starting budget ${{ board.rules.budget }} per team · room money left ${{ roomRemaining() }} ·
+      includes cash on full teams
+    </p>
     <section class="showcase-card team-board" aria-label="Team budgets and auction picks">
-      <h2>Team budgets & auction picks</h2>
+      <div class="team-board-heading">
+        <h2>
+          Team budgets & auction picks
+          <app-help-tip
+            label="Team budget guidance"
+            text="Average left is per open slot. Opening bids reserve ${{
+              board.rules.minimum_bid
+            }} for every other slot; current live bids are not included. Open a team to inspect its picks. Position coverage is provisional."
+          />
+        </h2>
+        <button
+          mat-stroked-button
+          class="clear-board"
+          [disabled]="pending() || !board.events.length"
+          (click)="openReset()"
+        >
+          Clear board
+        </button>
+      </div>
       <p class="legend">
         <span><i class="spent-key"></i>Spent</span
         ><span><i class="remaining-key"></i>Remaining</span>
-      </p>
-      <p class="caption">
-        Average left is per open slot. Opening bids reserve ${{ board.rules.minimum_bid }} for every
-        other slot; current live bids are not included. Click a team for its picks.
       </p>
       <div class="team-grid">
         @for (team of teams(); track team.team_id) {
@@ -213,113 +376,42 @@
           </article>
         }
       </div>
-      <p class="caption">
-        Purchase charts share one dollar scale and show spending in recording order, not whether a
-        pick was good value. Position coverage is provisional.
-      </p>
+      <app-help-tip
+        label="Purchase charts"
+        text="Purchase charts share one dollar scale and show spending in recording order. They do not measure whether a pick was good value. Position coverage is provisional."
+      />
     </section>
-    <aside class="showcase-card player-insight" aria-label="Selected player contribution">
-      @if (selected(); as p) {
-        <p class="eyebrow">PLAYER UNDER CONSIDERATION</p>
-        <h2>{{ p.name }}</h2>
-        <p class="caption">
-          {{ p.positions.join('/') }} · {{ p.projected_games ?? 'Unknown' }} projected games
-        </p>
-        <app-auction-bid-guide
-          [data]="data()"
-          [playerId]="p.id"
-          [baseline]="baseline()"
-          [pending]="pending()"
-          (reload)="reload.emit()"
-        />
-        <app-player-context [player]="p" />
-        <h3>What does this player add?</h3>
-        <p class="caption">
-          Compared with {{ data().auction.available_players }} available imported players · per game
-        </p>
-        @for (c of categories; track c) {
-          <div class="contribution-row">
-            <div class="contribution-label">
-              <strong>{{ c }}</strong
-              ><span>{{ format(c, p.per_game.values[c]) }}</span>
-            </div>
-            <div class="contribution-track" aria-hidden="true">
-              <i
-                [class.negative]="(delta(c) ?? 0) < 0"
-                [style.left.%]="(delta(c) ?? 0) < 0 ? 50 - width(c) : 50"
-                [style.width.%]="width(c)"
-              ></i>
-            </div>
-            <small
-              >{{
-                delta(c) == null
-                  ? 'Contribution unknown'
-                  : (delta(c)! > 0 ? '+' : '') +
-                    (delta(c) | number: '1.0-2') +
-                    (c.endsWith('%') ? ' extra makes/game' : '/game')
-              }}
-              · {{ data().auction.category_coverage[c] }} known</small
-            >
-          </div>
+    <section class="showcase-card auction-results">
+      <h2>All recorded results</h2>
+      @for (pick of data().sales.slice().reverse(); track pick.id) {
+        <div class="result-row">
+          <span
+            ><strong>{{ pick.player_name }}</strong> → {{ teamName(pick.team_id) }} · ${{
+              pick.price
+            }}<small
+              >{{ pick.at | date: 'short' }} · manual{{
+                !pick.player_id ? ' · projection unknown' : ''
+              }}</small
+            ></span
+          ><button mat-button [disabled]="pending()" (click)="undoPick.emit(pick.id)">
+            Undo pick
+          </button>
+        </div>
+      } @empty {
+        <p class="caption">No picks recorded. Record each final result from ESPN.</p>
+      }
+      <details>
+        <summary>Correction history · {{ board.events.length }} events</summary>
+        @for (event of board.events; track event.id) {
+          <p class="caption">
+            {{ event.at | date: 'short' }} ·
+            {{ eventLabel(event) }}
+            · {{ event.source }}
+          </p>
         }
-        <p class="legend">
-          <span><i class="remaining-key"></i>Above pool average</span
-          ><span><i class="negative-key"></i>Below</span>
-        </p>
-        <p class="caption">
-          Center = pool average. Each row has its own scale. FG/FT impact accounts for attempts;
-          extra makes are relative to the pool's shooting rate. Missing is unknown.
-        </p>
-        <p class="ceiling">
-          My saved ceiling: {{ savedCeiling(p.id) == null ? 'not set' : '$' + savedCeiling(p.id) }}
-        </p>
-        <button mat-flat-button class="main-action" [disabled]="pending()" (click)="openPick(p)">
-          Record auction pick…
-        </button>
-        <p class="caption">
-          Choose the team and enter the final price. This never submits an ESPN bid.
-        </p>
-      } @else {
-        <h2>Select a player</h2>
-        <p class="caption">
-          Choose an available player to see its contribution, or record a player outside the import.
-        </p>
-      }
-    </aside>
-  </div>
-  <section class="showcase-card auction-results">
-    <h2>Recent auction results</h2>
-    @for (pick of data().sales.slice().reverse(); track pick.id) {
-      <div class="result-row">
-        <span
-          ><strong>{{ pick.player_name }}</strong> → {{ teamName(pick.team_id) }} · ${{ pick.price
-          }}<small
-            >{{ pick.at | date: 'short' }} · manual{{
-              !pick.player_id ? ' · projection unknown' : ''
-            }}</small
-          ></span
-        ><button mat-button [disabled]="pending()" (click)="undoPick.emit(pick.id)">
-          Undo pick
-        </button>
-      </div>
-    } @empty {
-      <p class="caption">No picks recorded. Record each final result from ESPN.</p>
-    }
-    <details>
-      <summary>Correction history · {{ board.events.length }} events</summary>
-      @for (event of board.events; track event.id) {
-        <p class="caption">
-          {{ event.at | date: 'short' }} ·
-          {{
-            event.kind === 'void'
-              ? 'Pick undone'
-              : event.player_name + ' picked for $' + event.price
-          }}
-          · {{ event.source }}
-        </p>
-      }
-    </details>
-  </section>
+      </details>
+    </section>
+  </details>
 }
 <ng-template #pickDialog>
   <h2 mat-dialog-title>Record auction pick</h2>
@@ -362,6 +454,42 @@
             [min]="ceiling(form.controls.team_id.value)?.opening_minimum ?? 1"
             [max]="ceiling(form.controls.team_id.value)?.legal_maximum ?? 0"
         /></label>
+        <div class="price-adjust">
+          <button
+            mat-stroked-button
+            type="button"
+            aria-label="Decrease price by one dollar"
+            [disabled]="
+              pending() ||
+              form.controls.price.value === null ||
+              form.controls.price.value! <=
+                (ceiling(form.controls.team_id.value)?.opening_minimum ?? 1)
+            "
+            (click)="adjustPrice(-1)"
+          >
+            − $1</button
+          ><button
+            mat-stroked-button
+            type="button"
+            aria-label="Increase price by one dollar"
+            [disabled]="
+              pending() ||
+              form.controls.price.value === null ||
+              form.controls.price.value! >=
+                (ceiling(form.controls.team_id.value)?.legal_maximum ?? 0)
+            "
+            (click)="adjustPrice(1)"
+          >
+            + $1
+          </button>
+        </div>
+        <p class="caption">
+          {{
+            pickPlayer() && defaultPrice(pickPlayer()!.id) !== null
+              ? 'Starts at the rounded original baseline. Adjust to the actual final ESPN price.'
+              : 'No baseline is available for this player. Enter the actual final ESPN price.'
+          }}
+        </p>
       </fieldset>
       @if (localError() || error()) {
         <div class="pick-error" role="alert">
@@ -387,9 +515,63 @@
     </button></mat-dialog-actions
   >
 </ng-template>
+<ng-template #resetDialog>
+  <h2 mat-dialog-title>Clear the entire board?</h2>
+  <mat-dialog-content>
+    @if (resetReview(); as review) {
+      <p>
+        Clear all
+        <strong>{{ review.picks }} recorded {{ review.picks === 1 ? 'pick' : 'picks' }}</strong> and
+        the correction history from this practice board.
+      </p>
+      <p>
+        Every team returns to <strong>${{ review.budget }}</strong> and
+        <strong>{{ review.slots }} open slots</strong>.
+      </p>
+      <p class="caption">
+        Your team selection, league setup, projections, targets and saved ceilings stay saved.
+      </p>
+      @if (resetStale() && !pending()) {
+        <div class="pick-error" role="alert">
+          The board changed since you opened this confirmation. Reload saved data and review the
+          latest picks before clearing.
+        </div>
+      }
+      @if (resetSubmitted() && error()) {
+        <div class="pick-error" role="alert">{{ error() }}</div>
+      }
+      @if (!pending() && (resetStale() || (resetSubmitted() && error()))) {
+        <button mat-button (click)="reloadReset()">Reload saved data</button>
+      }
+    }
+    @if (pending()) {
+      <p role="status">Clearing the practice board…</p>
+    }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button data-reset-cancel [disabled]="pending()" (click)="cancelReset()">
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      class="confirm-clear"
+      [disabled]="pending() || resetSubmitted() || resetStale()"
+      (click)="confirmReset()"
+    >
+      {{ pending() ? 'Clearing…' : 'Clear board' }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
 <ng-template #teamDialog>
   <h2 mat-dialog-title>{{ teamName(detailTeamId()) }}</h2>
   <mat-dialog-content>
+    @if (error()) {
+      <div class="pick-error" role="alert">
+        {{ error() }}
+        <p>Reload saved data after a conflict, review the latest picks, then retry Undo.</p>
+        <button mat-button [disabled]="pending()" (click)="reload.emit()">Reload saved data</button>
+      </div>
+    }
     @if (detailTeam(); as team) {
       <p>
         ${{ data().board!.rules.budget }} starting budget · {{ team.picked }} picked ·
@@ -426,10 +608,12 @@
             : 'Roster full · no further bids'
         }}
       </p>
-      <p class="caption">
-        The maximum leaves ${{ data().board!.rules.minimum_bid }} for each other open slot. Average
-        left is a guide, not a ceiling.
-      </p>
+      <app-help-tip
+        label="Legal maximum and average budget"
+        text="The maximum leaves ${{
+          data().board!.rules.minimum_bid
+        }} for each other open slot. Average left is a guide, not a ceiling."
+      />
       <p class="caption">
         Largest pick: {{ team.largest_pick == null ? '—' : '$' + team.largest_pick }} · Three
         largest picks: {{ team.top_three_budget_share * 100 | number: '1.0-1' }}% of starting budget
@@ -474,5 +658,31 @@
   </mat-dialog-content>
   <mat-dialog-actions align="end"
     ><button mat-button mat-dialog-close>Close</button></mat-dialog-actions
+  >
+</ng-template>
+
+<ng-template #baselineDialog>
+  <h2 mat-dialog-title>Review baseline population</h2>
+  <mat-dialog-content>
+    @if (pending()) {
+      <p class="caption" role="status">Saving population review…</p>
+    }
+    @if (error()) {
+      <p class="pick-error" role="alert">{{ error() }}</p>
+      <button mat-button [disabled]="pending()" (click)="closeBaseline(); reload.emit()">
+        Reload saved data
+      </button>
+    }
+    <app-auction-valuation
+      [remember]="true"
+      [compact]="true"
+      [disabled]="pending()"
+      (calculateRequested)="baselineReviewed.emit($event)"
+    />
+  </mat-dialog-content>
+  <mat-dialog-actions
+    ><button mat-button [disabled]="pending()" (click)="closeBaseline()">
+      Close
+    </button></mat-dialog-actions
   >
 </ng-template>

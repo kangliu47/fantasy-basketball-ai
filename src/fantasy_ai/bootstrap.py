@@ -27,6 +27,7 @@ from fantasy_ai.infrastructure.player_information_repository import (
 from fantasy_ai.infrastructure.projections.browser import HashtagBrowserSource
 from fantasy_ai.infrastructure.projections.files import LocalProjectionFiles
 from fantasy_ai.infrastructure.projections.player_notes import DuckDBPlayerNotesRepository
+from fantasy_ai.infrastructure.roster_solver import ScipyRosterSolver
 from fantasy_ai.infrastructure.session_store import MemorySessionStore
 from fantasy_ai.interfaces.http.api import create_api
 
@@ -68,6 +69,7 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         LocalProjectionFiles(root / ".local/projections/hashtag"),
         planning,
         archive_repository,
+        ScipyRosterSolver(),
     )
     projections = PremiumProjectionService(
         HashtagBrowserSource(root / ".local/hashtag-browser"), draft

@@ -5,6 +5,25 @@ questions before promoting a useful calculation into `src/fantasy_ai`.
 
 ## Current status
 
+### October 19, 2026 — practice state correction
+
+The user confirmed all saved auction purchases were tests and requested clearing
+them. Current private reports now use the fresh board; earlier test-state
+analyses remain archived and superseded. Exact opening-input equivalence permits
+certificate reuse, with every completion independently revalidated. Projection
+baselines, personal saved ceilings and actual historical winning bids are intact.
+
+### October 18, 2026 — private balanced-ceiling report
+
+A separate report-local experiment preserves the canonical baseline and existing
+remaining-room calculation while testing conditional foundation completions.
+Source snapshots, complete player tables, solver dependency and executable report
+scripts remain in ignored `.local/reports/`; no app dependency or saved ceiling
+changes. The user confirms guideline spending exceptions and a separate severe
+shooting-drag screen. Review the private report before production integration.
+The [learning record](../docs/learnings/balanced-auction-ceilings.md) documents
+public methodological lessons without reproducing private player/league rows.
+
 ### October 17, 2026 — league-specific private draft prototype
 
 The user authorizes the [framework](../docs/league-adjusted-draft-value-framework.md)

@@ -66,6 +66,21 @@ def test_valuation_http_is_saved_only_and_preserves_import_targets_and_ledger(
             assert data["evidence"]["coverage_status"] == "synthetic_complete"
             assert "source_player_id" not in response.text and "owner_token" not in response.text
             assert data["scenario"]["minimum_price_provisional"]
+            plain = client.post(
+                "/api/draft/valuation",
+                json=body,
+                headers={**HEADERS, "Accept-Encoding": "identity"},
+            )
+            compressed = client.post(
+                "/api/draft/valuation",
+                json=body,
+                headers={**HEADERS, "Accept-Encoding": "gzip"},
+            )
+            assert "content-encoding" not in plain.headers
+            assert compressed.headers["content-encoding"] == "gzip"
+            assert "accept-encoding" in compressed.headers["vary"].lower()
+            assert int(compressed.headers["content-length"]) < len(plain.content)
+            assert compressed.content == plain.content  # HTTP client decodes gzip.
             assert client.get("/api/draft").json() == original
             unresolved = client.post(
                 "/api/draft/valuation",

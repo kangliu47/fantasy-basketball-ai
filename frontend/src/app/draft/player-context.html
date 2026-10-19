@@ -23,13 +23,19 @@
       Captured {{ context.latest.captured_at | date: 'medium' }} · saved
       {{ context.latest.imported_at | date: 'medium' }}
     </p>
-    <p>
-      The table date is not this player's last revision date. NBA team is as listed in that saved
-      projection.
-    </p>
+    <app-help-tip
+      label="Projection dates and team"
+      text="The table date is not this player's last revision date. NBA team is as listed in that saved projection. Capture and import dates record different events."
+    />
   </div>
   <section class="context-section">
-    <h3>What changed in the saved projection?</h3>
+    <h3>
+      Projection changes
+      <app-help-tip
+        label="Projection comparison details"
+        text="Comparisons use stable provider IDs across compatible saved imports. A first import has no earlier comparison. Updates between captures may be missed. Missing values remain unknown."
+      />
+    </h3>
     <p class="context-state">{{ contextLabel() }}</p>
     @if (context.previous; as previous) {
       <p class="caption">
@@ -39,30 +45,10 @@
         {{ context.latest.source_updated_at || 'date unknown' }}
       </p>
     }
-    @switch (context.state) {
-      @case ('no_prior_snapshot') {
-        <p class="context-message">
-          No earlier comparable saved projection is available. Compare again after another import.
-        </p>
-      }
-      @case ('missing_identity') {
-        <p class="context-message">
-          This row has no stable provider ID. We cannot safely match it to an earlier projection by
-          name.
-        </p>
-      }
-      @case ('missing_previous_player') {
-        <p class="context-message">
-          This player was not in the previous comparable import. There is no before-and-after
-          comparison.
-        </p>
-      }
-      @case ('unchanged') {
-        <p class="context-message">
-          No observed change between these saved projections. Updates between captures may be
-          missed.
-        </p>
-      }
+    @if (context.state === 'missing_identity') {
+      <p class="context-message">
+        No stable provider ID; an earlier projection cannot be matched safely.
+      </p>
     }
     @if (context.team_changed) {
       <p class="context-review">
@@ -105,15 +91,16 @@
     }
     @if (context.changes.length) {
       <p class="caption">
-        Changed fields shown · each bar pair uses its own scale. Counting stats use
-        {{ context.latest.stat_basis === 'per_game' ? 'per-game inputs' : 'season-total inputs' }}.
-        FG/FT changes are percentage points.
+        {{ context.latest.stat_basis === 'per_game' ? 'Per-game inputs' : 'Season-total inputs' }} ·
+        FG/FT changes in percentage points
+        <app-help-tip
+          label="Reading projection changes"
+          text="Changed fields shown. Each bar pair uses its own scale. Unknown differences are not zero. A provider comment does not establish why numbers changed or whether that information was included."
+        />
       </p>
     }
   </section>
   <section class="context-section" aria-label="Provider player updates">
-    <h3>What providers are saying</h3>
-    <app-espn-context [player]="p" section="updates" />
     @if (supported()) {
       <button
         mat-stroked-button
@@ -122,10 +109,10 @@
       >
         {{ notes.checking() === p.id ? 'Checking Hashtag…' : 'Check Hashtag notes' }}
       </button>
-      <p class="caption">
-        Uses the dedicated Hashtag browser. Connect through Data & coverage if needed. This checks
-        notes only; projection numbers and your ceiling stay unchanged.
-      </p>
+      <app-help-tip
+        label="Hashtag note checks"
+        text="Uses the dedicated Hashtag browser. Connect through Data & coverage if needed. This checks notes only; projection numbers and your ceiling stay unchanged. Comments do not establish why numbers changed or whether projections include that information."
+      />
       @if (state()?.loading) {
         <p class="caption" role="status">Loading saved notes…</p>
       }
@@ -153,9 +140,11 @@
           }
         </article>
       } @empty {
-        <p class="context-message">
-          No Hashtag note is saved for this player. This does not mean there is no news.
-        </p>
+        @if (!state()?.value && !state()?.loading && !state()?.error) {
+          <p class="context-message">
+            No Hashtag note is saved for this player. This does not mean there is no news.
+          </p>
+        }
       }
       @if (state()?.value; as value) {
         @if (safeUrl(value.source_url); as url) {
@@ -180,9 +169,5 @@
         Provider notes need a verified player link. None is available for this imported row.
       </p>
     }
-    <p class="caption">
-      A provider comment does not establish why numbers changed or whether the projection includes
-      that information.
-    </p>
   </section>
 </section>

@@ -1,3 +1,4 @@
+import { HelpTip } from '../core/help-tip';
 import { Component, computed, effect, inject, input } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +8,7 @@ import { ESPNContext } from './espn-context';
 
 @Component({
   selector: 'app-player-context',
-  imports: [DatePipe, DecimalPipe, MatButtonModule, ESPNContext],
+  imports: [HelpTip, DatePipe, DecimalPipe, MatButtonModule, ESPNContext],
   templateUrl: './player-context.html',
   styleUrl: './player-context.scss',
 })

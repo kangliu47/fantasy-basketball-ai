@@ -534,7 +534,7 @@ app-draft-workspace[hidden],
   color: var(--showcase-green-strong);
 }
 .secondary-nav {
-  margin: 0 0 24px;
+  margin: 0 0 12px;
 }
 .live-season-empty {
   border: 1px solid var(--showcase-line);
@@ -544,6 +544,34 @@ app-draft-workspace[hidden],
   color: var(--showcase-muted);
   line-height: 1.6;
   max-width: 680px;
+}
+
+// Approved compact shell: keep working widgets near the navigation.
+.topbar {
+  min-height: 64px;
+  height: auto;
+  padding: 12px 26px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+main {
+  padding-top: 16px;
+}
+.primary-nav {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.compact-intro {
+  margin-bottom: 10px;
+}
+.compact-intro h1 {
+  font-size: 24px;
+  margin: 0;
+}
+.header-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
 }
 @media (max-width: 550px) {
   .header-actions {

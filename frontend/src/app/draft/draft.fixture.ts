@@ -165,3 +165,23 @@ export function sampleDraft(): DraftView {
     roster_profile: { ...profile(0), values: { PTS: null }, included_players: 0 },
   };
 }
+
+export function practiceDraft() {
+  const d = sampleDraft();
+  const pick: import('./draft.models').AuctionEvent = {
+    id: 'synthetic-practice-pick',
+    kind: 'sale',
+    at: '2026-10-19T12:00:00Z',
+    player_id: d.candidates[0].id,
+    player_name: d.candidates[0].name,
+    team_id: 'draft-team-1',
+    price: 40,
+    voids: null,
+    source: 'manual',
+    projection_import_id: d.projection!.id,
+  };
+  d.board!.revision = 7;
+  d.board!.events = [pick];
+  d.sales = [pick];
+  return d;
+}

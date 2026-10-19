@@ -46,3 +46,5 @@ class PlayerInformation:
     news_captured_at: datetime | None
     news_error: str | None
     captured_at: datetime
+    # ESPN's overview supplies no publication date or season label for this text.
+    season_outlook: str | None = None

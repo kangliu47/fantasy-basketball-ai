@@ -1,5 +1,16 @@
 # ESPN player context: verified implementation approach
 
+## October 19, 2026 — approved and delivered outlook/news inspector
+
+The user approves the compact news preview, inspection refresh after 30 minutes
+and all existing identity proposals, including reviewed name exceptions. All
+430 distinct links are active after metadata checks. ESPN season-outlook text
+now accompanies the latest update in both draft inspectors; other coverage and
+projection details are collapsed. No bulk news crawl or price change.
+The [current contract](player-outlook-news-contract.md) supersedes the earlier
+manual-refresh-only rule and pending full-pool activation below.
+
+
 ## October 18, 2026 — approved implementation and full-pool discovery
 
 The user approved the public credential-free ESPN feed and the first sixteen

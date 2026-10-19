@@ -20,29 +20,43 @@ export class CompetitorTeamsPage {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   private readonly api = inject(ArchiveApi);
+  private readonly retryVersion = signal(0);
+
+  retry() {
+    if (!this.loading()) this.retryVersion.update((version) => version + 1);
+  }
   readonly competitors = computed(() => {
     const mine = this.data().my_manager_id;
     const ids = new Set(
-      this.data().assignments
-        .filter((assignment) => assignment.season === 2026)
+      this.data()
+        .assignments.filter((assignment) => assignment.season === 2026)
         .flatMap((assignment) => assignment.manager_ids),
     );
     return this.data().managers.filter((manager) => manager.id !== mine && ids.has(manager.id));
   });
-  readonly evidenceSeasons = computed(() => (managerId: string) =>
-    [...new Set(
-      this.data().assignments
-        .filter((assignment) => assignment.manager_ids.includes(managerId))
-        .map((assignment) => assignment.season),
-    )].sort((left, right) => right - left),
+  readonly evidenceSeasons = computed(
+    () => (managerId: string) =>
+      [
+        ...new Set(
+          this.data()
+            .assignments.filter((assignment) => assignment.manager_ids.includes(managerId))
+            .map((assignment) => assignment.season),
+        ),
+      ].sort((left, right) => right - left),
   );
 
   constructor() {
     effect((cleanup) => {
       this.leagueId();
+      this.retryVersion();
+      this.data.set({ managers: [], assignments: [], my_manager_id: null });
+      this.catalog.set({ candidates: [], imported_seasons: [], job: null });
       this.loading.set(true);
       this.error.set(null);
-      const request = forkJoin({ managers: this.api.managers(), catalog: this.api.catalog() }).subscribe({
+      const request = forkJoin({
+        managers: this.api.managers(),
+        catalog: this.api.catalog(),
+      }).subscribe({
         next: ({ managers, catalog }) => {
           this.data.set(managers);
           this.catalog.set(catalog);

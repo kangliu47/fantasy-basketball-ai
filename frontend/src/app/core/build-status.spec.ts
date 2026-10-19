@@ -31,15 +31,23 @@ describe('Loaded UI build and current served build', () => {
     http.verify();
   });
   const request = () => http.expectOne((r) => r.url === '/build-info.json');
-  it('shows compiled identity before the server responds and confirms only a matching build', () => {
-    expect(fixture.nativeElement.textContent).toContain(loaded.buildId);
+  const openDetails = async () => {
+    fixture.nativeElement.querySelector('button[aria-label="UI build information"]').click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return document.querySelector<HTMLElement>('[role=dialog]')!;
+  };
+  it('keeps compiled identity available on demand before the server responds', async () => {
+    expect(fixture.nativeElement.textContent).not.toContain(loaded.buildId);
+    const dialog = await openDetails();
+    expect(dialog.textContent).toContain(loaded.buildId);
     const r = request();
     expect(r.request.params.has('_check')).toBe(true);
     r.flush(loaded);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Current served build');
+    expect(dialog.textContent).toContain('Current served build');
   });
-  it('reports a newer build without replacing the loaded ID or refreshing', () => {
+  it('reports a newer build visibly while keeping identity in the details dialog', async () => {
     request().flush({
       ...loaded,
       buildId: '20261018T150000Z-abcdef0123',
@@ -49,21 +57,25 @@ describe('Loaded UI build and current served build', () => {
     expect(fixture.nativeElement.textContent).toContain('New build available');
     expect(fixture.nativeElement.textContent).toContain('Save unfinished edits');
     expect(fixture.componentInstance.build.loaded.buildId).toBe(loaded.buildId);
-    expect(fixture.nativeElement.querySelector('.identity').textContent).toContain(loaded.buildId);
-    expect(fixture.nativeElement.querySelectorAll('button').length).toBe(1);
+    expect(document.querySelector('[role=dialog]')).toBeNull();
+    const dialog = await openDetails();
+    expect(dialog.querySelector('.identity')?.textContent).toContain(loaded.buildId);
   });
-  it('keeps loaded identity on failure and retries without duplicate overlapping reads', () => {
+  it('keeps a failed check visible and offers retry in details without duplicate reads', async () => {
     const r = request();
     fixture.componentInstance.build.check();
     http.expectNone((x) => x.url === '/build-info.json');
     r.flush({}, { status: 503, statusText: 'Unavailable' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Could not check version');
-    expect(fixture.nativeElement.textContent).toContain(loaded.buildId);
-    fixture.nativeElement.querySelector('button').click();
+    const dialog = await openDetails();
+    expect(dialog.textContent).toContain(loaded.buildId);
+    [...dialog.querySelectorAll('button')]
+      .find((b) => b.textContent?.includes('Check version'))!
+      .click();
     request().flush(loaded);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Current served build');
+    expect(dialog.textContent).toContain('Current served build');
   });
   it('does not call an older served build newer, and rejects malformed metadata', () => {
     request().flush({

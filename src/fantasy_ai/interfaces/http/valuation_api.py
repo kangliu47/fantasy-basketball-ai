@@ -1,15 +1,17 @@
 """Read-only local calculation from a referenced import, never submitted provider data."""
 
+from dataclasses import dataclass
 from uuid import UUID
 
 from fastapi import APIRouter
 from pydantic import Field
 
 from fantasy_ai.application.draft.bid_guide import BidGuidePreview
-from fantasy_ai.application.draft.service import DraftService
+from fantasy_ai.application.draft.service import DraftService, DraftView
 from fantasy_ai.application.draft.valuation import preview_auction_values
 from fantasy_ai.application.models import WorkspaceError
 from fantasy_ai.application.workspace import WorkspaceService
+from fantasy_ai.domain.draft.balanced_plan import BalancedGuide
 from fantasy_ai.domain.draft.projections import StatBasis
 from fantasy_ai.domain.draft.valuation_models import AuctionValueResult, AuctionValueScenario
 
@@ -36,6 +38,16 @@ class ValuationRequest(LocalRequest):
     eligibility_reference: str = Field(default="", max_length=1000)
 
 
+class RememberBaselineRequest(ValuationRequest):
+    revision: int = Field(ge=0, strict=True)
+
+
+class BalancedGuideRequest(ValuationRequest):
+    player_id: str = Field(min_length=1, max_length=150)
+    board_revision: int = Field(ge=0, strict=True)
+    plan_revision: int = Field(ge=0, strict=True)
+
+
 class BidGuideRequest(ValuationRequest):
     player_id: str = Field(min_length=1, max_length=150)
     board_revision: int = Field(ge=0, strict=True)
@@ -43,6 +55,18 @@ class BidGuideRequest(ValuationRequest):
     reserve_for_others: int | None = Field(default=None, ge=0, le=1000000, strict=True)
     discount_percent: int = Field(default=20, ge=0, le=50, strict=True)
     next_bid: int | None = Field(default=None, ge=1, le=1000000, strict=True)
+
+
+@dataclass(frozen=True)
+class BalancedPreview:
+    guide: BalancedGuide
+    board_id: str
+    plan_id: str
+    league_id: int
+    my_team_id: str | None
+    board_revision: int
+    plan_revision: int
+    projection_import_id: str
 
 
 def create_valuation_router(service: DraftService, workspace: WorkspaceService) -> APIRouter:
@@ -82,6 +106,34 @@ def create_valuation_router(service: DraftService, workspace: WorkspaceService) 
             data.reserve_for_others,
             data.discount_percent,
             data.next_bid,
+        )
+
+    @router.post("/valuation-review", response_model=DraftView)
+    async def remember_baseline(data: RememberBaselineRequest) -> DraftView:
+        selection = workspace.selection
+        if selection is None:
+            raise WorkspaceError("Save your league details first.")
+        baseline = await valuation(data)
+        return await service.remember_baseline(selection.league_id, data.revision, baseline)
+
+    @router.post("/balanced-guide", response_model=BalancedPreview)
+    async def balanced_guide(data: BalancedGuideRequest) -> BalancedPreview:
+        selection = workspace.selection
+        if selection is None:
+            raise WorkspaceError("Save your league details first.")
+        baseline = await valuation(data)
+        guide, board, plan = await service.balanced_guide(
+            selection.league_id, baseline, data.player_id, data.board_revision, data.plan_revision
+        )
+        return BalancedPreview(
+            guide,
+            board.id,
+            plan.id,
+            selection.league_id,
+            board.my_team_id,
+            board.revision,
+            plan.revision,
+            baseline.evidence.projection_import_id,
         )
 
     return router

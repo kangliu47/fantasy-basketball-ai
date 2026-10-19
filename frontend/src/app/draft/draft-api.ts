@@ -4,6 +4,8 @@ import { DraftBoard, DraftView, StatBasis } from './draft.models';
 import { DraftPlan } from '../preparation/preparation.models';
 import { AuctionValueResult, ValuationRequest } from './valuation.models';
 import { BidGuidePreview, BidGuideRequest } from './bid-guide.models';
+import { BalancedPreview } from './balanced-guide.models';
+import { timeout } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class DraftApi {
@@ -17,6 +19,20 @@ export class DraftApi {
   }
   bidGuide(request: BidGuideRequest) {
     return this.http.post<BidGuidePreview>('/api/draft/bid-guide', request, this.options);
+  }
+  balancedGuide(
+    request: ValuationRequest & {
+      player_id: string;
+      board_revision: number;
+      plan_revision: number;
+    },
+  ) {
+    return this.http.post<BalancedPreview>('/api/draft/balanced-guide', request, this.options);
+  }
+  rememberBaseline(request: ValuationRequest, revision: number) {
+    return this.http
+      .post<DraftView>('/api/draft/valuation-review', { ...request, revision }, this.options)
+      .pipe(timeout(30_000));
   }
   create(minimum_bid: number) {
     return this.http.post<DraftView>('/api/draft', { minimum_bid }, this.options);
@@ -80,5 +96,10 @@ export class DraftApi {
       { revision, sale_id, event_id },
       this.options,
     );
+  }
+  reset(revision: number) {
+    return this.http
+      .post<DraftView>('/api/draft/reset', { revision }, this.options)
+      .pipe(timeout(30_000));
   }
 }

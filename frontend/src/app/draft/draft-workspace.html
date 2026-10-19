@@ -45,50 +45,70 @@
       </p>
     </section>
   } @else {
-    <div class="row between source-row">
-      <small>
-        @if (data.projection; as source) {
-          Hashtag · {{ source.player_count }} players · source
-          {{ source.source_updated_at || 'date unknown' }} ·
-          {{ source.stat_basis === 'per_game' ? 'per-game inputs' : 'season-total inputs' }}
-        } @else {
-          No projections imported
-        }
-        · <span>Saved on this Mac</span></small
-      ><button mat-stroked-button (click)="coverageOpen.set(!coverageOpen())">
-        Data & coverage
-      </button>
-    </div>
-    <details class="rules">
-      <summary>
-        League setup · {{ data.board.rules.team_count }} teams ·
-        {{ data.board.rules.active_slots + data.board.rules.bench_slots }} draft purchases · no
-        keepers
-      </summary>
-      <p>
-        Eight-category ROTO · ${{ data.board.rules.budget }} per team ·
-        {{ data.board.rules.active_slots }} active + {{ data.board.rules.bench_slots }} bench +
-        {{ data.board.rules.ir_slots }} IR. Position eligibility is unverified here. IR adds no
-        draft purchases.
-      </p>
-      <p>{{ data.board.team_context }}</p>
-    </details>
-    <div class="row team-choice">
-      <label
-        >My draft team<select
-          [disabled]="pending()"
-          [formControl]="myTeamControl"
-          (change)="setMyTeam(myTeamControl.value)"
-        >
-          <option value="">Choose my team</option>
-          @for (team of data.board.teams; track team.id) {
-            <option [value]="team.id">{{ team.name }}</option>
+    <ng-template #sourceSetup>
+      <div class="row between source-row">
+        <small>
+          @if (data.projection; as source) {
+            Hashtag · {{ source.player_count }} players · source
+            {{ source.source_updated_at || 'date unknown' }} ·
+            {{ source.stat_basis === 'per_game' ? 'per-game inputs' : 'season-total inputs' }}
+            <app-help-tip
+              label="Projection source details"
+              text="Captured {{ source.captured_at | date: 'medium' }}; imported {{
+                source.imported_at | date: 'medium'
+              }}. Saved on this Mac. Provider coverage does not establish ESPN eligibility. Projection and collection dates are different."
+            />
+          } @else {
+            No projections imported
           }
-        </select></label
-      ><small
-        >Used for your budget and drafted roster. Historical labels are planning references.</small
-      >
-    </div>
+        </small>
+        <div class="row team-choice">
+          <label
+            >My draft team<select
+              [attr.disabled]="pending() ? '' : null"
+              [formControl]="myTeamControl"
+              (change)="setMyTeam(myTeamControl.value)"
+            >
+              <option value="">Choose my team</option>
+              @for (team of data.board.teams; track team.id) {
+                <option [value]="team.id">{{ team.name }}</option>
+              }
+            </select></label
+          >
+          <app-help-tip
+            label="League setup and team selection"
+            text="{{ data.board.rules.team_count }} teams · ${{ data.board.rules.budget }} each · {{
+              data.board.rules.active_slots
+            }} active + {{ data.board.rules.bench_slots }} bench purchases · {{
+              data.board.rules.ir_slots
+            }} IR · no keepers. IR adds no purchases. Position eligibility is unverified. This selection controls your budget and roster. Historical labels are planning references. {{
+              data.board.team_context
+            }}"
+          />
+          <button mat-stroked-button (click)="coverageOpen.set(!coverageOpen())">
+            Data & coverage
+          </button>
+        </div>
+      </div>
+    </ng-template>
+    @if (mode() === 'auction') {
+      <details class="auction-setup" [open]="!data.board.my_team_id">
+        <summary>
+          My draft team:
+          {{ data.board.my_team_id ? teamName(data.board.my_team_id) : 'Choose my team' }} · Setup &
+          sources
+        </summary>
+        <ng-container [ngTemplateOutlet]="sourceSetup" />
+      </details>
+      @if (data.projection; as source) {
+        <p class="caption auction-source">
+          Hashtag · {{ source.player_count }} players · source
+          {{ source.source_updated_at || 'date unknown' }}
+        </p>
+      }
+    } @else {
+      <ng-container [ngTemplateOutlet]="sourceSetup" />
+    }
     @if (coverageOpen() || !data.projection) {
       <section class="showcase-card coverage">
         <h2>Projection data & coverage</h2>
@@ -194,7 +214,7 @@
       </section>
     }
     @if (mode() === 'prepare') {
-      <app-auction-valuation />
+      <app-auction-valuation [remember]="true" (calculateRequested)="confirmBaseline($event)" />
       @if (data.projection) {
         <div class="board" [class.mobile-detail]="mobileDetail()">
           <section class="showcase-card pool">
@@ -325,10 +345,10 @@
               </table>
             </div>
             @if (valuation.available()) {
-              <p class="caption">
-                Baseline allocations are a static pre-draft reference. Unpriced players sit outside
-                the modeled purchase set; they are not valued at zero.
-              </p>
+              <app-help-tip
+                label="Baseline and unpriced players"
+                text="Baseline allocations are a static pre-draft reference. Unpriced players sit outside the modeled purchase set; they are not valued at zero."
+              />
             }
           </section>
           <aside class="showcase-card inspector">
@@ -344,7 +364,6 @@
                 >{{ p.positions.join('/') }} · {{ p.projected_games ?? 'Unknown' }} projected games
                 · {{ basis() === 'per_game' ? 'per game' : 'season totals' }}</small
               >
-              <app-player-context [player]="p" />
               @if (selectedValue(); as value) {
                 <section aria-label="Selected player baseline" class="baseline-detail">
                   <p class="baseline-price">
@@ -369,29 +388,6 @@
                       Outside the modeled purchase set. You can still choose a personal ceiling.
                     </p>
                   }
-                  <details open>
-                    <summary>Category contributions (z-scores)</summary>
-                    @for (c of categories; track c) {
-                      <div class="category-row">
-                        <span>{{ c }}</span>
-                        <div class="category-track" aria-hidden="true">
-                          <i
-                            [class.negative]="categoryScore(c) < 0"
-                            [style.left.%]="categoryScore(c) < 0 ? 50 - barWidth(c) : 50"
-                            [style.width.%]="barWidth(c)"
-                          ></i>
-                        </div>
-                        <span
-                          >{{ categoryScore(c) > 0 ? '+' : ''
-                          }}{{ categoryScore(c) | number: '1.2-2' }}</span
-                        >
-                      </div>
-                    }
-                    <p class="caption">
-                      Green adds to the score; orange subtracts. Shooting impact accounts for
-                      attempts. The stat cards below use their own display basis.
-                    </p>
-                  </details>
                   <button
                     mat-stroked-button
                     [disabled]="pending() || value.baseline_value_cents === null"
@@ -399,35 +395,12 @@
                   >
                     Use rounded baseline
                   </button>
-                  <p class="caption">
-                    Copies a whole-dollar value into your ceiling for review. Saving remains your
-                    decision.
-                  </p>
+                  <app-help-tip
+                    label="Using the rounded baseline"
+                    text="Copies a whole-dollar value into your ceiling for review. Saving remains your decision. A baseline allocation differs from a personal ceiling and the legal bid maximum."
+                  />
                 </section>
               }
-              <div class="statgrid">
-                @for (c of categories; track c) {
-                  <div class="stat">
-                    <small>{{ c }}</small
-                    ><strong>{{ format(c, projection(p).values[c]) }}</strong>
-                  </div>
-                }
-              </div>
-              <details>
-                <summary>Shooting volume & projection basis</summary>
-                <p>
-                  FG: {{ projection(p).components['fgm'] | number: '1.0-2' }} /
-                  {{ projection(p).components['fga'] | number: '1.0-2' }} · FT:
-                  {{ projection(p).components['ftm'] | number: '1.0-2' }} /
-                  {{ projection(p).components['fta'] | number: '1.0-2' }} ({{
-                    basis() === 'per_game' ? 'per game' : 'season totals'
-                  }}).
-                </p>
-                <p>
-                  Ratios use makes/attempts. Counting totals use projected games when inputs are per
-                  game. ESPN identity and position eligibility remain unverified.
-                </p>
-              </details>
               <form [formGroup]="targetForm" (ngSubmit)="saveTarget()">
                 <div class="ceiling">
                   <label
@@ -496,6 +469,59 @@
                   </button>
                 }
               </div>
+              <app-espn-context [player]="p" section="updates" />
+              <details class="projection-details">
+                <summary>Projected stats & projection changes</summary>
+                @if (selectedValue()) {
+                  <details aria-label="Category contributions">
+                    <summary>Category contributions (z-scores)</summary>
+                    @for (c of categories; track c) {
+                      <div class="category-row">
+                        <span>{{ c }}</span>
+                        <div class="category-track" aria-hidden="true">
+                          <i
+                            [class.negative]="categoryScore(c) < 0"
+                            [style.left.%]="categoryScore(c) < 0 ? 50 - barWidth(c) : 50"
+                            [style.width.%]="barWidth(c)"
+                          ></i>
+                        </div>
+                        <span
+                          >{{ categoryScore(c) > 0 ? '+' : ''
+                          }}{{ categoryScore(c) | number: '1.2-2' }}</span
+                        >
+                      </div>
+                    }
+                    <app-help-tip
+                      label="Reading category scores"
+                      text="Green adds to the score; orange subtracts. Shooting impact accounts for attempts. The stat cards use their own display basis."
+                    />
+                  </details>
+                }
+                <div class="statgrid">
+                  @for (c of categories; track c) {
+                    <div class="stat">
+                      <small>{{ c }}</small
+                      ><strong>{{ format(c, projection(p).values[c]) }}</strong>
+                    </div>
+                  }
+                </div>
+                <details>
+                  <summary>Shooting volume & projection basis</summary>
+                  <p>
+                    FG: {{ projection(p).components['fgm'] | number: '1.0-2' }} /
+                    {{ projection(p).components['fga'] | number: '1.0-2' }} · FT:
+                    {{ projection(p).components['ftm'] | number: '1.0-2' }} /
+                    {{ projection(p).components['fta'] | number: '1.0-2' }} ({{
+                      basis() === 'per_game' ? 'per game' : 'season totals'
+                    }}).
+                  </p>
+                  <p>
+                    Ratios use makes/attempts. Counting totals use projected games when inputs are
+                    per game. ESPN identity and position eligibility remain unverified.
+                  </p>
+                </details>
+                <app-player-context [player]="p" />
+              </details>
             } @else {
               <h2>Select a player</h2>
               <p>Choose a candidate to inspect its projection and save your decision.</p>
@@ -596,6 +622,9 @@
     } @else {
       <app-auction-team-board
         [baseline]="valuation.calculatedRequest()"
+        [baselineValues]="valuation.players()"
+        [canReview]="true"
+        (baselineReviewed)="confirmBaseline($event)"
         [data]="data"
         [pending]="pending()"
         [error]="error()"
@@ -603,6 +632,7 @@
         (choose)="select($event, false)"
         (recordPick)="recordBoardPick($event)"
         (undoPick)="undo($event)"
+        (resetBoard)="clearBoard($event)"
         (reload)="load()"
       />
     }

@@ -2,15 +2,25 @@
 
 **CONTRACT_ID:** ESPN-PLAYER-CONTEXT-2026-10-18-v1
 
-## Current decisions — October 18, 2026
+## Current decisions — October 19, 2026, latest
+
+The user approves `docs/player-news-preview.html`, the recommended refresh on
+inspection when at least 30 minutes old, and the full-pool identity proposals.
+All 430 distinct links are now verified and saved. News still loads only for
+inspected players or an explicit Refresh; there is no bulk news crawl or polling.
+The optional season-outlook field and compact inspector flow are governed by
+[PLAYER-OUTLOOK-NEWS-2026-10-19-v1](player-outlook-news-contract.md).
+GET remains a saved-only read. Current source text does not change draft prices.
+
+## Earlier decisions — October 18, 2026
 
 The user approved the existing player selection → team/projection context → dated
 provider notes → target decision flow, and then explicitly approved adding a
 credential-free public ESPN feed to that panel. This is a narrow exception to the
 Connect ESPN requirement for private league reads. The user approved sixteen
 reviewed target identities, then requested discovery for the entire imported
-Hashtag pool. Full-pool discovery is complete; saving additional links requires
-the pending batch review. Private review tables and accepted mappings stay local.
+Hashtag pool. Full-pool discovery was complete; its pending batch review is superseded by
+the October 19 approval and activation above. Private review tables and accepted mappings stay local.
 No new navigation or identity-administration UI is introduced.
 
 **Manager question:** What team does this player belong to according to ESPN,
@@ -50,9 +60,10 @@ name alone. Archive team assignments do not establish current teams.
 - Public reads have no credentials, cookie/session client reuse, environment
   proxy configuration, redirects or caller-controlled URLs. Discard public-site
   cookies between requests. Bound response size/time and use safe errors.
-- Identity setup fetches metadata only. News refresh is explicit, limited to two
-  concurrent reads, and independent of Hashtag/ESPN sign-in. Opening a player
-  reads the local saved cache only. The full pool does not trigger bulk news reads.
+- Identity setup fetches metadata only. News refresh is limited to two concurrent
+  reads and independent of Hashtag/ESPN sign-in. Opening an inspected player
+  reads the local cache and may refresh under the approved 30-minute policy.
+  The full pool does not trigger bulk news reads.
 - Metadata must verify before the overview request. Each article requires an
   explicit matching NBA athlete category; general headlines are excluded. The
   RotoWire item has no embedded athlete ID: its provenance is the ID-scoped

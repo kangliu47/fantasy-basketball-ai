@@ -31,6 +31,16 @@ export class BidGuideStore {
   private sequence = 0;
   private subscription?: Subscription;
 
+  resetPractice() {
+    this.policy = { reserve: null, discount: 20, nextBid: null };
+    this.form.reset(this.policy);
+    this.inputError.set(null);
+    this.context = null;
+    this.key = '';
+    this.baselineReady.set(false);
+    this.calculate(); // Cancel old guidance; the updated board supplies the next context.
+  }
+
   update(data: DraftView, playerId: string, baseline: ValuationRequest | null) {
     const identity = `${data.board?.league_id}:${data.board?.id}:${data.board?.my_team_id}`;
     if (identity !== this.identity) {

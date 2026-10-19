@@ -1,5 +1,21 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
+> [Amendment 73](#73-player-outlook-and-latest-news--approved-2026-10-19)
+> approves ESPN season outlook and recent news immediately after bidding numbers,
+> automatic refresh on inspection and the reviewed full-pool player links.
+
+> [Amendment 72](#72-practice-board-reset--requested-2026-10-19) authorizes
+> clearing disposable draft tracking and updating current recommendations.
+> Its production popup flow awaits explicit mock approval.
+
+> [Amendment 71](#71-balanced-foundation-ceiling-report--confirmed-2026-10-18)
+> authorizes a private report of player baselines, targets and conditional
+> foundation ceilings before any production calculation or saved-ceiling changes.
+
+> [Amendment 70](#70-streamlined-auction-interface--approved-2026-10-18)
+> approves the reviewed Prepare/Auction layout: key decision widgets first,
+> secondary guidance behind accessible info icons, and compact global build details.
+
 > [Amendment 69](#69-simple-dynamic-auction-bid-guide--approved-2026-10-18)
 > adds a compact aim-to-pay / stop-at guide using the approved baseline, current
 > recorded auction state and an explicit reserve for other roster slots.
@@ -70,6 +86,107 @@
 > [personal-product direction](personal-product-direction.md).
 
 ## Amendment history — newest first
+
+## 75. Desktop auction-night decision flow — approved 2026-10-19
+
+The user approves `auction-night-preview.html` and specifies a local PC with
+regular monitors. Put search beside baseline/target/conditional stop, compact
+budget/slots/legal maximum above, and a manual bid comparison with explicit stop
+and $40-exception cues. Show a dated player headline; expand full news, projected
+stats and calculation detail. Keep three recent results with Undo and expand the
+full team board/history/Clear board flow. Shorten first-use review while retaining
+two explicit user declarations, source scope and saved-league season totals.
+Record retains its rounded baseline default and $1 adjustments; successful saving
+returns focus to search. Preserve failed edits and all existing draft decisions.
+No new model, injury penalty or provider transaction. See
+[review and acceptance](auction-night-ux-review.md).
+
+## 74. Dynamic balanced prices first — approved 2026-10-19
+
+The user approves `docs/auction-prices-preview.html`, chooses the balanced-roster
+report method for application integration and requests an editable original
+baseline default in the Record pick widget. Show baseline, bargain and conditional
+stop prominently above charts/news, with compact current price cues in the player
+list. Picks, undo, plan/cap changes and resets update the dynamic stop. Preserve
+the fixed baseline, saved ceilings, manual tracking and source evidence.
+
+Reuse the report's ten-player foundation plus three bench completion scenario,
+severe-shooting exclusion, $6 bench envelope, 20% discount target, central/+15%
+alternative-price assumptions and $40 advisory maximum with exceptions flagged.
+The result is conditional feasibility, not an empirically optimal bid. Bound and
+cache work; stale, unmatched, missing and unproved states have no current stop.
+Persist compatible explicit projection review for cross-browser recalculation.
+Defaults do not imply a sale: user confirms the actual final price before save.
+See the [approved decision](auction-prices-first-design.md).
+
+## 73. Player outlook and latest news — approved 2026-10-19
+
+The user approves `docs/player-news-preview.html` and requests implementation.
+Prepare and Auction companion put ESPN season outlook and the latest dated
+fantasy update immediately after prices/actions in the player inspector.
+Additional articles and technical projection details are collapsed. Inspecting a
+reviewed linked player checks ESPN when the saved check is absent or at least
+30 minutes old; manual Refresh remains available. No background polling or bulk
+news download. Approved full-pool identity proposals are checked against current
+ESPN metadata before activation. Preserve source attribution, publication and
+check dates, unknown coverage, previous content on failure, and all draft decisions.
+See the [behavior contract](player-outlook-news-contract.md).
+
+## 72. Practice-board reset — requested 2026-10-19
+
+The user confirms all current saved purchases were tests and requests a fresh
+board, corrected documents/recommendations and a quick Clear board action with
+a confirmation popup for repeated practice. Preserve preparation setup, imported
+projections, targets and saved personal ceilings. Clearing removes all current
+picks and correction events across teams; prior immutable snapshots remain.
+The confirmation defaults to Cancel, discloses the scope and starting budgets,
+and uses a reviewed revision to protect intervening picks. Busy, failure and
+reload states remain at the action. No external fantasy-provider write occurs.
+
+The [shared-theme synthetic preview](clear-board-preview.html) defines the flow.
+The follow-up request to relaunch and verify Clear board confirms its delivery.
+Production implementation uses that scope, with synthetic reset checks and saved
+draft preservation on restart. See the
+[delivery evidence](qa/2026-10-19-clear-board-delivery.md).
+See the [behavior contract](auction-board-reset-contract.md).
+
+## 71. Balanced foundation ceiling report — confirmed 2026-10-18
+
+The user requests every imported player's baseline, projected contributions,
+buying target, personal stop and explanatory comments for a balanced foundation
+with inexpensive flexible bench places. The preferred upper spend is a guideline;
+flag exceptions. Exclude severe individual shooting drags from new foundation
+recommendations while preserving baseline values and already-owned players.
+
+First deliver a private HTML/Markdown report for validation. Separate an opening
+plan from the saved auction scenario, use remaining rosters and spendable capital,
+declare price and category assumptions, and retain complete completion witnesses
+and sensitivity results. Conditional budget feasibility must not be presented as
+optimal bidding, observed market prices or a probability forecast. Unpriced players
+retain unknown valuations; any bench-only cap is a separate policy.
+
+This authorizes the bounded report and necessary checks. It does not authorize
+changing app formulas or saved ceilings. Review of the report precedes a separate
+synthetic mock for any materially changed nominated-player interface. Private
+league evidence and paid projection rows remain outside public source.
+
+## 70. Streamlined auction interface — approved 2026-10-18
+
+The user explicitly approved [the synthetic layout](ui-streamline-preview.html)
+and requested implementation after repair of QA-01 through QA-05. Reuse the
+shared `fantasy-analytics-v1` style. Compact the shell and source/team toolbar;
+place budgets, bidding/ceiling decisions and primary actions before supporting
+provider detail. Move secondary explanations to labeled info icons available by
+hover, keyboard focus and click/tap, with Escape dismissal. Keep larger
+calculations in deliberate disclosure panels.
+
+Preserve source dates, missing-data states, eligibility/manual-tracking labels,
+errors and recovery controls. Build details move behind an icon while version
+failures and available updates stay visible. Tall panels must remain reachable
+on short screens. Preserve navigation, calculations, comparison/trial/import
+features, saved decisions and revision checks. This is a presentation change;
+no new provider reads or analytical model is authorized. See the
+[delivery record](qa/2026-10-18-ui-remediation.md).
 
 Newest decisions appear first, including same-day follow-ups. Section numbers
 and anchors retain their original identities. Earlier plans remain historical

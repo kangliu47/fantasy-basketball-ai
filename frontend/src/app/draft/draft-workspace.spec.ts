@@ -1,9 +1,12 @@
-import { sampleBidGuide } from './bid-guide.fixture';
+import { By } from '@angular/platform-browser';
+import { AuctionTeamBoard } from './auction-team-board';
+import { BidGuideStore } from './bid-guide-store';
+import { sampleBalanced } from './balanced-guide.fixture';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { DraftWorkspace } from './draft-workspace';
-import { sampleDraft } from './draft.fixture';
+import { sampleDraft, practiceDraft } from './draft.fixture';
 import { completeDraft, sampleValuation } from './valuation.fixture';
 
 describe('Draft preparation and manual auction', () => {
@@ -11,6 +14,9 @@ describe('Draft preparation and manual auction', () => {
     http: HttpTestingController,
     component: DraftWorkspace;
   const settle = async () => {
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Material dialog transition/focus.
     await fixture.whenStable();
     fixture.detectChanges();
   };
@@ -29,7 +35,103 @@ describe('Draft preparation and manual auction', () => {
   });
   afterEach(() => {
     fixture.destroy();
-    http.verify();
+    http.match('/api/draft/balanced-guide').forEach((r) => {
+      if (!r.cancelled) r.flush(sampleBalanced(completeDraft(), r.request.body.player_id));
+    });
+    http.verify({ ignoreCancelled: true });
+  });
+  it('saves an explicit baseline review with revision checks before calculation and retains unfinished notes', async () => {
+    component.load();
+    http.expectOne('/api/draft').flush(completeDraft());
+    await settle();
+    component.valuation.review.setValue({
+      coverage: true,
+      eligibility: true,
+      scope: 'All fictional players',
+    });
+    component.targetForm.setValue({ ceiling: 42, note: 'Keep unfinished research' });
+    component.targetForm.markAsDirty();
+    component.confirmBaseline(component.valuation.reviewedRequest());
+    const saved = http.expectOne('/api/draft/valuation-review');
+    expect(saved.request.body.revision).toBe(completeDraft().board!.revision);
+    expect(saved.request.headers.get('X-Fantasy-Client')).toBe('local-ui');
+    const newer = completeDraft();
+    newer.board!.revision++;
+    saved.flush(newer);
+    http.expectOne('/api/draft/valuation').flush(sampleValuation());
+    await settle();
+    expect(component.targetForm.controls.note.value).toBe('Keep unfinished research');
+    expect(component.targetForm.controls.ceiling.value).toBe(42);
+  });
+  it('clears through confirmation, recovers from failure, and preserves unfinished research', async () => {
+    component.load();
+    const practiced = practiceDraft();
+    http.expectOne('/api/draft').flush(practiced);
+    fixture.componentRef.setInput('mode', 'auction');
+    await settle();
+    component.targetForm.setValue({ ceiling: 37, note: 'Keep this unfinished thought' });
+    component.targetForm.markAsDirty();
+    const board = fixture.debugElement.query(By.directive(AuctionTeamBoard))
+      .componentInstance as AuctionTeamBoard;
+    board.openReset();
+    await settle();
+    board.cancelReset();
+    await settle();
+    http.expectNone('/api/draft/reset');
+    board.openReset();
+    await settle();
+    board.confirmReset();
+    const failed = http.expectOne('/api/draft/reset');
+    expect(failed.request.body).toEqual({ revision: 7 });
+    expect(failed.request.headers.get('X-Fantasy-Client')).toBe('local-ui');
+    failed.flush(
+      { message: 'Synthetic lost response' },
+      { status: 503, statusText: 'Unavailable' },
+    );
+    await settle();
+    expect(component.data()?.sales).toHaveLength(1);
+    expect(document.querySelector('[role=dialog]')?.textContent).toContain('Reload saved data');
+    board.confirmReset();
+    http.expectNone('/api/draft/reset');
+    board.reloadReset();
+    http.expectOne('/api/draft').flush(practiced);
+    await settle();
+    expect(document.querySelector('[role=dialog]')).toBeNull();
+    const guide = fixture.componentRef.injector.get(BidGuideStore);
+    guide.form.setValue({ reserve: 80, discount: 30, nextBid: 20 });
+    board.openReset();
+    await settle();
+    board.confirmReset();
+    const reset = http.expectOne('/api/draft/reset');
+    const cleared = sampleDraft();
+    cleared.board!.revision = 8;
+    reset.flush(cleared);
+    await settle();
+    expect(component.data()?.sales).toEqual([]);
+    expect(component.data()?.board?.events).toEqual([]);
+    expect(component.data()?.projection).toEqual(practiced.projection);
+    expect(component.data()?.plan).toEqual(practiced.plan);
+    expect(component.targetForm.controls.note.value).toBe('Keep this unfinished thought');
+    expect(component.targetForm.controls.ceiling.value).toBe(37);
+    expect(guide.form.getRawValue()).toEqual({ reserve: null, discount: 20, nextBid: null });
+    expect(component.message()).toContain('Board cleared');
+    expect(document.querySelector('[role=dialog]')).toBeNull();
+  });
+  it('keeps news above collapsed projection details in both approved inspectors', async () => {
+    for (const mode of ['prepare', 'auction'] as const) {
+      fixture.componentRef.setInput('mode', mode);
+      await settle();
+      const panel = fixture.nativeElement.querySelector(
+        mode === 'prepare' ? '.inspector' : '.auction-decision',
+      ) as HTMLElement;
+      const news = panel.querySelector('app-espn-context .espn-updates')!;
+      const details = panel.querySelector('details.projection-details') as HTMLDetailsElement;
+      expect(news).toBeTruthy();
+      expect(details.open).toBe(false);
+      expect(news.closest('details')).toBeNull();
+      expect(news.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(details.textContent).toContain('Projection changes');
+    }
   });
   it('uses server profiles for comparison and requires explicit basis before import', async () => {
     component.compare();
@@ -201,7 +303,7 @@ describe('Draft preparation and manual auction', () => {
       fixture.nativeElement.querySelector('[aria-label="Projected candidates"]').textContent,
     ).toContain('$49.86');
     expect(
-      fixture.nativeElement.querySelector('[aria-label="Selected player baseline"]').textContent,
+      fixture.nativeElement.querySelector('[aria-label="Category contributions"]').textContent,
     ).toContain('-0.50');
     component.useRoundedBaseline();
     expect(component.targetForm.controls.ceiling.value).toBe(50);
@@ -210,7 +312,10 @@ describe('Draft preparation and manual auction', () => {
     http.expectNone('/api/draft/target');
     fixture.componentRef.setInput('mode', 'auction');
     await settle();
-    http.expectOne('/api/draft/bid-guide').flush(sampleBidGuide(completeDraft()));
+    http.expectOne('/api/draft/balanced-guide').flush(sampleBalanced(completeDraft()));
+    http
+      .match('/api/draft/balanced-guide')
+      .forEach((r) => r.flush(sampleBalanced(completeDraft(), r.request.body.player_id)));
     await settle();
     expect(component.selectedValue()?.baseline_value_cents).toBe(4986);
     expect(component.myBudget()?.legal_maximum).toBe(188);

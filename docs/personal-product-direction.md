@@ -1,5 +1,62 @@
 # Personal product direction
 
+## Tonight's desktop auction journey — October 19, 2026, latest
+
+User decision: approve the auction-night mock and prioritize a local PC with
+regular monitors. Search and the three decision prices stay together; a manual
+bid cue makes target/stretch/pass visible, with flagged $40 exceptions. Short,
+dated player news supports the decision. Longer evidence and full team charts
+expand on demand. Preserve ten foundation/three flex, severe shooting exclusions,
+existing prices, notes and draft records. See [approved review](auction-night-ux-review.md).
+
+## Auction prices lead the decision — October 19, 2026, latest
+
+The user approves a prices-first auction layout and integrating the balanced
+foundation report method. Baseline, bargain and stop lead; team charts, news and
+projected stats support those numbers below. Keep the ten-foundation/three-flex
+plan, severe-shooting screen and flagged exceptions above the $40 guideline.
+The user additionally requests the original baseline as an editable starting
+value when recording a pick. This supersedes earlier mandatory manual-reserve
+entry and the earlier report-only boundary for this specific feature. See the
+[approved scope](auction-prices-first-design.md).
+
+## Practice reset ready to use — October 19, 2026, latest
+
+The user requests relaunch and UX verification of the presented Clear board flow.
+The production Auction companion now provides the action and confirmation beside
+Team board. Restore the practice ledger while keeping preparation research. This
+supersedes the preview pending status below; see the
+[delivery evidence](qa/2026-10-19-clear-board-delivery.md).
+
+## Source context at the bidding decision — October 19, 2026, latest
+
+User decision: approve the compact player-news preview and implement it. Each
+draft inspector now puts ESPN season outlook and the latest dated update after
+prices/actions; technical details and extra articles are collapsed. Inspecting
+an approved linked player refreshes a missing or 30-minute-old check, with manual
+retry and no polling. Full-pool identity links are approved and verified. Preserve
+valuation inputs and saved draft decisions. See the
+[delivery record](qa/2026-10-19-player-outlook-delivery.md).
+
+
+## Repeatable auction practice — October 19, 2026, latest
+
+User correction: all current saved purchases were tests. Clear practice tracking,
+update current reports and recommendations, and add a Clear board confirmation
+flow. Preserve projections, targets, personal ceilings and league setup. Treat
+superseded test-state reports separately from current guidance and real history.
+The prior preview pending status is superseded by the delivery recorded above.
+
+
+## Interface focus — October 18, 2026, latest
+
+User decision: reduce explanatory text so key widgets dominate the workspace.
+The user explicitly approved `docs/ui-streamline-preview.html` and requested
+implementation. Prepare and Auction companion now use compact chrome, decisions
+before provider detail and labeled info icons for secondary guidance. Source
+dates, critical caveats, errors and recovery stay visible. Existing navigation
+and useful actions are preserved. See the [delivery evidence](qa/2026-10-18-ui-remediation.md).
+
 ## Navigation approval — October 18, 2026, latest
 
 The user approves the three-workspace mock: Auction prep leads with Prepare and

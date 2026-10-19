@@ -1,3 +1,4 @@
+import { HelpTip } from '../core/help-tip';
 import {
   Component,
   DestroyRef,
@@ -9,7 +10,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -22,10 +23,12 @@ import { Candidate, DraftMode, DraftView, ProjectionProfile, StatBasis } from '.
 import { DraftPlan } from '../preparation/preparation.models';
 import { AuctionValuation } from './auction-valuation';
 import { ValuationStore } from './valuation-store';
-import { auctionMoney } from './valuation.models';
+import { ValuationRequest, auctionMoney } from './valuation.models';
 import { HashtagProjections } from './hashtag-projections';
 import { AuctionPickRequest, AuctionTeamBoard } from './auction-team-board';
 import { PlayerContext } from './player-context';
+import { ESPNContext } from './espn-context';
+import { BalancedGuideStore } from './balanced-guide-store';
 import { BidGuideStore } from './bid-guide-store';
 
 type TargetEdit = { ceiling: number | null; note: string; revision: number; importId: string };
@@ -33,18 +36,21 @@ type TargetEdit = { ceiling: number | null; note: string; revision: number; impo
 @Component({
   selector: 'app-draft-workspace',
   imports: [
+    HelpTip,
     ReactiveFormsModule,
     MatButtonModule,
     MatProgressBarModule,
     MatInputModule,
     DatePipe,
     DecimalPipe,
+    NgTemplateOutlet,
     AuctionValuation,
     HashtagProjections,
     AuctionTeamBoard,
     PlayerContext,
+    ESPNContext,
   ],
-  providers: [ValuationStore, BidGuideStore],
+  providers: [ValuationStore, BidGuideStore, BalancedGuideStore],
   templateUrl: './draft-workspace.html',
   styleUrl: './draft-workspace.scss',
 })
@@ -54,6 +60,7 @@ export class DraftWorkspace {
   private readonly api = inject(DraftApi);
   private readonly destroyRef = inject(DestroyRef);
   readonly valuation = inject(ValuationStore);
+  private readonly bidGuide = inject(BidGuideStore);
   readonly money = auctionMoney;
   readonly data = signal<DraftView | null>(null);
   readonly loading = signal(false);
@@ -251,7 +258,12 @@ export class DraftWorkspace {
       'Projection snapshot saved. Previous imports and draft decisions are preserved.',
     );
   }
-  private mutate(request: Observable<DraftView>, message: string, saved?: () => void) {
+  private mutate(
+    request: Observable<DraftView>,
+    message: string,
+    saved?: () => void,
+    failureMessage?: string,
+  ) {
     if (this.pending()) return;
     this.captureEdit();
     const epoch = this.epoch;
@@ -270,7 +282,7 @@ export class DraftWorkspace {
         if (epoch !== this.epoch) return;
         this.pending.set(false);
         this.myTeamControl.setValue(this.data()?.board?.my_team_id ?? '');
-        this.error.set(archiveError(e));
+        this.error.set(failureMessage ?? archiveError(e));
       },
     });
   }
@@ -563,6 +575,31 @@ export class DraftWorkspace {
       this.api.undo(b.revision, id, event),
       'Pick undone. Budget, slots and availability restored.',
       () => this.attemptedUndos.delete(id),
+    );
+  }
+  confirmBaseline(request: ValuationRequest) {
+    const board = this.data()?.board;
+    if (!board) return;
+    this.mutate(
+      this.api.rememberBaseline(request, board.revision),
+      'Baseline population review saved on this Mac.',
+      () => this.valuation.calculate(),
+    );
+  }
+  clearBoard(reviewedRevision: number) {
+    if (!this.data()?.board || this.pending()) return;
+    this.mutate(
+      this.api.reset(reviewedRevision),
+      'Board cleared. Every team is ready for a new practice draft.',
+      () => {
+        this.attemptedSales.clear();
+        this.attemptedUndos.clear();
+        this.saleForm.controls.price.setValue(null);
+        this.outsideForm.patchValue({ name: '', price: null });
+        this.bidGuide.resetPractice();
+        this.auctionBoard()?.finishReset();
+      },
+      'Could not confirm the board reset. Reload saved data to check before trying again.',
     );
   }
   candidateName(id: string) {

@@ -1,162 +1,174 @@
 <section class="bid-guide" aria-label="Player bidding guide">
-  <h3>Bidding guide</h3>
-  @if (!store.baselineReady()) {
-    <p class="caption">
-      Calculate the baseline in Prepare first. Your saved ceiling stays unchanged.
+  <div class="prices" aria-label="Baseline, target and conditional stop">
+    <div>
+      <small
+        >Baseline
+        <app-help-tip
+          label="Original baseline"
+          text="Static pre-draft contribution allocation from the reviewed projection. It is separate from your personal stop and the price recorded for a pick." /></small
+      ><strong>{{ money(baselineCents()) }}</strong>
+    </div>
+    <div>
+      <small>Target or less</small
+      ><strong>{{ usable() && guide()?.aim_bid != null ? '$' + guide()!.aim_bid : '—' }}</strong>
+    </div>
+    <div class="stop">
+      <small
+        >Conditional stop
+        <app-help-tip
+          label="Conditional stop details"
+          text="A verified balanced completion permits this price at assumed alternative costs. This is not a winning-price prediction or proof this is the best purchase. Above $40 is a flagged exception." /></small
+      ><strong>{{ usable() && guide()?.stop_bid != null ? '$' + guide()!.stop_bid : '—' }}</strong>
+    </div>
+  </div>
+  @if (!baselineReady()) {
+    <p class="caption" role="status">
+      Review and calculate the saved-league baseline to show current ranges.
     </p>
-  } @else if (pending() || store.loading()) {
-    <p class="caption" role="status">Updating the guide… Previous advice is paused.</p>
-  } @else if (store.error(); as error) {
+  } @else if (pending() || busy()) {
+    <p class="caption" role="status">
+      Updating for the latest recorded board… Previous target and stop are paused.
+    </p>
+  } @else if (error(); as error) {
     <p class="notice" role="alert">{{ error }}</p>
-    <button mat-button (click)="store.calculate()">Retry guide</button>
-    <button mat-button (click)="reload.emit()">Reload saved board</button>
-    <p class="caption">If the board changed in another view, reload the saved board first.</p>
-  } @else if (value(); as value) {
-    @let g = value.guide;
-    @if (g.status === 'available') {
-      @if (g.stop_bid !== null) {
-        <div class="prices" aria-label="Aim and stopping prices">
-          <div>
-            <small>Aim to pay</small><strong>${{ g.aim_bid }} or less</strong>
-          </div>
-          <div>
-            <small>Stop at</small><strong>${{ g.stop_bid }}</strong>
-          </div>
+    <button mat-button (click)="store.retry(playerId())">Retry prices</button
+    ><button mat-button (click)="reload.emit()">Reload saved board</button>
+  } @else if (guide(); as g) {
+    <p class="reason" role="status">
+      {{
+        g.status === 'available'
+          ? g.bench_only
+            ? 'Bench policy cap · not valuation'
+            : 'Stop reflects room spending, your budget and a modeled balanced completion.'
+          : g.message
+      }}
+    </p>
+    @if (g.guideline_exception) {
+      <p class="notice">Above your $40 guideline · review this exception before bidding.</p>
+    }
+    @if (['unproved', 'solver_error', 'invalid_witness', 'solver_unavailable'].includes(g.status)) {
+      <button mat-button (click)="store.retry(playerId())">Retry prices</button>
+    }
+    <p class="caption">Updated for recorded board · revision {{ boardRevision() }}</p>
+  }
+  <div class="bid-check">
+    <label for="auction-next-bid"
+      >Check my next bid
+      <app-help-tip
+        label="Manual bid check details"
+        text="Enter the bid manually. This compares with the current target, conditional stop and legal maximum. It does not observe the live ESPN bid, submit a bid or evaluate news risk."
+    /></label>
+    <input
+      id="auction-next-bid"
+      type="number"
+      step="1"
+      [min]="data()?.board?.rules?.minimum_bid ?? 1"
+      placeholder="$"
+      [value]="nextBid()"
+      (input)="nextBid.set($any($event.target).value)"
+    />
+    @if (bidCheck(); as check) {
+      <strong
+        class="bid-cue"
+        [class.target]="check.tone === 'target'"
+        [class.pass]="check.tone === 'pass'"
+        role="status"
+        >{{ check.text }}</strong
+      >
+    }
+  </div>
+  <ng-content />
+  @if (guide(); as g) {
+    <details>
+      <summary>Your balanced plan & why this stop</summary>
+      <p>{{ g.message }}</p>
+      <p>
+        10 foundation players · 3 flexible bench spots · $6 starting bench envelope · $40 guideline,
+        with exceptions flagged
+      </p>
+      <dl>
+        <div>
+          <dt>Room reference now</dt>
+          <dd>{{ money(g.reference_cents) }}</dd>
         </div>
-      }
-      <p class="caption" role="status">{{ g.message }}</p>
-      @if (g.bid_message) {
-        <p class="notice">{{ g.bid_message }}</p>
-      }
-    } @else {
-      <p class="caption" role="status">{{ g.message }}</p>
-    }
-    @if (g.status === 'available' || g.status === 'reserve_needed' || g.status === 'invalid_plan') {
-      <details [open]="g.status !== 'available'">
-        <summary>
-          {{ g.status === 'reserve_needed' ? 'Set my roster reserve' : 'Adjust my plan' }}
-        </summary>
-        <form [formGroup]="store.form" (ngSubmit)="store.apply()">
-          <label
-            >Protect for my other players ($)
-            <input
-              type="number"
-              formControlName="reserve"
-              min="0"
-              step="1"
-              [max]="g.my_remaining ?? 200"
-            />
-          </label>
-          <p class="caption">
-            {{ g.my_open_slots === null ? 'Other' : g.my_open_slots - 1 }} other slots remain.
-            Choose a total reserve; it does not guarantee a balanced finish.
-          </p>
-          <details>
-            <summary>Optional: discount and next bid</summary>
-            <label
-              >Discount to aim for (%)<input
-                type="number"
-                formControlName="discount"
-                min="0"
-                max="50"
-                step="1"
-            /></label>
-            <label
-              >Next bid I am considering ($)<input
-                type="number"
-                formControlName="nextBid"
-                min="1"
-                step="1"
-                placeholder="Optional"
-            /></label>
-            <p class="caption">
-              20% is a buying preference. The live high bidder and bid increments are not observed.
+        <div>
+          <dt>Saved personal ceiling</dt>
+          <dd>{{ g.saved_ceiling === null ? 'None set' : '$' + g.saved_ceiling }}</dd>
+        </div>
+        <div>
+          <dt>Other players in this completion</dt>
+          <dd>{{ g.central?.reserve == null ? '—' : '$' + g.central!.reserve }}</dd>
+        </div>
+        <div>
+          <dt>Legal maximum</dt>
+          <dd>{{ g.legal_maximum === null ? '—' : '$' + g.legal_maximum }}</dd>
+        </div>
+        <div>
+          <dt>More expensive alternatives (+15%)</dt>
+          <dd>
+            {{
+              g.expensive?.status === 'optimal'
+                ? '$' + g.expensive!.ceiling
+                : (g.expensive?.status ?? 'Unavailable')
+            }}
+          </dd>
+        </div>
+      </dl>
+      <p>
+        Baseline and room reference use the original eight-category scores. Foundation excludes
+        severe shooting drags. The stop checks a 10-player foundation and 3-player bench completion
+        at assumed alternative prices. It does not guarantee those players can be bought, or that
+        paying the stop is preferable to every alternative.
+      </p>
+      <p>
+        Counting floors are 85% of the top ten-per-team reference totals. Shooting floors use pooled
+        makes and attempts. These are planning assumptions, not predicted standings. News and injury
+        text do not silently change the projection or apply extra price penalties. Bargain uses a
+        20% discount on room-reference dollars above the minimum.
+      </p>
+      @if (g.central; as completion) {
+        <details>
+          <summary>Modeled roster completion · {{ completion.status }}</summary>
+          @if (completion.status === 'optimal') {
+            <p>
+              ${{ completion.total_spend }} total · ${{ completion.bench_spend }} bench · positions
+              provisional
             </p>
-          </details>
-          @if (store.inputError(); as error) {
-            <p class="notice" role="alert">{{ error }}</p>
+            <ul>
+              @for (pick of completion.picks; track pick.player_id) {
+                <li>
+                  {{ pick.slot }} · {{ pick.name }} · ${{ pick.price
+                  }}{{ pick.owned ? ' · already owned' : ' · assumed acquisition' }}
+                </li>
+              }
+            </ul>
+            <dl>
+              @for (c of ['3PM', 'PTS', 'REB', 'AST', 'STL', 'BLK']; track c) {
+                <div>
+                  <dt>{{ c }} total / floor</dt>
+                  <dd>
+                    {{ completion.counting_totals[c].toFixed(1) }} /
+                    {{ (g.targets[c] * 0.85).toFixed(1) }}
+                  </dd>
+                </div>
+              }
+              @for (c of ['FG%', 'FT%']; track c) {
+                <div>
+                  <dt>{{ c }} pooled / floor</dt>
+                  <dd>
+                    {{ (completion.shooting_ratios[c] * 100).toFixed(2) }}% /
+                    {{ (g.targets[c] * 100).toFixed(2) }}%
+                  </dd>
+                </div>
+              }
+            </dl>
           }
-          @if (store.form.dirty) {
-            <p class="caption">Planning edits are not applied yet.</p>
-          }
-          <button mat-stroked-button type="submit">Apply to this guide</button>
-          <p class="caption">
-            Temporary planning choices. Saved targets and ceilings stay unchanged.
-          </p>
-        </form>
-      </details>
-    }
-    @if (g.reference_cents !== null) {
-      <details>
-        <summary>Why this range?</summary>
-        <dl>
-          <div>
-            <dt>Original baseline</dt>
-            <dd>{{ money(g.baseline_cents) }}</dd>
-          </div>
-          <div>
-            <dt>Reference now</dt>
-            <dd>{{ money(g.reference_cents) }}</dd>
-          </div>
-          <div>
-            <dt>Saved personal ceiling</dt>
-            <dd>{{ g.saved_ceiling === null ? 'None set' : '$' + g.saved_ceiling }}</dd>
-          </div>
-          <div>
-            <dt>Money left / open slots</dt>
-            <dd>${{ g.my_remaining }} / {{ g.my_open_slots }}</dd>
-          </div>
-          <div>
-            <dt>Legal maximum</dt>
-            <dd>${{ g.legal_maximum }}</dd>
-          </div>
-        </dl>
-        <p>
-          Keep {{ money(g.room_minimum_reserve_cents) }} for {{ g.room_open_slots }} minimum bids.
-          The rest of the room's {{ money(g.spendable_cents) }} is divided using the remaining
-          players' scores above the cutoff.
-        </p>
-        <p>
-          {{ money(g.room_extra_cents) }} remains above the room minimum reserves. Reference =
-          minimum + remaining room money above minimums × this player's share of the remaining
-          score. Scores use the original eight-category comparison; they are not refitted after each
-          pick.
-        </p>
-        <p>
-          Player score above cutoff: {{ g.player_weight | number: '1.3-3' }}; total:
-          {{ g.total_weight | number: '1.3-3' }}; cutoff: {{ g.cutoff_score | number: '1.3-3' }}.
-          Allocated: {{ money(g.allocated_cents) }}.
-        </p>
-        @if (g.discount_target !== null) {
-          <p>
-            Aim: {{ 100 - g.discount_percent }}% of the reference above the ${{
-              g.minimum_bid
-            }}
-            minimum, plus that minimum, rounded down → ${{ g.discount_target }}.
-          </p>
-          <p>
-            Roster plan: ${{ g.my_remaining }} left − ${{ g.reserve_for_others }} protected → ${{
-              g.plan_limit
-            }}
-            for this player. The stop is the smallest of reference, saved ceiling, plan limit and
-            legal maximum, rounded down.
-          </p>
-        }
-        @if (g.next_bid !== null && g.rivals_can_afford !== null) {
-          <p>
-            {{ g.rivals_can_afford }} rivals can legally afford ${{ g.next_bid }}. The highest rival
-            maximum is ${{ g.highest_rival_maximum }}. This shows ability, not willingness.
-          </p>
-        }
-        <p>
-          This is a budget guide, not a forecast of the winning bid or a statistical confidence
-          range. Below the aim is welcome; compare player backups before bidding up to the stop.
-        </p>
-        <small
-          >{{ value.valuation_basis === 'season_totals' ? 'Season totals' : 'Per-game scenario' }} ·
-          board revision {{ value.board_revision }} · {{ g.calculation_version }}</small
-        >
-      </details>
-    }
+        </details>
+      }
+      <p class="caption">
+        {{ g.calculation_version }} · each player's completion is separate; the stops are not one
+        shopping list.
+      </p>
+    </details>
   }
 </section>

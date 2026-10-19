@@ -60,7 +60,7 @@ describe('Player context evidence', () => {
     fixture.componentRef.setInput('player', sampleDraft().candidates[0]);
     await settle();
     expect(fixture.nativeElement.textContent).toContain('Synthetic NBA team ABC');
-    expect(fixture.nativeElement.textContent).toContain('No earlier comparable');
+    expect(fixture.nativeElement.textContent).toContain('First comparable projection');
     expect(fixture.nativeElement.textContent).toContain('None is available');
     http.expectNone((r) => r.url.includes(base));
   });
@@ -105,7 +105,9 @@ describe('Player context evidence', () => {
     await settle();
     http.expectOne((r) => r.url === base && r.method === 'GET').flush(notes());
     await settle();
-    const button = fixture.nativeElement.querySelector('button');
+    const button = [
+      ...(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>),
+    ].find((b) => b.textContent?.includes('Check Hashtag notes'))!;
     button.click();
     button.click();
     const request = http.expectOne(base + '/check');
@@ -139,5 +141,34 @@ describe('Player context evidence', () => {
     await settle();
     expect(fixture.nativeElement.textContent).toContain('Synthetic role note.');
     http.expectNone((r) => r.url === base);
+  });
+
+  it('shows one empty-note message and preserves a later unsupported-check explanation', async () => {
+    fixture.componentRef.setInput('player', candidate());
+    await settle();
+    expect(fixture.nativeElement.textContent).not.toContain('No Hashtag note');
+    http
+      .expectOne((r) => r.url === base)
+      .flush({
+        ...notes(),
+        saved: null,
+        available: false,
+        message: 'No Hashtag note is saved. This does not mean there is no news.',
+      });
+    await settle();
+    expect(fixture.nativeElement.textContent.match(/No Hashtag note/g)).toHaveLength(1);
+    fixture.componentInstance.notes.check(candidate().id);
+    http.expectOne(base + '/check').flush({
+      ...notes(),
+      saved: null,
+      available: false,
+      checked_at: '2026-10-18T12:00:00Z',
+      message:
+        'Notebook Drop opened, but its current layout cannot be matched safely to this player.',
+    });
+    await settle();
+    expect(fixture.nativeElement.textContent).toContain('cannot be matched safely');
+    expect(fixture.nativeElement.textContent).toContain('Checked');
+    expect(fixture.nativeElement.textContent).not.toContain('No Hashtag note');
   });
 });

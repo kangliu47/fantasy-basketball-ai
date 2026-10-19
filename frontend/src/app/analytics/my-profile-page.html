@@ -1,13 +1,27 @@
 <section class="analytics-page">
   <h2>My profile</h2>
   <p class="intro-copy">See how you spent at auction and finished by category.</p>
-  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
-  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
-  @if (!loading() && !data().my_manager_id) {
-    <p class="notice">Your profile needs one reviewed manager link before historical insights can be shown.</p>
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <p class="notice error" role="alert">
+      {{ error() }} <button mat-button [disabled]="loading()" (click)="retry()">Retry</button>
+    </p>
+  }
+  @if (!loading() && !error() && !data().my_manager_id) {
+    <p class="notice">
+      Your profile needs one reviewed manager link before historical insights can be shown.
+    </p>
   }
   @if (!loading() && !error() && data().my_manager_id) {
-    <app-manager-profiles [data]="data()" [seasons]="catalog().imported_seasons" [leagueId]="leagueId()" [managerId]="data().my_manager_id" [viewerOnly]="true" />
+    <app-manager-profiles
+      [data]="data()"
+      [seasons]="catalog().imported_seasons"
+      [leagueId]="leagueId()"
+      [managerId]="data().my_manager_id"
+      [viewerOnly]="true"
+    />
     <app-historical-category-allocation [leagueId]="leagueId()" />
   }
 </section>

@@ -59,6 +59,10 @@ class UndoRequest(LocalRequest):
     sale_id: str = Field(min_length=36, max_length=36)
 
 
+class ResetRequest(LocalRequest):
+    revision: int = Field(ge=1)
+
+
 def create_draft_router(service: DraftService, workspace: WorkspaceService) -> APIRouter:
     router = APIRouter(prefix="/api/draft", tags=["Draft preparation"])
 
@@ -126,5 +130,9 @@ def create_draft_router(service: DraftService, workspace: WorkspaceService) -> A
         valid_uuid(data.event_id)
         valid_uuid(data.sale_id)
         return await service.undo(league_id(), data.revision, data.event_id, data.sale_id)
+
+    @router.post("/reset", response_model=DraftView)
+    async def reset(data: ResetRequest) -> DraftView:
+        return await service.reset(league_id(), data.revision)
 
     return router
