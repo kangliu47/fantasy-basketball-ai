@@ -6,6 +6,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
+from fantasy_ai.application.draft.live import LiveAuctionService
+from fantasy_ai.application.draft.opportunities import OpportunityService
 from fantasy_ai.application.draft.service import DraftService
 from fantasy_ai.application.history.service import HistoryService
 from fantasy_ai.application.planning.service import PreparationService
@@ -13,6 +15,7 @@ from fantasy_ai.application.projections.player_information import PlayerInformat
 from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
 from fantasy_ai.application.workspace import WorkspaceService
+from fantasy_ai.infrastructure.auction_prices import LocalAuctionPrices
 from fantasy_ai.infrastructure.browser_login import PlaywrightBrowserLogin
 from fantasy_ai.infrastructure.draft_repository import DuckDBDraftRepository
 from fantasy_ai.infrastructure.duckdb_repository import DuckDBWorkspaceRepository
@@ -20,6 +23,8 @@ from fantasy_ai.infrastructure.espn_gateway import ESPNLeagueGateway
 from fantasy_ai.infrastructure.espn_player_information import ESPNPlayerInformationReader
 from fantasy_ai.infrastructure.history_gateway import ESPNHistoryGateway
 from fantasy_ai.infrastructure.history_repository import DuckDBHistoryRepository
+from fantasy_ai.infrastructure.live_auction.browser import ESPNRoomBrowser
+from fantasy_ai.infrastructure.live_auction.repository import DuckDBLiveRepository
 from fantasy_ai.infrastructure.planning_repository import DuckDBPlanRepository
 from fantasy_ai.infrastructure.player_information_repository import (
     DuckDBPlayerInformationRepository,
@@ -43,6 +48,8 @@ class ApplicationServices:
     projections: PremiumProjectionService | None = None
     player_notes: PlayerNotesService | None = None
     player_information: PlayerInformationService | None = None
+    live_auction: LiveAuctionService | None = None
+    opportunities: OpportunityService | None = None
 
 
 def build_services(root: Path | None = None) -> ApplicationServices:
@@ -84,8 +91,24 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         DuckDBPlayerInformationRepository(repository),
         ESPNPlayerInformationReader(),
     )
+    live = LiveAuctionService(
+        ESPNRoomBrowser(root / ".local/espn-draft-browser"),
+        DuckDBLiveRepository(repository),
+        draft,
+        DuckDBPlayerInformationRepository(repository),
+    )
     return ApplicationServices(
-        workspace, history, planning, draft, projections, player_notes, player_information
+        workspace,
+        history,
+        planning,
+        draft,
+        projections,
+        player_notes,
+        player_information,
+        live,
+        OpportunityService(
+            draft, live, LocalAuctionPrices(root / ".local/auction-prices/espn-2027.json")
+        ),
     )
 
 
@@ -106,4 +129,6 @@ def create_app() -> FastAPI:
         services.projections,
         services.player_notes,
         services.player_information,
+        services.live_auction,
+        services.opportunities,
     )

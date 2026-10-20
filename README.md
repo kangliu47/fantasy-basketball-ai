@@ -54,6 +54,14 @@ candidates expire after 30 minutes; active projections remain saved offline.
 An unexpected page layout or missing All list is reported without activating
 partial data. Never paste passwords or cookies into the app or send them to Codex.
 
+## Live draft chat context
+
+The approved **Auction companion** now offers a dedicated ESPN draft window,
+reviewed Practice/Real sessions and automatic finalized-purchase tracking from
+Draft Summary plus Budgets. The read-only `get_live_draft_context` MCP tool lets
+Codex discuss current facts and compatible saved strategy on demand. See the
+[setup and boundaries](docs/live-auction-mcp.md). No bids or nominations are automated.
+
 ## Explore the public showcase
 
 **[Open the Fantasy Basketball Intelligence showcase](https://kangliu47.github.io/fantasy-basketball-ai/)**

@@ -99,7 +99,7 @@
           {{
             showingDraft()
               ? activeSection() === 'auction'
-                ? 'Auction companion'
+                ? 'Find your next opportunity'
                 : 'Prepare'
               : introduction().title
           }}
@@ -151,11 +151,16 @@
         </div>
       </section>
     } @else {
-      @defer (when activeSection() === 'prepare' || activeSection() === 'auction') {
+      @defer (when activeSection() === 'auction') {
+        <div [hidden]="activeSection() !== 'auction'">
+          <app-auction-opportunities [active]="activeSection() === 'auction'" />
+        </div>
+      }
+      @defer (when activeSection() === 'prepare') {
         <app-draft-workspace
           [leagueId]="state.selection.league_id"
-          [mode]="draftMode()"
-          [hidden]="!showingDraft()"
+          mode="prepare"
+          [hidden]="activeSection() !== 'prepare'"
         />
       }
       @defer (when historyOpened() || showingEvidence()) {

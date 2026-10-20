@@ -1,3 +1,6 @@
+@if (mode() === 'auction') {
+  <app-live-auction (ledgerChanged)="load()" />
+}
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" aria-label="Loading saved draft" />
 }

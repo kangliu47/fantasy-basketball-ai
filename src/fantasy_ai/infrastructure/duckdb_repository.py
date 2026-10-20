@@ -19,14 +19,14 @@ from fantasy_ai.application.models import (
 )
 from fantasy_ai.domain.league import League, Player, Team
 
-from .draft_schema import DRAFT_SCHEMA
+from .draft_schema import DRAFT_SCHEMA, LIVE_DRAFT_SCHEMA
 from .history_schema import HISTORY_SCHEMA, TEAM_PREFERENCE_SCHEMA
 from .local_repository import LocalWorkspaceRepository
 from .planning_schema import PLANNING_SCHEMA
 from .player_information_schema import PLAYER_INFORMATION_SCHEMA
 from .player_notes_schema import PLAYER_NOTES_SCHEMA
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS league_snapshots (
     snapshot_id UUID PRIMARY KEY,
@@ -93,13 +93,14 @@ class DuckDBWorkspaceRepository:
                     [(4,)],
                     [(5,)],
                     [(6,)],
+                    [(7,)],
                     [(SCHEMA_VERSION,)],
                 ):
                     raise WorkspaceError(
                         "This history database uses a different version. "
                         "Ask Codex to update the app."
                     )
-                if versions in ([(1,)], [(2,)], [(3,)], [(4,)], [(5,)], [(6,)]):
+                if versions in ([(1,)], [(2,)], [(3,)], [(4,)], [(5,)], [(6,)], [(7,)]):
                     # Flush the WAL before copying under the same process-wide connection lock.
                     connection.execute("CHECKPOINT")
                     backup_dir = self.root / "backups"
@@ -118,6 +119,7 @@ class DuckDBWorkspaceRepository:
                         if versions[0][0] <= 3:
                             connection.execute(PLANNING_SCHEMA)
                         connection.execute(DRAFT_SCHEMA)
+                        connection.execute(LIVE_DRAFT_SCHEMA)
                         connection.execute(PLAYER_NOTES_SCHEMA)
                         connection.execute(PLAYER_INFORMATION_SCHEMA)
                         connection.execute(
@@ -134,6 +136,7 @@ class DuckDBWorkspaceRepository:
                         connection.execute(HISTORY_SCHEMA)
                         connection.execute(PLANNING_SCHEMA)
                         connection.execute(DRAFT_SCHEMA)
+                        connection.execute(LIVE_DRAFT_SCHEMA)
                         connection.execute(PLAYER_NOTES_SCHEMA)
                         connection.execute(PLAYER_INFORMATION_SCHEMA)
                         connection.execute(

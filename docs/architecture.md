@@ -1,5 +1,97 @@
 # Architecture and learning guide
 
+## Live-season planning boundary — October 20, 2026, latest
+
+The user confirms planning a daily season outlook and seven-day roster/waiver
+comparison. The [live-season PRD](live-season-decision-support-prd.md) reviews
+the current source and proposes a separate live-season domain/application slice.
+This is an architecture direction, not an implemented service or schema.
+
+Reuse the explicit ESPN connection, memory-only session, shared DuckDB connection
+lock, append-only observations, reviewed player links and pure scoring concepts.
+Current normalized league snapshots contain roster identities; archived player
+stats are whole-season contexts; draft aggregation is full-roster production.
+None establishes daily credited fantasy production or usable future starts.
+Verify live rules, official team totals/components, available-pool completeness,
+schedule and acquisition timing before defining precise calculation contracts.
+
+Proposed daily scheduling belongs in the backend while running and connected.
+Preserve per-dataset coverage, effective cutoffs, source revisions and coherent
+comparison versions. Keep earned results, future assumptions, historical archive
+and auction state distinct. The same league-wide baseline policy must govern
+keep-roster and move comparisons, including lost/displaced starts and all-category
+tradeoffs. Exact ports, DTOs and migrations follow capability and mock review.
+
+## Real-room team display references — October 19, 2026, latest
+
+The ESPN adapter resolves real Summary labels through unique provider-declared
+team names/abbreviations and current team-owner display associations. This is
+an ephemeral room reference map to numeric team IDs, not a historical manager
+identity link. Explicit DOM team IDs/titles must agree and belong to the same
+room. Ambiguous references and unknown high bidders withhold current guidance.
+Settings-only responses preserve already-read current member labels; shutdown
+clears the map. Normalized observations contain no owner IDs. Source failures
+return bounded structural reasons instead of opaque or raw browser errors.
+See [repair evidence](qa/2026-10-19-live-auction-mcp.md).
+
+## Conditional rival spending guideline — October 19, 2026, latest
+
+The existing inspected-player quote includes typed `RivalGuideline` facts and
+domain `RivalBidRange` rows. No new endpoint, browser or database owner is added.
+The domain uses exact rational arithmetic for a normalized geometric half-budget
+allowance, capped by the dated compatible ESPN anchor and legal budget. A fixed
+±25% band is an assumed scenario, not learned manager willingness. Own valuation
+and balanced stops remain unchanged. Application source/ledger/offer fencing and
+the frontend freshness gate also control rival bands; non-current quotes can
+return saved legal limits without current guidance. Pass players still support
+rival nomination exploration. See [contract](rival-bid-guideline-design.md).
+
+## Visible room allocation — October 19, 2026, latest
+
+The selected opportunity card exposes `BalancedGuide.reference_cents` beside
+the unchanged baseline. This reuses `remaining_auction_values`: minimum-slot
+reserves, spendable cash excluding full teams, and original category scores above
+the current replacement cutoff. Allocation uses the full modeled pool; display
+filters do not affect it. The UI reuses the same revision/freshness gate as its
+target/stop, with no new endpoint, solver or capture owner.
+
+## Strategy-first auction opportunities — October 19, 2026, latest
+
+The approved linked scatter/table replaces the Auction companion landing view.
+`OpportunityService` joins the unchanged top-200 baseline to normalized, dated
+ESPN anchors through existing reviewed player IDs. The fixed local price-file
+adapter returns domain facts; no raw provider JSON or arbitrary path is exposed.
+The chart does not revalue players after filtering. Severe individual FG/FT
+drags are excluded from buying; nominal anchor gaps remain descriptive.
+
+Only a selected Real session contributes purchases and budgets. Opening analysis
+uses an immutable empty-board copy, with an empty shortlist for calculation.
+Neither old caps nor practice history affect it, and neither is deleted. One
+selected-player calculation reuses the current balanced method; identity/rules,
+ledger, source and offer fingerprints fence asynchronous results. UI polling uses
+the existing live capture owner shared with MCP, without model calls or a second
+DuckDB connection. See [decision contract](auction-opportunities-design.md).
+
+## Live auction context MCP — October 19, 2026, latest
+
+The approved Auction companion flow opens a separate dedicated Chrome profile,
+reviews the room/team/rules, and starts deterministic capture. The ESPN adapter
+projects Draft Summary, Budgets and optional Board DOM into provider-independent
+room observations; it never collects bidding history or reads browser credentials.
+The application reconciles complete snapshots into append-only sale/correction
+records. A selected session routes the existing companion repository to the same
+canonical board, with Practice/Real ledgers and the original manual board isolated.
+Schema v8 backs up older versions and uses the existing shared connection lock.
+
+The running FastAPI app owns capture and persistence. A separate STDIO MCP proxy
+calls one bounded loopback context route and never constructs application services
+or opens DuckDB. Context includes source health, revision cursors, cash/slots,
+verified nomination facts and compatible saved strategy. Missing reviewed identity
+or baseline suspends dynamic stops; source and strategy are rechecked after solving
+and before returning any actionable cue. No new pricing formula or autonomous AI
+commentary is introduced. See [operation and boundaries](live-auction-mcp.md) and
+[approved contract](live-auction-mcp-contract.md).
+
 ## Auction-night decision layout — October 19, 2026, latest
 
 The approved desktop flow keeps the searchable pool beside a sticky decision

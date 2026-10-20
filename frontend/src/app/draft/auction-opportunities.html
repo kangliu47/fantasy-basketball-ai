@@ -1,0 +1,578 @@
+<div class="opportunity-heading">
+  <p>Compare ESPN’s price anchors with your balanced strategy.</p>
+  <div>
+    @if (data()?.live && !['stopped', 'ended'].includes(data()!.live!.status)) {
+      <button mat-stroked-button [disabled]="stopping()" (click)="stop()">Stop watching</button>
+    } @else {
+      <button mat-stroked-button (click)="connect()">Connect real draft</button>
+    }
+  </div>
+</div>
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Loading candidate values" />
+}
+@if (error()) {
+  <div class="notice error" role="alert">
+    {{ error() }} <button mat-button (click)="reload()">Retry</button>
+  </div>
+}
+@if (data(); as d) {
+  @if (d.status !== 'available') {
+    <section class="showcase-card">
+      <h2>Candidate data is not ready</h2>
+      <p>{{ d.message }}</p>
+      <p>Use Prepare to review projection data and the baseline population, then return here.</p>
+      <button mat-stroked-button (click)="reload()">Reload saved data</button>
+    </section>
+  } @else {
+    <section class="summary" aria-label="Draft state">
+      <div>
+        <div class="row">
+          <strong class="pill" [class.warn]="!!d.live && !liveFresh()" role="status">{{
+            status()
+          }}</strong>
+          @if (nominee(); as n) {
+            <strong>{{ n.name }} · {{ dollars(n.bid) }}</strong>
+            @if (nomineePlayer(); as current) {
+              <button mat-button (click)="select(current.id)">Inspect nominee</button>
+            }
+          } @else {
+            <strong>{{
+              d.live ? 'Last verified real-draft snapshot' : 'Explore the opening pool'
+            }}</strong>
+          }
+        </div>
+        <p class="caption">
+          @if (d.live) {
+            {{ d.live.session?.label }} · last source {{ d.live.captured_at | date: 'mediumTime' }}
+          } @else {
+            Opening plan · $200 and 13 empty slots · no real draft selected
+          }
+        </p>
+      </div>
+      <div class="budget">
+        <div>
+          <small>{{ d.live && !liveFresh() ? 'Last known cash' : 'Cash available' }}</small
+          ><strong>{{ dollars(d.budget?.remaining ?? 200) }}</strong>
+        </div>
+        <div>
+          <small>Open slots</small><strong>{{ d.budget?.open_slots ?? 13 }}</strong>
+        </div>
+        <div>
+          <small>Legal maximum</small><strong>{{ dollars(d.budget?.legal_maximum ?? 188) }}</strong>
+        </div>
+      </div>
+    </section>
+    @if (d.live && !liveFresh()) {
+      <div class="notice" role="status">
+        Live source is {{ status().toLowerCase() }}. Last verified ownership is retained. Current
+        offers and actionable ranges are withheld.
+      </div>
+    }
+    <div class="filters" aria-label="Candidate filters">
+      <label
+        >Find a player<input
+          type="search"
+          placeholder="Name or position"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+      /></label>
+      <label
+        >Explore<select [ngModel]="intent()" (ngModelChange)="chooseIntent($event)">
+          <option value="buy">Buy candidates</option>
+          <option value="nominate">Nomination ideas</option>
+          <option value="all">All top 200</option>
+        </select></label
+      >
+      <label
+        >Position<select [ngModel]="position()" (ngModelChange)="position.set($event)">
+          <option value="">All positions</option>
+          @for (pos of ['PG', 'SG', 'SF', 'PF', 'C']; track pos) {
+            <option [value]="pos">{{ pos }}</option>
+          }
+        </select></label
+      >
+      <label
+        >Compare with<select [ngModel]="anchor()" (ngModelChange)="anchor.set($event)">
+          <option value="average_salary_cents">ESPN average salary</option>
+          <option value="pre_draft_value_cents">ESPN pre-draft value</option>
+        </select></label
+      >
+      <label class="check"
+        ><input type="checkbox" [ngModel]="showSold()" (ngModelChange)="showSold.set($event)" />Show
+        sold players</label
+      >
+    </div>
+    <div class="row between scope-row">
+      <small
+        >{{ rows().length }} match · top {{ d.rows.length }} before filtering ·
+        {{ excluded() }} severe shooting drags excluded from Buy candidates</small
+      >
+      <div class="row">
+        <button mat-stroked-button [class.active]="chartVisible()" (click)="chartVisible.set(true)">
+          Chart + table</button
+        ><button
+          mat-stroked-button
+          [class.active]="!chartVisible()"
+          (click)="chartVisible.set(false)"
+        >
+          Table only
+        </button>
+      </div>
+    </div>
+    <p class="caption">
+      Projection source {{ d.projection_source_date || 'unknown' }} · ESPN anchors
+      {{ d.espn_captured_at ? (d.espn_captured_at | date: 'MMM d, h:mm a') : 'unavailable' }} ·
+      saved values
+    </p>
+    @if (!hasAnchors()) {
+      <div class="notice" role="status">
+        This ESPN anchor is unavailable. Baselines and strategy fit remain visible; price
+        differences cannot be calculated.
+      </div>
+    }
+    <div class="opportunity-grid">
+      <section class="showcase-card visual" aria-label="Candidate value overview">
+        @if (chartVisible()) {
+          <div class="row between">
+            <h2>Where our values differ</h2>
+            <small>Click a dot to inspect</small>
+          </div>
+          <p class="caption">
+            Above the diagonal: our fixed baseline exceeds the selected ESPN anchor.
+          </p>
+          <svg
+            class="chart"
+            viewBox="0 0 780 360"
+            role="group"
+            aria-label="Player baseline versus ESPN value scatter chart"
+          >
+            @for (v of ticks(); track v) {
+              <line
+                class="grid-line"
+                x1="55"
+                x2="740"
+                [attr.y1]="305 - (v / axisMax()) * 250"
+                [attr.y2]="305 - (v / axisMax()) * 250"
+              />
+              <text x="44" [attr.y]="309 - (v / axisMax()) * 250" text-anchor="end">${{ v }}</text>
+              <text [attr.x]="55 + (v / axisMax()) * 685" y="326" text-anchor="middle">
+                ${{ v }}
+              </text>
+            }
+            <line class="diagonal" x1="55" y1="305" x2="740" y2="55" />
+            <text x="397" y="351" text-anchor="middle">
+              ESPN
+              {{ anchor() === 'average_salary_cents' ? 'average salary' : 'pre-draft value' }} ($)
+            </text>
+            <text x="15" y="180" transform="rotate(-90 15 180)" text-anchor="middle">
+              Our fixed baseline ($)
+            </text>
+            @for (p of plotted(); track p.id) {
+              <circle
+                class="point"
+                [class.pass]="p.role === 'pass'"
+                [class.sold]="p.sold_price !== null"
+                [class.selected]="p.id === selectedId()"
+                [attr.cx]="x(p)"
+                [attr.cy]="y(p)"
+                [attr.r]="p.id === selectedId() ? 7 : 4.5"
+                tabindex="0"
+                role="button"
+                [attr.aria-label]="
+                  p.name +
+                  ', our baseline ' +
+                  money(p.baseline_cents) +
+                  ', ESPN ' +
+                  money(p[anchor()])
+                "
+                (click)="select(p.id)"
+                (keydown.enter)="select(p.id)"
+                (keydown.space)="$event.preventDefault(); select(p.id)"
+              >
+                <title>
+                  {{ p.name }}: {{ money(p.baseline_cents) }} vs {{ money(p[anchor()]) }}
+                </title>
+              </circle>
+            }
+          </svg>
+          <div class="legend">
+            <span><i></i>Foundation candidate</span
+            ><span><i class="pass"></i>Pass for this build</span
+            ><span><i class="sold"></i>Sold in this real draft</span>
+          </div>
+          <p class="footnote">
+            {{ missingPlotCount() }} matching players lack a baseline or this ESPN anchor. They
+            remain in the table; missing values are not plotted as zero.
+          </p>
+        }
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th><button (click)="changeSort('name')">Player ↕</button></th>
+                <th><button (click)="changeSort('baseline_cents')">Our baseline ↕</button></th>
+                <th><button (click)="changeSort('average_salary_cents')">ESPN avg ↕</button></th>
+                <th>
+                  <button (click)="changeSort('pre_draft_value_cents')">ESPN pre-draft ↕</button>
+                </th>
+                <th><button (click)="changeSort('gap')">Difference ↕</button></th>
+                <th>Balanced fit</th>
+                <th>Availability</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of visibleRows(); track p.id) {
+                <tr
+                  tabindex="0"
+                  [class.selected]="p.id === selectedId()"
+                  [attr.aria-selected]="p.id === selectedId()"
+                  (click)="select(p.id)"
+                  (keydown.enter)="select(p.id)"
+                  (keydown.space)="$event.preventDefault(); select(p.id)"
+                >
+                  <td>
+                    <strong>{{ p.name }}</strong
+                    ><small
+                      >{{ p.positions.join(', ') }} · {{ p.projected_games }} projected GP</small
+                    >
+                  </td>
+                  <td>{{ money(p.baseline_cents) }}</td>
+                  <td>{{ money(p.average_salary_cents) }}</td>
+                  <td>{{ money(p.pre_draft_value_cents) }}</td>
+                  <td
+                    [class.positive]="gap(p) !== null && gap(p)! >= 0"
+                    [class.negative]="gap(p) !== null && gap(p)! < 0"
+                  >
+                    {{ signedGap(p) }}
+                  </td>
+                  <td>{{ role(p) }}</td>
+                  <td>
+                    {{
+                      p.sold_price === null
+                        ? 'Available'
+                        : (p.owned ? 'My team · ' : 'Sold · ') + dollars(p.sold_price)
+                    }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (!rows().length) {
+          <div class="empty">No candidates match. Try all positions or clear your search.</div>
+        }
+        <div class="row between">
+          <small>Showing {{ visibleRows().length }} of {{ rows().length }}</small>
+          @if (!showAll() && rows().length > 15) {
+            <button mat-button (click)="showAll.set(true)">Show all matching players</button>
+          }
+        </div>
+        <p class="footnote">
+          Difference = our fixed baseline − selected ESPN anchor. Model disagreement does not
+          establish a bargain or rival demand.
+        </p>
+      </section>
+      @if (selected(); as p) {
+        <aside class="showcase-card selected-card" #details aria-label="Selected player">
+          <div class="row between">
+            <small>PLAYER UNDER CONSIDERATION</small
+            ><span class="pill" [class.warn]="p.role === 'pass'">{{ role(p) }}</span>
+          </div>
+          <h2>{{ p.name }}</h2>
+          <small
+            >{{ p.positions.join(', ') }} · {{ p.projected_games }} projected games · provisional
+            eligibility</small
+          >
+          <div class="values">
+            <div>
+              <small>Our baseline</small><strong>{{ money(p.baseline_cents) }}</strong>
+            </div>
+            <div class="room-adjusted" aria-label="Room-adjusted value">
+              <small
+                >Room-adjusted
+                <app-help-tip
+                  label="How room-adjusted value is calculated"
+                  text="Reserve the minimum bid for every open roster slot, then allocate remaining room money using our original category scores above the current replacement cutoff. Excludes cash on full teams. Uses the full modeled pool, not the displayed filters. This is a model allocation, not a winning-price forecast. Your balanced target and stop also protect roster completion."
+                />
+              </small>
+              <strong>{{ money(roomAdjustedCents()) }}</strong>
+            </div>
+            <div>
+              <small>ESPN average</small><strong>{{ money(p.average_salary_cents) }}</strong>
+            </div>
+            <div>
+              <small>ESPN pre-draft</small><strong>{{ money(p.pre_draft_value_cents) }}</strong>
+            </div>
+          </div>
+          <p class="footnote">
+            Live offer <strong>{{ dollars(currentBid()) }}</strong>
+          </p>
+          <div class="range" aria-label="Player buying range">
+            @if (p.sold_price !== null) {
+              <strong>Already sold · {{ dollars(p.sold_price) }}</strong>
+              <p class="footnote">No further bid on this player.</p>
+            } @else if (p.role === 'pass') {
+              <strong class="negative">Pass for this foundation</strong>
+              <p class="footnote">Severe shooting impact. No buying range.</p>
+            } @else if (d.live && !usableQuote() && !quoteBusy() && !quoteError()) {
+              <strong>Current range unavailable</strong>
+              <p class="footnote">Waiting for current, reconciled real-draft context.</p>
+            } @else if (quoteBusy()) {
+              <mat-progress-bar
+                mode="indeterminate"
+                aria-label="Calculating selected player range"
+              />
+              <p>Calculating a balanced completion…</p>
+            } @else if (quoteError()) {
+              <p class="negative" role="status">{{ quoteError() }}</p>
+              <button mat-button (click)="requestQuote()">Retry range</button>
+            } @else if (usableQuote(); as q) {
+              @if (q.guide; as g) {
+                @if (g.status === 'available') {
+                  @if (g.bench_only) {
+                    <strong>Bench only · up to {{ dollars(g.stop_bid) }}</strong>
+                    <p class="footnote">Policy cap; no foundation valuation.</p>
+                  } @else {
+                    <div class="row between">
+                      <div>
+                        Target or less<strong>{{ dollars(g.aim_bid) }}</strong>
+                      </div>
+                      <div>
+                        Conditional stop<strong>{{ dollars(g.stop_bid) }}</strong>
+                      </div>
+                    </div>
+                  }
+                  <p class="footnote">
+                    {{ q.basis }}
+                    @if (g.guideline_exception) {
+                      · exceeds the $40 guideline
+                    }
+                  </p>
+                  <p class="footnote">{{ g.message }}</p>
+                  <details>
+                    <summary>Completion and sensitivity</summary>
+                    <p class="footnote">
+                      Central stop {{ dollars(g.central?.ceiling) }}. Alternatives +15%:
+                      {{ dollars(g.expensive?.ceiling) }} ({{
+                        g.expensive?.status || 'unavailable'
+                      }}). These are scenarios, not probabilities.
+                    </p>
+                    <p class="footnote">
+                      The central completion reserves {{ dollars(g.central?.reserve) }} for other
+                      purchases. Each candidate has a different completion; do not add all stops
+                      into one roster.
+                    </p>
+                  </details>
+                } @else {
+                  <strong>Range unavailable</strong>
+                  <p class="footnote">{{ q.message }}</p>
+                }
+              } @else {
+                <strong>{{
+                  q.action === 'hold' ? 'Hold · you are already leading' : 'Range unavailable'
+                }}</strong>
+                <p class="footnote">{{ q.message }}</p>
+              }
+            }
+          </div>
+          <section class="rival-guideline" aria-label="Rival bidding guideline">
+            <h3>
+              Rivals · if they want this player
+              <app-help-tip
+                label="How rival spending bands are calculated"
+                text="Reserve minimum bids for open slots. Allocate remaining discretionary cash by a normalized half-budget curve: half as much for each later spending priority. Cap the guideline at ESPN Pre-draft Val (Average Salary fallback) and the legal maximum. Show ±25% of dollars above the minimum. These are fixed assumptions, not measured confidence or a manager-interest prediction. Your own valuation stays separate."
+              />
+            </h3>
+            @if (rivalData(); as rivals) {
+              <p class="footnote">
+                {{
+                  d.live && !liveFresh()
+                    ? 'Current bands withheld. Legal limits below are saved facts.'
+                    : rivals.message
+                }}
+              </p>
+              @if (rivals.teams.length) {
+                <div class="rival-legend">
+                  <span><i class="band-key"></i>Model band</span>
+                  <span>┃ {{ liveFresh() ? 'Legal maximum' : 'Saved legal maximum' }}</span>
+                  @if (rivalStop() !== null) {
+                    <span class="stop-key">┆ Our stop</span>
+                  }
+                  @if (currentBid() !== null) {
+                    <span class="offer-key">┆ Current offer</span>
+                  }
+                </div>
+                <div class="rival-axis">
+                  <span>$0</span><span>{{ dollars(rivalScale()) }}</span>
+                </div>
+                @for (r of rivals.teams; track r.team_id) {
+                  <div class="rival-row" [class.full]="r.status === 'full'">
+                    <div class="rival-team">
+                      <span [title]="r.name">{{ r.name }}</span>
+                      <small>{{ dollars(r.remaining) }} · {{ r.open_slots }} slots</small>
+                    </div>
+                    <div
+                      class="rival-track"
+                      role="img"
+                      [attr.aria-label]="
+                        r.name +
+                        ', legal maximum ' +
+                        dollars(r.legal_maximum) +
+                        (rivalBandsAvailable() && r.low !== null
+                          ? ', modeled ceiling band ' + dollars(r.low) + ' to ' + dollars(r.high)
+                          : ', current band unavailable')
+                      "
+                    >
+                      @if (rivalStop(); as stop) {
+                        <i
+                          class="rival-reference stop"
+                          [style.left.%]="(100 * stop) / rivalScale()"
+                        ></i>
+                      }
+                      @if (currentBid(); as bid) {
+                        <i
+                          class="rival-reference offer"
+                          [style.left.%]="(100 * bid) / rivalScale()"
+                        ></i>
+                      }
+                      @if (rivalBandsAvailable() && r.low !== null && r.high !== null) {
+                        <i
+                          class="rival-band"
+                          [style.left.%]="(100 * r.low) / rivalScale()"
+                          [style.width.%]="(100 * (r.high - r.low)) / rivalScale()"
+                        ></i>
+                      }
+                      @if (r.legal_maximum !== null && r.status !== 'full') {
+                        <i
+                          class="rival-cap"
+                          [style.left.%]="(100 * r.legal_maximum) / rivalScale()"
+                          [title]="'Legal maximum ' + dollars(r.legal_maximum)"
+                        ></i>
+                      }
+                    </div>
+                    <span class="rival-amount">
+                      @if (r.status === 'full') {
+                        Full
+                      } @else if (rivalBandsAvailable() && r.low !== null) {
+                        {{ dollars(r.low) }}–{{ r.high }}
+                      } @else {
+                        —
+                      }
+                    </span>
+                  </div>
+                }
+                @if (rivalBandsAvailable()) {
+                  <p class="rival-leverage">
+                    @if (rivalLeaders().length === 2) {
+                      Strongest two rival guidelines:
+                      {{ dollars(rivalLeaders()[0].center) }} and
+                      {{ dollars(rivalLeaders()[1].center) }}.
+                    } @else if (rivalLeaders().length === 1) {
+                      Only one rival has an open slot.
+                    } @else {
+                      No rivals have open slots.
+                    }
+                    @if (rivalsOverStop(); as count) {
+                      {{ count }} can legally exceed our stop.
+                    } @else if (rivalsOverStop() === 0) {
+                      None can legally exceed our stop.
+                    }
+                    Conditional on interest; one team ultimately pays.
+                  </p>
+                }
+                @if (rivals.anchor_source) {
+                  <p class="footnote">
+                    Anchor: {{ rivals.anchor_source }} {{ money(rivals.anchor_cents) }} ·
+                    {{ d.espn_captured_at | date: 'MMM d, h:mm a' }}. Bands are illustrative ceiling
+                    scenarios, not actual next bids.
+                    @if (currentBid() !== null) {
+                      A legal maximum at or below the current offer cannot outbid it.
+                    }
+                  </p>
+                }
+              }
+            } @else if (quoteBusy()) {
+              <p class="footnote">Loading rival budgets and guideline…</p>
+            } @else {
+              <p class="footnote">
+                Current rival guideline unavailable. Reload current context or connect a reviewed
+                real draft.
+              </p>
+            }
+          </section>
+          <div class="fit">
+            <strong>Fit with your balanced strategy</strong>
+            <p>{{ p.fit }}</p>
+          </div>
+          <div class="profile" aria-label="Projected category contributions">
+            @for (c of categories; track c) {
+              <span [class.negative]="p.category_z[c] < 0"
+                >{{ c
+                }}<b>{{ p.category_z[c] >= 0 ? '+' : '' }}{{ p.category_z[c].toFixed(1) }}</b></span
+              >
+            }
+          </div>
+          <div class="fit">
+            @if (nominationIdea(p)) {
+              <strong>Nomination idea</strong>
+              <p>
+                The selected ESPN anchor or category mismatch makes this worth considering for a
+                rival. Look for actual demand before expecting it to absorb money.
+              </p>
+            } @else {
+              <strong>Potential buying opportunity</strong>
+              <p>
+                Compare the actual offer with the target. Check complementary categories and
+                available alternatives before approaching the stop.
+              </p>
+            }
+          </div>
+          <details>
+            <summary>How to read this</summary>
+            <p class="footnote">
+              The baseline stays fixed. The personal range uses the existing central
+              balanced-completion model, without old targets or saved caps. The +15% sensitivity is
+              separate; the exported report used the lower of the two stops.
+            </p>
+            <p class="footnote">
+              Buy candidates exclude FG/FT impact below −2 z. Negative counting categories can be
+              complemented. Projected games and shooting impact already affect our baseline.
+              Percentages use pooled makes/attempts, not averages of player percentages.
+            </p>
+          </details>
+        </aside>
+      }
+    </div>
+    <details class="sources">
+      <summary>Data & sources</summary>
+      <p>
+        Hashtag projection source: {{ d.projection_source_date || 'Date unavailable' }}. ESPN prices
+        collected: {{ d.espn_captured_at ? (d.espn_captured_at | date: 'medium') : 'Unavailable' }}.
+      </p>
+      <p>{{ d.source_message }}</p>
+      <p>
+        ESPN Pre-draft Val is the saved room’s league-adjusted default ROTO value. ESPN average
+        salary has a separate, unverified sampling population. Both are dated anchors. No practice
+        price, saved target or saved player cap is used here.
+      </p>
+      <p>
+        Unpriced rows have no foundation baseline; bench caps are policy. Positions remain
+        provisional for the real ESPN room.
+      </p>
+      <button mat-stroked-button (click)="reload()">Reload saved data</button>
+    </details>
+  }
+}
+<ng-template #connection
+  ><div class="connection-dialog">
+    <h2>Connect a real draft</h2>
+    <p>Review the dedicated room, your team and rules before watching.</p>
+    <app-live-auction [realOnly]="true" (watching)="connected()" /><button
+      mat-button
+      mat-dialog-close
+    >
+      Close
+    </button>
+  </div></ng-template
+>

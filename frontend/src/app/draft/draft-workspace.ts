@@ -1,3 +1,4 @@
+import { LiveAuction } from './live-auction';
 import { HelpTip } from '../core/help-tip';
 import {
   Component,
@@ -37,6 +38,7 @@ type TargetEdit = { ceiling: number | null; note: string; revision: number; impo
   selector: 'app-draft-workspace',
   imports: [
     HelpTip,
+    LiveAuction,
     ReactiveFormsModule,
     MatButtonModule,
     MatProgressBarModule,

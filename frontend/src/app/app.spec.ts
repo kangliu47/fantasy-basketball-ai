@@ -4,6 +4,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { By } from '@angular/platform-browser';
 import { App } from './app';
 import { DraftWorkspace } from './draft/draft-workspace';
+import { AuctionOpportunities } from './draft/auction-opportunities';
 import { sampleDraft } from './draft/draft.fixture';
 import { LeagueSetup } from './league-setup/league-setup';
 import { WorkspaceState } from './core/workspace.models';
@@ -42,7 +43,12 @@ describe('League workspace', () => {
     http.expectOne('/api/state').flush(empty);
     await settle();
   });
-  afterEach(() => http.verify());
+  afterEach(() => {
+    fixture.destroy();
+    http.match('/api/draft/live/status'); // Child polling is cancelled when the view closes.
+    http.match('/api/draft/opportunities');
+    http.verify({ ignoreCancelled: true });
+  });
 
   it('guides an unconfigured user without inventing league data', () => {
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
@@ -169,7 +175,7 @@ describe('League workspace', () => {
   it('separates live-season entry without loading history and preserves unfinished draft notes', async () => {
     void fixture.componentInstance.store.load();
     http.expectOne('/api/state').flush({ ...empty, selection: { league_id: 12345, season: 2026 } });
-    fixture.componentInstance.openWorkspace('draft');
+    fixture.componentInstance.openDraft('prepare');
     await settle();
     http.expectOne('/api/draft').flush(sampleDraft());
     await settle();
@@ -203,13 +209,20 @@ describe('League workspace', () => {
     http.expectOne('/api/state').flush({ ...empty, selection: { league_id: 12345, season: 2026 } });
     fixture.componentInstance.openDraft('auction');
     await settle();
-    http.expectOne('/api/draft').flush(sampleDraft());
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    http
+      .expectOne('/api/draft/opportunities')
+      .flush({ status: 'needs_setup', message: 'Synthetic setup', signature: '', rows: [] });
     await settle();
-    const draft = fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance;
+    const overview = fixture.debugElement.query(
+      By.directive(AuctionOpportunities),
+    ).componentInstance;
     button('Connection').click();
     await settle();
     expect(fixture.componentInstance.activeWorkspace()).toBeNull();
-    expect(fixture.nativeElement.querySelector('app-draft-workspace').hidden).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('app-auction-opportunities').parentElement.hidden,
+    ).toBe(true);
     button('Back to previous workspace').click();
     await settle();
     expect(fixture.componentInstance.activeSection()).toBe('auction');
@@ -222,7 +235,9 @@ describe('League workspace', () => {
     button('Auction prep').click();
     await settle();
     expect(fixture.componentInstance.activeSection()).toBe('auction');
-    expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
+    expect(fixture.debugElement.query(By.directive(AuctionOpportunities)).componentInstance).toBe(
+      overview,
+    );
     http.expectNone('/api/draft');
   });
 
