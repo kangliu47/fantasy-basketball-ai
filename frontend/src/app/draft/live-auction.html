@@ -1,0 +1,136 @@
+<section class="showcase-card" aria-label="Live draft context">
+  <div class="live-heading">
+    <h2>Live draft context</h2>
+    <strong role="status">{{ statusLabel(displayedState()?.status || 'waiting') }}</strong>
+  </div>
+  <p>
+    Record finalized purchases from ESPN Draft Summary. Ask Codex about the current room and your
+    saved plan.
+  </p>
+  @if (busy()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Updating live draft connection" />
+  }
+  @if (error()) {
+    <p class="notice error" role="alert">{{ error() }}</p>
+  }
+  @if (displayedState(); as state) {
+    @if (state.session; as session) {
+      <p>
+        <strong>{{ session.label }}</strong> · {{ session.kind }} ·
+        {{ state.settled_count }} purchases saved
+      </p>
+      <div class="live-facts">
+        @if (state.budget; as budget) {
+          <span
+            >My cash<strong>${{ budget.remaining }}</strong></span
+          >
+          <span
+            >Open slots<strong>{{ budget.open_slots }}</strong></span
+          >
+          <span
+            >Legal maximum<strong>${{ budget.legal_maximum }}</strong></span
+          >
+        }
+        @if (state.nominee; as nominee) {
+          <span
+            >Current offer<strong>{{ nominee.name }} · ${{ nominee.bid }}</strong></span
+          >
+        }
+      </div>
+      <small
+        >Last source read:
+        {{ state.captured_at ? (state.captured_at | date: 'mediumTime') : 'No capture yet' }}.
+        {{ state.message }}</small
+      >
+      @if (state.issues.length) {
+        <p class="notice">
+          The summary does not yet reconcile. Bid guidance is withheld; tracking will retry.
+        </p>
+      }
+    }
+    @if (!['stopped', 'waiting', 'ended'].includes(state.status)) {
+      <p><button mat-stroked-button [disabled]="busy()" (click)="stop()">Stop watching</button></p>
+    }
+  }
+  @if (
+    !displayedState()?.session ||
+    ['stopped', 'waiting', 'ended'].includes(displayedState()?.status || 'waiting')
+  ) {
+    <label
+      >ESPN draft URL<input
+        class="room-url"
+        type="url"
+        [formControl]="url"
+        placeholder="https://fantasy.espn.com/basketball/draft?…"
+        autocomplete="off"
+    /></label>
+    <div class="live-actions">
+      <button mat-stroked-button [disabled]="busy() || !url.value" (click)="open()">
+        Open dedicated ESPN window
+      </button>
+      @if (opened()) {
+        <button mat-stroked-button [disabled]="busy()" (click)="inspect()">Review room</button
+        ><button mat-button [disabled]="busy()" (click)="stop()">Cancel</button>
+      }
+    </div>
+    <small
+      >Sign in directly on ESPN. Use this dedicated window during the draft; ESPN may disconnect
+      another window in the same room.</small
+    >
+  }
+  @if (opened() && !displayedState()?.session) {
+    <small role="status">{{ state()?.message }}</small>
+  }
+  @if (review(); as review) {
+    <h3>Review {{ review.room_id }}</h3>
+    <p>
+      {{ review.rules.team_count }} teams · ${{ review.rules.budget }} ·
+      {{ review.rules.active_slots }} active + {{ review.rules.bench_slots }} bench ·
+      {{ review.rules.ir_slots }} IR · eight-category ROTO · no keepers.
+      {{ review.settled_count }} finalized purchases.
+    </p>
+    <small>{{ review.minimum_bid_basis }}</small>
+    @if (!realOnly()) {
+      <label
+        >Session type<select [formControl]="kind">
+          <option value="practice">Practice</option>
+          <option value="real">Real</option>
+          <option value="unclassified">Unclassified</option>
+        </select></label
+      >
+    }
+    <label>Session label<input [formControl]="label" maxlength="80" /></label>
+    <label
+      >My team<select [formControl]="own">
+        <option value="">Choose my team</option>
+        @for (team of review.teams; track team.id) {
+          <option [value]="team.id">{{ team.name }}</option>
+        }
+      </select></label
+    >
+    <label class="check"
+      ><input type="checkbox" [formControl]="confirmed" />I reviewed this room, my team and these
+      rules. Keep this session separate from other drafts.</label
+    >
+    @if (review.issues.length) {
+      <p class="notice">
+        The room is incomplete. Open Draft Summary and Budgets on ESPN, then review again.
+      </p>
+    }
+    <button
+      mat-flat-button
+      [disabled]="
+        busy() || !own.value || !label.value.trim() || !confirmed.value || review.issues.length > 0
+      "
+      (click)="start()"
+    >
+      Start watching
+    </button>
+    <p>
+      <small
+        >Reusing the same label, type, room and team resumes an unfinished saved session. A
+        different label starts a separate ledger. Stopping preserves purchases.</small
+      >
+    </p>
+  }
+</section>

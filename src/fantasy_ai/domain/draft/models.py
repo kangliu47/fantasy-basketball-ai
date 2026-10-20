@@ -51,6 +51,9 @@ class AuctionEvent:
     voids: str | None = None
     source: str = "manual"
     projection_import_id: str | None = None
+    source_pick_id: str | None = None
+    source_player_id: str | None = None
+    source_observation_revision: int | None = None
 
 
 @dataclass(frozen=True)
@@ -116,8 +119,15 @@ def clear_board(board: DraftBoard, at: datetime) -> DraftBoard:
 def append_event(board: DraftBoard, event: AuctionEvent) -> DraftBoard:
     if any(old.id == event.id for old in board.events):
         raise ValueError("This event ID has already been used.")
-    if event.source != "manual":
-        raise ValueError("Only manual draft entries are supported.")
+    if event.source not in {"manual", "espn_draft"}:
+        raise ValueError("Unknown draft entry source.")
+    if event.source == "espn_draft" and (
+        not event.source_pick_id
+        or not event.source_player_id
+        or type(event.source_observation_revision) is not int
+        or event.source_observation_revision < 1
+    ):
+        raise ValueError("Observed draft entries require source result provenance.")
     if event.kind == "sale":
         budget = team_budget(board, event.team_id)
         if not event.player_name.strip() or len(event.player_name) > 100:
@@ -132,9 +142,14 @@ def append_event(board: DraftBoard, event: AuctionEvent) -> DraftBoard:
                 "reserving the minimum for other slots."
             )
         for sale in active_sales(board):
-            if (event.player_id and sale.player_id == event.player_id) or (
-                (not event.player_id or not sale.player_id)
-                and event.player_name.strip().casefold() == sale.player_name.casefold()
+            if (
+                (event.player_id and sale.player_id == event.player_id)
+                or (event.source_player_id and sale.source_player_id == event.source_player_id)
+                or (
+                    not (event.source_player_id and sale.source_player_id)
+                    and (not event.player_id or not sale.player_id)
+                    and event.player_name.strip().casefold() == sale.player_name.casefold()
+                )
             ):
                 raise ValueError(
                     "A sale for this player is already recorded. Undo it to correct it."

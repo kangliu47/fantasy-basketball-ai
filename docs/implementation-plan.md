@@ -1,5 +1,80 @@
 # Implementation plan
 
+## Live-season decision support PRD — October 20, 2026, latest
+
+Delivered a [codebase-backed product PRD](live-season-decision-support-prd.md)
+after the user confirmed season outlook plus seven-day roster/waiver comparison,
+daily refresh while open/connected, and dated Hashtag baseline/scenario use.
+Production code, private league selection and automation settings are unchanged.
+
+Proposed order: verify current rules/team and provider capabilities; establish
+daily scored observations and recovery; add a league-wide conditional outlook;
+then compare a feasible add/drop against keeping the roster. Daily tracking alone
+is an intermediate release, not completion of the decision-support objective.
+The PRD includes source reuse/gaps, visual requirements, analytical boundaries
+and synthetic semantic acceptance examples. Exact forecast/lineup policies and
+live data coverage remain implementation gates.
+
+Next review: product direction and a bounded repository-styled interactive mock
+using synthetic data. No UI flow approval or implementation stories are inferred
+from context confirmation. Verification for this documentation delivery covers
+source references, local links and patch integrity; it does not certify live
+provider feasibility or execute a current-season refresh.
+
+## Real live capture refresh repair — October 19, 2026, latest
+
+Delivered adapter support for unique ESPN current-room short manager labels,
+team abbreviations and explicit team references. Retain strict identity/budget
+reconciliation and ambiguous-bidder suppression; no historical mapping or UI
+expansion. Resumed the same real ledger and verified automatic collection of
+new purchases, fresh source timestamps and current nominee/budget facts.
+See [repair checks](qa/2026-10-19-live-auction-mcp.md).
+
+## Same-pane rival bidding guideline — October 19, 2026, latest
+
+User approved `rival-bid-guideline-preview.html`: compact rival rows directly
+below the selected candidate/nominee's personal range. Implement the fixed
+half-budget/ESPN-anchor rule in the domain and add its result to the existing
+quote. Preserve own values, archived sessions and the current capture owner.
+Verify exact reserves/rounding/caps, pass candidates, fallback/missing anchors,
+source changes and same-pane freshness protection, then deploy and verify the
+current app with saved practice evidence preserved. See
+[method and acceptance](rival-bid-guideline-design.md).
+
+## Room-adjusted card value — October 19, 2026, latest
+
+Delivered the approved `room-adjusted-value-preview.html` extension: show the
+existing quote reference beside the fixed baseline, preserving ESPN anchors and
+balanced range. No formula or population changes. Reuse quote invalidation and
+stale gates; verify typed UI checks, existing allocation tests, production build
+and the running card without restarting active capture. See the
+[delivery evidence](qa/2026-10-19-auction-opportunities.md).
+
+## Auction opportunities — October 19, 2026, latest
+
+User approves `auction-opportunities-preview.html`: linked scatter/table,
+selected-player fit and range, buy/nomination filters, reviewed real-draft
+connection and stale-advice protection. Make it the default entry and retain
+Prepare/history navigation. Use the saved ESPN price research and unchanged
+baseline, with existing reviewed IDs. Ignore old targets/caps and practice
+results without deleting them. Calculate only inspected candidates and show
+the central stop separately from +15% sensitivity. Verify finalized own/rival
+updates, missing data, old-response invalidation, navigation and local launch.
+See [contract and acceptance](auction-opportunities-design.md).
+
+## Live auction context MCP — October 19, 2026, latest
+
+Approved full slice and `live-auction-mcp-preview.html`: dedicated window → review
+room/team/rules → Start → current/reconnecting → Stop, inside Auction companion.
+User directs finalized state from Draft Summary, with Budgets reconciliation;
+no bidding-history reconstruction. Implement isolated session ledgers, source
+corrections, reconnect snapshot recovery, normalized local capture, one read-only
+MCP context proxy and stale-advice gates. Preserve the existing balanced method,
+manual corrections, original companion board and archived observations. The app
+is the single database/browser owner; routine collection uses no model calls.
+See [user/developer guide](live-auction-mcp.md) and
+[acceptance evidence](qa/2026-10-19-live-auction-mcp.md).
+
 ## Desktop auction-night polish — October 19, 2026, latest
 
 Delivered, built and relaunched; see [delivery QA](qa/2026-10-19-auction-night-delivery.md).

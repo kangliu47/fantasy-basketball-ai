@@ -159,4 +159,4 @@ def test_v5_notes_migration_backs_up_and_preserves_prior_projection(tmp_path: Pa
     repository.save("2026-27", "12345", capture())
     assert repository.latest("2026-27", "12345") is not None
     with repository.workspace.connection() as db:
-        assert db.execute("SELECT version FROM schema_version").fetchone() == (7,)
+        assert db.execute("SELECT version FROM schema_version").fetchone() == (8,)

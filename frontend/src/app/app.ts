@@ -7,6 +7,7 @@ import { MyProfilePage } from './analytics/my-profile-page';
 import { CompetitorTeamsPage } from './analytics/competitor-teams-page';
 import { LeagueComparisonPage } from './analytics/league-comparison-page';
 import { DraftWorkspace } from './draft/draft-workspace';
+import { AuctionOpportunities } from './draft/auction-opportunities';
 import { DraftMode } from './draft/draft.models';
 import { BuildStatus } from './core/build-status';
 
@@ -21,6 +22,7 @@ type Workspace = 'draft' | 'live' | 'history';
     LeagueSetup,
     BuildStatus,
     DraftWorkspace,
+    AuctionOpportunities,
     MyProfilePage,
     CompetitorTeamsPage,
     LeagueComparisonPage,
@@ -29,11 +31,11 @@ type Workspace = 'draft' | 'live' | 'history';
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
-  readonly section = signal<Section>('prepare');
-  readonly draftMode = signal<DraftMode>('prepare');
+  readonly section = signal<Section>('auction');
+  readonly draftMode = signal<DraftMode>('auction');
   readonly historySection = signal<'profile' | 'competitors' | 'league'>('profile');
   readonly historyOpened = signal(false);
-  private readonly previousSection = signal<Exclude<Section, 'connection'>>('prepare');
+  private readonly previousSection = signal<Exclude<Section, 'connection'>>('auction');
   readonly activeSection = computed(() =>
     this.store.state()?.selection ? this.section() : 'connection',
   );

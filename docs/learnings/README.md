@@ -1,5 +1,72 @@
 # Project learning journal
 
+## Earned fantasy stats and roster potential have different grains — October 20, 2026, latest
+
+User decision: after the draft, plan daily season outlook and seven-day roster
+decisions using current league context. Assistant synthesis from source review:
+the normal league snapshot retains roster identities, historical player mapping
+selects whole-season actuals, and draft projection aggregation explicitly models
+full-roster production. A current roster cannot reconstruct the fantasy points
+already earned, and scheduled NBA games do not establish usable fantasy starts.
+Build on official credited team totals, explicit lineup/cap assumptions and
+versioned daily evidence before claiming marginal move value. Compare gains and
+losses across all categories. See the [source-backed PRD](../live-season-decision-support-prd.md#3-codebase-review-and-reuse)
+and its [analytical boundaries](../live-season-decision-support-prd.md#7-analytical-definitions-and-boundaries).
+
+## A live-room display label is not its team identity — October 19, 2026, latest
+
+Observed adapter failure: a practice room used full team names while its real
+counterpart used short manager labels in Summary. Assistant synthesis: verify
+actual settled-result parsing in addition to lobby access. Resolve display
+references only through unique provider-declared current-room associations and
+corroborating source IDs; reject ambiguity rather than guessing. Keep owner
+references ephemeral and separate from reviewed historical manager identity.
+See [repair evidence](../qa/2026-10-19-live-auction-mcp.md).
+
+## Capacity does not imply willingness — October 19, 2026, latest
+
+User decision: a simple rival guideline is enough, placed inside the inspected
+player pane. Assistant synthesis: remaining cash can bound a bid but cannot
+establish willingness to pay. A cash-per-slot normalization inflated late prices
+in the practice replay, while the ESPN anchor already described its prices
+closely. Cap a simple spending allowance at that anchor, show the legal ceiling
+separately and label sensitivity assumptions. A good aggregate price replay
+does not identify individual losing managers' hidden stops. See
+[contract](../rival-bid-guideline-design.md) and
+[delivery evidence](../qa/2026-10-19-rival-bid-guideline.md).
+
+## Remaining cash is an allocation constraint — October 19, 2026, latest
+
+User decision: expose remaining-room value beside the fixed baseline and keep a
+dynamic acceptable range. Assistant synthesis: reserve minimum bids before
+allocating discretionary money, exclude stranded cash on full teams, and retain
+the full modeled population when display filters change. A room allocation and a
+personal balanced-completion stop answer different questions; neither is proof
+of a future clearing price. Reuse one freshness gate for both displayed guidance
+values. See [contract](../auction-opportunities-design.md).
+
+## Price anchors and recommendation scope — October 19, 2026, latest
+
+User decision: compare a broad strategy-fit population with ESPN anchors, ignoring
+old shortlist conviction and practice results. Assistant synthesis: fixed model
+allocations, the provider's room-adjusted default value, average observed salary
+and a personal completion ceiling answer different questions. Keep their source
+dates and units explicit. A recommendation view can ignore old evidence without
+deleting it; scope its live overlay to a reviewed session and invalidate
+asynchronous advice after semantic state changes. See the
+[approved contract](../auction-opportunities-design.md) and
+[delivery evidence](../qa/2026-10-19-auction-opportunities.md).
+
+## Source snapshots before event replay — October 19, 2026, latest
+
+User decision: use Draft Summary for the current draft state instead of rebuilding
+bidding history. Assistant synthesis: a complete settled-purchase snapshot plus
+independent cash/maximum-offer checks gives a smaller recovery contract than a
+bid-event stream. Joining late and reconnecting become the same reconciliation
+problem. Preserve unknown identity and coverage explicitly; a freshly read page
+is not proof of a healthy source. See [contract](../live-auction-mcp-contract.md)
+and [acceptance record](../qa/2026-10-19-live-auction-mcp.md).
+
 Started September 5, 2026. These notes capture what this project is teaching us
 about building with an AI coding agent and managing a personal product.
 

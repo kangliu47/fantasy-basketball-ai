@@ -25,6 +25,19 @@ class DuckDBPlayerInformationRepository:
             ).fetchone()
             return LINK.validate_json(row[0]) if row else None
 
+    def links(self, hashtag_ids: tuple[str, ...]) -> tuple[ReviewedPlayerLink, ...]:
+        """One bounded saved-only read for live snapshot identity reconciliation."""
+        if not hashtag_ids or len(hashtag_ids) > 2000:
+            return ()
+        with self.workspace.connection() as db:
+            rows = db.execute(
+                "SELECT document FROM espn_player_link_revisions "
+                "WHERE hashtag_id IN (SELECT unnest(?)) "
+                "QUALIFY revision = max(revision) OVER (PARTITION BY hashtag_id)",
+                [list(hashtag_ids)],
+            ).fetchall()
+            return tuple(LINK.validate_json(row[0]) for row in rows)
+
     def save_link(self, link: ReviewedPlayerLink, expected_revision: int) -> None:
         with self.workspace.connection() as db:
             db.execute("BEGIN TRANSACTION")

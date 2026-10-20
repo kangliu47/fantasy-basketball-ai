@@ -1,5 +1,21 @@
 # Personal product direction
 
+## Daily live-season decisions — October 20, 2026, latest
+
+User decision: the draft is complete; plan a league-connected daily season
+outlook plus a seven-day roster/waiver decision view. Collect automatically while
+the local app is open and connected, with manual refresh and visible gaps. Use
+dated Hashtag projections as a transparent baseline, with recent actuals shown
+separately and explicit remaining-games/availability assumptions. Defer win
+probabilities. This supersedes auction preparation as the planning priority.
+
+The [live-season PRD](live-season-decision-support-prd.md) documents the reviewed
+codebase, proposed requirements, visualizations, evidence gates and delivery
+sequence. Compare a feasible add/drop with keeping the roster across all eight
+categories while preserving earned production. Current-season setup and data
+capabilities still require verification. This delivery is planning only; review
+the synthetic interactive flow before implementation stories or frontend work.
+
 ## Tonight's desktop auction journey — October 19, 2026, latest
 
 User decision: approve the auction-night mock and prioritize a local PC with

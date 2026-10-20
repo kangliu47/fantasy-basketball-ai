@@ -17,6 +17,14 @@ class DuckDBDraftRepository:
 
     def load_board(self, league_id: int, season: int) -> DraftBoard | None:
         with self.workspace.connection() as db:
+            live = db.execute(
+                "SELECT b.document FROM live_draft_boards b JOIN live_draft_selection s "
+                "ON s.session_id=b.session_id WHERE s.league_id=? AND s.season=? "
+                "ORDER BY b.revision DESC LIMIT 1",
+                [league_id, season],
+            ).fetchone()
+            if live:
+                return BOARD.validate_json(live[0])
             row = db.execute(
                 "SELECT document FROM draft_board_revisions WHERE league_id = ? AND season = ? "
                 "ORDER BY revision DESC LIMIT 1",
@@ -28,6 +36,32 @@ class DuckDBDraftRepository:
         with self.workspace.connection() as db:
             db.execute("BEGIN TRANSACTION")
             try:
+                live = db.execute(
+                    "SELECT s.session_id,b.document FROM live_draft_selection s "
+                    "JOIN live_draft_boards b ON b.session_id=s.session_id "
+                    "WHERE s.league_id=? AND s.season=? ORDER BY b.revision DESC LIMIT 1",
+                    [board.league_id, board.season],
+                ).fetchone()
+                if live:
+                    old = BOARD.validate_json(live[1])
+                    if (
+                        old.id != board.id
+                        or old.revision != expected_revision
+                        or board.revision <= expected_revision
+                        or board.events[: len(old.events)] != old.events
+                        or (old.rules, old.teams, old.my_team_id)
+                        != (board.rules, board.teams, board.my_team_id)
+                    ):
+                        raise OperationBusy(
+                            "This is a saved live session. Reload it; use append-only corrections "
+                            "or start a separate session instead of resetting its room or ledger."
+                        )
+                    db.execute(
+                        "INSERT INTO live_draft_boards VALUES (?, ?, ?)",
+                        [live[0], board.revision, BOARD.dump_json(board).decode()],
+                    )
+                    db.execute("COMMIT")
+                    return
                 row = db.execute(
                     "SELECT max(revision) FROM draft_board_revisions "
                     "WHERE league_id = ? AND season = ?",

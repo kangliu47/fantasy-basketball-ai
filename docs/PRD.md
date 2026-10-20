@@ -1,5 +1,34 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
+> **October 20, 2026 · Current product planning priority: live-season decision support.**
+> The user reports the draft is complete and confirms a daily season outlook plus
+> a seven-day roster/waiver comparison, automatic collection while the local app
+> is open and connected, and dated Hashtag baselines with transparent scenarios.
+> See [the live-season PRD](live-season-decision-support-prd.md) and amendment 77.
+> This authorizes product planning; UI flow and production implementation remain
+> subject to review. Earlier auction priorities below describe the prior phase.
+
+> **October 19, 2026 · Approved same-pane rival guideline.** The user approved
+> `rival-bid-guideline-preview.html`: per-rival conditional spending bands and
+> exact legal ceilings below the selected candidate/nominee's personal range.
+> Use the simple fixed half-budget curve, ESPN anchor and illustrative ±25% band;
+> retain own valuations and stale protection. No new workspace or draft actions.
+> See `rival-bid-guideline-design.md` for the accepted calculation and limits.
+
+> **October 19, 2026 · Approved room-adjusted card extension.** Show the existing
+> remaining-room allocation beside the fixed baseline, with ESPN anchors below
+> and the balanced target/stop retained. The user approved
+> `room-adjusted-value-preview.html`. Reuse existing calculation and stale gates;
+> no change to projection scores, valuation population or draft actions.
+
+> **October 19, 2026 · Approved auction opportunity journey.** Replace the main
+> Auction companion view with the approved linked scatter/table mock in
+> `auction-opportunities-preview.html`. Compare our top 200 with dated ESPN
+> Average Salary and league-adjusted Pre-draft Val; inspect balanced fit and
+> revision-pinned ranges; update only from a reviewed Real session. Exclude severe
+> shooting drags from buying and ignore old targets/caps/practice history without
+> deleting evidence. See `auction-opportunities-design.md` for the accepted scope.
+
 > [Amendment 73](#73-player-outlook-and-latest-news--approved-2026-10-19)
 > approves ESPN season outlook and recent news immediately after bidding numbers,
 > automatic refresh on inspection and the reviewed full-pool player links.
@@ -28,10 +57,10 @@
 > adds NBA team, expected minutes, projection revisions and explicit provider-note
 > checks to the existing auction preparation journey.
 
-> **Current priority:** [amendment 64](#64-auction-team-board--approved-implementation-2026-10-18):
+> **Previous priority, through October 19:** [amendment 64](#64-auction-team-board--approved-implementation-2026-10-18):
 > auction preparation and the approved manual Team board.
 > [Amendment 65](#65-three-workspace-navigation--approved-flow-2026-10-18) separates
-> Auction prep, Live season and Historical patterns; live-season features remain deferred.
+> Auction prep, Live season and Historical patterns; live-season features were deferred in that delivery.
 > [Amendment 66](#66-visible-ui-build-identity-and-baseline-readiness--approved-2026-10-18)
 > adds visible UI build identity and makes baseline prerequisites explicit.
 > The earlier [private research prototype](#63-league-specific-private-prototype--authorized-implementation-2026-10-17) remains available.
@@ -86,6 +115,45 @@
 > [personal-product direction](personal-product-direction.md).
 
 ## Amendment history — newest first
+
+## 77. Daily live-season decision support — planning scope confirmed 2026-10-20
+
+The user reports the draft is complete and requests a codebase review and PRD for
+daily league-connected stats, team outlook, visualization and roster/waiver
+decision support. They confirm season outlook plus a seven-day move view,
+automatic daily refresh while the app is open and connected with manual refresh
+and visible gaps, and dated Hashtag projections as a transparent baseline with
+recent actual performance shown separately. Win probabilities are deferred.
+
+The [dedicated PRD](live-season-decision-support-prd.md) records source-backed
+reuse, missing provider capabilities, proposed requirements, analytical
+boundaries and phased acceptance. The core comparison is keeping the roster
+versus a feasible add/drop, preserving already-earned production and evaluating
+all eight categories against the current league under explicit game/lineup
+assumptions. Draft auction prices and availability do not establish waiver value
+or in-season ownership. The current season, team, rules and availability require
+verification before advice.
+
+This supersedes auction preparation as the current **planning** priority.
+It approves neither an unreviewed live interface nor production implementation.
+Review a repository-styled synthetic interactive mock before frontend code or
+Markdown implementation stories. Preserve the original baseline and prior
+delivery records below.
+
+
+## 76. Chat-led live auction context — approved 2026-10-19
+
+The user approves a dedicated ESPN browser, isolated Practice/Real sessions and
+automatic finalized-purchase recording, exposed through one on-demand read-only
+MCP context tool. The reviewed controls live in Auction companion. Draft Summary
+supplies settled purchases; current Budgets reconciles cash and legal offers.
+Recover missed purchases from the latest complete snapshot, without reconstructing
+bidding history. The running app owns browser capture and database writes. Keep
+saved personal ceilings, baseline allocation and calculated balanced stops distinct;
+withhold actionable guidance on stale/incomplete source or unsupported identity.
+No provider writes, automated model commentary, strategy mutation or new price
+formula. See [approved decision](live-auction-mcp-contract.md) and
+[operation](live-auction-mcp.md).
 
 ## 75. Desktop auction-night decision flow — approved 2026-10-19
 

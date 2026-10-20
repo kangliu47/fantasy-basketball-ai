@@ -19,11 +19,12 @@ REVIEW = ROOT / "docs" / "architecture-review.html"
 DATA_PATTERN = re.compile(
     r'(<script id="review-data" type="application/json">)(.*?)(</script>)', re.S
 )
-SOURCE_SUFFIXES = {".py", ".ts", ".html", ".scss"}
+SOURCE_SUFFIXES = {".py", ".js", ".ts", ".html", ".scss"}
 
 
 def source_inventory(root: Path = ROOT) -> list[Path]:
     paths = list((root / "src" / "fantasy_ai").rglob("*.py"))
+    paths.extend((root / "src" / "fantasy_ai").rglob("*.js"))
     paths.extend(
         path
         for path in (root / "frontend" / "src" / "app").rglob("*")

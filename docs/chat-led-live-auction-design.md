@@ -1,5 +1,14 @@
 # A chat-led auction companion
 
+## Implementation approval — October 19, 2026, latest
+
+The user subsequently approved the full dedicated-browser/session/context-tool
+slice and the interactive `live-auction-mcp-preview.html` controls. They specified
+Draft Summary as the settled current-state source, without reconstructing bidding
+history. The original proposal and approval questions below are retained as history;
+current implementation boundaries live in [the contract](live-auction-mcp-contract.md)
+and [operation guide](live-auction-mcp.md).
+
 October 19, 2026 · User-approved design; implementation deferred to a separate branch.
 
 **Selected direction:** automatic pick tracking, with Codex advice when you ask.

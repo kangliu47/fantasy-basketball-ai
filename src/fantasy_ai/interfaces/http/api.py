@@ -13,6 +13,8 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from fantasy_ai.application.draft.live import LiveAuctionService
+from fantasy_ai.application.draft.opportunities import OpportunityService
 from fantasy_ai.application.draft.service import DraftService
 from fantasy_ai.application.history.service import HistoryService
 from fantasy_ai.application.models import (
@@ -29,6 +31,8 @@ from fantasy_ai.application.workspace import WorkspaceService
 
 from .draft_api import create_draft_router
 from .history_api import create_history_router
+from .live_auction_api import create_live_auction_router
+from .opportunities_api import create_opportunities_router
 from .planning_api import create_planning_router
 from .player_information_api import create_player_information_router
 from .projection_api import create_projection_router
@@ -54,6 +58,8 @@ def create_api(
     projections: PremiumProjectionService | None = None,
     player_notes: PlayerNotesService | None = None,
     player_information: PlayerInformationService | None = None,
+    live_auction: LiveAuctionService | None = None,
+    opportunities: OpportunityService | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -63,6 +69,8 @@ def create_api(
         try:
             yield
         finally:
+            if live_auction:
+                await live_auction.stop()
             if projections:
                 await projections.close()
             if history:
@@ -70,6 +78,10 @@ def create_api(
             await service.close()
 
     app = FastAPI(title="Fantasy Basketball Workspace", version="0.2.0", lifespan=lifespan)
+    if live_auction:
+        app.include_router(create_live_auction_router(live_auction, service))
+    if opportunities:
+        app.include_router(create_opportunities_router(opportunities, service))
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"]
     )
