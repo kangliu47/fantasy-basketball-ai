@@ -11,9 +11,7 @@ import argparse
 import json
 import re
 import subprocess
-import tomllib
 from pathlib import Path, PurePosixPath
-from typing import Any
 
 PRIVATE_PARTS = {
     ".local",
@@ -40,61 +38,9 @@ EXAMPLE_DOMAINS = {
     "example.invalid",
     "localhost",
 }
-PUBLIC_CODEX_FILES = frozenset(
-    {
-        ".codex/config.toml",
-        ".codex/agents/frontier-expert.toml",
-        ".codex/agents/utility-worker.toml",
-    }
-)
-CODEX_AGENT_KEYS = frozenset(
-    {
-        "name",
-        "description",
-        "model",
-        "model_reasoning_effort",
-        "sandbox_mode",
-        "developer_instructions",
-    }
-)
-CODEX_CONFIG_KEYS = frozenset({"model", "model_reasoning_effort", "agents"})
-CODEX_AGENTS_KEYS = frozenset(
-    {
-        "enabled",
-        "max_concurrent_threads_per_session",
-        "default_subagent_model",
-        "default_subagent_reasoning_effort",
-    }
-)
-FORBIDDEN_CODEX_KEY_PARTS = frozenset(
-    {
-        "api_key",
-        "command",
-        "credential",
-        "cwd",
-        "endpoint",
-        "env",
-        "hook",
-        "mcp",
-        "network",
-        "password",
-        "path",
-        "secret",
-        "token",
-        "url",
-    }
-)
-FORBIDDEN_CODEX_VALUE = re.compile(
-    r"(?:https?|wss?)://|(?:^|\s)(?:~[\\/]|/(?:[^\s/]+/)+)|\b[A-Za-z]:[\\/]"
-    r"|\$(?:\{[A-Za-z_]\w*\}|[A-Za-z_]\w*)"
-    r"|\b(?:api[_-]?key|access[_-]?token|secret|password|credential)\b\s*[:=]",
-    re.IGNORECASE,
-)
 
 
 def private_path(name: str) -> bool:
-    if name in PUBLIC_CODEX_FILES:
-        return False
     path = PurePosixPath(name)
     return (
         bool(PRIVATE_PARTS.intersection(path.parts))
@@ -119,101 +65,6 @@ def text_issues(text: str) -> set[str]:
     return issues
 
 
-def _has_forbidden_codex_key(value: object) -> bool:
-    if isinstance(value, dict):
-        for key, nested_value in value.items():
-            normalized_key = str(key).lower().replace("-", "_")
-            if any(part in normalized_key for part in FORBIDDEN_CODEX_KEY_PARTS):
-                return True
-            if _has_forbidden_codex_key(nested_value):
-                return True
-    elif isinstance(value, list):
-        return any(_has_forbidden_codex_key(item) for item in value)
-    return False
-
-
-def _has_forbidden_codex_value(value: object) -> bool:
-    if isinstance(value, dict):
-        return any(_has_forbidden_codex_value(item) for item in value.values())
-    if isinstance(value, list):
-        return any(_has_forbidden_codex_value(item) for item in value)
-    return isinstance(value, str) and bool(FORBIDDEN_CODEX_VALUE.search(value))
-
-
-def _has_exact_keys(value: object, expected_keys: frozenset[str]) -> bool:
-    return isinstance(value, dict) and set(value) == expected_keys
-
-
-def _has_string_values(value: dict[str, Any], keys: frozenset[str]) -> bool:
-    return all(isinstance(value[key], str) and value[key] for key in keys)
-
-
-def codex_issues(name: str, text: str) -> set[str]:
-    """Validate the small, reproducible subset of Codex configuration we publish."""
-    try:
-        config = tomllib.loads(text)
-    except tomllib.TOMLDecodeError:
-        return {"malformed Codex TOML"}
-
-    issues = set()
-    if _has_forbidden_codex_key(config):
-        issues.add("forbidden Codex configuration key")
-    if _has_forbidden_codex_value(config):
-        issues.add("forbidden Codex configuration value")
-
-    if name == ".codex/config.toml":
-        if "agents" not in config or not set(config).issubset(CODEX_CONFIG_KEYS):
-            issues.add("unknown Codex configuration section")
-            return issues
-        agents = config["agents"]
-        if any(
-            not isinstance(config[key], str) or not config[key]
-            for key in ("model", "model_reasoning_effort")
-            if key in config
-        ) or not _has_exact_keys(agents, CODEX_AGENTS_KEYS):
-            issues.add("invalid Codex configuration schema")
-            return issues
-        if (
-            type(agents["enabled"]) is not bool
-            or type(agents["max_concurrent_threads_per_session"]) is not int
-            or agents["max_concurrent_threads_per_session"] < 1
-            or not isinstance(agents["default_subagent_model"], str)
-            or not agents["default_subagent_model"]
-            or not isinstance(agents["default_subagent_reasoning_effort"], str)
-            or not agents["default_subagent_reasoning_effort"]
-        ):
-            issues.add("invalid Codex configuration schema")
-        return issues
-
-    expected_name = {
-        ".codex/agents/frontier-expert.toml": "frontier_expert",
-        ".codex/agents/utility-worker.toml": "utility_worker",
-    }[name]
-    if not _has_exact_keys(config, CODEX_AGENT_KEYS):
-        issues.add("unknown Codex configuration section")
-        return issues
-    if not _has_string_values(config, CODEX_AGENT_KEYS):
-        issues.add("invalid Codex configuration schema")
-        return issues
-    if config["name"] != expected_name:
-        issues.add("invalid Codex configuration schema")
-    if config["sandbox_mode"] not in {"read-only", "workspace-write"}:
-        issues.add("invalid Codex configuration schema")
-    if name == ".codex/agents/frontier-expert.toml" and (
-        config["model"] != "gpt-6-astra"
-        or config["model_reasoning_effort"] != "high"
-        or config["sandbox_mode"] != "read-only"
-    ):
-        issues.add("frontier expert must remain Astra High and read-only")
-    if name == ".codex/agents/utility-worker.toml" and (
-        config["model"] != "gpt-6-luna"
-        or config["model_reasoning_effort"] != "high"
-        or config["sandbox_mode"] != "workspace-write"
-    ):
-        issues.add("utility worker configuration must remain bounded")
-    return issues
-
-
 def audit(name: str, content: bytes) -> set[str]:
     issues = {"private file path"} if private_path(name) else set()
     try:
@@ -221,8 +72,6 @@ def audit(name: str, content: bytes) -> set[str]:
     except UnicodeDecodeError:
         return issues
     issues.update(text_issues(text))
-    if name in PUBLIC_CODEX_FILES:
-        issues.update(codex_issues(name, text))
     if name == "docs/architecture-review.html":
         match = re.search(
             r'<script id="review-data" type="application/json">(.*?)</script>', text, re.S

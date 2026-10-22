@@ -1,7 +1,8 @@
 # Codex Agent Orchestration V4.1
 
 > Historical experiment. Superseded September 27, 2026 by
-> [V5: GPT-6 shared-context lead](CODEX_AGENT_ORCHESTRATION_V5.md).
+> [V5: GPT-6 shared-context lead](CODEX_AGENT_ORCHESTRATION_V5.md), which was
+> retired October 22, 2026.
 > The model pins, separate engineer/scientist routing and "no Astra" instructions
 > below are preserved as history and are no longer current guidance.
 

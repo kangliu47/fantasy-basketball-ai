@@ -1,5 +1,13 @@
 # Architecture and learning guide
 
+## Codex workflow configuration — October 22, 2026, latest
+
+The repository no longer ships a project Codex model pin or named specialist
+agents. New chats use a model chosen in the client or the personal default.
+The [V5 experiment](CODEX_AGENT_ORCHESTRATION_V5.md) is historical; the current
+engineering and analytical safeguards live in `AGENTS.md`. This changes the
+development workflow, not the application's runtime architecture.
+
 ## Live-season planning boundary — October 20, 2026, latest
 
 The user confirms planning a daily season outlook and seven-day roster/waiver

@@ -1,5 +1,15 @@
 # Project learning journal
 
+## Let the chat choose its model — October 22, 2026, latest
+
+User decision: retire the repo's V5 agentic orchestration framework so a new
+conversation can use the personal GPT-6.1 Sol default or a model selected at
+start. Assistant synthesis: a project `model` setting overrides the personal
+default, while `AGENTS.md` can continue to prescribe routing even after the pin
+is removed. Retire both active controls, preserve the experiment as history, and
+keep domain decision and verification rules independent of model choice. See the
+[retirement record](../CODEX_AGENT_ORCHESTRATION_V5.md).
+
 ## Earned fantasy stats and roster potential have different grains — October 20, 2026, latest
 
 User decision: after the draft, plan daily season outlook and seven-day roster
@@ -76,10 +86,9 @@ about building with an AI coding agent and managing a personal product.
   analysis lifecycle must not request live credentials; Python sessions stay in memory.
 - [Vibe coding experiences](vibe-coding.md): delegation, feedback, verification
   and learning the implementation.
-- [Current Codex agent orchestration](../CODEX_AGENT_ORCHESTRATION_V5.md): Sol High
-  owns design and implementation, with bounded Luna High work and exceptional
-  Astra High reasoning. The [V3–V4.1 journey](../CODEX_AGENT_ORCHESTRATION_V4_1_AND_LEARNING_JOURNEY.md)
-  remains available as history.
+- [Retired Codex orchestration experiment](../CODEX_AGENT_ORCHESTRATION_V5.md):
+  V5 and the [V3–V4.1 journey](../CODEX_AGENT_ORCHESTRATION_V4_1_AND_LEARNING_JOURNEY.md)
+  remain available as history; the repo no longer pins a model or routes roles.
 - [Product management insights](product-management.md): scope, user journeys,
   assisted workflows and deciding what deserves a feature.
 - [MCP as an Agent-Computer Interface](mcp-agent-interface.md): why REST/OpenAPI

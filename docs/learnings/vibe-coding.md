@@ -4,6 +4,21 @@ These are project-specific observations and assistant synthesis, not claims abou
 every AI-assisted development workflow. Sources are listed in the
 [journal index](README.md#conversation-sources).
 
+## 2026-10-22 — Choose the model when starting the chat
+
+**User decision:** Retire the V5 orchestration framework after GPT-6.1 Sol
+improved. Keep model selection available at the start of each conversation.
+
+**Synthesis:** The project-level `model` and reasoning keys shadowed the personal
+default, and active routing prose still asked for specialists. Removing both
+restores a simple single-agent workflow while retaining the separate need to
+define analytical meaning and verify it. The V5 configuration is preserved as
+history rather than active guidance.
+
+**Practice:** Select a model and reasoning effort in the client when needed;
+otherwise inherit personal defaults. Keep the project's domain and delivery
+rules independent of the chosen model.
+
 ## 2026-09-27 — Review the analytical flow before completing its interface
 
 **Conversation evidence — S21:** The approved calculation contract and a partial
@@ -37,7 +52,7 @@ while using an explicit decision checkpoint. Isolation and delegation should
 solve a concrete context, execution or reasoning problem, rather than mirror
 job titles. This is a design hypothesis, not a measured performance improvement.
 
-**Practice:** Follow [V5](../CODEX_AGENT_ORCHESTRATION_V5.md). Retire the mandatory
+**Historical practice:** Follow [V5](../CODEX_AGENT_ORCHESTRATION_V5.md). Retire the mandatory
 engineer/scientist split, preserve complete decision contracts when handing off,
 and respect explicit root-model choices. Keep Astra focused on exceptional
 questions and Luna on tasks whose outputs can be checked independently.
