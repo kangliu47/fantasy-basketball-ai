@@ -4,39 +4,11 @@ from pathlib import Path
 import pytest
 
 from tools.check_publication import (
-    PUBLIC_CODEX_FILES,
     audit,
     private_path,
     text_issues,
     working_tree_codex_paths,
 )
-
-VALID_CONFIG = """\
-model = "gpt-6-sol"
-model_reasoning_effort = "high"
-
-[agents]
-enabled = true
-max_concurrent_threads_per_session = 3
-default_subagent_model = "gpt-6-sol"
-default_subagent_reasoning_effort = "high"
-"""
-VALID_FRONTIER = """\
-name = "frontier_expert"
-description = "Exceptionally difficult decisions and adversarial review"
-model = "gpt-6-astra"
-model_reasoning_effort = "high"
-sandbox_mode = "read-only"
-developer_instructions = "Return a decision contract."
-"""
-VALID_UTILITY_WORKER = """\
-name = "utility_worker"
-description = "Perform bounded mechanical work"
-model = "gpt-6-luna"
-model_reasoning_effort = "high"
-sandbox_mode = "workspace-write"
-developer_instructions = "Return objective evidence."
-"""
 
 
 @pytest.mark.parametrize(
@@ -65,13 +37,12 @@ def test_public_examples_and_source_remain_allowed() -> None:
     assert not text_issues("package@22.2.0")
 
 
-def test_only_the_reviewed_codex_files_can_be_published() -> None:
-    assert all(not private_path(name) for name in PUBLIC_CODEX_FILES)
-    assert private_path(".codex/agents/other.toml")
+def test_codex_configuration_is_private() -> None:
+    assert private_path(".codex/config.toml")
+    assert private_path(".codex/agents/frontier-expert.toml")
+    assert private_path(".codex/agents/utility-worker.toml")
     assert private_path(".codex/agents/nested/private.toml")
-    assert private_path(".codex/mcp/local.toml")
-    assert private_path(".codex/agents/engineer.toml")
-    assert private_path(".codex/agents/scientist-architect.toml")
+    assert not private_path("docs/orchestration-history/v5/frontier-expert.toml")
 
 
 def test_working_tree_codex_discovery_includes_ignored_nested_files_and_symlinks(
@@ -101,96 +72,15 @@ def test_working_tree_codex_discovery_includes_a_root_symlink(
     assert working_tree_codex_paths() == {".codex"}
 
 
-@pytest.mark.parametrize(
-    ("name", "content"),
-    [
-        (
-            ".codex/config.toml",
-            VALID_CONFIG,
-        ),
-        (
-            ".codex/agents/frontier-expert.toml",
-            VALID_FRONTIER,
-        ),
-        (
-            ".codex/agents/utility-worker.toml",
-            VALID_UTILITY_WORKER,
-        ),
-    ],
-)
-def test_reviewed_codex_files_with_the_narrow_schema_pass(name: str, content: str) -> None:
-    assert not audit(name, content.encode())
+def test_codex_configuration_is_rejected_by_publication_audit() -> None:
+    assert audit(".codex/config.toml", b'model = "gpt-6-sol"') == {"private file path"}
 
 
-@pytest.mark.parametrize(
-    "root_settings",
-    ["", 'model = "gpt-6-astra"\n', 'model_reasoning_effort = "medium"\n'],
-)
-def test_root_defaults_can_be_inherited_or_overridden(root_settings: str) -> None:
-    agents = "[agents]" + VALID_CONFIG.split("[agents]", 1)[1]
-    assert not audit(".codex/config.toml", (root_settings + agents).encode())
-
-
-@pytest.mark.parametrize(
-    ("name", "content", "expected_issue"),
-    [
-        (".codex/config.toml", "model = [", "malformed Codex TOML"),
-        (
-            ".codex/config.toml",
-            """\
-model = "gpt-6-sol"
-model_reasoning_effort = "medium"
-
-[mcp_servers.local]
-url = "https://example.invalid/mcp"
-""",
-            "forbidden Codex configuration key",
-        ),
-        (
-            ".codex/agents/frontier-expert.toml",
-            VALID_FRONTIER + 'command = "run"\n',
-            "forbidden Codex configuration key",
-        ),
-        (
-            ".codex/agents/frontier-expert.toml",
-            VALID_FRONTIER.replace("Return a decision contract.", "Use /private/league-data"),
-            "forbidden Codex configuration value",
-        ),
-        (
-            ".codex/agents/frontier-expert.toml",
-            VALID_FRONTIER.replace("read-only", "workspace-write"),
-            "frontier expert must remain Astra High and read-only",
-        ),
-        (
-            ".codex/agents/frontier-expert.toml",
-            VALID_FRONTIER.replace("gpt-6-astra", "gpt-5.6-sol"),
-            "frontier expert must remain Astra High and read-only",
-        ),
-        (
-            ".codex/agents/utility-worker.toml",
-            VALID_UTILITY_WORKER.replace("gpt-6-luna", "gpt-6-sol"),
-            "utility worker configuration must remain bounded",
-        ),
-        (
-            ".codex/agents/utility-worker.toml",
-            VALID_UTILITY_WORKER.replace(
-                'model_reasoning_effort = "high"', 'model_reasoning_effort = "medium"'
-            ),
-            "utility worker configuration must remain bounded",
-        ),
-    ],
-)
-def test_codex_policy_rejects_unsafe_or_unreviewed_configuration(
-    name: str, content: str, expected_issue: str
-) -> None:
-    assert expected_issue in audit(name, content.encode())
-
-
-def test_codex_policy_keeps_existing_privacy_scans() -> None:
+def test_privacy_scans_still_apply_to_public_history() -> None:
     path = "/" + "Users/example-person/private"
     email = "person@" + "company.example"
-    content = VALID_CONFIG + f"# {email} {path}\n"
-    assert audit(".codex/config.toml", content.encode()) == {
+    content = f"# {email} {path}\n"
+    assert audit("docs/orchestration-history/v5/frontier-expert.toml", content.encode()) == {
         "non-example email address",
         "personal filesystem path",
     }

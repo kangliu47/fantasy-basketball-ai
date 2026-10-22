@@ -1,5 +1,14 @@
 # Implementation plan
 
+## Retire project agent orchestration — October 22, 2026, latest
+
+Removed the repo-level Sol High model pin and active specialist agent catalog.
+New chats inherit personal Codex defaults or the user's start-of-chat selection.
+Reduced `AGENTS.md` to model-independent engineering and analytical guidance,
+archived the V5 role files, and adjusted publication checks to treat every
+`.codex/` file as private. See the [V5 retirement record](CODEX_AGENT_ORCHESTRATION_V5.md).
+This is a development-workflow change; no application behavior changes.
+
 ## Live-season decision support PRD — October 20, 2026, latest
 
 Delivered a [codebase-backed product PRD](live-season-decision-support-prd.md)

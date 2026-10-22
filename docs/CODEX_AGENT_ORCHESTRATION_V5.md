@@ -1,10 +1,23 @@
 # Codex Agent Orchestration V5
 
 **Accepted:** September 27, 2026
-**Status:** Configuration implemented; runtime routing and workload outcomes remain to be observed.
+**Status:** Retired October 22, 2026; retained as migration history.
 **Objective:** Useful, correct work per unit of human attention and Codex usage.
 
-## Current operating model
+## Retirement — October 22, 2026
+
+The user chose to retire this project's V5 orchestration framework after the
+GPT-6.1 Sol improvement. The active `.codex/config.toml` and named agent files
+were removed. New chats inherit personal Codex model and reasoning defaults, or
+use the model and effort selected when starting the chat. The project no longer
+pins Sol High, requires role routing, or asks for experiment reporting. The
+specialist role definitions are preserved in
+[`orchestration-history/v5/`](orchestration-history/v5/) as historical evidence.
+The engineering and analytical safeguards retained in `AGENTS.md` remain active.
+
+The sections below describe the September 27 configuration and experiment.
+
+## Historical operating model
 
 | Role | Configured default | Responsibility |
 | --- | --- | --- |
@@ -32,9 +45,9 @@ Luna returns `NEEDS_DECISION` when the packet or evidence is insufficient.
 Keep complete contracts, including CONTRACT_ID and calculation version when
 applicable, across handoffs. Do not reconstruct them from summaries.
 
-## Configuration and user control
+## Historical configuration and user control
 
-The project config sets Sol High for the lead and unspecified subagents. Selecting
+The project config set Sol High for the lead and unspecified subagents. Selecting
 `utility_worker` explicitly chooses Luna; selecting `frontier_expert` chooses
 Astra. There are only two discoverable custom roles. A separate Sol implementation
 agent is not a required workflow stage.
