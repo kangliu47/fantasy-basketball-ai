@@ -14,6 +14,7 @@ from fantasy_ai.application.planning.service import PreparationService
 from fantasy_ai.application.projections.player_information import PlayerInformationService
 from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
+from fantasy_ai.application.season.service import SeasonService
 from fantasy_ai.application.workspace import WorkspaceService
 from fantasy_ai.infrastructure.auction_prices import LocalAuctionPrices
 from fantasy_ai.infrastructure.browser_login import PlaywrightBrowserLogin
@@ -21,6 +22,7 @@ from fantasy_ai.infrastructure.draft_repository import DuckDBDraftRepository
 from fantasy_ai.infrastructure.duckdb_repository import DuckDBWorkspaceRepository
 from fantasy_ai.infrastructure.espn_gateway import ESPNLeagueGateway
 from fantasy_ai.infrastructure.espn_player_information import ESPNPlayerInformationReader
+from fantasy_ai.infrastructure.espn_season import ESPNSeasonReader
 from fantasy_ai.infrastructure.history_gateway import ESPNHistoryGateway
 from fantasy_ai.infrastructure.history_repository import DuckDBHistoryRepository
 from fantasy_ai.infrastructure.live_auction.browser import ESPNRoomBrowser
@@ -33,6 +35,8 @@ from fantasy_ai.infrastructure.projections.browser import HashtagBrowserSource
 from fantasy_ai.infrastructure.projections.files import LocalProjectionFiles
 from fantasy_ai.infrastructure.projections.player_notes import DuckDBPlayerNotesRepository
 from fantasy_ai.infrastructure.roster_solver import ScipyRosterSolver
+from fantasy_ai.infrastructure.season_projections import SavedSeasonProjections
+from fantasy_ai.infrastructure.season_repository import DuckDBSeasonRepository
 from fantasy_ai.infrastructure.session_store import MemorySessionStore
 from fantasy_ai.interfaces.http.api import create_api
 
@@ -50,6 +54,7 @@ class ApplicationServices:
     player_information: PlayerInformationService | None = None
     live_auction: LiveAuctionService | None = None
     opportunities: OpportunityService | None = None
+    season: SeasonService | None = None
 
 
 def build_services(root: Path | None = None) -> ApplicationServices:
@@ -109,6 +114,12 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         OpportunityService(
             draft, live, LocalAuctionPrices(root / ".local/auction-prices/espn-2027.json")
         ),
+        SeasonService(
+            DuckDBSeasonRepository(repository),
+            ESPNSeasonReader(),
+            SavedSeasonProjections(draft.repository, DuckDBPlayerInformationRepository(repository)),
+            workspace,
+        ),
     )
 
 
@@ -131,4 +142,5 @@ def create_app() -> FastAPI:
         services.player_information,
         services.live_auction,
         services.opportunities,
+        services.season,
     )

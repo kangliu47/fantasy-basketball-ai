@@ -27,6 +27,7 @@ from fantasy_ai.application.planning.service import PreparationService
 from fantasy_ai.application.projections.player_information import PlayerInformationService
 from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
+from fantasy_ai.application.season.service import SeasonService
 from fantasy_ai.application.workspace import WorkspaceService
 
 from .draft_api import create_draft_router
@@ -44,6 +45,7 @@ from .schemas import (
     SnapshotSummaryDTO,
     StateDTO,
 )
+from .season_api import create_season_router
 from .valuation_api import create_valuation_router
 
 APP_ID = "fantasy-basketball-ai"
@@ -60,15 +62,20 @@ def create_api(
     player_information: PlayerInformationService | None = None,
     live_auction: LiveAuctionService | None = None,
     opportunities: OpportunityService | None = None,
+    season_service: SeasonService | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await service.initialize()
         if history:
             await history.initialize()
+        if season_service:
+            season_service.start()
         try:
             yield
         finally:
+            if season_service:
+                await season_service.close()
             if live_auction:
                 await live_auction.stop()
             if projections:
@@ -82,6 +89,8 @@ def create_api(
         app.include_router(create_live_auction_router(live_auction, service))
     if opportunities:
         app.include_router(create_opportunities_router(opportunities, service))
+    if season_service:
+        app.include_router(create_season_router(season_service, service))
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"]
     )
@@ -187,6 +196,8 @@ def create_api(
     async def disconnect(workspace: Annotated[WorkspaceService, Depends(workspace)]) -> StateDTO:
         if history:
             history.ensure_idle()
+        if season_service:
+            await season_service.cancel_active()
         return StateDTO.from_state(await workspace.disconnect())
 
     @app.post("/api/refresh", response_model=StateDTO, status_code=202)

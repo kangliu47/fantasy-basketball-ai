@@ -2,11 +2,26 @@
 
 **Date:** October 20, 2026
 
-**Status:** Product planning scope confirmed; proposed requirements and methodology await review. No UI flow or production implementation approved.
+**Status:** Flow approved October 21, 2026 with supporting detail in accessible help icons. First production slice: daily actuals and manual waiver contribution research. Full future standings/lineup forecasting remains a data and methodology gate.
 
 **Product:** Personal, local, read-only ESPN league intelligence for the 2026–27 NBA season (ESPN season 2027).
 
 **Scope:** Daily team outlook → category investigation → seven-day roster/waiver comparison.
+
+**October 21 approval and implementation:** The user approves the mock, asks for
+cleaner supporting help, and authorizes implementation plus league-context waiver
+research. The [versioned contract](live-season-implementation-contract.md) bounds
+the first calculation slice to actual standings and add-minus-drop contributions
+under explicit manual seven-day starts. Future full-team percentages and league
+points require additional verified inputs. See [delivery](qa/2026-10-21-live-season-delivery.md).
+This supersedes the older pending-mock status below.
+
+**October 20 mock delivery:** The user requested an interactive mock based on this
+design. Review [Live season preview](live-season-preview.html): My outlook,
+category-linked league/available-player research, seven-day add/drop comparison,
+participation sensitivity and a page-local watchlist. All evidence is synthetic.
+The mock is ready for feedback; its flow is not yet approved for production.
+See [review checks](qa/2026-10-20-live-season-mock.md).
 
 ## 1. Product direction
 
@@ -140,6 +155,13 @@ Missing numerator/denominator or zero attempts makes the affected ratio unavaila
 
 ### First baseline and uncertainty
 
+**October 22 research follow-up:** The user requests sample-size and fluctuation
+support using the opening days' actual league evidence. The
+[percentage-stability proposal](early-season-percentage-research.md) defines
+the evidence gaps, per-player FT Bayesian candidate, FG shooting-mix concerns,
+predictive versus ability uncertainty, evaluation gates and bounded delivery.
+It is research direction, not approval of a production probability model or UI.
+
 Use a compatible, dated Hashtag per-game rate baseline. Confirm whether the source represents preseason or remaining-season expectations; record source season, basis and update/capture date. Projected games from an old full-season snapshot are not remaining games, and provider projected games cannot be subtracted by team-credited starts to derive a valid player remainder.
 
 Recent 7/14/30-day actuals are descriptive comparison windows, not automatic replacements for the baseline. A player without matching source coverage remains unprojected. Early-season small samples and injuries must be visible. Do not infer an injury return date from an “out” label or impute participation from an article.
@@ -239,4 +261,4 @@ The product scope is confirmed. The following are discovery/design gates, not re
 4. Confirm projection horizon semantics, current source coverage and an update workflow that does not assume unattended premium acquisition. The league's daily refresh need not refresh Hashtag automatically.
 5. Review the proposed daily collection time, dataset compatibility/freshness rules and synthetic interactive flow before implementation stories and frontend changes.
 
-**Stopping point for this request:** PRD and linked planning records only. Next, review the product direction and prepare the bounded synthetic Live season mock; no production changes or new automation is created by this document.
+**Current delivery status:** The October 20 planning/mock request was followed by explicit October 21 implementation approval. Daily actuals and manual contribution research are implemented under the linked contract. Verify current provider capabilities and the future lineup/participation policy before completing the remaining-season forecast objective.

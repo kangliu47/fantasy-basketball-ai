@@ -51,6 +51,36 @@ class ESPNClient:
         view = ESPNView(view)
         return validate_response(self._request(view.value), view, self._config)
 
+    def get_season_pool_page(self, offset: int) -> JsonObject:
+        """Bounded current-season player read; never an arbitrary view or URL."""
+        import json
+
+        if type(offset) is not int or not 0 <= offset <= 2000:
+            raise ValueError("Invalid player pool offset")
+        payload = self._request(
+            "kona_player_info",
+            headers={
+                "x-fantasy-filter": json.dumps(
+                    {
+                        "players": {
+                            "limit": 200,
+                            "offset": offset,
+                            "sortPercOwned": {"sortPriority": 1, "sortAsc": False},
+                        }
+                    }
+                )
+            },
+        )
+        players = payload.get("players")
+        if (
+            ("id" in payload and payload["id"] != self._config.league_id)
+            or ("seasonId" in payload and payload["seasonId"] != self._config.season)
+            or not isinstance(players, list)
+            or len(players) > 200
+        ):
+            raise ESPNSchemaError("The league player pool could not be verified.")
+        return payload
+
     def get_archive_view(
         self, view: str, *, player_ids: tuple[int, ...] = (), period: int | None = None
     ) -> JsonObject:

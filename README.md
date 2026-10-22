@@ -4,6 +4,18 @@ A local, read-only ESPN league workspace built with **FastAPI**, **Angular**, an
 **Angular Material**. Domain Driven Design and Clean Architecture guide the
 boundaries between the fantasy model, use cases, adapters, and UI.
 
+**Current direction — October 21, 2026:** the draft is complete. **Live season**
+now opens first: collect current standings, choose My team, investigate available
+players and compare a possible add/drop. Supporting methods use accessible help
+icons. Saved observations work offline. Daily collection runs at 09:00 New York
+time while the local process is open and connected; missed dates remain visible.
+
+Pickup research uses observed waiver/FAAB context and reviewed dated Hashtag
+rates. Seven-day starts are manual assumptions; future standings and net
+roto-point forecasts need additional schedule/lineup evidence. See the
+[PRD](docs/live-season-decision-support-prd.md) and
+[delivery](docs/qa/2026-10-21-live-season-delivery.md).
+
 **Latest addition — October 17, 2026:** connect Hashtag in **Data & coverage**, sign
 in directly in a dedicated Chrome window, then fetch and review the full 2026–27
 projection list before using it in the draft workspace. Credentials stay outside
@@ -19,7 +31,7 @@ explicitly copy a rounded allocation into your personal ceiling. The
 Real allocations require a complete, reviewed
 population. See the [versioned method](docs/auction-valuation-contract.md).
 
-**Current product direction — October 11, 2026:** prepare for the 2027 draft,
+**Earlier product direction — October 11, 2026:** prepare for the 2027 draft,
 then use a manual auction companion. Compare projections, save personal targets
 and ceilings, and track final purchases with budget and roster-slot constraints.
 Historical calculations remain available under League evidence. See the

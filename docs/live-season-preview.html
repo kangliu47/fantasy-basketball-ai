@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live season · Interactive product review</title>
+  <link rel="stylesheet" href="showcase-theme.css">
+  <style>
+    .showcase-header{padding:16px 30px}.showcase-page{max-width:1440px;padding-top:20px}.showcase-title{font-size:30px;margin:6px 0 9px}.showcase-card{padding:19px;min-width:0}.showcase-banner{margin:15px 0;font-size:12px}
+    h2,h3{color:var(--showcase-heading);letter-spacing:-.025em}h2{font-size:18px;margin:0 0 7px}h3{font-size:15px;margin:0 0 7px}p{line-height:1.5}.muted,small{color:var(--showcase-muted)}small{font-size:12px}.row,.actions,.nav,.tabs,.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.between{justify-content:space-between}.nav{border-bottom:1px solid var(--showcase-line);padding-bottom:12px;margin-bottom:18px}.nav a{text-decoration:none;border:0;background:transparent}.nav .active{background:var(--showcase-green-soft);color:var(--showcase-green-strong);font-weight:700}.tabs{margin:18px 0}.tabs button{border-radius:7px;font-size:13px}.tabs button[aria-selected=true]{background:var(--showcase-green-soft);border-color:var(--showcase-green);color:var(--showcase-green-strong);font-weight:700}
+    .pill{display:inline-block;border-radius:20px;padding:5px 9px;font-size:11px;background:var(--showcase-green-soft);color:var(--showcase-green-strong)}.pill.review{color:var(--showcase-orange);background:var(--showcase-surface-soft)}.pill.blue{background:var(--showcase-blue-soft);color:var(--showcase-blue)}.pill.error{color:var(--showcase-red)}.primary{background:var(--showcase-green-strong);border-color:var(--showcase-green-strong);color:white}.primary:hover{background:var(--showcase-green)}button:disabled{opacity:.5;cursor:not-allowed}.control{background:var(--showcase-surface);border:1px solid var(--showcase-control-line);border-radius:7px;padding:9px 10px;color:var(--showcase-ink);max-width:100%}label{font-size:12px;display:grid;gap:6px}.control:focus-visible{outline:3px solid var(--showcase-green);outline-offset:2px}
+    .notice{font-size:13px;border-left:3px solid var(--showcase-orange);background:var(--showcase-surface-soft);padding:12px 15px;margin:14px 0;line-height:1.5}.notice.error{border-color:var(--showcase-red)}.notice.success{border-color:var(--showcase-green)}.notice p{margin:5px 0}.freshness{font-size:11px;margin:8px 0 0}.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}.metric{display:grid;gap:7px}.metric strong{font-size:27px;color:var(--showcase-heading);letter-spacing:-.045em}.metric small{font-size:11px}.metric-title{font-size:12px;color:var(--showcase-muted)}.metric strong span{font-size:13px;font-weight:500;color:var(--showcase-muted)}
+    .section-heading{margin:23px 0 12px}.category-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}.category{background:var(--showcase-surface);border:1px solid var(--showcase-line);border-radius:9px;padding:12px 9px;color:var(--showcase-ink);text-align:left;cursor:pointer;display:grid;gap:8px;min-width:0}.category[aria-pressed=true]{border:2px solid var(--showcase-blue);background:var(--showcase-blue-soft);padding:11px 8px}.category b{font-size:20px;color:var(--showcase-heading)}.category small{font-size:10px}.rank-track{height:4px;background:var(--showcase-line);border-radius:4px}.rank-track i{display:block;height:4px;background:var(--showcase-green);border-radius:4px}.category-label{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700}.direction{font-size:11px;font-weight:500}.positive{color:var(--showcase-green-strong)}.negative{color:var(--showcase-red)}
+    .main-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(290px,1fr);gap:16px;align-items:start;margin:16px 0}.chart{display:block;width:100%;height:auto}.chart text{fill:var(--showcase-muted);font-family:var(--showcase-font);font-size:11px}.gridline{stroke:var(--showcase-line);stroke-width:1}.legend{font-size:11px;color:var(--showcase-muted);gap:16px}.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--showcase-muted)}.legend i.me{background:var(--showcase-green)}.legend i.move{background:var(--showcase-orange)}.footnote{font-size:11px;color:var(--showcase-muted);line-height:1.5;margin:12px 0 0}.investigate{padding:13px;background:var(--showcase-surface-soft);border-radius:8px;margin:14px 0}.investigate p{font-size:13px;margin:6px 0 12px}.tiny-chart{max-height:130px;margin-top:8px}.trend-caption{font-size:11px;color:var(--showcase-muted)}.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}.gap-grid div{padding:11px;border:1px solid var(--showcase-line);border-radius:8px}.gap-grid strong,.gap-grid small{display:block}.gap-grid strong{font-size:18px;margin-top:5px}details{font-size:12px;line-height:1.6;margin-top:14px}summary{cursor:pointer;color:var(--showcase-green-strong);font-weight:650}details p{margin-bottom:0}
+    .filters{margin:16px 0;align-items:end}.filters label:first-child{flex:1;min-width:160px}.table-scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12px;min-width:690px}th,td{padding:11px 9px;border-bottom:1px solid var(--showcase-line);text-align:right;white-space:nowrap}th{font-size:10px;font-weight:600;color:var(--showcase-muted);background:var(--showcase-bg)}th:first-child,td:first-child{text-align:left}td strong,td small{display:block}td small{font-size:10px;margin-top:4px}tbody tr.selected{background:var(--showcase-blue-soft)}.table-button{padding:7px 10px;font-size:11px}.empty{text-align:center;padding:35px 20px;color:var(--showcase-muted)}.split-controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin:15px 0}.comparison-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:16px;align-items:start}.decision-result{padding:14px;background:var(--showcase-surface-soft);border-radius:9px;margin:15px 0}.decision-result strong{font-size:23px;color:var(--showcase-heading);display:block;margin:6px 0}.decision-result p{font-size:13px;margin:8px 0}.delta-cell{display:flex;align-items:center;gap:8px;justify-content:flex-end}.delta-track{width:50px;display:inline-block;border-left:1px solid var(--showcase-line);height:9px}.delta-track i{display:block;background:var(--showcase-green);height:8px}.delta-track i.loss{background:var(--showcase-red)}.schedule{min-width:650px}.schedule th,.schedule td{text-align:center}.schedule th:first-child,.schedule td:first-child{text-align:left}.start,.bench,.locked,.off{display:inline-block;width:24px;height:24px;border-radius:5px;line-height:24px;font-size:11px}.start{background:var(--showcase-green-soft);color:var(--showcase-green-strong);font-weight:700}.bench{border:1px dashed var(--showcase-control-line);color:var(--showcase-muted)}.locked{background:var(--showcase-blue-soft);color:var(--showcase-blue)}.off{color:var(--showcase-muted)}textarea{width:100%;resize:vertical;min-height:78px;margin:10px 0}.watch-item{border-top:1px solid var(--showcase-line);padding:11px 0;font-size:12px}.watch-item p{margin:5px 0;white-space:pre-wrap}.watch-item small{display:block}.demo-controls{margin-top:25px;padding:14px;background:var(--showcase-surface-soft);border-radius:10px}.demo-controls p{margin:5px 0 13px;font-size:12px}.demo-controls label{min-width:230px}.status-message{font-size:12px;min-height:20px;margin:10px 0;color:var(--showcase-green-strong)}.connection-panel{margin-bottom:16px}.view-heading{margin:20px 0 14px}.comparison-summary{font-size:13px;line-height:1.6}.showcase-footer{margin-top:22px}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0)}
+    @media(max-width:1050px){.category-grid{grid-template-columns:repeat(4,1fr)}.main-grid,.comparison-grid{grid-template-columns:1fr 1fr}.split-controls{grid-template-columns:1fr 1fr}.split-controls label:last-child{grid-column:1/-1}}
+    @media(max-width:760px){.showcase-header{padding:15px 18px}.showcase-page{padding:18px 14px 40px}.showcase-title{font-size:26px}.showcase-card{padding:15px}.main-grid,.comparison-grid{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.category-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.category{padding:10px 7px}.category[aria-pressed=true]{padding:9px 6px}.category b{font-size:18px}.header-actions{gap:6px}.showcase-status{font-size:10px}.split-controls{grid-template-columns:1fr}.split-controls label:last-child{grid-column:auto}.nav{gap:4px}.nav a{padding:8px 9px;font-size:12px}.metric strong{font-size:24px}.section-heading{align-items:start}.category small{font-size:9px}.demo-controls label{min-width:0;flex:1}.gap-grid strong{font-size:16px}}
+    @media(max-width:420px){.category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.category b{white-space:nowrap}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+<header class="showcase-header">
+  <div class="showcase-brand">Fantasy Basketball<small>Live season</small></div>
+  <div class="row header-actions"><span class="showcase-status"><i></i>Local · read-only</span><button class="showcase-button" id="connection" aria-expanded="false" aria-controls="connection-panel">Connection</button></div>
+</header>
+<main class="showcase-page">
+  <nav class="nav" aria-label="Main workspaces">
+    <a class="showcase-button" href="auction-opportunities-preview.html">Auction prep</a>
+    <a class="showcase-button active" href="live-season-preview.html" aria-current="page">Live season</a>
+    <a class="showcase-button" href="app-preview.html">Historical patterns</a>
+  </nav>
+  <section id="connection-panel" class="showcase-card connection-panel" hidden>
+    <h2>League connection</h2><p class="muted">This prototype simulates connection states. Every team, player, stat and source date is invented; no ESPN or Hashtag requests are made.</p>
+    <div class="row"><span id="connection-state" class="pill">Demo connected</span><button class="showcase-button" id="toggle-connection">Simulate disconnect</button></div>
+    <p class="footnote">In the app, private league collection runs only while open and explicitly connected. Saved analysis stays readable offline.</p>
+  </section>
+  <div class="row between"><div><p class="showcase-eyebrow">2027 · Sample League · My team: Northside</p><h1 class="showcase-title">Where can your team gain ground?</h1><p class="showcase-intro">Follow the category outlook. Compare the next move with keeping your roster.</p></div><div class="actions"><button class="showcase-button primary" id="refresh">Refresh data</button><button class="showcase-button" id="cancel-refresh" hidden>Cancel</button></div></div>
+  <div class="showcase-banner"><strong>Interactive mock · synthetic data.</strong> Fictional checkpoint: November 12, 2026. All numbers and projection scenarios are illustrative. Changes stay in this page until reload.</div>
+  <div class="row between"><div class="row"><span class="pill" id="health">Daily check complete</span><small id="cutoff">Scored through Nov 11 · 12 teams · 8 categories</small></div><small id="collection">Daily refresh: 09:00 ET while open + connected</small></div>
+  <p class="freshness" id="freshness">League + available pool: Nov 12, 09:00 ET · Mock rate baseline: Nov 10 · Schedule: Nov 12</p>
+  <div id="notice" class="notice" role="status" hidden></div>
+  <div class="tabs" role="tablist" aria-label="Live season views">
+    <button class="showcase-button" id="outlook-tab" role="tab" aria-selected="true" aria-controls="outlook" tabindex="0">My outlook</button>
+    <button class="showcase-button" id="move-tab" role="tab" aria-selected="false" aria-controls="move" tabindex="-1">Compare a move</button>
+    <button class="showcase-button" id="watch-tab" role="tab" aria-selected="false" aria-controls="watch" tabindex="-1">Watchlist <span id="watch-count">0</span></button>
+  </div>
+
+  <section id="outlook" role="tabpanel" aria-labelledby="outlook-tab">
+    <div class="summary-grid" id="metrics"></div>
+    <div class="row between section-heading"><div><h2>Your eight-category outlook</h2><small id="horizon-caption">Select a category to explore the league gap.</small></div><label>Outlook horizon<select id="horizon" class="control"><option value="season">Remaining season · through Apr 11</option><option value="week">Next 7 days · Nov 12–18</option></select></label></div>
+    <div class="category-grid" id="categories" aria-label="Select a category"></div>
+    <div class="main-grid">
+      <section class="showcase-card"><div class="row between"><div><h2 id="league-title">Assists · league outlook</h2><small id="league-caption"></small></div><span class="pill blue">Conditional baseline</span></div><svg class="chart" id="league-chart" viewBox="0 0 680 330" role="img" aria-labelledby="league-chart-title"><title id="league-chart-title">Synthetic league category outlook</title></svg><div class="legend"><span><i class="me"></i>Your team</span><span><i></i>Other current teams</span></div><div class="gap-grid" id="gaps"></div><details><summary>Exact values and outlook assumptions</summary><div class="table-scroll"><table><thead><tr><th>Team</th><th>Earned</th><th>Future</th><th>Endpoint</th><th>Category rank</th></tr></thead><tbody id="league-rows"></tbody></table></div><p>All 12 current teams use the same illustrative rate and legal-start policy. Opponent rosters stay fixed. These are ranks of conditional totals, not win probabilities. Ratios combine makes and attempts. The season baseline is a separate fixture, not seven-day results multiplied into a season prediction.</p></details></section>
+      <aside class="showcase-card"><h2>What deserves a closer look?</h2><div id="investigation" class="investigate"></div><h3>Recent scored position</h3><svg id="trend" class="chart tiny-chart" viewBox="0 0 410 125" role="img" aria-label="Synthetic trend in earned total roto points"></svg><p class="trend-caption" id="trend-caption"></p><details><summary>What changed since the last check?</summary><p id="daily-change"></p></details></aside>
+    </div>
+    <section class="showcase-card" id="available"><div class="row between"><div><h2>Available players to investigate</h2><small id="candidate-scope"></small></div><span class="pill">Seven-day move screen</span></div>
+      <div class="row filters"><label>Find a player<input class="control" id="search" type="search" placeholder="Name or position"></label><label>Position<select class="control" id="position"><option value="all">All positions</option><option value="G">Guards</option><option value="F">Forwards</option><option value="C">Centers</option></select></label><label>Compare with dropping<select class="control" id="replacement-filter"></select></label></div>
+      <div class="table-scroll"><table><thead><tr><th>Player / league availability</th><th>Scheduled / usable</th><th id="candidate-stat-heading">Net AST</th><th>Net roto points</th><th>Review</th></tr></thead><tbody id="candidates"></tbody></table></div><div id="candidate-empty" class="empty" hidden>No available players match these filters. Try another name or position.</div>
+      <p class="footnote">Sorted by net contribution in the selected category against the chosen replacement. Rates, usable starts and opponent endpoints are synthetic. A waiver claim is conditional on clearing; no bid amount is recommended.</p>
+    </section>
+  </section>
+
+  <section id="move" role="tabpanel" aria-labelledby="move-tab" hidden>
+    <div class="row between view-heading"><div><h2>Does this move improve your next seven days?</h2><small>Nov 12–18 · earned production stays with the team · all 8 categories recalculated</small></div><button class="showcase-button" id="back-outlook">← Back to outlook</button></div>
+    <div class="split-controls"><label>Add from available pool<select class="control" id="add-player"></select></label><label>Drop from your roster<select class="control" id="drop-player"></select></label><label>Participation scenario<select class="control" id="participation"><option value="base">Base · listed usable starts</option><option value="lower">Lower · candidate misses one usable start</option></select></label></div>
+    <div class="comparison-grid">
+      <section class="showcase-card"><div class="row between"><h2>Keep roster vs. add/drop</h2><span class="pill blue">Seven-day endpoint</span></div><p class="comparison-summary" id="move-summary"></p><div id="blocked" class="notice error" hidden></div><div class="table-scroll"><table><thead><tr><th>Category</th><th>Keep roster</th><th>With move</th><th>Net stats</th><th>Roto point Δ</th></tr></thead><tbody id="move-rows"></tbody></table></div><p class="footnote">Endpoint = earned + future credited contribution. Point changes compare both scenarios against the same 12-team endpoints. Every loss is included.</p><details><summary>Inspect future contributions and shooting components</summary><div class="table-scroll"><table><thead><tr><th>Future input</th><th>Added player</th><th>Dropped player</th></tr></thead><tbody id="contribution-rows"></tbody></table></div><p>Fixture rates represent per-game projections, with a separate descriptive recent-performance sample. No season-long benefit is inferred from a seven-day add/drop.</p></details></section>
+      <aside class="showcase-card"><span class="pill" id="move-status">Review tradeoffs</span><div class="decision-result" id="decision-result"></div><h3>Player context</h3><p class="comparison-summary" id="player-context"></p><label>Reason to watch<textarea class="control" id="reason" placeholder="What would make this move worth taking?"></textarea></label><button class="showcase-button primary" id="save-watch">Save to mock watchlist</button><p class="footnote">Saves a research note for this browser page. A transaction would be completed in ESPN.</p><div class="status-message" id="save-message" role="status"></div></aside>
+    </div>
+    <section class="showcase-card" style="margin-top:16px"><div class="row between"><h2>Scheduled games vs. usable starts</h2><span class="pill" id="starts-summary"></span></div><div class="table-scroll"><table class="schedule"><thead><tr><th>Player / role</th><th>Thu 12</th><th>Fri 13</th><th>Sat 14</th><th>Sun 15</th><th>Mon 16</th><th>Tue 17</th><th>Wed 18</th></tr></thead><tbody id="schedule-rows"></tbody></table></div><p class="footnote">✓ Usable start · B Bench / active slots full · L Before waiver clearance or lock · − No game · M Missed under lower scenario. Other roster starts remain fixed in this bounded fixture; no extra starts from a full slate are assumed.</p></section>
+  </section>
+
+  <section id="watch" class="showcase-card" role="tabpanel" aria-labelledby="watch-tab" hidden><h2>Players you are watching</h2><p class="muted">Keep the reason and source context beside the player. New league evidence can change the decision.</p><div id="watch-items"></div></section>
+
+  <section class="demo-controls" aria-label="Prototype review controls"><div class="row between"><div><h3>Preview a different state</h3><p>Review controls for this synthetic mock. No live connection or saved application data.</p></div><div class="row"><label>Data state<select class="control" id="demo-state"><option value="ready">Complete daily check</option><option value="gap">Two missed collection days</option><option value="stale">Available pool is stale</option><option value="partial">Missing projection / ratio components</option><option value="failed">Refresh failed; retain saved view</option><option value="offline">Offline / sign-in needed</option><option value="preseason">No scored games yet</option><option value="empty">No available players returned</option></select></label><button class="showcase-button" id="reset">Reset mock</button></div></div></section>
+  <footer class="showcase-footer"><a href="live-season-decision-support-prd.md">Read the product requirements</a> · Flow review pending · Synthetic data only</footer>
+</main>
+<script>
+  'use strict';
+  // Deterministic synthetic fixtures. No provider, storage, or network operations.
+  const $ = id => document.getElementById(id);
+  const cats = ['FG%', 'FT%', '3PM', 'PTS', 'REB', 'AST', 'STL', 'BLK'];
+  const keys = ['fgm', 'fga', 'ftm', 'fta', 'three', 'pts', 'reb', 'ast', 'stl', 'blk'];
+  const fields = {'3PM':'three', PTS:'pts', REB:'reb', AST:'ast', STL:'stl', BLK:'blk'};
+  const make = values => Object.fromEntries(keys.map((key, i) => [key, values[i]]));
+  const earned = make([380, 800, 170, 220, 100, 1180, 430, 300, 65, 40]);
+  const weekly = make([175, 370, 80, 102, 46, 530, 200, 130, 25, 14]);
+  const remaining = make([2570, 5440, 1180, 1510, 680, 7820, 2950, 1880, 365, 225]);
+  const names = ['Northside', 'Atlas', 'Cedar', 'Harbor', 'Summit', 'Orchard', 'Parkside', 'Metro', 'Willow', 'Beacon', 'Union', 'Coast'];
+  const add = (a, b, factor = 1) => Object.fromEntries(keys.map(k => [k, a[k] + b[k] * factor]));
+  const scale = (a, factor) => Object.fromEntries(keys.map(k => [k, a[k] * factor]));
+  const teams = names.map((name, i) => {
+    if (!i) return {name, earned, weekly, remaining};
+    const adjust = (base, stage) => {
+      const result = {...base};
+      cats.forEach((cat, j) => {
+        const categoryBias = [.02, -.035, -.07, -.01, -.09, .06, .04, -.07][j];
+        const offset = (((i * (j % 3 + 1) + j * 2) % 11) - 5) * .036 + .012 + categoryBias;
+        const futureShift = stage ? ((i + j) % 3 - 1) * .014 : 0;
+        if (cat === 'FG%') result.fgm = base.fga * (.475 + offset * .11 + futureShift * .2);
+        else if (cat === 'FT%') result.ftm = base.fta * (170 / 220 + offset * .16 + futureShift * .2);
+        else result[fields[cat]] = base[fields[cat]] * (1 + offset + futureShift);
+      });
+      return stage ? result : Object.fromEntries(keys.map(k => [k, Math.round(result[k])]));
+    };
+    return {name, earned:adjust(earned, false), weekly:adjust(weekly, true), remaining:adjust(remaining, true)};
+  });
+  const pool = [
+    {id:'vale', name:'Evan Vale', pos:'PG / SG', group:'G', availability:'Free agent · eligible now', rate:make([4.2,9,2.6,3,1.8,12.8,3.2,6.1,1.3,.2]), days:['S','-','B','S','-','S','-'], news:'Mock update · Nov 11: playing more as a primary ball handler. Role is a watch point, not a guaranteed increase.', recent:'Last 4 covered games: 29 min, 6.8 AST/game. Baseline: 6.1 AST/game.'},
+    {id:'stone', name:'Milo Stone', pos:'C', group:'C', availability:'Waivers · clears Fri 13, 11:00 ET', rate:make([4.4,7.2,.9,1.5,0,9.7,7.4,1.2,.5,1.9]), days:['L','-','S','-','S','-','S'], news:'Mock update · Nov 11: center minutes have stabilized. Thursday is excluded before clearance; acquiring the player is conditional.', recent:'Last 5 covered games: 23 min, 1.6 BLK/game. Baseline: 1.9 BLK/game.'},
+    {id:'hart', name:'Theo Hart', pos:'SF / PF', group:'F', availability:'Free agent · eligible now', rate:make([5.2,11.5,1.8,2,2.8,15,4.6,2.2,.9,.4]), days:['-','S','S','-','S','-','S'], news:'Mock update · Nov 10: healthy and in the rotation. Shooting volume improves scoring but changes the team FG% denominator.', recent:'Last 5 covered games: 27 min, 2.4 3PM/game. Baseline: 2.8 3PM/game.'},
+    {id:'lane', name:'Jules Lane', pos:'SG / SF', group:'G', availability:'Free agent · eligible now', rate:make([3.4,8,1.7,2,1.7,10.2,3.4,2.8,1.8,.3]), days:['S','-','S','B','-','S','-'], news:'Mock update · Nov 12: defensive role remains steady. Steals are volatile in small samples.', recent:'Last 3 covered games: 26 min, 2.3 STL/game. Baseline: 1.8 STL/game.'},
+    {id:'cole', name:'Arden Cole', pos:'PF / C', group:'C', availability:'Free agent · eligible now', rate:make([3.7,6.5,1.1,1.9,.3,8.8,8.1,1.8,.8,.7]), days:['-','S','-','S','-','S','-'], news:'Mock update · Nov 11: strong rebounding sample; free-throw impact needs review.', recent:'Last 5 covered games: 24 min, 8.7 REB/game. Baseline: 8.1 REB/game.'}
+  ];
+  const drops = [
+    {id:'price', name:'Rowan Price', pos:'SG / SF', rate:make([4,9,1.4,1.8,2.1,11.5,4,2.1,.7,.4]), days:['S','-','B','S','-','S','-']},
+    {id:'brook', name:'Nico Brook', pos:'PF / C', rate:make([3,5.8,1.2,1.7,.3,7.5,6,1.1,.5,1]), days:['-','S','S','-','S','-','-']}
+  ];
+  let state = {view:'outlook', category:'AST', horizon:'season', candidate:'vale', drop:'price', mode:'ready', lower:false, busy:false, refreshed:false, gaps:false};
+  let watches = [], refreshTimer;
+  const noteDrafts = new Map();
+  const safe = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const value = (stats, cat) => cat === 'FG%' ? stats.fga > 0 ? stats.fgm / stats.fga : null : cat === 'FT%' ? stats.fta > 0 ? stats.ftm / stats.fta : null : stats[fields[cat]];
+  const format = (number, cat) => number == null ? '—' : cat?.includes('%') ? (number * 100).toFixed(2) + '%' : new Intl.NumberFormat('en-US', {maximumFractionDigits:1}).format(number);
+  const signed = (number, digits = 1) => number == null ? '—' : (number > 0 ? '+' : number < 0 ? '−' : '') + Math.abs(number).toFixed(digits).replace(/\.0$/, '');
+  const zero = () => scale(earned, 0);
+  const actual = team => state.mode === 'preseason' ? zero() : team.earned;
+  const endpoint = (team, horizon = state.horizon) => add(actual(team), horizon === 'season' ? team.remaining : team.weekly);
+  function rank(stats, cat, horizon = state.horizon, observed = false) {
+    const v = value(stats, cat), rivals = teams.slice(1).map(t => value(observed ? actual(t) : endpoint(t, horizon), cat));
+    return 1 + rivals.filter(n => n > v + 1e-9).length + rivals.filter(n => Math.abs(n - v) < 1e-9).length / 2;
+  }
+  const totalPoints = (stats, horizon, observed = false) => cats.reduce((sum, cat) => sum + 13 - rank(stats, cat, horizon, observed), 0);
+  const candidate = () => pool.find(p => p.id === state.candidate);
+  const replacement = () => drops.find(p => p.id === state.drop);
+  const blocked = () => ['stale','partial','offline','empty'].includes(state.mode) || state.busy;
+  function daysFor(player, lower = false) {
+    const days = [...player.days];
+    if (lower) days[days.lastIndexOf('S')] = 'M';
+    return days;
+  }
+  const starts = (player, lower = false) => daysFor(player, lower).filter(day => day === 'S').length;
+  function comparison(player = candidate()) {
+    const drop = replacement(), added = scale(player.rate, starts(player, state.lower)), removed = scale(drop.rate, starts(drop));
+    const keep = endpoint(teams[0], 'week'), withMove = add(add(keep, removed, -1), added);
+    const deltas = cats.map(cat => ({cat, stat:value(withMove, cat) - value(keep, cat), points:rank(keep, cat, 'week') - rank(withMove, cat, 'week')}));
+    return {added, removed, keep, withMove, deltas, net:deltas.reduce((sum, d) => sum + d.points, 0)};
+  }
+  function options(id, rows, selected) { $(id).innerHTML = rows.map(p => `<option value="${p.id}" ${p.id === selected ? 'selected' : ''}>${p.name} · ${p.pos}</option>`).join(''); }
+  function showView(view, focus = false) {
+    state.view = view;
+    ['outlook','move','watch'].forEach(id => { $(id).hidden = id !== view; $(id + '-tab').setAttribute('aria-selected', String(id === view)); $(id + '-tab').tabIndex = id === view ? 0 : -1; });
+    if (focus) $(view + '-tab').focus();
+    render();
+  }
+  function renderHealth() {
+    const messages = {
+      gap:'Nov 8 and 9 were not collected. The trend has a gap; the latest complete check remains Nov 12. Cumulative changes across missed days are interval changes, not daily game logs.',
+      stale:'Available-player pool last checked Nov 10. Saved outlook remains readable. Refresh before treating an add/drop as currently available.',
+      partial:'One rival projection and Northside’s earned shooting attempts are missing in this example. Complete projected ranks, ratio forecasts and move point totals are withheld; supported observed category values remain visible.',
+      failed:'The new refresh failed. The last complete Nov 12, 09:00 ET observation is retained. Retry refresh; saved source dates have not advanced.',
+      offline:'Sign-in is needed for new league data. The saved Nov 12 check remains readable offline. Simulate reconnect through Connection to resume collection.',
+      preseason:'No fantasy games have been scored yet. Earned totals are zero; earned shooting percentages have no attempts. Only the conditional baseline is available.',
+      empty:'No available players were returned by the sample league pool. An empty result is not evidence of a complete available-player population.'
+    };
+    $('notice').hidden = !messages[state.mode] && !state.busy && !state.refreshed;
+    $('notice').className = 'notice' + (state.mode === 'failed' ? ' error' : state.refreshed ? ' success' : '');
+    $('notice').textContent = state.busy ? 'Reading the synthetic league, scored stats and available pool… Saved results stay visible until the complete check succeeds.' : messages[state.mode] || (state.refreshed ? 'Mock refresh complete. All sample datasets checked together at Nov 12, 09:02 ET.' + (state.gaps ? ' The two earlier missed collection dates remain gaps.' : '') : '');
+    $('health').textContent = state.busy ? 'Refresh in progress' : state.mode === 'offline' ? 'Saved view · offline' : state.mode === 'failed' ? 'Latest attempt failed' : ['partial','stale','empty'].includes(state.mode) ? 'Review data coverage' : state.gaps ? '2 missed days' : state.mode === 'preseason' ? 'Season not scored' : 'Daily check complete';
+    $('health').className = 'pill' + (['ready','preseason'].includes(state.mode) ? '' : ' review');
+    $('cutoff').textContent = state.mode === 'preseason' ? 'No scored games · 12 teams · 8 categories' : 'Scored through Nov 11 · 12 teams · 8 categories';
+    $('freshness').textContent = `League: Nov 12, ${state.refreshed ? '09:02' : '09:00'} ET · Available pool: ${state.mode === 'stale' ? 'Nov 10' : 'Nov 12'} · Mock rate baseline: Nov 10 · Schedule: Nov 12`;
+    $('refresh').disabled = state.busy || state.mode === 'offline';
+    $('cancel-refresh').hidden = !state.busy;
+    $('refresh').textContent = state.busy ? 'Refreshing…' : 'Refresh data';
+    $('connection-state').textContent = state.mode === 'offline' ? 'Demo disconnected' : 'Demo connected';
+    $('toggle-connection').textContent = state.mode === 'offline' ? 'Simulate reconnect' : 'Simulate disconnect';
+  }
+  function renderOverview() {
+    const observed = actual(teams[0]), projected = endpoint(teams[0]), incomplete = state.mode === 'partial';
+    const currentPoints = state.mode === 'preseason' ? '—' : format(totalPoints(observed, state.horizon, true));
+    const projectedPoints = incomplete ? '—' : format(totalPoints(projected, state.horizon));
+    $('metrics').innerHTML = [
+      ['Earned roto points', currentPoints, state.mode === 'preseason' ? 'Awaiting first scored games' : 'Across all 8 categories · 12 teams'],
+      [state.horizon === 'season' ? 'Conditional season endpoint' : 'Conditional 7-day endpoint', projectedPoints, incomplete ? 'Incomplete league inputs' : 'Roto points · fixed opponent rosters'],
+      ['Scored player starts', state.mode === 'preseason' ? '0' : '81', 'Official credited starts · synthetic'],
+      ['Next 7 days', '30 <span>usable / 34 scheduled</span>', '10 active slots · 3 bench · 2 IR']
+    ].map(([label, n, copy]) => `<article class="showcase-card metric"><span class="metric-title">${label}</span><strong>${n}</strong><small>${copy}</small></article>`).join('');
+    $('horizon-caption').textContent = `Current → ${state.horizon === 'season' ? 'conditional season-end' : 'conditional seven-day'} rank · 1 is best · select to investigate`;
+    $('categories').innerHTML = cats.map(cat => {
+      const current = state.mode === 'preseason' ? null : rank(observed, cat, state.horizon, true), future = incomplete ? null : rank(projected, cat);
+      const change = current != null && future != null ? current - future : null;
+      const missingActual = incomplete && cat.includes('%');
+      return `<button class="category" data-cat="${cat}" aria-pressed="${state.category === cat}"><span class="category-label">${cat}<span class="direction ${change > 0 ? 'positive' : change < 0 ? 'negative' : ''}">${change == null ? '—' : change > 0 ? '↑' + change : change < 0 ? '↓' + Math.abs(change) : '→'}</span></span><b>${current == null || missingActual ? '—' : '#' + current} <small>→</small> ${future == null ? '—' : '#' + future}</b><div class="rank-track"><i style="width:${future == null ? 0 : (13 - future) / 12 * 100}%"></i></div><small>Earned ${missingActual ? '—' : format(value(observed, cat), cat)}</small></button>`;
+    }).join('');
+    document.querySelectorAll('[data-cat]').forEach(button => button.onclick = () => {state.category = button.dataset.cat; render(); document.querySelector(`[data-cat="${state.category}"]`).focus();});
+    renderLeague(); renderTrend(); renderCandidates();
+  }
+  function renderLeague() {
+    const cat = state.category, me = value(endpoint(teams[0]), cat), incomplete = state.mode === 'partial';
+    const chartWidth = window.innerWidth <= 760 ? 370 : 680, left = window.innerWidth <= 760 ? 100 : 125, right = chartWidth - 35;
+    $('league-chart').setAttribute('viewBox', `0 0 ${chartWidth} 330`);
+    const points = teams.map((team, i) => ({name:team.name, value:value(endpoint(team), cat), i})).sort((a,b) => b.value - a.value);
+    const label = state.horizon === 'season' ? 'Through Apr 11 · earned + remaining-season baseline' : 'Through Nov 18 · earned + seven-day contribution';
+    $('league-title').textContent = `${cat} · league outlook`;
+    $('league-caption').textContent = label;
+    let svg = `<title id="league-chart-title">${safe(cat)} conditional endpoints for all 12 synthetic league teams</title>`;
+    if (incomplete) {
+      svg += `<text x="${chartWidth/2}" y="140" text-anchor="middle">League outlook unavailable.</text><text x="${chartWidth/2}" y="164" text-anchor="middle">Missing comparison inputs; see earned values below.</text>`;
+    } else {
+      const min = Math.min(...points.map(p => p.value)), max = Math.max(...points.map(p => p.value));
+      const x = n => left + (n - min) / (max - min || 1) * (right - left);
+      for (let i = 0; i < 4; i++) { const n = min + (max - min) * i / 3; svg += `<line class="gridline" x1="${x(n)}" x2="${x(n)}" y1="20" y2="295"/><text x="${x(n)}" y="320" text-anchor="middle">${format(n,cat)}</text>`; }
+      points.forEach((p,i) => {const y = 32 + i * 23; svg += `<text x="8" y="${y+4}" ${p.i === 0 ? 'style="font-weight:750;fill:var(--showcase-green-strong)"' : ''}>${safe(p.name)}${p.i === 0 ? ' · You' : ''}</text><line class="gridline" x1="${left}" x2="${right}" y1="${y}" y2="${y}"/><circle cx="${x(p.value)}" cy="${y}" r="${p.i === 0 ? 6 : 4}" fill="${p.i === 0 ? 'var(--showcase-green)' : 'var(--showcase-muted)'}"><title>${safe(p.name)}: ${format(p.value,cat)}</title></circle>`;});
+    }
+    $('league-chart').innerHTML = svg;
+    const above = points.filter(p => p.value > me + 1e-9).at(-1), below = points.find(p => p.value < me - 1e-9);
+    const gapText = point => incomplete ? 'Unavailable' : !point ? 'No adjacent team' : cat.includes('%') ? (Math.abs(point.value - me) * 100).toFixed(2) + ' pp' : format(Math.abs(point.value - me), cat);
+    $('gaps').innerHTML = `<div><small>Gap to next better · ${incomplete ? 'unknown' : above?.name || 'already leading'}</small><strong>${gapText(above)}</strong></div><div><small>Buffer to next worse · ${incomplete ? 'unknown' : below?.name || 'last position'}</small><strong>${gapText(below)}</strong></div>`;
+    $('league-rows').innerHTML = points.map(p => {const team = teams[p.i], obs = value(actual(team),cat), future = value(state.horizon === 'season' ? team.remaining : team.weekly,cat); return `<tr><td>${safe(p.name)}${p.i === 0 ? ' · You' : ''}</td><td>${incomplete && p.i === 0 && cat.includes('%') ? '—' : format(obs,cat)}</td><td>${incomplete ? '—' : format(future,cat)}</td><td>${incomplete ? '—' : format(p.value,cat)}</td><td>${incomplete ? '—' : '#' + (1 + points.filter(q => q.value > p.value + 1e-9).length + (points.filter(q => Math.abs(q.value-p.value)<1e-9).length-1)/2)}</td></tr>`;}).join('');
+    $('investigation').innerHTML = `<h3>${cat}: compare the opportunity with the cost</h3><p>${incomplete ? 'Some required inputs are missing. Review observed values and source coverage before comparing move value.' : `Your conditional rank is #${rank(endpoint(teams[0]),cat)}. ${above ? `The next better team is ${safe(above.name)}. A seven-day move may help close the gap, but can give back points elsewhere.` : 'You lead this baseline. Inspect the buffer before giving away production.'}`}</p><button class="showcase-button" id="investigate">Investigate available players ↓</button>`;
+    $('investigate').onclick = () => {$('available').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block:'start'}); $('search').focus({preventScroll:true});};
+    $('daily-change').textContent = state.mode === 'preseason' ? 'No scored comparison exists yet.' : state.mode === 'gap' ? 'The latest interval includes two missed collection dates. Roster observations show a changed bench player; exact transaction time is unknown.' : 'Latest complete daily interval: +26 AST, +3 BLK and 8 credited starts. One bench-player observation changed. These sample changes do not establish a role trend.';
+  }
+  function renderTrend() {
+    if (state.mode === 'preseason') { $('trend').innerHTML = '<text x="205" y="60" text-anchor="middle">Trend starts after the first scored games.</text>'; $('trend-caption').textContent = 'No actual trend yet.'; return; }
+    const current = totalPoints(actual(teams[0]), state.horizon, true);
+    const series = [current-3, current-1, current-2, current-1.5, current-1, current];
+    const missed = state.gaps;
+    let svg = '<title>Earned roto points from Nov 6 through Nov 11</title>', segment = [];
+    series.forEach((n,i) => {const x = 30 + i*70, y = 85 - (n-current+4)*14; if(missed && (i===2||i===3)){if(segment.length) svg += `<path d="${segment.join(' ')}" stroke="var(--showcase-green)" stroke-width="2.5" fill="none"/>`;segment=[];return;} segment.push(`${segment.length?'L':'M'}${x},${y}`);svg += `<circle cx="${x}" cy="${y}" r="4" fill="var(--showcase-green)"><title>Nov ${i+6}: ${n} roto points</title></circle>`;});
+    if(segment.length) svg += `<path d="${segment.join(' ')}" stroke="var(--showcase-green)" stroke-width="2.5" fill="none"/>`;
+    svg += `<text x="30" y="112">Nov 6</text><text x="380" y="112" text-anchor="end">Nov 11 · ${format(current)} pts</text>`;
+    $('trend').innerHTML = svg;
+    $('trend-caption').textContent = missed ? 'Nov 8–9 missing · no connecting line across the gap.' : 'Earned standings only · six synthetic daily observations.';
+  }
+  function renderCandidates() {
+    const term = $('search').value.trim().toLowerCase(), position = $('position').value;
+    let rows = ['empty'].includes(state.mode) ? [] : pool.filter(p => (p.name+' '+p.pos).toLowerCase().includes(term) && (position === 'all' || p.group === position || (position === 'F' && p.pos.includes('SF'))));
+    rows = rows.map(p => ({p, result:comparison(p)})).sort((a,b) => value(b.result.withMove,state.category) - value(a.result.withMove,state.category));
+    $('candidate-scope').textContent = `Synthetic complete pool: 5 players · seven-day comparison against ${replacement().name} · focus: ${state.category}`;
+    $('candidate-stat-heading').textContent = `Net ${state.category}${state.category.includes('%') ? ' (pp)' : ''}`;
+    $('candidates').innerHTML = rows.map(({p,result}) => `<tr class="${p.id === state.candidate ? 'selected' : ''}"><td><strong>${p.name}</strong><small>${p.pos} · ${p.availability}</small></td><td>${p.days.filter(d=>d!=='-').length} / ${starts(p,state.lower)}</td><td>${state.mode === 'partial' ? '—' : signed(result.deltas.find(d=>d.cat===state.category).stat*(state.category.includes('%')?100:1),state.category.includes('%')?2:1)}</td><td class="${result.net<0?'negative':result.net>0?'positive':''}">${blocked() ? '—' : signed(result.net)}</td><td><button class="showcase-button table-button" data-compare="${p.id}">Compare<span class="sr-only"> ${p.name}</span></button></td></tr>`).join('');
+    $('candidate-empty').hidden = rows.length > 0;
+    if(state.mode === 'empty') $('candidate-empty').textContent = 'No usable available-player population returned. Retry refresh before exploring moves.';
+    else $('candidate-empty').textContent = 'No available players match these filters. Try another name or position.';
+    document.querySelectorAll('[data-compare]').forEach(button => button.onclick = () => {chooseCandidate(button.dataset.compare);options('add-player',pool,state.candidate);showView('move',true);});
+  }
+  function renderMove() {
+    const p=candidate(), drop=replacement(), result=comparison(), isBlocked=blocked();
+    $('move-summary').textContent = `Add ${p.name} (${starts(p,state.lower)} usable starts), drop ${drop.name} (${starts(drop)} starts removed). ${p.availability}.`;
+    $('blocked').hidden = !isBlocked;
+    $('blocked').textContent = state.busy ? 'Checking new evidence. Comparison is withheld until the complete refresh finishes.' : state.mode==='partial' ? 'Missing rival projection and earned shooting attempts: complete category ranks and net roto-point guidance are unavailable.' : state.mode==='empty' ? 'No verified available pool: this saved player cannot be treated as available.' : 'Saved comparison only. Recheck league access and availability before considering this move.';
+    $('move-rows').innerHTML = result.deltas.map(d => {const stat = d.stat*(d.cat.includes('%')?100:1);return `<tr><td><strong>${d.cat}</strong></td><td>${state.mode==='partial' && d.cat.includes('%') ? '—' : format(value(result.keep,d.cat),d.cat)}</td><td>${isBlocked ? '—' : format(value(result.withMove,d.cat),d.cat)}</td><td>${isBlocked?'—':signed(stat,d.cat.includes('%')?2:1)+(d.cat.includes('%')?' pp':'')}</td><td class="${d.points<0?'negative':d.points>0?'positive':''}">${isBlocked?'—':signed(d.points)}</td></tr>`;}).join('');
+    const gains=result.deltas.filter(d=>d.points>0).map(d=>`${d.cat} ${signed(d.points)}`), losses=result.deltas.filter(d=>d.points<0).map(d=>`${d.cat} ${signed(d.points)}`);
+    $('move-status').textContent = isBlocked ? 'Research only · inputs need review' : result.net>0 ? 'Worth investigating' : result.net<0 ? 'Keeping the roster leads this scenario' : 'No net point gain in this scenario';
+    $('decision-result').innerHTML = `<small>Net conditional roto-point change</small><strong>${isBlocked?'Unavailable':signed(result.net)+' '+(Math.abs(result.net)===1?'point':'points')}</strong><p>${isBlocked ? 'Supported saved evidence remains accessible. No complete move recommendation is supplied.' : `${gains.length?'Gains: '+gains.join(', ')+'. ':'No category points gained. '}${losses.length?'Losses: '+losses.join(', ')+'.':'No category points lost.'} ${state.lower?'Candidate misses one usable start in this scenario.':'Revisit the lower participation scenario before deciding.'}`}</p>`;
+    $('player-context').textContent = p.news+' '+p.recent;
+    const components = [['FG makes / attempts',`${format(result.added.fgm)} / ${format(result.added.fga)}`,`${format(result.removed.fgm)} / ${format(result.removed.fga)}`],['FT makes / attempts',`${format(result.added.ftm)} / ${format(result.added.fta)}`,`${format(result.removed.ftm)} / ${format(result.removed.fta)}`],...cats.filter(c=>!c.includes('%')).map(c=>[c,format(value(result.added,c)),format(value(result.removed,c))])];
+    $('contribution-rows').innerHTML=components.map(row=>`<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td></tr>`).join('');
+    $('starts-summary').textContent=`Added ${starts(p,state.lower)} · Removed ${starts(drop)} · Other roster starts unchanged`;
+    $('schedule-rows').innerHTML = [[p,daysFor(p,state.lower),'Add'],[drop,drop.days,'Drop']].map(([player,days,role])=>`<tr><td><strong>${player.name}</strong><small>${role} · ${player.pos}</small></td>${days.map(day=>`<td><span class="${day==='S'?'start':day==='B'?'bench':day==='L'?'locked':'off'}" aria-label="${day==='S'?'Usable start':day==='B'?'Bench; no active slot':day==='L'?'Before clearance':day==='M'?'Missed in lower scenario':'No game'}">${day==='S'?'✓':day==='-'?'−':day}</span></td>`).join('')}</tr>`).join('');
+    $('save-watch').disabled = state.busy;
+  }
+  function renderWatches() {
+    $('watch-count').textContent = watches.length;
+    $('watch-items').innerHTML = watches.length ? watches.map((w,i)=>`<article class="watch-item"><div class="row between"><strong>${w.name} → replace ${w.drop}</strong><button class="showcase-button table-button" data-revisit="${i}">Revisit comparison</button></div><small>Seven days · ${w.lower?'lower':'base'} participation · ${w.result} · ${blocked()?'Recheck current evidence':'Synthetic checkpoint Nov 12'}</small><p>${safe(w.reason || 'No reason added.')}</p></article>`).join('') : '<div class="empty">No players watched yet. Open a move comparison and save a reason to watch.</div>';
+    document.querySelectorAll('[data-revisit]').forEach(button=>button.onclick=()=>{const w=watches[Number(button.dataset.revisit)];state.candidate=w.id;state.drop=w.dropId;state.lower=w.lower;$('reason').value=w.reason;$('participation').value=w.lower?'lower':'base';syncSelectors();showView('move',true);});
+  }
+  function syncSelectors(){options('add-player',pool,state.candidate);options('drop-player',drops,state.drop);options('replacement-filter',drops,state.drop);}
+  function render(){renderHealth();renderOverview();renderMove();renderWatches();}
+  function chooseCandidate(id){noteDrafts.set(state.candidate,$('reason').value);state.candidate=id;$('reason').value=noteDrafts.get(id)||'';$('save-message').textContent='';}
+  function setMode(mode){clearTimeout(refreshTimer);state.busy=false;state.mode=mode;state.gaps=mode==='gap';state.refreshed=false;$('demo-state').value=mode;render();}
+  ['outlook','move','watch'].forEach((view,i)=>{
+    $(view+'-tab').onclick=()=>showView(view);
+    $(view+'-tab').onkeydown=event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?2:(i+(event.key==='ArrowRight'?1:2))%3;showView(['outlook','move','watch'][next],true);}};
+  });
+  $('horizon').onchange=()=>{state.horizon=$('horizon').value;render();};
+  $('search').oninput=renderCandidates;$('position').onchange=renderCandidates;
+  ['drop-player','replacement-filter'].forEach(id=>$(id).onchange=()=>{state.drop=$(id).value;syncSelectors();$('save-message').textContent='';render();});
+  $('add-player').onchange=()=>{chooseCandidate($('add-player').value);render();};
+  $('participation').onchange=()=>{state.lower=$('participation').value==='lower';$('save-message').textContent='';render();};
+  $('back-outlook').onclick=()=>showView('outlook',true);
+  $('demo-state').onchange=()=>setMode($('demo-state').value);
+  $('connection').onclick=()=>{const panel=$('connection-panel');panel.hidden=!panel.hidden;$('connection').setAttribute('aria-expanded',String(!panel.hidden));};
+  $('toggle-connection').onclick=()=>setMode(state.mode==='offline'?'ready':'offline');
+  $('refresh').onclick=()=>{state.busy=true;state.refreshed=false;render();refreshTimer=setTimeout(()=>{state.busy=false;state.mode='ready';state.refreshed=true;$('demo-state').value='ready';render();},1500);};
+  $('cancel-refresh').onclick=()=>{clearTimeout(refreshTimer);state.busy=false;render();$('notice').hidden=false;$('notice').textContent='Mock refresh cancelled. The previous saved observation and its dates are retained.';};
+  $('save-watch').onclick=()=>{const p=candidate(),r=comparison();watches.unshift({id:p.id,name:p.name,drop:replacement().name,dropId:state.drop,lower:state.lower,reason:$('reason').value,result:blocked()?'Incomplete / stale comparison':signed(r.net)+' conditional points'});$('save-message').textContent=`${p.name} saved to the mock watchlist. Your note is retained when switching views.`;renderWatches();};
+  $('reset').onclick=()=>{clearTimeout(refreshTimer);state={view:'outlook',category:'AST',horizon:'season',candidate:'vale',drop:'price',mode:'ready',lower:false,busy:false,refreshed:false,gaps:false};watches=[];noteDrafts.clear();$('reason').value='';$('search').value='';$('position').value='all';$('horizon').value='season';$('participation').value='base';$('demo-state').value='ready';$('save-message').textContent='';syncSelectors();showView('outlook');};
+  window.addEventListener('resize', renderLeague);
+  syncSelectors();render();
+</script>
+</body>
+</html>

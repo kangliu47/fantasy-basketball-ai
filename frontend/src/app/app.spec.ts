@@ -186,17 +186,36 @@ describe('League workspace', () => {
     button('Live season').click();
     await settle();
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
-      'Follow the season separately.',
+      'Where can your team gain ground?',
     );
     expect(fixture.nativeElement.querySelector('app-draft-workspace').hidden).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Live-season analysis is not ready yet');
+    http
+      .expectOne((request) => request.url === '/api/season')
+      .flush({
+        season: 2027,
+        league_id: 12345,
+        connection: 'disconnected',
+        operation: { kind: 'idle', status: 'idle', message: '' },
+        capture: null,
+        preferences: { revision: 0, team_id: null, automatic_daily: true },
+        standings: [],
+        trend: [],
+        missed_dates: [],
+        watches: [],
+        watch_revision: 0,
+        projection_captured_at: null,
+        signature: '',
+        forecast_message: '',
+      });
+    await settle();
+    expect(fixture.nativeElement.textContent).toContain('No saved live-season observation yet');
     expect(
       fixture.nativeElement.querySelector('nav[aria-label="Main workspaces"] [aria-current="page"]')
         .textContent,
     ).toContain('Live season');
     http.expectNone('/api/archive/managers');
     http.expectNone('/api/archive/catalog');
-    button('Return to auction prep').click();
+    button('Auction prep').click();
     await settle();
     expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
     expect(draft.targetForm.controls.note.value).toBe('Still comparing two draft targets');

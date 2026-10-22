@@ -272,4 +272,4 @@ def test_v6_migration_backs_up_and_preserves_existing_hashtag_evidence(tmp_path:
         assert db.execute("SELECT version FROM schema_version").fetchone() == (6,)
         assert db.execute("SELECT count(*) FROM projection_imports").fetchone() == (1,)
     with workspace.connection() as db:
-        assert db.execute("SELECT version FROM schema_version").fetchone() == (8,)
+        assert db.execute("SELECT version FROM schema_version").fetchone() == (9,)

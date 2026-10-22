@@ -1,5 +1,16 @@
 # Implementation plan
 
+## Live-season release security review — October 22, 2026, latest
+
+The user requested security review and merge of the delivered live-season,
+refresh-recovery and research updates. Reviewed local API/session boundaries,
+bounded provider reads, normalized output, transactional storage, text rendering
+and the public/private publication boundary. No security blockers found; removed
+private rule values from a delivery note and fixed provider type narrowing.
+Full Python and Angular suites, strict types, focused lint, production build,
+publication/privacy checks and source secret scan passed. See the
+[release security evidence](qa/2026-10-22-live-season-release-security.md).
+
 ## Retire project agent orchestration — October 22, 2026, latest
 
 Removed the repo-level Sol High model pin and active specialist agent catalog.
@@ -8,6 +19,60 @@ Reduced `AGENTS.md` to model-independent engineering and analytical guidance,
 archived the V5 role files, and adjusted publication checks to treat every
 `.codex/` file as private. See the [V5 retirement record](CODEX_AGENT_ORCHESTRATION_V5.md).
 This is a development-workflow change; no application behavior changes.
+
+## Early-season percentage research — October 22, 2026, latest
+
+Restored the existing dedicated ESPN session and saved a fresh current-season
+observation through the normal app. Analyzed normalized earned shooting counts,
+current league positions/exposure and dated roster-rate coverage. Private source
+exports, diagnostic and figures remain in ignored `.local/research/`.
+
+Added an offline research script and a
+[feature/method proposal](early-season-percentage-research.md). Separate sample
+size and banked outcomes from latent shooting ability and predictive outcomes.
+Player actuals/credited attribution and prior calibration are explicit next
+inputs; no production Bayesian score, interface or remote network change shipped.
+
+## Live-season refresh recovery — October 21, 2026, latest follow-up
+
+Reproduced and fixed indefinite pending refresh acknowledgements and a busy flag
+retained across navigation. Added a 30-second acknowledgement timeout, scoped
+cancellation/finalization, duplicate-submit guard and saved-status polling while
+waiting. Pending requests and server-confirmed collection now have distinct
+labels. No automatic refresh POST retry or remote exposure was introduced.
+The phone attachment is an image preview; the actual mobile route remains
+unverified. See [repair evidence](qa/2026-10-21-season-refresh-recovery.md).
+
+## First production live-season slice — October 21, 2026, latest
+
+The user approved the mock with cleaner help icons and waiver context. Integrated
+the Angular view and made Live season the entry. Added explicit current league
+reads, append-only daily observations, My team selection, current category gaps,
+available-player research, manual seven-day add/drop contributions and
+revision-checked watch reasons. Collection runs only while the local process is
+connected; source dates, missing inputs and gaps stay visible.
+
+Implemented [LIVE-SEASON-2026-10-21-v1](live-season-implementation-contract.md).
+The full PRD's future standings/usable-start model remains gated on verified
+inputs. Current real rules and available players require a connected 2027 read.
+See [delivery evidence](qa/2026-10-21-live-season-delivery.md). No ESPN
+transactions, Codex heartbeat or external hosting were added.
+
+## Live-season mock ready for review — October 20, 2026, latest follow-up
+
+The user requested a mock based on the confirmed PRD. Delivered
+[Live season preview](live-season-preview.html) with synthetic current league,
+projection and availability fixtures. The flow covers category-linked outlook,
+waiver research, seven-day add/drop comparison, base/lower participation,
+scheduled-versus-usable starts, watch notes and missing/stale/offline/refresh
+states. Uses the shared theme and existing three-workspace shell language.
+
+Verified the browser journey and responsive desktop/mobile layouts, input gates,
+filters, saved note behavior and refresh/cancellation. Fixed retained historical
+collection gaps and mobile chart readability during review. See the
+[bounded QA record](qa/2026-10-20-live-season-mock.md). Await UI/UX feedback and
+explicit flow approval before production frontend implementation; no production
+code or provider collection is delivered by this mock.
 
 ## Live-season decision support PRD — October 20, 2026, latest
 
