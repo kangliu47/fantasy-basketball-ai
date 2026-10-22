@@ -8,6 +8,39 @@ The [V5 experiment](CODEX_AGENT_ORCHESTRATION_V5.md) is historical; the current
 engineering and analytical safeguards live in `AGENTS.md`. This changes the
 development workflow, not the application's runtime architecture.
 
+## Percentage-stability research boundary — October 22, 2026, latest
+
+The [research proposal](early-season-percentage-research.md) consumes normalized
+saved season views offline; it adds no production model or interface. Team-earned
+components are available, while live DTOs do not retain player game-log shooting,
+credited-player attribution or a calibrated prior. Ability learning and fantasy
+scored contribution require distinct evidence grains. Future per-player FT
+posteriors and FG shot-mix models must pass predictive/sensitivity checks before
+feeding the existing comparison flow. Private real-data outputs stay in ignored
+`.local/research/`; shared teaching examples are explicitly synthetic.
+
+## Live-season observations and waiver research — October 21, 2026, latest
+
+The approved flow has a standalone Angular page, typed HTTP client, FastAPI
+adapter, application service, pure current-category calculations and a bounded
+ESPN/pool reader. HelpTip carries supporting methods. Production has no
+synthetic fallback. Saved-only GETs never read credentials; explicit refresh or
+the connected process's daily 09:00 New York schedule uses the memory session.
+
+Refresh acknowledgements have a 30-second client deadline and view-scoped
+cancellation/finalization. Pending local requests and confirmed server collection
+have distinct labels. Saved-status reads continue during delayed acknowledgements;
+no write is automatically retried. Leaving a view does not cancel an already
+started backend collection. See [recovery checks](qa/2026-10-21-season-refresh-recovery.md).
+
+Schema v9 adds append-only observations, preferences, watches and collection
+attempts under the existing workspace lock, backing up v8 before migration.
+Pool completeness needs a matched declared total and roster coverage; conflicts
+retain roster ownership. Source changes invalidate scenario signatures.
+Reviewed, dated saved Hashtag links supply rates. Manual starts support player
+contributions; future team ratios and league points remain withheld pending
+verified future inputs. See [contract](live-season-implementation-contract.md).
+
 ## Live-season planning boundary — October 20, 2026, latest
 
 The user confirms planning a daily season outlook and seven-day roster/waiver

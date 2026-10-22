@@ -10,6 +10,30 @@ is removed. Retire both active controls, preserve the experiment as history, and
 keep domain decision and verification rules independent of model choice. See the
 [retirement record](../CODEX_AGENT_ORCHESTRATION_V5.md).
 
+## A projection mean does not supply confidence — October 22, 2026, latest
+
+User request: research early-season percentage fluctuations and Bayesian concern
+using fresh league data. Assistant synthesis: preserve earned makes/attempts;
+learn individual ability from correctly scoped player actuals; weight a future
+team ratio by its future attempts. A dated point projection does not determine
+prior strength, and a full-roster equal-games reference is not the current shooter
+mix. Credible intervals for ability differ from predictive intervals for outcomes.
+Validate priors and coverage on held-out data before turning probabilities into
+Observe/Review/Compare labels. See the
+[source-backed research](../early-season-percentage-research.md) and
+[Stan pooling example](https://mc-stan.org/rstanarm/articles/pooling.html).
+
+## Missing inputs should change the claim — October 21, 2026, latest
+
+User decision: implement a clean season UI and league-context waiver research.
+Assistant synthesis: manual starts support conditional player contributions,
+but cannot establish pickup legality, a future team percentage or a gain in
+future league points. Keep methods behind accessible help while preserving
+unknowns and freshness. Source-linked rates, dropped production, waiver timing
+and FAAB address different parts of the decision. See
+[contract](../live-season-implementation-contract.md) and
+[delivery](../qa/2026-10-21-live-season-delivery.md).
+
 ## Earned fantasy stats and roster potential have different grains — October 20, 2026, latest
 
 User decision: after the draft, plan daily season outlook and seven-day roster

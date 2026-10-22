@@ -541,7 +541,7 @@ def test_v7_migration_preserves_manual_board_and_backs_up_before_adding_live_tab
         assert db.execute("SELECT count(*) FROM draft_board_revisions").fetchone() == (1,)
         assert "live_draft_sessions" not in {r[0] for r in db.execute("SHOW TABLES").fetchall()}
     with reopened.connection() as db:
-        assert db.execute("SELECT version FROM schema_version").fetchone() == (8,)
+        assert db.execute("SELECT version FROM schema_version").fetchone() == (9,)
         assert db.execute("SELECT count(*) FROM live_draft_sessions").fetchone() == (0,)
 
 

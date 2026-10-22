@@ -114,7 +114,7 @@ def test_v1_migration_creates_recoverable_backup_and_retains_old_tables(tmp_path
         assert db.execute("SELECT version FROM schema_version").fetchone() == (1,)
         assert db.execute("SELECT count(*) FROM league_snapshots").fetchone() == (1,)
     with repository.connection() as db:
-        assert db.execute("SELECT version FROM schema_version").fetchone() == (8,)
+        assert db.execute("SELECT version FROM schema_version").fetchone() == (9,)
     repository.list_snapshots(SELECTION, 20, 0)
     assert len(list((tmp_path / "backups").glob("*.duckdb"))) == 1
 

@@ -1,5 +1,26 @@
 # Personal product direction
 
+## Clean season decisions and waiver context — October 21, 2026, latest
+
+User decision: approve the live-season mock, move supporting explanation to help
+icons, implement it and consider pickups in the league's context. Live season
+now leads the app. Delivered daily actuals, current category/available-player
+research and saved manual add/drop contribution scenarios. Future scored
+outcomes still require verified schedule, lineup and participation inputs.
+Current private rules/pool verification requires an explicit connected read.
+See [contract](live-season-implementation-contract.md) and
+[delivery](qa/2026-10-21-live-season-delivery.md).
+
+## Live-season interactive mock — October 20, 2026, latest follow-up
+
+User request: start the mock from the confirmed live-season design. Delivered the
+[synthetic interactive preview](live-season-preview.html), reusing the existing
+workspace navigation and shared `fantasy-analytics-v1` theme. My outlook connects
+category investigation to available-player research and a seven-day add/drop
+comparison, with a local watch/reason and data-state review controls. The mock is
+ready for UI/UX feedback; production flow approval remains pending. See
+[verification](qa/2026-10-20-live-season-mock.md).
+
 ## Daily live-season decisions — October 20, 2026, latest
 
 User decision: the draft is complete; plan a league-connected daily season

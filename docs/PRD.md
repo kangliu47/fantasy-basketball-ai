@@ -1,5 +1,12 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
+> **October 21, 2026 · Approved live-season interface.** The user approves the
+> mock with supporting text behind accessible help icons and asks for
+> league-context waiver decisions. Amendment 78 and the
+> [implementation contract](live-season-implementation-contract.md) govern the
+> first production slice. Actual standings and manual contribution research are
+> supported; future league outcomes require additional verified evidence.
+
 > **October 20, 2026 · Current product planning priority: live-season decision support.**
 > The user reports the draft is complete and confirms a daily season outlook plus
 > a seven-day roster/waiver comparison, automatic collection while the local app
@@ -115,6 +122,40 @@
 > [personal-product direction](personal-product-direction.md).
 
 ## Amendment history — newest first
+
+## 79. Early-season sample-size and fluctuation research — requested 2026-10-22
+
+The user requests a fresh current-season read and research into managing early
+results, including Bayesian inference for deteriorating percentage categories.
+The [research proposal](early-season-percentage-research.md) separates earned
+counts, ability uncertainty, future outcomes and roster decision value. Keep
+private league diagnostics local. This request authorizes research; it does not
+approve production priors, concern thresholds, a new interface or remote access.
+The next bounded product proposal is explicit sample sizes and player attribution,
+then a calibrated FT model before more demanding FG shot-mix/roto forecasts.
+
+## 78. Clean live-season interface and waiver research — approved 2026-10-21
+
+The user approves the [live-season mock](live-season-preview.html), requests
+supporting text in hover help icons, and authorizes implementation focused on
+season decisions and waiver pickups in the actual league context. HelpTip
+supports hover, keyboard focus and click/tap. Keep dates, unknown constraints,
+errors and decision values visible. Live season becomes the production entry.
+
+The first production slice collects current scored standings, rosters and the
+returned available pool through explicit memory-only ESPN access. Preserve
+append-only observations, daily coverage and revision-checked watch reasons.
+Select the current My team explicitly; keep historical filters independent.
+Keep FAAB/waiver timing separate from auction prices. Unknown rules remain unknown.
+
+Use actual category positions and manual seven-day credited starts with reviewed,
+dated saved Hashtag rates. Report counting contributions and shooting
+makes/attempts. Schedule feasibility, future team percentages, season endpoints
+and future net roto points remain unavailable until verified future inputs and
+a lineup/participation policy support them. The full outlook objective remains
+in the [PRD](live-season-decision-support-prd.md). See
+[contract](live-season-implementation-contract.md) and
+[delivery](qa/2026-10-21-live-season-delivery.md).
 
 ## 77. Daily live-season decision support — planning scope confirmed 2026-10-20
 

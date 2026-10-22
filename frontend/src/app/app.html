@@ -90,9 +90,9 @@
         </nav>
       }
     }
-    <section class="intro" [class.compact-intro]="showingDraft()">
+    <section class="intro" [class.compact-intro]="showingDraft() || activeSection() === 'live'">
       <div>
-        @if (!showingDraft()) {
+        @if (!showingDraft() && activeSection() !== 'live') {
           <p class="eyebrow">{{ introduction().eyebrow }}</p>
         }
         <h1>
@@ -104,10 +104,10 @@
               : introduction().title
           }}
         </h1>
-        @if (state.league && !showingEvidence() && !showingDraft()) {
+        @if (state.league && !showingEvidence() && !showingDraft() && activeSection() !== 'live') {
           <p class="league-context">{{ state.league.name }}</p>
         }
-        @if (!showingDraft()) {
+        @if (!showingDraft() && activeSection() !== 'live') {
           <p class="intro-copy">{{ introduction().copy }}</p>
         }
       </div>
@@ -176,17 +176,14 @@
           }
         </div>
       }
-      @if (activeSection() === 'live') {
-        <section class="setup-card live-season-empty" aria-label="Live season availability">
-          <h2>Live-season analysis is not ready yet</h2>
-          <p>
-            Waiver, trade and remaining-season analysis will live here. Current work focuses on
-            auction preparation and the auction companion.
-          </p>
-          <button mat-stroked-button (click)="openWorkspace('draft')">
-            Return to auction prep
-          </button>
-        </section>
+      @defer (when activeSection() === 'live') {
+        <div [hidden]="activeSection() !== 'live'">
+          <app-season-page
+            [leagueId]="state.selection.league_id"
+            [active]="activeSection() === 'live'"
+            (connectRequested)="openConnection()"
+          />
+        </div>
       }
       @if (activeSection() === 'connection') {
         <section class="setup-grid">

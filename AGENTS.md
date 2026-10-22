@@ -24,7 +24,13 @@ semantic correctness. Keep focused chats and preserve durable decisions.
 
 ## Personal product scope
 
-- Current MVP: authenticate and refresh ESPN data, open on My manager profile,
+- Current priority, October 21, 2026: the draft is complete. The user approved
+  the live-season mock with accessible help icons and requested implementation
+  plus league-context waiver research. Live season leads; preserve existing
+  journeys. Follow `docs/live-season-implementation-contract.md` and PRD
+  amendment 78. Daily actuals/manual contributions do not establish future
+  standings without verified inputs. This supersedes the prior MVP ordering below.
+- Previous historical MVP: authenticate and refresh ESPN data, open on My manager profile,
   and treat other 2026 participants as competitor teams assumed to return in 2027.
   That participation assumption is provisional, separate from imported evidence.
   Focus on historical draft spending, repeated selections and category results.

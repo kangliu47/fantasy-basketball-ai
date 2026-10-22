@@ -10,6 +10,7 @@ import { DraftWorkspace } from './draft/draft-workspace';
 import { AuctionOpportunities } from './draft/auction-opportunities';
 import { DraftMode } from './draft/draft.models';
 import { BuildStatus } from './core/build-status';
+import { SeasonPage } from './season/season-page';
 
 type Section =
   'prepare' | 'auction' | 'evidence' | 'profile' | 'competitors' | 'league' | 'live' | 'connection';
@@ -26,16 +27,17 @@ type Workspace = 'draft' | 'live' | 'history';
     MyProfilePage,
     CompetitorTeamsPage,
     LeagueComparisonPage,
+    SeasonPage,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
-  readonly section = signal<Section>('auction');
+  readonly section = signal<Section>('live');
   readonly draftMode = signal<DraftMode>('auction');
   readonly historySection = signal<'profile' | 'competitors' | 'league'>('profile');
   readonly historyOpened = signal(false);
-  private readonly previousSection = signal<Exclude<Section, 'connection'>>('auction');
+  private readonly previousSection = signal<Exclude<Section, 'connection'>>('live');
   readonly activeSection = computed(() =>
     this.store.state()?.selection ? this.section() : 'connection',
   );
@@ -59,8 +61,8 @@ export class App implements OnInit {
     if (section === 'live')
       return {
         eyebrow: '2027 · LIVE SEASON',
-        title: 'Follow the season separately.',
-        copy: 'Keep in-season decisions separate from auction preparation and completed-season patterns.',
+        title: 'Where can your team gain ground?',
+        copy: 'Follow earned category results, investigate available players and compare a roster change.',
       };
     if (section === 'connection' && this.store.state()?.selection)
       return {
