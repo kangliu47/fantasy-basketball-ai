@@ -124,7 +124,12 @@
         {{ store.error() }} <button mat-button (click)="store.load()">Retry</button>
       </div>
     }
-    @if (state.operation.status !== 'idle') {
+    @if (
+      state.operation.status !== 'idle' &&
+      (activeSection() !== 'live' ||
+        state.operation.status === 'running' ||
+        state.operation.status === 'error')
+    ) {
       <div class="notice" role="status" aria-live="polite">
         @if (state.operation.status === 'running') {
           <mat-spinner diameter="20" />

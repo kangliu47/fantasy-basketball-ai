@@ -1,5 +1,13 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
+> **October 25, 2026 · Approved league-to-waiver workflow.** Amendment 86 and
+> the [reviewed contract](season-workflow-design.md) govern the current interface:
+> League landscape → shared scenario → ranked waiver/roster lists → independent
+> alternatives against one replacement. ESPN actuals lead; fit remains a research
+> index. Per-game differences lead comparison, with explicit manual seven-day
+> starts optional. Data & settings holds management controls. Security-reviewed PR delivery was
+> subsequently authorized on October 25.
+
 > **October 21, 2026 · Approved live-season interface.** The user approves the
 > mock with supporting text behind accessible help icons and asks for
 > league-context waiver decisions. Amendment 78 and the
@@ -122,6 +130,110 @@
 > [personal-product direction](personal-product-direction.md).
 
 ## Amendment history — newest first
+
+## 86. League landscape → scenario → waiver alternatives — implementation approved 2026-10-25
+
+Six UI annotations request a first-tab current league heatmap and category
+actions, a shared ranking focus, visual fit bars and selected-target stat
+comparisons, with settings/refresh moved out of the main journey. The user
+confirmed comparing multiple alternatives against the same replacement.
+The [workflow contract](season-workflow-design.md) and
+[synthetic preview](season-workflow-preview.html) propose visible top-level tabs
+and a transparent extra-category priority rule. The user reviewed the mock and
+said “This is good, go ahead and implement.” The approved flow now leads with
+League landscape, carries a shared scenario into both ranked lists, and compares
+independent alternatives against one replacement. Selected categories receive
+2× raw priority before normalization across all categories; losses remain.
+Default comparison is one played game each; manual seven-day totals require
+explicit starts. Watch context retains focus and units, with legacy defaults.
+See [delivery evidence](qa/2026-10-25-season-workflow-delivery.md).
+PR preparation was paused during flow review; the subsequent security-reviewed
+release is recorded in the implementation plan.
+
+## 85. ESPN-first whole-team fit — implementation approved 2026-10-24
+
+After reviewing the preview, the user requested “Go ahead and implement.” This
+approves the documented source-selection flow, source-consistent calculations,
+GP/minutes and actuals/projection comparison, plus preserved watch provenance.
+
+Following a projection-input audit, the user requests current real ESPN data in
+holistic fit and confirms Recent ESPN actuals first: selected 7/15/30-day samples,
+visible games/minutes, and a separate dated projection view. The league-need
+vector already uses saved ESPN standings; the proposed change replaces the
+player-rate vector in actuals mode for both waiver and roster research. Preserve
+list-first navigation and the optional same-basis rate-continuation scenario.
+The [decision contract](outlook-live-fit-design.md) and
+[synthetic preview](outlook-live-fit-preview.html) distinguish observed per-game
+fit from predictions. No hidden projection fallback, minutes double-counting,
+zero-game-as-zero-fit, automatic transaction or new probability model is approved.
+The method/flow review is recorded in the [mock evidence](qa/2026-10-24-espn-first-fit-mock.md).
+
+## 84. Shortlist-first Outlook — implementation approved 2026-10-24
+
+The user explicitly approved the [reviewed mock](outlook-shortlist-preview.html)
+with “Approve this flow and implement it.” Implement immediate per-game waiver
+and roster-fit rankings and a focused sequential player investigation view.
+Keep category research, optional explicit add/drop scenarios, dated ESPN context
+and revision-safe watch notes. The
+[approved decision contract](outlook-shortlist-design.md) fixes gross per-game fit
+as the discovery quantity and distinguishes it from net scenario fit and realized
+player contribution. Missing evidence is unranked; low fit is a review signal.
+No automatic drop, lineup feasibility claim, forecast points or ESPN write is added.
+
+## 83. Shortlist-first Outlook and roster review — context confirmed 2026-10-24
+
+The user reports working calculations but a clunky discovery flow: they want
+whole-team waiver candidates ranked for investigation and a separate ascending
+roster contribution review. They confirm immediate **per-game team fit** lists
+using dated projections and league priorities, with replacement/starts required
+only for an optional move comparison. Review the
+[synthetic mock](outlook-shortlist-preview.html) and
+[decision contract](outlook-shortlist-design.md) before implementing the materially
+changed flow. Preserve By category, explain contributions and losses in a focused
+player detail, support sequential investigation and keep missing inputs unranked.
+Low fit to current needs is not proof of a drop. This amendment confirms the
+research/flow proposal; production approval is pending.
+
+## 82. Overall waiver fit — approved implementation 2026-10-24
+
+After reviewing the [mock](waiver-recommendations-preview.html) and
+[method](waiver-recommendation-design.md), the user explicitly requests
+implementation. Add Overall fit beside By category in Outlook. Rank net
+add/drop projection vectors using current league gain/protection priorities,
+show every category's signed contribution, manual-start sensitivity and the
+keep-roster zero benchmark. Preserve dated recent performance/news as supporting
+research and save/revisit the full fit context with watch-note revisions.
+The approved release is a transparent heuristic index. Unknown categories and
+scales withhold complete fit; partial pool coverage cannot establish optimality.
+Expected roto points, verified participation/lineup feasibility and the mock's
+complete synthetic forecast do not become production claims. The decision
+contract in the method document fixes populations, units, ties and coefficients.
+
+## 81. Overall waiver recommendation design — scope confirmed 2026-10-24
+
+The user requests a league-relative category priority vector matched to player
+contributions to improve overall roto points. They confirm season priorities
+with next-seven-day pickup decisions. Deliver a [method proposal](waiver-recommendation-design.md)
+and [synthetic interactive mock](waiver-recommendations-preview.html), with no
+production changes. Screen signed net add/drop vectors in comparable units,
+include gains and defense of existing points, and distinguish a heuristic fit
+index from exact conditional point changes and calibrated expected point gains.
+The mock includes replacement/participation sensitivity, all-category losses,
+keep-roster and missing-evidence outcomes. Flow and methodology review precede
+any production recommendation model or interface implementation.
+
+## 80. Category-focused waiver research — approved 2026-10-23
+
+The user requests category standing colors, available players ranked by selected
+category, recent ESPN trends and player news, plus refresh/comparison diagnosis.
+They confirm recent performance first over 7/15/30 days, with saved projections
+as a separate option. Keep Compare a move secondary to category → targets →
+player research → watch. The [interactive synthetic mock](live-season-waiver-preview.html)
+uses the shared product theme. The user approved its flow and volume-aware
+shooting ranking with “looks good, go ahead and implement.” The [proposal](live-season-waiver-research-contract.md)
+records evidence, missing-data boundaries and the frontend approval gate.
+This authorizes the bounded recent-stat/news/watch implementation. No future
+standings forecast, lineup legality claim or ESPN transaction is added.
 
 ## 79. Early-season sample-size and fluctuation research — requested 2026-10-22
 

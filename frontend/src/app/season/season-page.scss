@@ -203,60 +203,6 @@ button:focus-visible {
   letter-spacing: -0.025em;
   margin: 0 0 4px;
 }
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 9px;
-}
-.category-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0;
-  min-width: 0;
-  position: relative;
-}
-.category-item app-help-tip {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-}
-.category-card {
-  text-align: left;
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-  border: 1px solid var(--showcase-line, #dfe7df);
-  background: var(--showcase-surface, #fff);
-  color: var(--showcase-ink, #263b32);
-  border-radius: 9px;
-  padding: 10px 12px;
-  cursor: pointer;
-}
-.category-card {
-  width: 100%;
-  min-height: 86px;
-  padding-right: 36px;
-}
-.category-card.selected {
-  border: 2px solid var(--showcase-blue, #3d6eae);
-  padding: 9px 11px;
-  background: var(--showcase-blue-soft, #edf3fb);
-}
-.category-card.selected {
-  padding-right: 35px;
-}
-.category-card > span {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-.category-card strong {
-  color: var(--showcase-heading, #183c30);
-  font-size: 21px;
-  letter-spacing: -0.03em;
-}
-.category-card small,
 .muted {
   color: var(--showcase-muted, #6c7d72);
   font-size: 10px;
@@ -547,4 +493,59 @@ textarea {
   .watch-item {
     flex-direction: column;
   }
+}
+.candidate-scroll {
+  max-height: 540px;
+  overflow: auto;
+}
+.selected-player {
+  background: var(--showcase-blue-soft);
+}
+.positive {
+  color: var(--showcase-green);
+}
+.negative {
+  color: var(--showcase-red);
+}
+.research-inspector {
+  margin-top: 16px;
+}
+.research-inspector .actions {
+  margin-top: 12px;
+}
+
+.workflow-tabs {
+  margin: 0 0 16px;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.workflow-tabs small {
+  margin-left: 5px;
+}
+.evidence-line,
+.scenario-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 18px;
+  color: var(--showcase-muted);
+  font-size: 12px;
+}
+.scenario-summary {
+  border: 1px solid var(--showcase-line);
+  background: var(--showcase-surface);
+  padding: 14px 18px;
+  border-radius: 12px;
+}
+.scenario-summary strong {
+  color: var(--showcase-ink);
+}
+.scenario-summary small {
+  display: block;
+  margin-top: 5px;
+}
+app-season-landscape .analysis-grid {
+  grid-template-columns: minmax(0, 1fr);
 }

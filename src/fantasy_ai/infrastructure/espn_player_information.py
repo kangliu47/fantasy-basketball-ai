@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 from fantasy_ai.application.models import WorkspaceError
 from fantasy_ai.domain.projections.player_information import (
+    ESPNPlayerIdentity,
     PlayerInformation,
     PlayerMetadata,
     PlayerNewsItem,
@@ -72,7 +73,7 @@ def obj(value: object) -> dict[str, Any]:
 
 
 def parse_metadata(
-    payload: dict[str, Any], link: ReviewedPlayerLink, now: datetime
+    payload: dict[str, Any], link: ReviewedPlayerLink | ESPNPlayerIdentity, now: datetime
 ) -> PlayerMetadata:
     athlete = obj(payload.get("athlete"))
     if str(athlete.get("id")) != link.espn_id:
@@ -194,7 +195,9 @@ class ESPNPlayerInformationReader:
             transport=self.transport,
         )
 
-    def _metadata(self, client: httpx.Client, link: ReviewedPlayerLink) -> PlayerMetadata:
+    def _metadata(
+        self, client: httpx.Client, link: ReviewedPlayerLink | ESPNPlayerIdentity
+    ) -> PlayerMetadata:
         if not re.fullmatch(r"\d{1,10}", link.espn_id):
             raise WorkspaceError("Use a valid reviewed ESPN player reference.")
         payload = self._read(client, f"{BASE}/{link.espn_id}")
@@ -204,7 +207,7 @@ class ESPNPlayerInformationReader:
         with self._client() as client:
             return self._metadata(client, link)
 
-    def read(self, link: ReviewedPlayerLink) -> PlayerInformation:
+    def read(self, link: ReviewedPlayerLink | ESPNPlayerIdentity) -> PlayerInformation:
         with self._client() as client:
             metadata = self._metadata(client, link)
             try:

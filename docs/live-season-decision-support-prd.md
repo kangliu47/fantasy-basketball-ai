@@ -6,7 +6,24 @@
 
 **Product:** Personal, local, read-only ESPN league intelligence for the 2026–27 NBA season (ESPN season 2027).
 
-**Scope:** Daily team outlook → category investigation → seven-day roster/waiver comparison.
+**Current scope (approved October 25):** League landscape and category actions →
+shared scenario → ranked waiver/roster research → independent alternatives against
+one replacement. Per-game differences lead; optional seven-day totals require
+explicit credited starts. Watchlist retains reasons and provenance; Data & settings
+holds management controls. See [the approved workflow](season-workflow-design.md)
+and [delivery](qa/2026-10-25-season-workflow-delivery.md). Earlier scopes below remain history.
+
+**October 24 source approval:** Recent ESPN actuals in the selected 7/15/30-day
+sample drive both lists and net comparisons, with projections explicitly separate.
+Zero-GP/incomplete samples stay unranked. [Source contract](outlook-live-fit-design.md).
+
+**October 23 flow and implementation approval:** Recent ESPN performance leads waiver
+research, with 7/15/30-day windows and saved projections as a separate option.
+The [new synthetic mock](live-season-waiver-preview.html) proposes category rank
+colors → category-sorted targets → player trends/news → watch notes, keeping
+manual comparison secondary. See the [bounded proposal](live-season-waiver-research-contract.md).
+The user approved the revised mock and requested implementation. Recent-stat
+ranking remains descriptive; future standings and legal-start forecasts remain gated.
 
 **October 21 approval and implementation:** The user approves the mock, asks for
 cleaner supporting help, and authorizes implementation plus league-context waiver

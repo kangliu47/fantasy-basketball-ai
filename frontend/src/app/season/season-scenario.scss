@@ -1,0 +1,122 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+aside {
+  padding: 18px;
+  border: 1px solid var(--showcase-line);
+  border-radius: 10px;
+  background: var(--showcase-surface);
+}
+h3 {
+  font-size: 16px;
+  color: var(--showcase-heading);
+  margin: 8px 0;
+}
+p,
+small {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--showcase-muted);
+}
+.eyebrow {
+  color: var(--showcase-green-strong);
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+fieldset {
+  border: 0;
+  margin: 16px 0;
+  padding: 0;
+}
+legend {
+  font-size: 12px;
+  font-weight: 650;
+}
+.approaches,
+.chips,
+.source-controls {
+  display: grid;
+  gap: 6px;
+}
+.approaches {
+  grid-template-columns: repeat(3, 1fr);
+}
+.chips {
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 7px;
+}
+.approaches button,
+.chips button {
+  border: 1px solid var(--showcase-control-line);
+  border-radius: 6px;
+  background: var(--showcase-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  padding: 9px 4px;
+  cursor: pointer;
+}
+.approaches button[aria-pressed='true'],
+.chips button[aria-pressed='true'] {
+  background: var(--showcase-green-soft);
+  border-color: var(--showcase-green);
+  color: var(--showcase-green-strong);
+  font-weight: 700;
+}
+.text-button {
+  border: 0;
+  background: transparent;
+  color: var(--showcase-green-strong);
+  padding: 9px 0;
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.source-controls {
+  grid-template-columns: 1fr 1fr;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 11px;
+  min-width: 0;
+}
+select {
+  width: 100%;
+  min-width: 0;
+  background: var(--showcase-surface);
+  color: inherit;
+  border: 1px solid var(--showcase-control-line);
+  padding: 8px;
+  border-radius: 6px;
+  font: inherit;
+}
+select:disabled {
+  opacity: 0.55;
+}
+.priority-shares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+.priority-shares span {
+  background: var(--showcase-surface-soft);
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.notice {
+  padding: 9px;
+  background: var(--showcase-surface-soft);
+}
+button[mat-flat-button] {
+  width: 100%;
+  margin: 8px 0;
+}
+aside > small:last-child {
+  display: block;
+  margin-top: 8px;
+}

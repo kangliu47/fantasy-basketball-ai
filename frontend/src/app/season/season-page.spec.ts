@@ -1,8 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SeasonNewsStore } from './season-news-store';
 import { SeasonPage } from './season-page';
-import { SeasonView } from './season.models';
+import { FitBasis, FitStrategy, SeasonPlayerFits, SeasonView } from './season.models';
 
 const emptyView: SeasonView = {
   season: 2027,
@@ -121,16 +122,42 @@ describe('SeasonPage', () => {
 
   afterEach(() => {
     fixture.destroy();
-    http.verify();
+    http.verify({ ignoreCancelled: true });
   });
 
-  async function load(view: SeasonView) {
+  async function load(view: SeasonView, overall = false) {
+    fixture.componentInstance.tab.set(overall ? 'outlook' : 'landscape');
+    fixture.componentInstance.researchMode.set(overall ? 'overall' : 'category');
     fixture.detectChanges();
     http
       .expectOne(
         (request) => request.url === '/api/season' && request.params.get('league_id') === '123',
       )
       .flush(view);
+    fixture.detectChanges();
+    for (const request of http.match((r) => r.url === '/api/season/research')) {
+      if (request.cancelled) continue;
+      request.flush({
+        signature: view.signature,
+        category: request.request.params.get('category'),
+        basis: 'recent',
+        days: 7,
+        start: null,
+        end: null,
+        captured_at: null,
+        message: 'Missing recent evidence',
+        players: [],
+      });
+    }
+    await fixture.whenStable();
+    fixture.detectChanges();
+    if (view.capture && view.preferences.team_id) {
+      http
+        .match((r) => r.url === '/api/season/player-fits')
+        .forEach((r) => {
+          if (!r.cancelled) r.flush(overviewResponse(view));
+        });
+    }
     await fixture.whenStable();
     fixture.detectChanges();
   }
@@ -144,23 +171,34 @@ describe('SeasonPage', () => {
     expect(fixture.nativeElement.querySelectorAll('table')).toHaveLength(0);
   });
 
-  it('renders accessible supporting help controls and warns about partial pool coverage', async () => {
-    await load(populatedView);
+  it('leads with the landscape and keeps team and refresh settings out of the main journey', async () => {
+    await load({
+      ...populatedView,
+      league_positions: [
+        { team_id: 'team-1', rank: 1, points: 16, categories: populatedView.standings },
+        {
+          team_id: 'team-2',
+          rank: 2,
+          points: 8,
+          categories: populatedView.standings.map((r) => ({ ...r, rank: 2, points: 1 })),
+        },
+      ],
+    });
     const root = fixture.nativeElement as HTMLElement;
-    const labels = Array.from(root.querySelectorAll('app-help-tip button')).map((button) =>
-      button.getAttribute('aria-label'),
-    );
-    expect(labels).toContain('Current category outlook method');
-    expect(labels).toContain('FG% category details');
-    expect(fixture.nativeElement.textContent).toContain('Pool coverage: partial or undeclared');
-    expect(fixture.nativeElement.textContent).toContain('FAAB');
-    expect(fixture.nativeElement.textContent).toContain('My remaining budget');
-    expect(fixture.nativeElement.textContent).toContain('Unknown · legality unverified');
-    const categoryButton = root.querySelector('button.category-card');
-    const categoryHelp = root.querySelector(
-      'app-help-tip button[aria-label="FG% category details"]',
-    );
-    expect(categoryButton?.contains(categoryHelp)).toBe(false);
+    expect(
+      root
+        .querySelector('[aria-label="Current league category heatmap"] tbody')
+        ?.querySelectorAll('tr'),
+    ).toHaveLength(2);
+    expect(root.textContent).toContain('Your category playbook');
+    expect(root.querySelector('.workflow-tabs')?.textContent).toContain('League landscape');
+    expect(root.querySelector('.controls-card')).toBeNull();
+    expect(root.querySelector('app-season-scenario')).not.toBeNull();
+    fixture.componentInstance.openTab('settings');
+    fixture.detectChanges();
+    expect(root.querySelector('.controls-card')).not.toBeNull();
+    expect(root.textContent).toContain('FAAB');
+    expect(root.textContent).toContain('Pool coverage: ESPN');
   });
 
   it('clears the previous league snapshot immediately when the league input changes', async () => {
@@ -196,6 +234,8 @@ describe('SeasonPage', () => {
         message: 'Current-season observation saved.',
       },
     });
+    page.openTab('settings');
+    fixture.detectChanges();
     const button = fixture.nativeElement.querySelector('.actions button') as HTMLButtonElement;
     expect(button.textContent).toContain('Refresh data');
     expect(button.disabled).toBe(false);
@@ -232,55 +272,47 @@ describe('SeasonPage', () => {
     }
   });
 
-  it('sends the current signature and manual start inputs, then retains a reason after save failure', async () => {
-    await load(populatedView);
-    const root = fixture.nativeElement as HTMLElement;
-    const compareTab = Array.from(root.querySelectorAll('.tabs button')).find((button) =>
-      button.textContent?.includes('Compare a move'),
-    ) as HTMLButtonElement;
-    compareTab.click();
-    fixture.detectChanges();
-    const comparison = http.expectOne((request) => request.url === '/api/season/comparison');
-    expect(comparison.request.params.get('season')).toBe('2027');
-    expect(comparison.request.params.get('signature')).toBe('source-signature-1');
-    expect(comparison.request.params.get('player_id')).toBe('free-1');
-    expect(comparison.request.params.get('drop_id')).toBe('own-1');
-    expect(comparison.request.params.get('added_starts')).toBe('0');
-    expect(comparison.request.params.get('removed_starts')).toBe('0');
-    comparison.flush({
-      signature: 'source-signature-1',
-      added: { FGM: 15, FGA: 30, FTM: 8, FTA: 10 },
-      removed: { FGM: 12, FGA: 24, FTM: 7, FTA: 10 },
-      delta: { FGM: 3, FGA: 6, FTM: 1, FTA: 0 },
-      messages: [],
-      forecast_points: null,
-    });
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('.table-scroll table tbody tr')).toHaveLength(8);
-    const comparisonRows = fixture.nativeElement.querySelectorAll('.table-scroll table tbody tr');
-    expect(comparisonRows[0].textContent).toContain('15 / 30');
-    expect(comparisonRows[0].textContent).toContain('12 / 24');
-    expect(comparisonRows[0].textContent).toContain('3 / 6');
-
-    const textarea: HTMLTextAreaElement = fixture.nativeElement.querySelector('textarea');
-    textarea.value = 'Recheck if the role holds.';
-    textarea.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-    const saveButton = Array.from(root.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Save reason'),
-    ) as HTMLButtonElement;
-    saveButton.click();
-    const save = http.expectOne((request) => request.url === '/api/season/watches');
-    expect(save.request.method).toBe('POST');
-    expect(save.request.headers.get('X-Fantasy-Client')).toBe('local-ui');
-    expect(save.request.body.reason).toBe('Recheck if the role holds.');
-    expect(save.request.body.signature).toBe('source-signature-1');
-    save.flush({ message: 'Save unavailable.' }, { status: 500, statusText: 'Server Error' });
-    fixture.detectChanges();
-    expect((fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement).value).toBe(
-      'Recheck if the role holds.',
+  it('compares multiple independent alternatives with one replacement and retains the source signature', async () => {
+    const extra = { ...populatedView.capture!.players[1], id: 'free-2', name: 'Second Target' };
+    await load(
+      {
+        ...populatedView,
+        capture: { ...populatedView.capture!, players: [...populatedView.capture!.players, extra] },
+      },
+      true,
     );
-    expect(fixture.nativeElement.textContent).toContain('Save unavailable.');
+    const page = fixture.componentInstance,
+      panel = page.recommendationPanel()!;
+    page.toggleCandidate('free-1');
+    page.openTab('compare');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    http.expectNone((r) => r.url === '/api/season/recommendations');
+    page.chooseDrop('own-1');
+    fixture.detectChanges();
+    const request = http.expectOne((r) => r.url === '/api/season/recommendations');
+    expect(request.request.params.get('signature')).toBe(populatedView.signature);
+    expect(request.request.params.get('horizon')).toBe('per_game');
+    expect(request.request.params.get('added_starts')).toBe('1');
+    const result = fitResponse();
+    result.fit.horizon = 'per_game';
+    result.fit.added_starts = 1;
+    result.fit.removed_starts = 1;
+    result.fit.players.push({ ...result.fit.players[0], player_id: 'free-2', score: -0.1 });
+    request.flush(result);
+    fixture.detectChanges();
+    page.toggleCandidate('free-2');
+    fixture.detectChanges();
+    http.expectNone((r) => r.url === '/api/season/recommendations');
+    expect(fixture.nativeElement.querySelectorAll('.comparison-cards article')).toHaveLength(2);
+    expect(
+      fixture.nativeElement.querySelectorAll(
+        '[aria-label="Alternative stat differences"] tbody tr',
+      ),
+    ).toHaveLength(8);
+    expect(fixture.nativeElement.textContent).toContain('-0.1');
+    expect(fixture.nativeElement.textContent).toContain('+2 / +4');
+    expect(panel.currentResult()?.fit.drop_id).toBe('own-1');
   });
 
   it('uses percentage units and breaks the daily trend across missing dates', async () => {
@@ -297,9 +329,616 @@ describe('SeasonPage', () => {
       missed_dates: ['2026-10-20'],
     });
     const page = fixture.componentInstance;
-    expect(fixture.nativeElement.querySelector('.category-card').textContent).toContain('50%');
+    expect(page.format(0.5, populatedView.capture!.categories[0])).toBe('50%');
     expect(page.formatGap(0.001, populatedView.capture!.categories[0])).toBe('0.10 pp');
     expect((page.trendPath().match(/M/g) ?? []).length).toBe(2);
     expect(fixture.nativeElement.textContent).toContain('1 collection dates missing');
+  });
+  it('links category/window controls to dated rankings and cancels the previous context', async () => {
+    await load(populatedView);
+    const page = fixture.componentInstance;
+    page.selectedCategory.set('PTS');
+    fixture.detectChanges();
+    const old = http.expectOne(
+      (r) => r.url === '/api/season/research' && r.params.get('category') === 'PTS',
+    );
+    page.windowDays.set(15);
+    fixture.detectChanges();
+    expect(old.cancelled).toBe(true);
+    const current = http.expectOne(
+      (r) => r.url === '/api/season/research' && r.params.get('days') === '15',
+    );
+    expect(current.request.params.get('days')).toBe('15');
+    expect(current.request.params.get('category')).toBe('PTS');
+    current.flush({
+      signature: populatedView.signature,
+      category: 'PTS',
+      basis: 'recent',
+      days: 15,
+      start: '2026-10-29',
+      end: '2026-11-12',
+      captured_at: '2026-11-12T14:00:00Z',
+      message: 'Official games',
+      players: [
+        {
+          player_id: 'free-1',
+          rank: 1,
+          score: 7,
+          per_game: { PTS: 7 },
+          games: 3,
+          minutes: 20,
+          previous_games: 2,
+          trend: 1,
+          game_values: [['2026-11-11', 7]],
+        },
+      ],
+    });
+    fixture.detectChanges();
+    expect(page.researchValue('free-1')).toBe('7');
+    expect(page.researchRows().get('free-1')?.games).toBe(3);
+    expect(fixture.nativeElement.textContent).toContain('2026-10-29');
+    expect(page.categoryBand({ ...populatedView.standings[0], rank: 1 })).toBe('high');
+    expect(page.categoryBand({ ...populatedView.standings[0], rank: 2 })).toBe('low');
+    expect(page.categoryBand({ ...populatedView.standings[0], reconciled: false })).toBe('unknown');
+  });
+
+  it('saves a player-only watch without choosing a drop or assumed starts', async () => {
+    await load(populatedView);
+    const page = fixture.componentInstance;
+    page.reason.set('Watch the role.');
+    page.saveWatch(true);
+    http.expectNone((r) => r.url === '/api/season/comparison');
+    const save = http.expectOne((r) => r.url === '/api/season/watches');
+    expect(save.request.body).toMatchObject({
+      drop_id: null,
+      added_starts: 0,
+      removed_starts: 0,
+      basis: 'recent',
+      window_days: 7,
+      reason: 'Watch the role.',
+    });
+    save.flush(populatedView);
+    expect(page.watchSaveMessage()).toContain('Saved Available Player');
+  });
+  it('does not infer manual starts or a replacement from a player-only note', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance;
+    page.revisit('free-1', null, 'Watch it.', 0, 0);
+    page.openTab('compare');
+    page.toggleCandidate('free-1');
+    page.comparisonHorizon.set('seven_day');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.addedStarts()).toBeNull();
+    expect(page.removedStarts()).toBeNull();
+    expect(page.selectedDrop()).toBe('');
+    page.chooseDrop('own-1');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Set both credited-start assumptions');
+    http.expectNone((r) => r.url === '/api/season/recommendations');
+  });
+  function evidenceResponse(basis: FitBasis = 'recent', days = 7) {
+    return {
+      version: 'synthetic-evidence-v1',
+      basis,
+      days,
+      source_captured_at: '2026-11-12T09:00:00Z',
+      recent_captured_at: '2026-11-12T09:00:00Z',
+      actual_start: '2026-11-06',
+      actual_end: '2026-11-12',
+      message: 'Synthetic observed sample; not a forecast.',
+      players: populatedView.capture!.players.map((p) => ({
+        player_id: p.id,
+        games: 2,
+        minutes: 22.5,
+        actual_per_game: { PTS: 8, REB: 4, AST: 1 },
+      })),
+    };
+  }
+
+  function fitResponse(strategy: FitStrategy = 'balanced') {
+    return {
+      evidence: evidenceResponse(),
+      signature: populatedView.signature,
+      captured_at: '2026-11-12T09:00:00Z',
+      projection_captured_at: '2026-11-11T09:00:00Z',
+      pool_complete: false,
+      messages: [],
+      fit: {
+        version: 'synthetic-fit',
+        focus_categories: [] as string[],
+        horizon: 'seven_day',
+        removed: { FGM: 12, FGA: 24, FTM: 7, FTA: 10 },
+        strategy,
+        drop_id: 'own-1',
+        added_starts: 3,
+        removed_starts: 3,
+        lower_starts: 2,
+        higher_starts: 4,
+        keep_score: 0,
+        forecast_points: null,
+        priorities: populatedView.capture!.categories.map((c) => ({
+          category: c.code,
+          rank: 2,
+          gap_up: 2,
+          buffer_down: 1,
+          scale: 10,
+          reference_attempts: c.numerator ? 100 : null,
+          weight: 0.125,
+          tied_opponents: 0,
+          message: null,
+        })),
+        players: [
+          {
+            player_id: 'free-1',
+            rank: 1,
+            score: 0.125,
+            lower: -0.1,
+            higher: 0.3,
+            messages: [],
+            added: { FGM: 14, FGA: 28, FTM: 8, FTA: 12 },
+            coordinates: populatedView.capture!.categories.map((c) => ({
+              category: c.code,
+              delta: c.numerator ? null : 1,
+              delta_makes: c.numerator ? 2 : null,
+              delta_attempts: c.numerator ? 4 : null,
+              normalized: 0.125,
+              weighted: 0.015625,
+            })),
+          },
+        ],
+      },
+    };
+  }
+
+  function overviewResponse(
+    view = populatedView,
+    strategy: FitStrategy = 'balanced',
+    basis: FitBasis = 'recent',
+    days = 7,
+  ): SeasonPlayerFits {
+    const row = fitResponse().fit.players[0];
+    const ownIds = new Set(
+      view.capture!.teams.find((t) => t.id === view.preferences.team_id)!.roster,
+    );
+    return {
+      evidence: evidenceResponse(basis, days),
+      signature: view.signature,
+      captured_at: '2026-11-12T09:00:00Z',
+      projection_captured_at: '2026-11-11T09:00:00Z',
+      pool_captured_at: '2026-11-12T09:00:00Z',
+      pool_complete: false,
+      overview: {
+        version: 'synthetic-player-fit',
+        focus_categories: [] as string[],
+        strategy,
+        priorities: fitResponse().fit.priorities,
+        available: view
+          .capture!.players.filter((p) => p.team_id === null)
+          .map((p, i) => ({ ...row, player_id: p.id, rank: i + 1, score: 0.125 / (i + 1) })),
+        roster: view
+          .capture!.players.filter((p) => ownIds.has(p.id))
+          .map((p, i) => ({
+            ...row,
+            player_id: p.id,
+            rank: p.per_game ? i + 1 : null,
+            score: p.per_game ? 0.05 : null,
+          })),
+      },
+    };
+  }
+
+  function flushSupportingResearch() {
+    http
+      .match((r) => r.url === '/api/season/research')
+      .forEach((r) => {
+        if (!r.cancelled)
+          r.flush({
+            signature: populatedView.signature,
+            players: [],
+            basis: 'recent',
+            days: Number(r.request.params.get('days')),
+            category: r.request.params.get('category'),
+            start: null,
+            end: null,
+            captured_at: null,
+            message: 'Synthetic supporting context',
+          });
+      });
+  }
+
+  it('opens directly on both rankings, then investigates sequentially without losing a draft', async () => {
+    const newsInspection = vi.spyOn(TestBed.inject(SeasonNewsStore), 'inspect');
+    const second = { ...populatedView.capture!.players[1], id: 'free-2', name: 'Second Target' };
+    const view = {
+      ...populatedView,
+      capture: { ...populatedView.capture!, players: [...populatedView.capture!.players, second] },
+    };
+    await load(view, true);
+    const page = fixture.componentInstance,
+      panel = page.recommendationPanel()!;
+    expect(page.researchMode()).toBe('overall');
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Ranked waiver targets"]'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Ranked roster review"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('textarea')).toBeNull();
+    expect(newsInspection).not.toHaveBeenCalled();
+    http.expectNone((r) => r.url === '/api/season/recommendations');
+    panel.inspect('free-1', 'available');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(fixture.nativeElement.querySelector('dialog')).not.toBeNull();
+    expect(newsInspection).toHaveBeenCalledWith(123, 'free-1');
+    expect(fixture.nativeElement.querySelector('dialog')).not.toBeNull();
+    page.reason.set('Check role before pickup');
+    fixture.detectChanges();
+    panel.step(1);
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.selectedPlayer()).toBe('free-2');
+    panel.step(-1);
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.reason()).toBe('Check role before pickup');
+    panel.back();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('textarea')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Waiver targets');
+    panel.categoryChosen.emit('AST');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.researchMode()).toBe('category');
+    expect(page.reason()).toBe('Check role before pickup');
+  });
+
+  it('preserves seven-day native losses, starts, source and watch context after a failed save', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance,
+      panel = page.recommendationPanel()!;
+    page.comparisonHorizon.set('seven_day');
+    page.addedStarts.set(3);
+    page.removedStarts.set(3);
+    panel.inspect('free-1', 'available');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    panel.compareSelected();
+    fixture.detectChanges();
+    flushSupportingResearch();
+    http.expectNone((r) => r.url === '/api/season/recommendations');
+    page.chooseDrop('own-1');
+    fixture.detectChanges();
+    http.expectOne((r) => r.url === '/api/season/recommendations').flush(fitResponse());
+    fixture.detectChanges();
+    expect(page.fitReady()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('2 →');
+    page.reason.set('Keep native tradeoffs');
+    page.saveWatch();
+    const save = http.expectOne((r) => r.url === '/api/season/watches');
+    expect(save.request.body).toMatchObject({
+      drop_id: 'own-1',
+      fit_context: 'move',
+      fit_strategy: 'balanced',
+      fit_horizon: 'seven_day',
+      focus_categories: [],
+      added_starts: 3,
+      removed_starts: 3,
+      basis: 'recent',
+      window_days: 7,
+    });
+    save.flush({ detail: 'Synthetic save failure' }, { status: 500, statusText: 'Failure' });
+    fixture.detectChanges();
+    expect(page.reason()).toBe('Keep native tradeoffs');
+  });
+
+  it('cancels stale discovery reads and clears rankings on failure while retaining the reason', async () => {
+    await load(populatedView);
+    const page = fixture.componentInstance;
+    page.reason.set('Retain this draft');
+    page.openOverall();
+    page.focusCategories.set(['AST']);
+    fixture.detectChanges();
+    const old = http.expectOne((r) => r.url === '/api/season/player-fits');
+    page.fitStrategy.set('protect');
+    fixture.detectChanges();
+    expect(old.cancelled).toBe(true);
+    http
+      .expectOne((r) => r.url === '/api/season/player-fits')
+      .flush({
+        ...overviewResponse(populatedView, 'protect'),
+        overview: {
+          ...overviewResponse(populatedView, 'protect').overview,
+          focus_categories: ['AST'],
+        },
+      });
+    fixture.detectChanges();
+    expect(page.overviewReady()).toBe(true);
+    page.fitStrategy.set('chase');
+    fixture.detectChanges();
+    expect(page.overviewReady()).toBe(false);
+    http
+      .expectOne((r) => r.url === '/api/season/player-fits')
+      .flush({ detail: 'Source changed. Reload.' }, { status: 409, statusText: 'Conflict' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Source changed. Reload.');
+    expect(page.recommendationPanel()!.currentOverview()).toBeNull();
+    expect(page.reason()).toBe('Retain this draft');
+  });
+
+  it('saves roster player research without a drop and restores its detail from a watch', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance,
+      panel = page.recommendationPanel()!;
+    panel.inspect('own-1', 'roster');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(fixture.nativeElement.querySelector('dialog')).not.toBeNull();
+    page.reason.set('Review position and minutes before dropping');
+    page.saveWatch(true);
+    const save = http.expectOne((r) => r.url === '/api/season/watches');
+    expect(save.request.body).toMatchObject({
+      player_id: 'own-1',
+      drop_id: null,
+      added_starts: 0,
+      removed_starts: 0,
+      fit_context: 'player',
+      fit_strategy: 'balanced',
+      basis: 'recent',
+      window_days: 7,
+    });
+    save.flush({ detail: 'Synthetic conflict' }, { status: 409, statusText: 'Conflict' });
+    fixture.detectChanges();
+    expect(page.reason()).toBe('Review position and minutes before dropping');
+    panel.useReplacement();
+    fixture.detectChanges();
+    expect(panel.detailOpen()).toBe(false);
+    expect(page.selectedDrop()).toBe('own-1');
+    panel.inspect('free-1', 'available');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.selectedDrop()).toBe('own-1');
+    http.expectNone((r) => r.url === '/api/season/recommendations');
+    panel.back();
+    page.revisitWatch({
+      id: 'synthetic-watch',
+      player_id: 'own-1',
+      drop_id: null,
+      reason: 'Saved roster context',
+      observation_id: 'capture-1',
+      added_starts: 0,
+      removed_starts: 0,
+      saved_at: '2026-11-12T09:00:00Z',
+      basis: 'recent',
+      fit_strategy: 'balanced',
+      fit_context: 'player',
+    });
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.tab()).toBe('outlook');
+    expect(panel.detailOpen()).toBe(true);
+    expect(panel.selectedList()).toBe('roster');
+    expect(page.reason()).toBe('Saved roster context');
+    http.expectNone((r) => r.url === '/api/season/recommendations');
+  });
+  it('cancels obsolete move assumptions and hides their effects immediately', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance,
+      panel = page.recommendationPanel()!;
+    panel.inspect('free-1', 'available');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    page.selectedCandidates.set(['free-1']);
+    page.openTab('compare');
+    page.comparisonHorizon.set('seven_day');
+    panel.chooseDrop('own-1');
+    page.addedStarts.set(2);
+    page.removedStarts.set(3);
+    fixture.detectChanges();
+    const old = http.expectOne((r) => r.url === '/api/season/recommendations');
+    page.addedStarts.set(3);
+    fixture.detectChanges();
+    expect(old.cancelled).toBe(true);
+    http.expectOne((r) => r.url === '/api/season/recommendations').flush(fitResponse());
+    fixture.detectChanges();
+    expect(panel.currentResult()?.fit.players[0].score).toBe(0.125);
+    page.addedStarts.set(4);
+    expect(page.fitReady()).toBe(false);
+    fixture.detectChanges();
+    expect(panel.currentResult()).toBeNull();
+    http
+      .expectOne((r) => r.url === '/api/season/recommendations')
+      .flush(
+        { detail: 'Synthetic unavailable comparison' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+    fixture.detectChanges();
+    expect(panel.result()).toBeNull();
+    expect(panel.currentOverview()).not.toBeNull();
+  });
+
+  it('uses the selected actuals window for rankings and notes, keeping the draft on source changes', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance,
+      panel = page.recommendationPanel()!;
+    expect(fixture.nativeElement.textContent).toContain('2 GP · 22.5 min / played game');
+    panel.inspect('free-1', 'available');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    page.reason.set('Review observed role');
+    panel.daysChanged.emit(15);
+    fixture.detectChanges();
+    flushSupportingResearch();
+    const windowRead = http.expectOne((r) => r.url === '/api/season/player-fits');
+    expect(windowRead.request.params.get('days')).toBe('15');
+    expect(page.overviewReady()).toBe(false);
+    windowRead.flush(overviewResponse(populatedView, 'balanced', 'recent', 15));
+    fixture.detectChanges();
+    expect(page.overviewReady()).toBe(true);
+    expect(page.reason()).toBe('Review observed role');
+    expect(fixture.nativeElement.textContent).toContain('Actuals vs saved projection');
+    page.saveWatch(true);
+    const save = http.expectOne((r) => r.url === '/api/season/watches');
+    expect(save.request.body).toMatchObject({
+      basis: 'recent',
+      window_days: 15,
+      fit_context: 'player',
+      drop_id: null,
+    });
+    save.flush({ detail: 'Synthetic failure' }, { status: 500, statusText: 'Failure' });
+    panel.basisChanged.emit('projection');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    const baselineRead = http.expectOne((r) => r.url === '/api/season/player-fits');
+    expect(baselineRead.request.params.get('basis')).toBe('projection');
+    baselineRead.flush(overviewResponse(populatedView, 'balanced', 'projection', 15));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(page.reason()).toBe('Review observed role');
+    expect(page.selectedPlayer()).toBe('free-1');
+    expect(page.basis()).toBe('projection');
+    expect(panel.currentOverview()?.evidence.basis).toBe('projection');
+    expect(fixture.nativeElement.textContent).toContain('Recent performance & player news');
+  });
+
+  it('cancels old source reads and rejects mismatched source metadata', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance,
+      panel = page.recommendationPanel()!;
+    page.windowDays.set(15);
+    fixture.detectChanges();
+    flushSupportingResearch();
+    const obsolete = http.expectOne((r) => r.url === '/api/season/player-fits');
+    page.basis.set('projection');
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(obsolete.cancelled).toBe(true);
+    http
+      .expectOne((r) => r.url === '/api/season/player-fits')
+      .flush(overviewResponse(populatedView, 'balanced', 'recent', 15));
+    fixture.detectChanges();
+    expect(panel.currentOverview()).toBeNull();
+    expect(page.overviewReady()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Evidence changed. Reload');
+  });
+  it('keeps a common signed bar scale when searching the returned pool', async () => {
+    const second = { ...populatedView.capture!.players[1], id: 'free-2', name: 'Negative Target' };
+    const view = {
+      ...populatedView,
+      capture: { ...populatedView.capture!, players: [...populatedView.capture!.players, second] },
+    };
+    await load(view, true);
+    const panel = fixture.componentInstance.recommendationPanel()!;
+    const result = overviewResponse(view);
+    result.overview.available[1].score = -0.1;
+    result.overview.roster[0].score = 0.5;
+    panel.overview.set(result);
+    fixture.detectChanges();
+    const before = panel.fitWidth(-0.1);
+    expect(before).toBeCloseTo(9.6);
+    panel.search.set('Negative');
+    fixture.detectChanges();
+    expect(panel.visibleCandidates()).toHaveLength(1);
+    expect(panel.fitWidth(-0.1)).toBe(before);
+    expect(fixture.nativeElement.querySelector('.loss-fill')?.getAttribute('style')).toContain(
+      'left: 40.4%',
+    );
+    http.expectNone((r) => r.url === '/api/season/player-fits');
+  });
+
+  it('restores focus and comparison units from a saved move without inventing starts', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance;
+    page.revisitWatch({
+      id: 'synthetic-move',
+      player_id: 'free-1',
+      drop_id: 'own-1',
+      reason: 'Saved focused move',
+      observation_id: 'capture-1',
+      saved_at: '2026-11-12T09:00:00Z',
+      added_starts: 1,
+      removed_starts: 1,
+      basis: 'recent',
+      window_days: 7,
+      fit_strategy: 'protect',
+      fit_context: 'move',
+      focus_categories: ['AST'],
+      fit_horizon: 'per_game',
+    });
+    fixture.detectChanges();
+    flushSupportingResearch();
+    const overview = http.expectOne((r) => r.url === '/api/season/player-fits');
+    expect(overview.request.params.getAll('focus')).toEqual(['AST']);
+    const response = overviewResponse(populatedView, 'protect');
+    response.overview.focus_categories = ['AST'];
+    overview.flush(response);
+    const move = http.expectOne((r) => r.url === '/api/season/recommendations');
+    expect(move.request.params.get('horizon')).toBe('per_game');
+    expect(move.request.params.getAll('focus')).toEqual(['AST']);
+    const result = fitResponse('protect');
+    result.fit.horizon = 'per_game';
+    result.fit.added_starts = 1;
+    result.fit.removed_starts = 1;
+    result.fit.focus_categories = ['AST'];
+    move.flush(result);
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.tab()).toBe('compare');
+    expect(page.reason()).toBe('Saved focused move');
+    expect(page.fitReady()).toBe(true);
+    page.saveWatch();
+    const save = http.expectOne((r) => r.url === '/api/season/watches');
+    expect(save.request.body).toMatchObject({
+      fit_horizon: 'per_game',
+      focus_categories: ['AST'],
+      added_starts: 1,
+      removed_starts: 1,
+      reason: 'Saved focused move',
+    });
+    save.flush({ detail: 'Synthetic failure' }, { status: 500, statusText: 'Failure' });
+  });
+
+  it('keeps legacy category notes readable in the landscape without relabeling their context', async () => {
+    await load(populatedView, true);
+    const page = fixture.componentInstance;
+    page.revisitWatch({
+      id: 'synthetic-old',
+      player_id: 'free-1',
+      drop_id: null,
+      reason: 'Original category reason',
+      category: 'AST',
+      observation_id: 'capture-1',
+      saved_at: '2026-11-12T09:00:00Z',
+      added_starts: 0,
+      removed_starts: 0,
+      basis: 'recent',
+    });
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(page.tab()).toBe('landscape');
+    expect(fixture.nativeElement.querySelector('textarea')?.value).toBe('Original category reason');
+    page.saveWatch(true);
+    const save = http.expectOne((r) => r.url === '/api/season/watches');
+    expect(save.request.body.category).toBe('AST');
+    expect(save.request.body.fit_context).toBeUndefined();
+    save.flush({ detail: 'Synthetic failure' }, { status: 500, statusText: 'Failure' });
+  });
+  it('distinguishes pending and failed game evidence from an empty sample', async () => {
+    await load(populatedView, true);
+    const panel = fixture.componentInstance.recommendationPanel()!;
+    panel.inspect('free-1', 'available');
+    fixture.detectChanges();
+    const request = http.expectOne((r) => r.url === '/api/season/research');
+    expect(fixture.nativeElement.textContent).toContain('Loading saved completed-game evidence');
+    expect(fixture.nativeElement.textContent).not.toContain('No compatible completed-game sample');
+    request.flush(
+      { message: 'Synthetic game evidence failure' },
+      { status: 500, statusText: 'Failure' },
+    );
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Synthetic game evidence failure');
+    expect(fixture.nativeElement.textContent).toContain('Retry game evidence');
+    expect(fixture.nativeElement.textContent).not.toContain('No compatible completed-game sample');
   });
 });

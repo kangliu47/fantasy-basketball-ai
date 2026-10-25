@@ -1,5 +1,105 @@
 # Project learning journal
 
+## A source-only review misses changed dependency risk — October 25, 2026, latest follow-up
+
+User decision: check security before committing and merging the completed
+in-season work. Assistant finding: unchanged dependency declarations still held
+versions with newly published advisories. Review the full resolved locks, not
+only package diffs or the installed platform subset, and verify again after
+updates. Compatible updates can leave vulnerable versions pinned by upstream
+packages; narrow documented overrides plus normal build/behavior checks close
+that gap. Distinguish a zero-match advisory scan from a claim of universal safety.
+See the [dated review](../qa/2026-10-25-release-security-review.md) for sources,
+remediation and acceptance evidence.
+
+## Decision controls need a visible place in the journey — October 25, 2026, latest
+
+User annotation evidence: the working live-season rankings still hid category
+context behind By category and repeated refresh/settings panels ahead of the
+research tabs. The user requested an explicit landscape → focus → target →
+comparison sequence and confirmed separate alternatives against one replacement.
+Assistant synthesis: reducing prose is insufficient when a decision control has
+no discoverable home. Make the scenario visible, carry it forward without an
+Apply step, distinguish relative fit bars from predicted point gains, and put
+method details in accessible help while keeping counts/unknowns visible. The user subsequently approved the
+[reviewed workflow](../season-workflow-design.md). Production uses that sequence;
+[delivery evidence](../qa/2026-10-25-season-workflow-delivery.md) records the
+implementation and validation. This distinction matters: a priority-weight
+heuristic and per-game stat difference remain research tools, not an expected
+roto-point forecast.
+
+## A visible actuals panel does not make a ranking actuals-based — October 24, 2026, latest
+
+User feedback: whole-team fit should factor in current ESPN production after an
+input audit exposed dependence on a dated projection's role assumption. They
+confirmed actuals-first 7/15/30-day rankings with projections separate. Assistant
+synthesis: identify which source actually drives the player vector; showing
+recent games beside a projection score does not update that score. Reuse one
+selected basis across both lists and conditional comparisons, retain source
+cutoffs and sample sizes, and never silently fill missing actuals with a prior.
+Observed per-game production already includes observed playing time. See the
+[approved contract](../outlook-live-fit-design.md). The user subsequently approved
+the preview and requested implementation; source selection now drives the actual
+calculation and is retained in watch provenance.
+
+## Discovery and move evaluation need different gates — October 24, 2026, latest delivery follow-up
+
+User decision: implement the reviewed immediate waiver/roster lists and focused
+investigation flow. The implementation shares per-game coordinate arithmetic with
+the existing net-move calculation while deferring replacement/starts gates until
+a move is requested. Assistant synthesis: preserve source and revision validation
+without making scenario inputs a prerequisite for browsing. Treat roster research
+as player context so a watch reason does not silently become a drop proposal.
+Unknown roster details remain visible and unranked. The
+[approved contract](../outlook-shortlist-design.md) and synthetic gross/net
+reconciliation checks establish the quantity boundary.
+
+## A useful calculation still needs a useful entry point — October 24, 2026, latest follow-up
+
+User feedback: the overall-fit calculations work, but waiver research feels clunky
+because standings, explanatory panels and scenario inputs precede the ranked
+players. The user wants to browse holistic targets in order, then investigate,
+and separately review roster players from low contribution upward. They confirmed
+per-game fit for initial discovery. Assistant synthesis: separate the discovery
+quantity from the later net-move quantity; do not require a hypothetical drop to
+browse, and do not label missing evidence as weak contribution. The
+[proposed flow and contract](../outlook-shortlist-design.md) await interface approval.
+
+## Preserve context when a research index becomes useful — October 24, 2026, latest follow-up
+
+User decision: implement the reviewed overall waiver-fit direction. The bounded
+release uses current league geometry and dated projection rates, with explicit
+manual starts. Assistant implementation lesson: a reproducible watch reason
+needs the replacement, strategy, priority snapshot, method and source signature,
+not just the candidate name. Unknown geometry must withhold the complete vector
+instead of silently increasing the weight of covered categories. A zero-span
+category cannot acquire an invented unit scale. See the
+[approved decision contract](../waiver-recommendation-design.md) and synthetic
+checks in `tests/season/test_recommendations.py`.
+
+## Vector fit is a screen, not the roto objective — October 24, 2026, latest
+
+User request: use a team category-need vector to find overall waiver targets;
+confirmed season priorities and next-seven-day decisions. Assistant synthesis:
+prioritize reachable gains and fragile existing points, preserve magnitude and
+native units, and evaluate add minus drop. A fixed linear score subtracts the
+same replacement constant from every candidate, so changing that drop alone
+cannot change its ordering. Nonlinear category thresholds and feasible starts
+can reverse the result. The synthetic example demonstrates a lower-fit player
+winning a conditional point and the same move becoming harmful against another
+drop. See the [derivation and worked cases](../waiver-recommendation-design.md)
+and [primary cosine definition](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html).
+
+## A successful refresh has a specific source boundary — October 23, 2026, latest
+
+User decision: lead waiver research with recent ESPN performance and keep saved
+projections separate. Assistant synthesis from the execution path: a successful
+league refresh establishes a saved league observation, while player comparison
+rates still depend on compatible Hashtag imports and reviewed identity links.
+Expose coverage and each source date at the decision point. An empty comparison
+can also result from explicit zero assumed starts; do not treat that as proof of
+a failed provider read. See the [source review and mock proposal](../live-season-waiver-research-contract.md).
+
 ## Let the chat choose its model — October 22, 2026, latest
 
 User decision: retire the repo's V5 agentic orchestration framework so a new

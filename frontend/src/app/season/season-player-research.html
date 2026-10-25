@@ -1,0 +1,194 @@
+<div class="heading">
+  <div>
+    <small>{{ wholeTeamContext() ? 'SUPPORTING EVIDENCE' : 'PLAYER RESEARCH' }}</small>
+    <h2>
+      {{
+        wholeTeamContext()
+          ? 'Recent performance & player news'
+          : player().name + ' · ' + player().positions.join(' / ')
+      }}
+    </h2>
+    <p>
+      {{
+        player().availability === 'waiver'
+          ? 'Waiver'
+          : player().availability === 'free_agent'
+            ? 'Free agent'
+            : 'Currently rostered / unavailable'
+      }}
+      · {{ player().status || 'Status unknown' }}
+    </p>
+  </div>
+  <button
+    mat-stroked-button
+    [disabled]="state()?.refreshing || state()?.loading"
+    (click)="news.refresh(leagueId(), player().id)"
+  >
+    {{ state()?.refreshing ? 'Refreshing news…' : 'Refresh player news' }}
+  </button>
+</div>
+@if (loading()) {
+  <p role="status">Loading saved completed-game evidence…</p>
+}
+@if (error()) {
+  <p role="alert" class="warning">
+    {{ error() }} <button mat-button (click)="retryRequested.emit()">Retry game evidence</button>
+  </p>
+}
+<div class="metrics">
+  <div>
+    <small>{{
+      basis() === 'recent'
+        ? 'Last ' + days() + ' days · games / minutes per game'
+        : 'Saved projection estimates'
+    }}</small
+    ><strong>{{
+      basis() === 'recent'
+        ? format(row()?.games) + ' / ' + format(row()?.minutes)
+        : 'Hashtag · per game'
+    }}</strong>
+  </div>
+  <div>
+    <small
+      >Versus preceding {{ days() }} days ·
+      {{ category()?.numerator ? 'impact / game' : category()?.code + ' / game' }}</small
+    ><strong>{{
+      row()?.trend == null ? '—' : (row()!.trend! > 0 ? '+' : '') + format(row()?.trend)
+    }}</strong
+    ><small>Prior sample: {{ format(row()?.previous_games) }} GP</small>
+  </div>
+</div>
+@if (wholeTeamContext() && basis() === 'recent') {
+  <div class="metrics">
+    @for (stat of ['PTS', 'REB', 'AST']; track stat) {
+      <div>
+        <small>{{ stat }} / played game · last {{ days() }} days</small
+        ><strong>{{ format(row()?.per_game?.[stat]) }}</strong>
+      </div>
+    }
+  </div>
+  <p>
+    Recent actuals describe this sample. The whole-team view shows which source is selected for
+    ranking; projections remain a separate baseline.
+  </p>
+}
+@if (basis() === 'recent') {
+  <details open>
+    <summary>
+      Recent {{ category()?.code }}{{ category()?.numerator ? ' impact' : '' }} · completed games
+    </summary>
+    <app-help-tip
+      label="Recent game values"
+      text="Dated official ESPN games only. Shooting impact is makes above your current team rate; its unit is makes, not percentage points. Missing games or components are not filled with zero."
+    />
+    @if (row()?.game_values?.length) {
+      <svg
+        class="game-trend"
+        viewBox="0 0 360 100"
+        role="img"
+        [attr.aria-label]="
+          category()?.code + ' completed-game values; exact dates and values below'
+        "
+      >
+        <path [attr.d]="gamePath()" fill="none" stroke="var(--showcase-green)" stroke-width="3" />
+      </svg>
+      <div class="game-list">
+        @for (game of row()!.game_values; track $index) {
+          <div>
+            <small>{{ game[0] }}</small
+            ><strong>{{ format(game[1]) }}</strong>
+          </div>
+        }
+      </div>
+    } @else if (!loading() && !error()) {
+      <p>
+        No compatible completed-game sample returned for this window. Refresh data to check recent
+        stats.
+      </p>
+    }
+  </details>
+}
+<section aria-label="Latest player news">
+  <div class="heading">
+    <h3>Latest player news</h3>
+    <app-help-tip
+      label="Player news checks"
+      text="Public ESPN reports refresh on inspection when the last successful news check is over 30 minutes old. Publication and check dates differ. Saved news remains on failures; news does not alter projections or establish a return date."
+    />
+  </div>
+  @if (state()?.loading) {
+    <p role="status">Loading saved player news…</p>
+  }
+  @if (state()?.error) {
+    <p class="warning" role="alert">{{ state()?.error }}</p>
+  }
+  @if (saved(); as report) {
+    <small
+      >ESPN checked
+      {{
+        report.news_captured_at
+          ? (report.news_captured_at | date: 'medium')
+          : 'not yet successfully'
+      }}
+      · status {{ report.metadata.status || 'Unknown' }}</small
+    >
+    @if (report.news_error) {
+      <p class="warning" role="alert">
+        {{ report.news_error }} Showing the last saved report, if available.
+      </p>
+    }
+    @if (report.fantasy_update; as update) {
+      <article>
+        <h4>{{ update.headline }}</h4>
+        <small
+          >{{ update.attribution }} ·
+          {{
+            update.published_at
+              ? 'Published ' + (update.published_at | date: 'medium')
+              : 'Publication time unknown'
+          }}</small
+        >
+        <p>{{ update.summary }}</p>
+        @if (sourceUrl(update.source_url); as url) {
+          <a [href]="url" target="_blank" rel="noopener noreferrer">Read report on ESPN ↗</a>
+        }
+      </article>
+    }
+    @if (report.articles.length || report.season_outlook) {
+      <details>
+        <summary>Season outlook & additional coverage</summary>
+        @if (report.season_outlook) {
+          <p>{{ report.season_outlook }}</p>
+          <small>ESPN outlook publication date and season label not supplied.</small>
+        }
+        @for (article of report.articles; track article.id) {
+          <article>
+            <h4>{{ article.headline }}</h4>
+            <small
+              >{{ article.attribution }} ·
+              {{
+                article.published_at
+                  ? (article.published_at | date: 'medium')
+                  : 'Publication time unknown'
+              }}</small
+            >
+            <p>{{ article.summary }}</p>
+            @if (sourceUrl(article.source_url); as url) {
+              <a [href]="url" target="_blank" rel="noopener noreferrer">Read on ESPN ↗</a>
+            }
+          </article>
+        }
+      </details>
+    }
+    @if (
+      !report.fantasy_update &&
+      !report.articles.length &&
+      !report.season_outlook &&
+      !report.news_error
+    ) {
+      <p>No player news returned in this check. No report does not establish healthy status.</p>
+    }
+  } @else if (!state()?.loading) {
+    <p>No saved report yet. Refresh player news to check ESPN.</p>
+  }
+</section>

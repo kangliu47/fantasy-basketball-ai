@@ -4,7 +4,13 @@ from threading import Event
 from typing import Protocol
 
 from fantasy_ai.application.models import LeagueSelection, SessionCredentials
-from fantasy_ai.domain.season.models import SeasonCapture, SeasonPreferences, SeasonWatch
+from fantasy_ai.domain.season.models import (
+    SeasonCapture,
+    SeasonPlayer,
+    SeasonPreferences,
+    SeasonWatch,
+)
+from fantasy_ai.domain.season.research import PlayerGameHistory
 
 
 @dataclass(frozen=True)
@@ -34,6 +40,12 @@ class SeasonReader(Protocol):
 
 class SeasonProjectionReader(Protocol):
     def read(self, season: int) -> SeasonRates | None: ...
+
+
+class SeasonRecentReader(Protocol):
+    def read(
+        self, season: int, players: tuple[SeasonPlayer, ...], cancelled: Event | None = None
+    ) -> tuple[tuple[PlayerGameHistory, ...], datetime]: ...
 
 
 class SeasonRepository(Protocol):

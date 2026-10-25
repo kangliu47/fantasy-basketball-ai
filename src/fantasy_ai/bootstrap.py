@@ -14,6 +14,7 @@ from fantasy_ai.application.planning.service import PreparationService
 from fantasy_ai.application.projections.player_information import PlayerInformationService
 from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
+from fantasy_ai.application.season.player_news import SeasonPlayerNews
 from fantasy_ai.application.season.service import SeasonService
 from fantasy_ai.application.workspace import WorkspaceService
 from fantasy_ai.infrastructure.auction_prices import LocalAuctionPrices
@@ -22,6 +23,7 @@ from fantasy_ai.infrastructure.draft_repository import DuckDBDraftRepository
 from fantasy_ai.infrastructure.duckdb_repository import DuckDBWorkspaceRepository
 from fantasy_ai.infrastructure.espn_gateway import ESPNLeagueGateway
 from fantasy_ai.infrastructure.espn_player_information import ESPNPlayerInformationReader
+from fantasy_ai.infrastructure.espn_recent_games import ESPNRecentGamesReader
 from fantasy_ai.infrastructure.espn_season import ESPNSeasonReader
 from fantasy_ai.infrastructure.history_gateway import ESPNHistoryGateway
 from fantasy_ai.infrastructure.history_repository import DuckDBHistoryRepository
@@ -116,9 +118,14 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         ),
         SeasonService(
             DuckDBSeasonRepository(repository),
-            ESPNSeasonReader(),
+            ESPNSeasonReader(recent=ESPNRecentGamesReader()),
             SavedSeasonProjections(draft.repository, DuckDBPlayerInformationRepository(repository)),
             workspace,
+            SeasonPlayerNews(
+                DuckDBSeasonRepository(repository),
+                DuckDBPlayerInformationRepository(repository),
+                ESPNPlayerInformationReader(),
+            ),
         ),
     )
 

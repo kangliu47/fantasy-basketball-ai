@@ -6,12 +6,41 @@
 move supporting detail into accessible help icons; support what to do during the
 season and evaluate waiver pickups using this league's context.
 
+## October 25 approved workflow extension — latest
+
+The user approved [the reviewed five-tab flow](season-workflow-design.md):
+League landscape → Waiver targets → Compare moves, with Watchlist and Data &
+settings. Use all-team current credited category ranks/values and explicit
+category actions. Approach, source/window and extra focus carry into all fit
+results. Extra-focus categories get 2× raw priority before all-category
+normalization; retain losses and missingness. Default move differences compare
+one played game each. Seven-day totals require explicit credited starts and
+remain conditional scenarios. Multiple targets are independent alternatives
+against the same named replacement. Preserve context in watches and do not
+change earned totals or claim future roto gains. This supersedes the older
+outlook-first navigation below; existing collection/security boundaries remain.
+
+## October 24 approved source extension
+
+The user approved the [ESPN-first whole-team flow](outlook-live-fit-design.md).
+Recent actuals from the selected 7/15/30-day window drive both player lists and
+optional manual net-fit scenarios by default; saved projections remain an
+explicit separate choice. A scenario using observed rates means “if these rates
+continue,” not a prediction. No implicit projection fallback or second minutes
+multiplier. Preserve exact source dates/windows in results and watch context.
+This supersedes the projection-only overall-fit source policy below while
+retaining banked totals, league priorities and forecast/legality boundaries.
+
+## October 23 approved extension
+
+The user approved the [category → ranked targets → player research → watch flow](live-season-waiver-research-contract.md) and requested implementation. Recent ESPN actuals over dated 7/15/30-day windows now lead investigation; saved Hashtag projections remain the separate source for manual future-contribution scenarios. This extension does not authorize a future standings or legality forecast.
+
 ## Decision and evidence
 
 The decision is hold/watch/investigate one add/drop against the current roster.
 Population is the current league, not the historical manager cohort or auction
 pool. Preserve provider-credited team totals. Current roster player NBA totals
-are not team-earned production. Rates come only from reviewed ESPN↔Hashtag links
+are not team-earned production. Projection rates come only from reviewed ESPN↔Hashtag links
 and dated compatible saved projection imports. Missing data is unknown.
 
 At implementation intake, the app had no verified current-season snapshot or

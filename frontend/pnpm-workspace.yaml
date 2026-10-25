@@ -3,3 +3,8 @@ allowBuilds:
   esbuild: true
   lmdb: true
   msgpackr-extract: true
+
+# Security fixes for transitive build tooling pinned by upstream packages.
+overrides:
+  source-map-js@<1.2.2: 1.2.2
+  vite@>=8.0.0 <8.3.3: 8.3.3

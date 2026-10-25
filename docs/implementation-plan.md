@@ -1,5 +1,131 @@
 # Implementation plan
 
+## Reviewed release delivery — October 25, 2026, latest follow-up
+
+The user resumed delivery and authorized security review, commit, PR and merge
+into remote main. The [release review](qa/2026-10-25-release-security-review.md)
+records dependency remediation, boundary checks and validation. The
+[in-season MCP design](in-season-mcp-design.md) is included as a future implementation
+handoff only; no proposed tools are registered by this release. Earlier paused
+handoff records below describe the state before this authorization.
+
+## Streamlined live-season workflow implementation — October 25, 2026, latest follow-up
+
+The user approved the [reviewed mock](season-workflow-preview.html) with “This
+is good, go ahead and implement.” Production now opens on League landscape,
+with current league heatmap, category actions and a visible scenario. Targets
+inherit source/window, approach and extra category focus; both lists use common
+signed bars and keep missing samples unranked. Independent alternatives compare
+against one explicit replacement, per game by default or under explicit manual
+seven-day starts. Watch notes retain focus and comparison units. Data & settings
+owns refresh, connection, team and rules. See [delivery evidence](qa/2026-10-25-season-workflow-delivery.md).
+No ESPN transaction or PR publication is authorized by this follow-up.
+
+## Streamlined live-season workflow review — October 25, 2026, latest
+
+The user paused PR preparation to annotate the live interface, then requested
+the heatmap/category plan as the first tab, scenario-driven target ranking and
+alternative comparisons. Confirmed one named replacement shared by separate
+candidate alternatives. The [new synthetic preview](season-workflow-preview.html)
+and [decision contract](season-workflow-design.md) show the proposed navigation,
+fit bars, explanations and settings separation. Mock approval and implementation are recorded above; publication remains paused.
+
+## ESPN-first fit implementation — October 24, 2026, latest follow-up
+
+The user approved the reviewed preview with “Go ahead and implement.” Both
+lists and optional move research now share selected ESPN actuals (default) or a
+separate projection baseline. Source metadata and GP/minutes accompany typed
+results; Angular cancels stale source/window reads and retains investigation
+drafts. Watch notes preserve exact actual bounds and evidence-policy version;
+legacy projection context remains readable. Current priorities and fit arithmetic
+are preserved. See the [approved contract](outlook-live-fit-design.md) and
+[delivery evidence](qa/2026-10-24-espn-first-fit-delivery.md).
+
+## ESPN-first fit proposal — October 24, 2026, latest
+
+User confirmation: rank on current ESPN actuals first over the selected 7/15/30
+days, with GP/minutes visible and projections separate. The
+[method contract](outlook-live-fit-design.md) extends the existing saved-game
+window path to holistic per-game fit, retaining current league priorities and
+explicit same-basis comparison assumptions. The
+[synthetic preview](outlook-live-fit-preview.html) shows the basis/window controls,
+rate comparison and missing-sample behavior within the approved navigation.
+Production was unchanged during method/flow review. Approval and implementation
+are recorded above. See
+[review evidence](qa/2026-10-24-espn-first-fit-mock.md).
+
+## Shortlist-first Outlook implementation — October 24, 2026, latest follow-up
+
+The user approved the revised mock with “Approve this flow and implement it.”
+Outlook now defaults to immediate waiver and roster rankings. Domain coordinates
+are shared by gross player discovery and the preserved net-move calculation;
+a saved-only typed player-fit API supports both populations. The focused detail
+supports Previous/Next, eight-category explanations, dated recent evidence/news,
+retained drafts and optional comparison. Watch context distinguishes player
+research from complete moves, including selected-roster research notes.
+
+[Amendment 84](PRD.md) and the [contract](outlook-shortlist-design.md) authorize
+only this reviewed flow. The [delivery record](qa/2026-10-24-shortlist-first-delivery.md)
+records tests, rollout and limitations. No roster transaction, background monitor
+or new forecast model is introduced.
+
+## Shortlist-first Outlook review — October 24, 2026, latest
+
+User feedback: the implemented math works, but the initial screen does not lead
+with an immediately useful waiver ranking or an ordered roster review. Confirmed
+per-game team fit first, with optional replacement/starts later. A new
+[shared-theme mock](outlook-shortlist-preview.html) and
+[decision contract](outlook-shortlist-design.md) propose two immediate lists and a
+focused sequential investigation view. This is a material flow revision, so the
+existing application remains unchanged pending explicit mock approval. Review
+[evidence](qa/2026-10-24-shortlist-first-mock.md) records the bounded checks.
+
+## Overall waiver fit delivery — October 24, 2026, latest follow-up
+
+The user approved the reviewed direction and requested implementation.
+`domain/season/recommendations.py` computes complete signed net-rate fit against
+current league geometry. A saved-only application/HTTP use case validates source
+currency, own-roster replacement and manual assumptions. Outlook adds Overall fit
+beside By category, with strategy/starts, priorities, filtered shortlist, all-category
+effects, keep baseline and sensitivity. The existing player research inspector
+and watch repository retain their roles. Optional watch context fields preserve
+old JSON while storing strategy, source signature, method version and priorities.
+The [decision contract](waiver-recommendation-design.md) bounds the research claim;
+[delivery evidence](qa/2026-10-24-waiver-fit-delivery.md) records validation.
+
+## Overall waiver recommendation design — October 24, 2026, latest
+
+Confirmed season priorities / next-seven-day decisions. Delivered a
+[method proposal](waiver-recommendation-design.md) and shared-theme
+[interactive mock](waiver-recommendations-preview.html) linking category priorities
+to signed net move vectors and a shortlist. Current-evidence fit and a complete
+synthetic conditional forecast have separate labels. Exact point recalculation,
+replacement/participation sensitivity and keep-roster examples expose the limits
+of linear alignment. See [review evidence](qa/2026-10-24-waiver-recommendation-mock.md).
+This initial design-only stopping point was superseded by the explicit implementation
+approval recorded above. New forecast claims still require a separate decision.
+
+## Approved Outlook and waiver implementation — October 23, 2026, latest follow-up
+
+The user approved the reviewed mock and requested implementation. The bounded
+[contract](live-season-waiver-research-contract.md) now covers category colors,
+source-separated 7/15/30-day research, verified official-game collection, native
+ESPN player news and revision-checked player-only watch reasons. Manual comparison
+requires explicit starts and displayed selections match submitted identities.
+Delivery validation and local rollout are recorded in
+[the delivery evidence](qa/2026-10-23-outlook-waiver-delivery.md).
+
+## Category-focused waiver research mock — October 23, 2026, latest
+
+Confirmed recent ESPN actuals first over 7/15/30 days, with saved projections
+separate. Delivered the shared-theme [interactive mock](live-season-waiver-preview.html)
+for category colors → ranked targets → player trends/news → watch notes, keeping
+manual comparison secondary and requiring explicit starts. Source review and a
+read-only running-app check distinguish league-refresh success from projection
+coverage. See [proposal](live-season-waiver-research-contract.md) and
+[mock checks](qa/2026-10-23-outlook-waiver-mock.md). Production flow changes and
+provider implementation await explicit mock approval; no production code changed.
+
 ## Live-season release security review — October 22, 2026, latest
 
 The user requested security review and merge of the delivered live-season,

@@ -1,0 +1,121 @@
+<div class="landscape-grid">
+  <article class="surface heatmap-card">
+    <div class="heading">
+      <h3>Current league landscape</h3>
+      <span class="pill"
+        >Your team:
+        {{
+          own()?.rank == null
+            ? 'position unavailable'
+            : '#' + own()!.rank + ' / ' + positions().length
+        }}
+        · {{ format(own()?.points) }} pts</span
+      >
+    </div>
+    <p>Current credited category ranks · select a column to investigate. Your team is outlined.</p>
+    <p class="compact-note">Ranks shown here; select a category for exact team values below.</p>
+    <div class="table-scroll">
+      <table class="heatmap" aria-label="Current league category heatmap">
+        <thead>
+          <tr>
+            <th>Team · total pts</th>
+            @for (c of view().capture?.categories ?? []; track c.code) {
+              <th>
+                <button
+                  type="button"
+                  [attr.aria-pressed]="category() === c.code"
+                  (click)="categoryChanged.emit(c.code)"
+                >
+                  {{ c.code }}
+                </button>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (team of positions(); track team.team_id) {
+            <tr [class.mine]="team.team_id === view().preferences.team_id">
+              <th>
+                {{ names().get(team.team_id)
+                }}{{ team.team_id === view().preferences.team_id ? ' · You' : ''
+                }}<small>#{{ team.rank ?? '—' }} · {{ format(team.points) }} pts</small>
+              </th>
+              @for (c of view().capture?.categories ?? []; track c.code) {
+                @let row = standing(team, c.code);
+                <td>
+                  <button
+                    type="button"
+                    class="heat-cell"
+                    [class.rank-high]="band(row) === 'high'"
+                    [class.rank-low]="band(row) === 'low'"
+                    [class.rank-unknown]="band(row) === 'unknown'"
+                    [attr.aria-label]="
+                      names().get(team.team_id) +
+                      ' ' +
+                      c.code +
+                      ', ' +
+                      format(row?.value, c) +
+                      ', rank ' +
+                      (row?.rank ?? 'unknown')
+                    "
+                    (click)="categoryChanged.emit(c.code)"
+                  >
+                    <strong>{{ row?.rank == null ? '—' : '#' + row?.rank }}</strong
+                    ><small>{{ format(row?.value, c) }}</small>
+                  </button>
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td>League positions are not available in this saved view. Reload current data.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span class="high">Higher standing</span><span>Middle</span
+      ><span class="low">Lower standing</span><span>Gray: unknown / needs review</span
+      ><app-help-tip
+        label="Current league heatmap"
+        text="Colors follow category rank across all saved league teams, with average ties and actual league scoring direction/weights. Missing or unreconciled standings stay unknown. Total points and overall ranks require complete categories. These are earned standings, not future outcomes or current-roster totals."
+      />
+    </div>
+  </article>
+  <div class="scenario"><ng-content select="[scenario]" /></div>
+  <section class="category-research">
+    <div class="category-action">
+      <strong>{{ category() }} · your next research action</strong>
+      <p>{{ action(category()) }}</p>
+      <button mat-stroked-button type="button" (click)="toggle(category())">
+        {{ focus().includes(category()) ? '✓ Extra focus' : 'Give extra focus' }}
+      </button>
+    </div>
+    <ng-content select="[categoryResearch]" />
+  </section>
+  <article class="surface playbook">
+    <h3>Your category playbook</h3>
+    <p>
+      Every category has a research action. Gaps compare current totals; opponents will keep
+      scoring.
+    </p>
+    @for (c of view().capture?.categories ?? []; track c.code) {
+      @let row = own()?.categories?.find((r) => r.category === c.code);
+      <div class="playbook-row">
+        <button type="button" (click)="categoryChanged.emit(c.code)">{{ c.code }}</button
+        ><span>#{{ row?.rank ?? '—' }}</span>
+        <div>
+          {{ action(c.code) }}<small>{{ gap(row, c) }}</small>
+        </div>
+        <label
+          ><input
+            type="checkbox"
+            [checked]="focus().includes(c.code)"
+            (change)="toggle(c.code)"
+            [attr.aria-label]="'Give ' + c.code + ' extra focus'"
+        /></label>
+      </div>
+    }
+  </article>
+</div>

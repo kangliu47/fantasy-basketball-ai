@@ -1,13 +1,14 @@
 """Normalized live facts. No provider envelopes or credentials cross this boundary."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from math import isfinite
 from typing import Literal
 
 from fantasy_ai.domain.history.models import Category
+from fantasy_ai.domain.season.research import PlayerGameHistory, ResearchBasis
 
-CALCULATION_VERSION = "LIVE-SEASON-2026-10-21-v1"
+CALCULATION_VERSION = "LIVE-SEASON-2026-10-25-v5"
 STAT_KEYS = ("FGM", "FGA", "FTM", "FTA", "3PM", "PTS", "REB", "AST", "STL", "BLK")
 
 
@@ -59,6 +60,9 @@ class SeasonCapture:
     pool_complete: bool
     pool_captured_at: datetime | None
     messages: tuple[str, ...] = ()
+    recent_games: tuple[PlayerGameHistory, ...] = ()
+    recent_captured_at: datetime | None = None
+    recent_error: str | None = None
 
 
 @dataclass(frozen=True)
@@ -78,6 +82,20 @@ class SeasonWatch:
     added_starts: int
     removed_starts: int
     saved_at: datetime
+    category: str | None = None
+    basis: ResearchBasis = "projection"
+    window_days: int = 7
+    source_captured_at: datetime | None = None
+    fit_strategy: Literal["balanced", "chase", "protect"] | None = None
+    fit_version: str | None = None
+    source_signature: str | None = None
+    fit_priorities: dict[str, float | None] | None = None
+    fit_context: Literal["player", "move"] | None = None
+    source_window_start: date | None = None
+    source_window_end: date | None = None
+    fit_evidence_version: str | None = None
+    focus_categories: tuple[str, ...] = ()
+    fit_horizon: Literal["per_game", "seven_day"] | None = None
 
 
 @dataclass(frozen=True)

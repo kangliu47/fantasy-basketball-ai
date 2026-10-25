@@ -1,0 +1,97 @@
+<aside aria-label="Ranking scenario">
+  <small class="eyebrow">YOUR PICKUP SCENARIO</small>
+  <h3>What should the next player help?</h3>
+  <p>Starts with your whole-team needs. Change only what matters to you.</p>
+  <fieldset>
+    <legend>
+      Approach
+      <app-help-tip
+        label="How approach changes priorities"
+        text="Balanced considers gaps above you and vulnerable leads. Chase gains emphasizes catching teams; Protect leads emphasizes avoiding losses. These are current-standings priority heuristics, not an optimizer or forecast of roto points."
+      />
+    </legend>
+    <div class="approaches">
+      @for (s of ['balanced', 'chase', 'protect']; track s) {
+        <button
+          type="button"
+          [attr.aria-pressed]="strategy() === s"
+          (click)="strategyChanged.emit($any(s))"
+        >
+          {{ s === 'balanced' ? 'Balanced' : s === 'chase' ? 'Chase gains' : 'Protect leads' }}
+        </button>
+      }
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>
+      Extra category focus
+      <app-help-tip
+        label="How category focus changes ranking"
+        text="Selected categories receive twice their normal priority before normalization. All categories still count, including losses. Clear selections for automatic whole-team balance. Missing league evidence never becomes zero or silently moves weight onto covered categories."
+      />
+    </legend>
+    <div class="chips">
+      @for (c of view().capture?.categories ?? []; track c.code) {
+        <button
+          type="button"
+          [attr.aria-pressed]="focus().includes(c.code)"
+          (click)="toggle(c.code)"
+        >
+          {{ c.code }}{{ focus().includes(c.code) ? ' ✓' : '' }}
+        </button>
+      }
+    </div>
+    <button class="text-button" type="button" (click)="focusChanged.emit([])">
+      Use automatic whole-team balance
+    </button>
+  </fieldset>
+  <div class="source-controls">
+    <label
+      >Rank using<select [ngModel]="basis()" (ngModelChange)="basisChanged.emit($event)">
+        <option value="recent">Recent ESPN actuals</option>
+        <option value="projection">Saved projections</option>
+      </select></label
+    >
+    <label
+      >Actuals window<select
+        [ngModel]="days()"
+        (ngModelChange)="daysChanged.emit($event)"
+        [disabled]="basis() === 'projection'"
+      >
+        <option [ngValue]="7">Last 7 days</option>
+        <option [ngValue]="15">Last 15 days</option>
+        <option [ngValue]="30">Last 30 days</option>
+      </select></label
+    >
+  </div>
+  <p>
+    {{
+      focus().length
+        ? focus().join(' + ') + ' receive extra weight. Every category still counts.'
+        : 'Automatic priorities balance reachable gaps and vulnerable positions across all categories.'
+    }}
+  </p>
+  @if (loading()) {
+    <p role="status">Loading category priorities…</p>
+  }
+  @if (error()) {
+    <p role="alert" class="notice">
+      {{ error() }} <button mat-button (click)="retryRequested.emit()">Retry priorities</button>
+    </p>
+  }
+  <div class="priority-shares" aria-label="Resulting category priorities">
+    @for (p of overview()?.overview?.priorities ?? []; track p.category) {
+      <span>{{ p.category }} {{ percentage(p.weight) }}</span>
+    }
+  </div>
+  @if (overview() && overview()!.overview.priorities.some((p) => p.weight === null)) {
+    <p class="notice">
+      Complete league priorities are unavailable. Review missing or unreconciled category evidence
+      before judging fit.
+    </p>
+  }
+  <button mat-flat-button type="button" (click)="targetsRequested.emit()">
+    See ranked waiver targets →
+  </button>
+  <small>Changes carry into targets and comparisons immediately.</small>
+</aside>

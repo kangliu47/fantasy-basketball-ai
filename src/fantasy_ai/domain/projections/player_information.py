@@ -5,6 +5,14 @@ from datetime import datetime
 
 
 @dataclass(frozen=True)
+class ESPNPlayerIdentity:
+    """An ESPN-native league identity; no cross-provider mapping is inferred."""
+
+    espn_id: str
+    espn_name: str
+
+
+@dataclass(frozen=True)
 class ReviewedPlayerLink:
     hashtag_id: str
     espn_id: str
