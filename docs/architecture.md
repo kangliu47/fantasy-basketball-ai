@@ -1,5 +1,150 @@
 # Architecture and learning guide
 
+## Security-reviewed delivery — October 25, 2026, latest follow-up
+
+The [release review](qa/2026-10-25-release-security-review.md) covers this approved
+in-season slice. Patched dependency locks and explicit certificate/FastMCP floors
+address known advisories; narrow frontend build overrides cover pinned transitive
+versions. Existing process ownership, loopback protections, memory-only sessions,
+fixed-host public readers and shared database lock remain. The
+[MCP design](in-season-mcp-design.md) describes future work; it adds no runtime
+agent endpoint in this release.
+
+## League-to-waiver workflow — October 25, 2026, latest
+
+The approved [workflow contract](season-workflow-design.md) adds pure
+`domain/season/landscape.py`: all-team current credited standings, category
+points and average-tied overall ranks. It reuses the existing scoring rules;
+incomplete or unreconciled categories withhold complete totals/ranks. Neither
+current roster sums nor player forecasts reconstruct earned standings.
+
+The recommendations domain doubles selected categories' raw priorities before
+normalizing across every league category. Missing geometry still withholds the
+whole priority vector; negative effects remain. Focus is validated and returned
+in canonical category order. Existing coordinate/scoring arithmetic is shared.
+Comparison declares `per_game` (exactly one played game each, no start sensitivity)
+or legacy-compatible `seven_day` (explicit manual credited starts and ±1 incoming
+start sensitivity). Python returns incoming/outgoing native contributions as well
+as signed net coordinates, so Angular never multiplies player rates.
+
+The saved-only typed API exposes league positions, repeated `focus` parameters,
+comparison horizon and native contributions. Watch JSON retains focus/horizon
+under existing transactional revision guards; absent fields preserve legacy
+no-focus/seven-day semantics. No migration, new writer or provider read is added.
+
+Angular's season page owns the shared scenario, alternative IDs, replacement,
+comparison units and retained note drafts. Small landscape/scenario/alternatives
+components render explicit states; the existing recommendations component owns
+cancellable, metadata-checked saved reads. One overview supports landscape
+priorities and both lists even while hidden on another tab. Search preserves
+the full-population shared signed scale. Comparison reads require a target and
+replacement, plus starts only in seven-day mode; changing selected alternatives
+does not refetch an unchanged all-candidate result. The legacy projection-only
+comparison endpoint remains compatible but the new UI uses the shared fit path.
+Native modal inspection preserves the underlying workflow, sequential queue,
+recent games/news and note context. Data & settings holds management controls;
+busy/error states remain visible across tabs. See [delivery evidence](qa/2026-10-25-season-workflow-delivery.md).
+
+## ESPN-first fit — October 24, 2026, latest follow-up
+
+The user approved the [reviewed source-selection flow](outlook-live-fit-preview.html)
+and [method contract](outlook-live-fit-design.md). Pure
+`domain/season/fit_evidence.py` resolves one explicit rate source for both gross
+player discovery and net manual scenarios. It reuses complete saved-game calendar
+windows, sums counts and shooting components per played game, and leaves zero-GP
+or incomplete samples unavailable. Observed minutes are exposure context, never
+a second multiplier. League priorities and coordinate formulas are unchanged.
+
+Application fit use cases reload the saved raw history through the existing
+repository port, verify observation currency, and combine it with the separately
+reviewed projection baseline without mutating stored observations. Typed HTTP
+results carry source basis/window, actual window bounds, cutoff and player
+samples. Actuals are the default; projections require an explicit selection.
+The projection adapter additionally exposes already saved projected minutes.
+No provider/credential read or new collection mechanism is introduced.
+
+Angular keys/cancels requests by evidence signature, strategy, basis and window;
+the same metadata must match before rendering or enabling a fit save. Both lists
+show GP/minutes. Detail retains drafts and compares actuals against projections;
+supporting completed-game/news research remains actuals even in projection mode.
+Optional moves use the selected source on both sides and explicitly label actual
+rate continuation as conditional. Watch JSON adds source-window bounds and rate
+policy version under existing revision checks; old projection notes retain their
+original basis. No schema migration, second writer or forecast model is added.
+
+## Shortlist-first live Outlook — October 24, 2026, latest follow-up
+
+The user approved the [reviewed flow](outlook-shortlist-preview.html) and
+[decision contract](outlook-shortlist-design.md). Pure season recommendations
+now share coordinate arithmetic between gross per-game player fit and the
+existing net manual move fit. Both populations use one priority vector: available
+players descend, own-roster players ascend, and required-missing inputs remain
+unranked. Missing player metadata in an observed roster retains an unknown row.
+Earned totals, category directions/weights, shooting components and existing
+net-scenario formulas are preserved.
+
+`SeasonService.player_fits` reads through the existing repository/projection
+ports; `GET /api/season/player-fits` exposes typed results with source currency
+validation and no provider/credential access. The Angular recommendations child
+owns both lists, a focused sequential detail, filter/queue state and cancellable
+saved-data reads. Stable context keys avoid reloading the overview merely because
+watch revisions change. The parent retains selections, draft reasons, recent
+research and watch writes. Supporting news inspection starts only for an opened
+detail. A selected detail can request the existing net-move endpoint, with a
+named replacement and explicit starts required only at that point.
+
+Optional watch `fit_context` distinguishes per-game player research from a
+complete move; old JSON remains readable. Player research may refer to an
+available player or the selected team's roster, never another team's roster.
+Writes retain source signature/version/priority snapshot and the existing
+revision and connection-lock guarantees. Saving a roster review does not create
+a proposed transaction. There is no schema migration or extra database writer.
+
+## Overall waiver fit — October 24, 2026, latest
+
+The approved [decision contract](waiver-recommendation-design.md) adds a pure
+`domain/season/recommendations.py` calculation. It uses all current league teams,
+exact shooting components, actual scoring weights/directions, robust current
+spans and explicit manual starts to compute a signed research fit index.
+Complete priorities and candidate fits are withheld on required missing inputs.
+This module has no provider, HTTP, persistence or Angular dependencies.
+
+`SeasonService.recommendations` reads through existing saved-evidence ports;
+`GET /api/season/recommendations` exposes typed results without provider access or
+credentials. Signatures include the calculation version, observation, preferences
+and saved-rate version. Invalid/stale or refreshing comparisons are rejected.
+The standalone Angular child owns cancellable fit reads, filters and explanation;
+the live page owns navigation, note drafts, selected player/replacement and starts.
+Existing recent-game/news inspection remains separate from the future-rate basis.
+Optional JSON watch fields add strategy, method, source signature and priority
+snapshot under existing revision/connection-lock rules. No schema migration,
+second database connection, new provider client or probability model is added.
+
+## Category-focused live waiver research — October 23, 2026, latest
+
+The approved [waiver contract](live-season-waiver-research-contract.md) adds pure
+calendar-window and shooting-impact calculations in `domain/season/research.py`.
+The season service supplies ranked, dated research DTOs separately from manual
+projection scenarios. Angular controls select category, actual/projection basis
+and 7/15/30 days; a player inspector and player-only watches reuse the live page.
+
+The composition root wires a credential-free, fixed-host recent-game adapter into
+the explicit season reader. Public game dates/official flags and exact player
+queries establish the evidence boundary; private cookies never enter that client.
+Partial failures retain prior recent-game evidence and its timestamp while fresh
+league observations can still save. The existing connection lock and transactional
+JSON observations are reused without a schema migration. Older daily rows omit
+game blobs on load, and normal HTTP views omit them all; research DTOs expose only
+normalized window values and selected-category dated game values.
+
+A small application service validates ESPN-native player identity against the
+current saved pool before using the existing public news adapter/repository.
+Saved news GETs stay offline. Visible inspections refresh after 30 minutes;
+watchlist reads do not cause bulk provider checks. Published and checked dates
+remain distinct. Watch JSON gains optional category/basis/window/source fields,
+keeping old observations and scenario notes compatible. Future standings, pickup
+legality and automated ESPN transactions remain outside this slice.
+
 ## Codex workflow configuration — October 22, 2026, latest
 
 The repository no longer ships a project Codex model pin or named specialist

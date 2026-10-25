@@ -1,0 +1,256 @@
+:host {
+  display: block;
+  min-width: 0;
+  color: var(--showcase-ink);
+}
+.landscape-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(290px, 0.85fr);
+  gap: 16px;
+  align-items: start;
+}
+.surface {
+  border: 1px solid var(--showcase-line);
+  background: var(--showcase-surface);
+  padding: 16px;
+  border-radius: 10px;
+  min-width: 0;
+}
+.heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+h3 {
+  font-size: 16px;
+  color: var(--showcase-heading);
+  margin: 0;
+}
+p,
+small {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--showcase-muted);
+}
+small {
+  display: block;
+}
+.pill {
+  background: var(--showcase-green-soft);
+  color: var(--showcase-green-strong);
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+}
+.scenario {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  position: sticky;
+  top: 76px;
+}
+.category-research,
+.playbook {
+  grid-column: 1;
+  min-width: 0;
+}
+.category-action {
+  background: var(--showcase-surface);
+  border: 1px solid var(--showcase-line);
+  padding: 14px;
+  border-radius: 9px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.category-action button {
+  font-size: 11px;
+}
+.table-scroll {
+  overflow: auto;
+  max-height: 560px;
+  margin: 14px 0 8px;
+}
+.heatmap {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+  min-width: 590px;
+  table-layout: fixed;
+}
+.heatmap th {
+  font-size: 10px;
+  color: var(--showcase-muted);
+  padding: 5px;
+  text-align: center;
+}
+.heatmap th:first-child {
+  width: 115px;
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--showcase-surface);
+  z-index: 1;
+  overflow-wrap: anywhere;
+}
+.heatmap thead {
+  position: sticky;
+  top: 0;
+  background: var(--showcase-surface);
+  z-index: 2;
+}
+.heatmap th small {
+  font-size: 9px;
+  font-weight: 400;
+}
+.heatmap thead button {
+  border: 0;
+  background: transparent;
+  color: var(--showcase-heading);
+  font-weight: 700;
+  padding: 5px;
+  cursor: pointer;
+}
+.heatmap thead button[aria-pressed='true'] {
+  background: var(--showcase-blue-soft);
+  color: var(--showcase-blue);
+  border-radius: 4px;
+}
+.heat-cell {
+  background: var(--showcase-surface-soft);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  width: 100%;
+  min-height: 46px;
+  padding: 6px 2px;
+  cursor: pointer;
+  color: inherit;
+  font-size: 12px;
+}
+.heat-cell small {
+  font-size: 9px;
+  color: inherit;
+  margin-top: 4px;
+}
+.rank-high {
+  background: var(--showcase-blue-soft);
+  color: var(--showcase-blue);
+}
+.rank-low {
+  background: color-mix(in srgb, var(--showcase-orange) 15%, var(--showcase-surface));
+  color: var(--showcase-red);
+}
+.rank-unknown {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--showcase-surface-soft),
+    var(--showcase-surface-soft) 5px,
+    var(--showcase-surface) 5px,
+    var(--showcase-surface) 10px
+  );
+  color: var(--showcase-muted);
+}
+.mine .heat-cell {
+  border-color: var(--showcase-green-strong);
+  border-width: 1.5px;
+}
+.mine th {
+  color: var(--showcase-green-strong);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--showcase-muted);
+}
+.high {
+  color: var(--showcase-blue);
+}
+.low {
+  color: var(--showcase-red);
+}
+.playbook-row {
+  display: grid;
+  grid-template-columns: 45px 45px minmax(0, 1fr) 30px;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--showcase-line);
+  font-size: 12px;
+  align-items: center;
+}
+.playbook-row button {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  color: var(--showcase-green-strong);
+  font-weight: 700;
+}
+.playbook-row label {
+  display: grid;
+  place-items: center;
+  min-height: 36px;
+  cursor: pointer;
+}
+.playbook-row input {
+  accent-color: var(--showcase-green-strong);
+}
+.compact-note {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .landscape-grid {
+    display: flex;
+    flex-direction: column;
+  }
+  .landscape-grid > * {
+    width: 100%;
+  }
+  .heatmap-card {
+    order: 1;
+  }
+  .category-research {
+    order: 2;
+  }
+  .scenario {
+    position: static;
+    order: 3;
+  }
+  .playbook {
+    order: 4;
+  }
+}
+@media (max-width: 480px) {
+  .surface {
+    padding: 12px;
+  }
+  .compact-note {
+    display: block;
+  }
+  .heatmap {
+    min-width: 0;
+    border-spacing: 2px;
+  }
+  .heatmap th:first-child {
+    width: 65px;
+    font-size: 9px;
+  }
+  .heatmap th {
+    padding: 3px 0;
+  }
+  .heatmap thead button {
+    font-size: 9px;
+    padding: 4px 0;
+  }
+  .heat-cell {
+    font-size: 10px;
+    min-height: 37px;
+    padding: 4px 0;
+  }
+  .heat-cell small {
+    display: none;
+  }
+}

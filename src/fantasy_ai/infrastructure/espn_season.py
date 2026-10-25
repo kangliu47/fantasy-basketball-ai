@@ -14,6 +14,7 @@ from fantasy_ai.application.models import (
     SessionExpired,
     WorkspaceError,
 )
+from fantasy_ai.application.season.ports import SeasonRecentReader
 from fantasy_ai.domain.history.models import Category
 from fantasy_ai.domain.season.models import SeasonCapture, SeasonPlayer, SeasonTeam, SeasonWaiver
 from fantasy_ai.infrastructure.espn_gateway import ESPNLeagueGateway, _object, _objects, _text
@@ -200,8 +201,13 @@ def map_capture(
 
 
 class ESPNSeasonReader:
-    def __init__(self, transport: httpx.BaseTransport | None = None) -> None:
+    def __init__(
+        self,
+        transport: httpx.BaseTransport | None = None,
+        recent: SeasonRecentReader | None = None,
+    ) -> None:
         self.transport = transport
+        self.recent = recent
 
     def read(
         self,
@@ -254,7 +260,7 @@ class ESPNSeasonReader:
                     raise
                 except (ESPNError, ValueError, TypeError):
                     complete = False
-                return map_capture(
+                capture = map_capture(
                     selection,
                     core[ESPNView.SETTINGS],
                     core[ESPNView.TEAMS],
@@ -263,6 +269,21 @@ class ESPNSeasonReader:
                     complete,
                     pool_at,
                 )
+            if self.recent:
+                try:
+                    games, at = self.recent.read(selection.season, capture.players, cancelled)
+                    capture = replace(capture, recent_games=games, recent_captured_at=at)
+                except WorkspaceError:
+                    if cancelled and cancelled.is_set():
+                        raise
+                    capture = replace(
+                        capture,
+                        recent_error=(
+                            "Recent ESPN stats could not be verified. "
+                            "Previous recent stats are kept."
+                        ),
+                    )
+            return capture
         except ESPNAuthenticationError:
             raise SessionExpired("Connect ESPN again to read this season's league.") from None
         except (ESPNError, ValueError, TypeError, KeyError):

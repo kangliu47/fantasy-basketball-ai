@@ -61,7 +61,7 @@ export class App implements OnInit {
     if (section === 'live')
       return {
         eyebrow: '2027 · LIVE SEASON',
-        title: 'Where can your team gain ground?',
+        title: 'Your league. Your next move.',
         copy: 'Follow earned category results, investigate available players and compare a roster change.',
       };
     if (section === 'connection' && this.store.state()?.selection)

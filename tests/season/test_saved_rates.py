@@ -49,6 +49,7 @@ def test_only_reviewed_compatible_identity_supplies_saved_rates(tmp_path: Path) 
     result = reader.read(2027)
     assert result is not None
     assert result.players["espn:player:1001"]["AST"] == player.assists
+    assert result.players["espn:player:1001"]["MIN"] == player.projected_minutes
     assert "espn:player:1002" not in result.players
     links.save_link(replace(link, hashtag_name="Changed source identity", revision=2), 1)
     changed = reader.read(2027)

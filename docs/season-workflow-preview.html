@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fantasy Basketball · League to waiver workflow</title>
+    <link rel="stylesheet" href="showcase-theme.css" />
+    <link rel="stylesheet" href="season-workflow-preview.css" />
+  </head>
+  <body>
+    <header class="showcase-header">
+      <div class="showcase-brand">Fantasy Basketball</div>
+      <span class="showcase-status">Local · read-only preview</span>
+    </header>
+    <main class="showcase-page">
+      <nav class="workspace-nav" aria-label="Main workspaces">
+        <button>Auction prep</button
+        ><button aria-current="page">Live season</button
+        ><button>Historical patterns</button>
+      </nav>
+      <div class="page-heading">
+        <div>
+          <p class="showcase-eyebrow">LIVE SEASON</p>
+          <h1>Your league. Your next move.</h1>
+        </div>
+        <span class="synthetic"
+          >Synthetic review · no live data or app writes</span
+        >
+      </div>
+      <nav class="season-tabs" aria-label="Live-season views">
+        <button data-tab="landscape"><span>1</span> League landscape</button>
+        <button data-tab="targets"><span>2</span> Waiver targets</button>
+        <button data-tab="compare">
+          <span>3</span> Compare moves <b id="compare-count" hidden></b>
+        </button>
+        <button data-tab="watch">Watchlist <b id="watch-count">0</b></button>
+        <button data-tab="settings">Data &amp; settings</button>
+      </nav>
+      <div class="context-line">
+        <span id="team-context">Northstar · synthetic league</span
+        ><span id="freshness"
+          >Saved Oct 25, 9:00 AM
+          <button
+            class="info"
+            data-help="dates"
+            aria-label="Source dates and freshness"
+          >
+            ⓘ
+          </button></span
+        >
+      </div>
+      <div class="scenario-summary" id="scenario-summary" hidden></div>
+      <p class="feedback" id="feedback" role="status" hidden></p>
+
+      <section id="landscape" class="view" aria-label="League landscape">
+        <div class="view-heading">
+          <div>
+            <h2 tabindex="-1">Understand your position. Choose your focus.</h2>
+            <p>
+              Compare every team, then decide what the next pickup should
+              improve.
+            </p>
+          </div>
+        </div>
+        <div id="landscape-empty" class="showcase-card empty" hidden>
+          <h3>Start with a saved league observation</h3>
+          <p>
+            Standings and personal rankings need a selected team and saved
+            league data.
+          </p>
+          <button class="showcase-button primary" data-tab="settings">
+            Open Data &amp; settings
+          </button>
+        </div>
+        <div id="landscape-ready" class="landscape-grid">
+          <div class="landscape-main">
+            <article class="showcase-card heatmap-card">
+              <div class="row between">
+                <h3>Current league landscape</h3>
+                <span class="pill" id="overall-position"></span>
+              </div>
+              <p class="small">
+                Category ranks · select any column to investigate. Your team is
+                outlined.
+              </p>
+              <p class="small compact-heatmap-note">
+                Ranks shown here; select a category for exact team values below.
+              </p>
+              <div class="table-scroll">
+                <table
+                  class="heatmap"
+                  aria-label="Current league category heatmap"
+                >
+                  <thead id="heatmap-head"></thead>
+                  <tbody id="heatmap-body"></tbody>
+                </table>
+              </div>
+              <div class="legend">
+                <span class="legend-high">Higher standing</span
+                ><span>Middle</span
+                ><span class="legend-low">Lower standing</span
+                ><span class="legend-unknown">Unknown</span>
+              </div>
+            </article>
+            <article
+              class="showcase-card category-detail"
+              id="category-detail"
+              aria-label="Selected category improvement"
+            ></article>
+            <article class="showcase-card" id="category-playbook-card">
+              <h3>Your category playbook</h3>
+              <p class="small">
+                Every category has a next research action. These are current
+                gaps, not predicted gains.
+              </p>
+              <div id="category-playbook"></div>
+            </article>
+          </div>
+          <aside
+            class="showcase-card focus-card"
+            id="ranking-focus"
+            aria-label="Ranking scenario"
+          >
+            <p class="showcase-eyebrow">YOUR PICKUP SCENARIO</p>
+            <h3>What should the next player help?</h3>
+            <p class="small">
+              Starts with your whole-team needs. Change only what matters to
+              you.
+            </p>
+            <fieldset>
+              <legend>
+                Approach
+                <button
+                  class="info"
+                  data-help="approach"
+                  aria-label="How approach changes priorities"
+                >
+                  ⓘ
+                </button>
+              </legend>
+              <div class="approaches" id="approaches"></div>
+            </fieldset>
+            <fieldset>
+              <legend>
+                Extra category focus
+                <button
+                  class="info"
+                  data-help="focus"
+                  aria-label="How category focus changes ranking"
+                >
+                  ⓘ
+                </button>
+              </legend>
+              <div id="focus-categories" class="chips"></div>
+              <button class="text-button" id="clear-focus">
+                Use automatic whole-team balance
+              </button>
+            </fieldset>
+            <div class="source-controls">
+              <label
+                >Rank using<select id="basis">
+                  <option value="recent">Recent ESPN actuals</option>
+                  <option value="projection">Saved projections</option>
+                </select></label
+              ><label
+                >Actuals window<select id="days">
+                  <option value="7">Last 7 days</option>
+                  <option value="15">Last 15 days</option>
+                  <option value="30">Last 30 days</option>
+                </select></label
+              >
+            </div>
+            <p class="small" id="focus-explanation"></p>
+            <div
+              class="priority-shares"
+              id="priority-shares"
+              aria-label="Resulting category priorities"
+            ></div>
+            <button class="showcase-button primary full" data-tab="targets">
+              See ranked waiver targets →
+            </button>
+            <small
+              >Changes carry into targets and comparisons immediately.</small
+            >
+          </aside>
+        </div>
+      </section>
+
+      <section id="targets" class="view" aria-label="Waiver targets" hidden>
+        <div class="view-heading">
+          <div>
+            <h2 tabindex="-1">Find a better fit for your focus</h2>
+            <p>
+              Investigate a name. Select alternatives and a possible replacement
+              to compare.
+            </p>
+          </div>
+        </div>
+        <div class="list-toolbar">
+          <label
+            >Find a player<input
+              type="search"
+              id="search"
+              placeholder="Name or position" /></label
+          ><span id="pool-summary"></span
+          ><button
+            class="info"
+            data-help="pool"
+            aria-label="Explain player pool coverage"
+          >
+            ⓘ</button
+          ><span class="bar-key"
+            >Blue: positive fit · orange: negative
+            <button
+              class="info"
+              data-help="fit"
+              aria-label="How to read fit bars"
+            >
+              ⓘ
+            </button></span
+          >
+        </div>
+        <div id="targets-empty" class="showcase-card empty" hidden>
+          <h3>Rankings need saved league evidence</h3>
+          <button class="showcase-button" data-tab="settings">
+            Open Data &amp; settings
+          </button>
+        </div>
+        <nav class="list-jumps" aria-label="Jump to player list">
+          <a class="showcase-button" href="#workflow-waivers"
+            >Waiver targets ↓</a
+          >
+          <a class="showcase-button" href="#workflow-roster">Review roster ↓</a>
+        </nav>
+        <div class="lists" id="target-lists">
+          <article class="showcase-card" id="workflow-waivers">
+            <div class="list-heading">
+              <h3>Waiver targets</h3>
+              <span>Strongest fit first ↓</span>
+            </div>
+            <p class="small" id="waiver-coverage"></p>
+            <div id="waiver-list"></div>
+          </article>
+          <article class="showcase-card">
+            <div class="list-heading">
+              <h3>Review your roster</h3>
+              <span>Lowest fit first ↑</span>
+            </div>
+            <p class="small">
+              Choose one possible replacement. Low fit is a reason to
+              investigate.
+            </p>
+            <div id="roster-list"></div>
+          </article>
+        </div>
+        <div class="selection-tray" id="selection-tray" hidden></div>
+      </section>
+
+      <section id="compare" class="view" aria-label="Compare moves" hidden>
+        <div class="view-heading">
+          <div>
+            <h2 tabindex="-1">Compare alternatives. Keep the tradeoffs.</h2>
+            <p>
+              Each target replaces the same roster player separately. They are
+              not a combined package.
+            </p>
+          </div>
+        </div>
+        <article class="showcase-card" id="workflow-roster">
+          <div class="compare-controls">
+            <label>Possible replacement<select id="replacement"></select></label
+            ><label
+              >Difference shown<select id="horizon">
+                <option value="per_game">Per played game</option>
+                <option value="seven_day">Seven-day manual scenario</option>
+              </select></label
+            >
+            <div class="start-inputs" id="start-inputs" hidden>
+              <label
+                >Incoming credited starts<select id="incoming"></select></label
+              ><label
+                >Outgoing credited starts<select id="outgoing"></select
+              ></label>
+            </div>
+            <label
+              >Add an alternative<select id="add-alternative"></select
+            ></label>
+          </div>
+          <p class="small" id="comparison-basis"></p>
+          <div class="selected-alternatives" id="selected-alternatives"></div>
+        </article>
+        <div id="compare-results"></div>
+      </section>
+
+      <section id="watch" class="view" aria-label="Watchlist" hidden>
+        <div class="view-heading">
+          <div>
+            <h2 tabindex="-1">Keep the reason behind the target</h2>
+            <p>
+              Research notes retain the selected scenario and source context.
+            </p>
+          </div>
+        </div>
+        <div id="watch-list"></div>
+      </section>
+
+      <section id="settings" class="view" aria-label="Data and settings" hidden>
+        <div class="view-heading">
+          <div>
+            <h2 tabindex="-1">Your team, sources and refresh</h2>
+            <p>
+              Manage the evidence here. Your research tabs stay focused on
+              decisions.
+            </p>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <article class="showcase-card">
+            <h3>Team &amp; connection</h3>
+            <label
+              >My team<select id="team">
+                <option>Northstar · synthetic</option>
+              </select></label
+            >
+            <p>
+              <span id="connection-label" class="pill"
+                >Connected · synthetic</span
+              >
+            </p>
+            <label class="check"
+              ><input type="checkbox" id="automatic" checked /> Daily refresh
+              while open and connected</label
+            >
+            <div class="row">
+              <button class="showcase-button primary" id="refresh">
+                Refresh synthetic data</button
+              ><button class="showcase-button" id="cancel-refresh" hidden>
+                Cancel refresh
+              </button>
+            </div>
+            <p id="refresh-result" role="status">
+              Saved example available. No provider calls in this preview.
+            </p>
+          </article>
+          <article class="showcase-card">
+            <h3>Sources &amp; coverage</h3>
+            <dl>
+              <div>
+                <dt>League standings / availability</dt>
+                <dd id="league-source-date">Oct 25, 2026 · 9:00 AM ET</dd>
+              </div>
+              <div>
+                <dt>Completed-game actuals</dt>
+                <dd id="actual-source-date">Oct 25, 2026 · 9:00 AM ET</dd>
+              </div>
+              <div>
+                <dt>Saved projection baseline</dt>
+                <dd id="projection-source-date">Oct 22, 2026 · 6:00 PM ET</dd>
+              </div>
+            </dl>
+            <p id="settings-coverage"></p>
+            <p class="small">
+              A successful refresh updates its own source. Public player news
+              and saved projections have independent dates.
+            </p>
+          </article>
+          <article class="showcase-card">
+            <h3>Pickup rules</h3>
+            <dl>
+              <div>
+                <dt>FAAB</dt>
+                <dd>Enabled · synthetic $100 budget</dd>
+              </div>
+              <div>
+                <dt>Waiver period</dt>
+                <dd>24 hours</dd>
+              </div>
+              <div>
+                <dt>Lineup lock</dt>
+                <dd>Individual game</dd>
+              </div>
+              <div>
+                <dt>Acquisition / remaining starts</dt>
+                <dd>Unverified</dd>
+              </div>
+            </dl>
+            <p class="small">
+              A fit ranking does not establish claim clearance, a legal lineup,
+              usable starts or a FAAB bid.
+            </p>
+          </article>
+          <article class="showcase-card">
+            <h3>Preview evidence states</h3>
+            <label
+              >Example state<select id="evidence">
+                <option value="ready">Saved evidence · partial pool</option>
+                <option value="missing">
+                  One player missing shooting actuals
+                </option>
+                <option value="geometry">One league category incomplete</option>
+                <option value="failed">
+                  Refresh failed · retain saved evidence
+                </option>
+                <option value="empty">No saved league observation</option>
+              </select></label
+            >
+            <p class="small">
+              Review-only controls. All players, stats, news and states are
+              synthetic. Notes last until reload.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <dialog id="player-dialog" aria-labelledby="player-title">
+        <div class="dialog-heading">
+          <h2 id="player-title"></h2>
+          <button class="showcase-button" id="close-player">Close</button>
+        </div>
+        <div class="row dialog-actions" aria-label="Player research sequence">
+          <button class="showcase-button" id="previous-player">
+            ← Previous
+          </button>
+          <button class="showcase-button" id="next-player">Next →</button>
+        </div>
+        <div id="player-body"></div>
+        <label
+          >Reason to watch<textarea
+            id="reason"
+            placeholder="What would make this player worth the move?"
+          ></textarea>
+        </label>
+        <div class="row dialog-actions">
+          <button class="showcase-button primary" id="save-watch">
+            Save watch note</button
+          ><button class="showcase-button" id="compare-player">
+            Add to comparison
+          </button>
+        </div>
+        <p id="note-result" role="status"></p>
+      </dialog>
+      <div class="help-popover" id="help-popover" role="tooltip" hidden></div>
+      <footer class="showcase-footer">
+        Workflow review · synthetic data · fantasy-analytics-v1
+      </footer>
+    </main>
+    <script src="season-workflow-preview.js"></script>
+  </body>
+</html>

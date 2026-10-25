@@ -1,37 +1,28 @@
 <section class="season-page" aria-label="Live season">
-  <header class="season-action-row">
-    <div class="action-context">
-      Live-season evidence
-      <app-help-tip
-        label="About live-season decisions"
-        [text]="
-          'Review current scored category values and compare available-player contributions with your roster. ' +
-          (view()?.forecast_message ?? '') +
-          ' Current pool and waiver context are limited to returned source data.'
-        "
-      />
-    </div>
-    <div class="actions">
-      @if (view()?.operation.status === 'running') {
-        <button mat-stroked-button type="button" (click)="cancelRefresh()">Cancel refresh</button>
-      }
+  <nav class="tabs workflow-tabs" aria-label="Live-season views">
+    @for (
+      item of [
+        { id: 'landscape', label: '1 · League landscape' },
+        { id: 'outlook', label: '2 · Waiver targets' },
+        { id: 'compare', label: '3 · Compare moves' },
+        { id: 'watchlist', label: 'Watchlist' },
+        { id: 'settings', label: 'Data & settings' },
+      ];
+      track item.id
+    ) {
       <button
-        mat-flat-button
         type="button"
-        [disabled]="!isConnected() || refreshing() || view()?.operation.status === 'running'"
-        (click)="requestRefresh()"
+        [class.active]="tab() === item.id"
+        [attr.aria-current]="tab() === item.id ? 'page' : null"
+        (click)="openTab($any(item.id))"
       >
-        {{
-          view()?.operation.status === 'running'
-            ? 'Refreshing…'
-            : refreshing()
-              ? 'Requesting refresh…'
-              : 'Refresh data'
-        }}
+        {{ item.label }}
+        @if (item.id === 'watchlist' && view()?.watches?.length) {
+          <small>{{ view()?.watches?.length }}</small>
+        }
       </button>
-    </div>
-  </header>
-
+    }
+  </nav>
   @if (loading() && !view()) {
     <div class="loading" role="status">
       <mat-spinner diameter="22" /> Loading saved live-season evidence…
@@ -39,739 +30,818 @@
   }
   @if (error()) {
     <div class="notice error" role="alert">
-      <span>{{ error() }}</span
-      ><button mat-button type="button" (click)="retry()">Retry</button>
+      {{ error() }} <button mat-button (click)="retry()">Retry</button>
     </div>
   }
   @if (view(); as state) {
-    @if (state.operation.status !== 'idle') {
-      <div
-        class="notice"
-        [class.error]="state.operation.status === 'error'"
-        role="status"
-        aria-live="polite"
-      >
-        <span>{{ state.operation.message }}</span>
+    @if (state.operation.status === 'running' || state.operation.status === 'error') {
+      <div class="notice" [class.error]="state.operation.status === 'error'" role="status">
+        {{ state.operation.message }}
         @if (state.operation.status === 'running') {
-          <mat-spinner diameter="18" />
+          <button mat-button (click)="cancelRefresh()">Cancel refresh</button>
         }
       </div>
     }
-    @for (message of state.capture?.messages ?? []; track $index) {
-      <div class="notice" role="status">{{ message }}</div>
-    }
-    @if (!isConnected() && hasCapture()) {
-      <section class="connection-card">
-        <div>
-          <span class="pill">{{
-            state.connection === 'expired' ? 'Sign-in needed' : 'Offline'
-          }}</span>
-          <h2>Connect ESPN to collect current league evidence</h2>
+    @if (tab() !== 'settings' && hasCapture()) {
+      <div class="evidence-line">
+        <span
+          >{{ selectedTeam()?.name || 'Choose your team in Data & settings' }} · League checked
+          {{ freshness(capture()?.captured_at) }}</span
+        ><span
+          >{{ isConnected() ? 'ESPN connected' : 'Saved evidence · offline' }}
           <app-help-tip
-            label="About connecting ESPN"
-            text="Saved observations remain available offline. Sign in directly in the dedicated ESPN window; this app never submits roster or waiver transactions."
-          />
-        </div>
-        <button mat-flat-button type="button" (click)="connectRequested.emit()">
-          {{ state.connection === 'expired' ? 'Reconnect ESPN' : 'Connect ESPN' }}
-        </button>
-      </section>
+            label="Saved evidence and pool coverage"
+            text="League standings and ownership come from the dated saved observation. ESPN may return only part of the available-player pool; returned player count is not proof that every free agent was collected. Rankable players also need complete statistics in the selected source. Rankings cover returned players only. Open Data & settings to check source dates or refresh."
+        /></span>
+      </div>
     }
-
     @if (hasCapture()) {
-      <section class="controls-card" aria-label="Current season selection">
-        <label
-          >My team
-          <select
-            [value]="state.preferences.team_id ?? ''"
-            (change)="savePreferences($any($event.target).value, state.preferences.automatic_daily)"
-            [disabled]="revisionConflict()"
+      <ng-template #seasonContext>
+        <section class="controls-card" aria-label="Current season selection">
+          <label
+            >My team
+            <select
+              [ngModel]="state.preferences.team_id ?? ''"
+              (ngModelChange)="savePreferences($event, state.preferences.automatic_daily)"
+              [disabled]="revisionConflict()"
+            >
+              <option value="" disabled>Select a 2027 team</option>
+              @for (team of state.capture!.teams; track team.id) {
+                <option [value]="team.id">{{ team.name }}</option>
+              }
+            </select>
+          </label>
+          <label class="check-control"
+            ><input
+              type="checkbox"
+              [checked]="state.preferences.automatic_daily"
+              (change)="
+                savePreferences(state.preferences.team_id ?? '', $any($event.target).checked)
+              "
+              [disabled]="!state.preferences.team_id || revisionConflict()"
+            />
+            Daily check while open and connected</label
           >
-            <option value="" disabled>Select a 2027 team</option>
-            @for (team of state.capture!.teams; track team.id) {
-              <option [value]="team.id">{{ team.name }}</option>
-            }
-          </select>
-        </label>
-        <label class="check-control"
-          ><input
-            type="checkbox"
-            [checked]="state.preferences.automatic_daily"
-            (change)="savePreferences(state.preferences.team_id ?? '', $any($event.target).checked)"
-            [disabled]="!state.preferences.team_id || revisionConflict()"
-          />
-          Daily check while open and connected</label
-        >
-        @if (writeError()) {
-          <div class="write-feedback">
-            <p class="inline-error" role="alert">{{ writeError() }}</p>
-            @if (revisionConflict()) {
-              <button mat-button type="button" (click)="retry()">Reload current view</button>
-            }
+          @if (writeError()) {
+            <div class="write-feedback">
+              <p class="inline-error" role="alert">{{ writeError() }}</p>
+              @if (revisionConflict()) {
+                <button mat-button type="button" (click)="retry()">Reload current view</button>
+              }
+            </div>
+          }
+          <div class="source-line">
+            <span
+              >{{ state.capture!.league_name }} · {{ state.capture!.teams.length }} teams ·
+              {{ state.capture!.categories.length }} categories</span
+            ><span>Observed: {{ freshness(state.capture!.captured_at) }}</span
+            ><span>Recent actuals: {{ freshness(state.capture!.recent_captured_at) }}</span
+            ><span>Saved rates: {{ freshness(state.projection_captured_at) }}</span>
           </div>
+        </section>
+        <section class="constraints-card" aria-label="Pickup constraints">
+          <div class="surface-heading">
+            <h2>Pickup constraints</h2>
+            <app-help-tip
+              label="Pickup constraints and legality"
+              text="Only the returned league rules are shown. Negative acquisition-limit codes are unverified rather than treated as a usable numeric cap. Unknown constraints prevent a legality conclusion. Remaining budget is not a bid recommendation; auction prices do not apply to in-season pickups."
+            />
+          </div>
+          <dl class="constraint-grid">
+            <div>
+              <dt>FAAB</dt>
+              <dd>
+                {{
+                  state.capture!.waiver.faab === null
+                    ? 'Unknown'
+                    : state.capture!.waiver.faab
+                      ? 'Enabled'
+                      : 'Not used'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>League budget</dt>
+              <dd>
+                {{
+                  state.capture!.waiver.faab === null
+                    ? 'Unknown'
+                    : state.capture!.waiver.faab
+                      ? state.capture!.waiver.budget === null
+                        ? 'Unknown'
+                        : format(state.capture!.waiver.budget)
+                      : 'Not used'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>My remaining budget</dt>
+              <dd>
+                {{
+                  state.capture!.waiver.faab === null
+                    ? 'Unknown'
+                    : state.capture!.waiver.faab
+                      ? selectedTeam()?.faab_remaining === null ||
+                        selectedTeam()?.faab_remaining === undefined
+                        ? 'Unknown'
+                        : format(selectedTeam()?.faab_remaining)
+                      : 'Not used'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Minimum bid</dt>
+              <dd>
+                {{
+                  state.capture!.waiver.minimum_bid === null
+                    ? 'Unknown'
+                    : format(state.capture!.waiver.minimum_bid)
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Acquisition limit</dt>
+              <dd>
+                {{
+                  state.capture!.waiver.acquisition_limit === null ||
+                  state.capture!.waiver.acquisition_limit! < 0
+                    ? 'Unknown'
+                    : state.capture!.waiver.acquisition_limit
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Waiver hours</dt>
+              <dd>
+                {{
+                  state.capture!.waiver.waiver_hours === null
+                    ? 'Unknown'
+                    : state.capture!.waiver.waiver_hours + ' hours'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Lineup lock</dt>
+              <dd>{{ lineupLock(state.capture!.waiver.lineup_lock) }}</dd>
+            </div>
+          </dl>
+        </section>
+      </ng-template>
+      <ng-template #playerInspector>
+        @if (selectedPlayerInfo(); as player) {
+          <section class="surface research-inspector" #researchPanel>
+            <app-season-player-research
+              [active]="active()"
+              [leagueId]="leagueId()"
+              [player]="player"
+              [row]="inspectedRow()"
+              [loading]="researchLoading()"
+              [error]="researchError()"
+              (retryRequested)="loadResearch()"
+              [category]="selectedCategoryInfo()"
+              [basis]="researchMode() === 'overall' ? 'recent' : basis()"
+              [days]="windowDays()"
+              [wholeTeamContext]="researchMode() === 'overall'"
+            />
+            <label
+              >Reason to watch<textarea
+                [value]="reason()"
+                (input)="reason.set($any($event.target).value)"
+                placeholder="What would make this player worth a pickup?"
+              ></textarea>
+            </label>
+            <div class="actions">
+              <button
+                mat-flat-button
+                (click)="saveWatch(researchMode() === 'overall' ? !fitReady() : true)"
+                [disabled]="
+                  savingWatch() ||
+                  revisionConflict() ||
+                  (researchMode() === 'overall'
+                    ? !overviewReady()
+                    : player.team_id !== null ||
+                      !['free_agent', 'waiver'].includes(player.availability)) ||
+                  state.operation.status === 'running'
+                "
+              >
+                {{
+                  savingWatch()
+                    ? 'Saving…'
+                    : researchMode() === 'overall'
+                      ? 'Save fit and watch note'
+                      : 'Save watch note'
+                }}
+              </button>
+              @if (researchMode() === 'category') {
+                <button mat-stroked-button (click)="compareCurrent()">Compare a move…</button>
+              }
+            </div>
+            @if (writeError()) {
+              <p role="alert">{{ writeError() }}</p>
+            }
+            @if (watchSaveMessage()) {
+              <p role="status">{{ watchSaveMessage() }}</p>
+            }
+          </section>
+        } @else if (selectedPlayer()) {
+          <p class="notice">
+            The previously selected player is absent from this pool observation. Refresh
+            availability or choose another player; saved reasons remain in Watchlist.
+          </p>
         }
-        <div class="source-line">
-          <span
-            >{{ state.capture!.league_name }} · {{ state.capture!.teams.length }} teams ·
-            {{ state.capture!.categories.length }} categories</span
-          ><span>Observed: {{ freshness(state.capture!.captured_at) }}</span
-          ><span>Saved rates: {{ freshness(state.projection_captured_at) }}</span>
-        </div>
-      </section>
-      <section class="constraints-card" aria-label="Pickup constraints">
-        <div class="surface-heading">
-          <h2>Pickup constraints</h2>
-          <app-help-tip
-            label="Pickup constraints and legality"
-            text="Only the returned league rules are shown. Negative acquisition-limit codes are unverified rather than treated as a usable numeric cap. Unknown constraints prevent a legality conclusion. Remaining budget is not a bid recommendation; auction prices do not apply to in-season pickups."
-          />
-        </div>
-        <dl class="constraint-grid">
-          <div>
-            <dt>FAAB</dt>
-            <dd>
-              {{
-                state.capture!.waiver.faab === null
-                  ? 'Unknown'
-                  : state.capture!.waiver.faab
-                    ? 'Enabled'
-                    : 'Not used'
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>League budget</dt>
-            <dd>
-              {{
-                state.capture!.waiver.faab === null
-                  ? 'Unknown'
-                  : state.capture!.waiver.faab
-                    ? state.capture!.waiver.budget === null
-                      ? 'Unknown'
-                      : format(state.capture!.waiver.budget)
-                    : 'Not used'
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>My remaining budget</dt>
-            <dd>
-              {{
-                state.capture!.waiver.faab === null
-                  ? 'Unknown'
-                  : state.capture!.waiver.faab
-                    ? selectedTeam()?.faab_remaining === null ||
-                      selectedTeam()?.faab_remaining === undefined
-                      ? 'Unknown'
-                      : format(selectedTeam()?.faab_remaining)
-                    : 'Not used'
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>Minimum bid</dt>
-            <dd>
-              {{
-                state.capture!.waiver.minimum_bid === null
-                  ? 'Unknown'
-                  : format(state.capture!.waiver.minimum_bid)
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>Acquisition limit</dt>
-            <dd>
-              {{
-                state.capture!.waiver.acquisition_limit === null ||
-                state.capture!.waiver.acquisition_limit! < 0
-                  ? 'Unknown'
-                  : state.capture!.waiver.acquisition_limit
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>Waiver hours</dt>
-            <dd>
-              {{
-                state.capture!.waiver.waiver_hours === null
-                  ? 'Unknown'
-                  : state.capture!.waiver.waiver_hours + ' hours'
-              }}
-            </dd>
-          </div>
-          <div>
-            <dt>Lineup lock</dt>
-            <dd>{{ lineupLock(state.capture!.waiver.lineup_lock) }}</dd>
-          </div>
-        </dl>
-      </section>
+      </ng-template>
 
       @if (!selectedTeam()) {
-        <section class="empty-state">
-          <h2>Choose your current 2027 team</h2>
-          <p>
-            The league values are collected, but personal outlook and comparison need an explicit
-            team selection.
-          </p>
-        </section>
-      } @else {
-        <nav class="tabs" aria-label="Live-season views">
-          <button
-            type="button"
-            [class.active]="tab() === 'outlook'"
-            [attr.aria-current]="tab() === 'outlook' ? 'page' : null"
-            (click)="openTab('outlook')"
-          >
-            My outlook
-          </button>
-          <button
-            type="button"
-            [class.active]="tab() === 'compare'"
-            [attr.aria-current]="tab() === 'compare' ? 'page' : null"
-            (click)="openTab('compare')"
-          >
-            Compare a move
-          </button>
-          <button
-            type="button"
-            [class.active]="tab() === 'watchlist'"
-            [attr.aria-current]="tab() === 'watchlist' ? 'page' : null"
-            (click)="openTab('watchlist')"
-          >
-            Watchlist <span class="count">{{ state.watches.length }}</span>
-          </button>
-        </nav>
-
-        @if (tab() === 'outlook') {
-          <section class="section-heading">
-            <div>
-              <h2>
-                Your current category outlook
-                <app-help-tip
-                  label="Current category outlook method"
-                  [text]="
-                    'These values are current ESPN credited standings. Category rank, points, and gaps appear only where saved scoring context supports them. ' +
-                    state.forecast_message
-                  "
-                />
-              </h2>
-              <p>Current scored values · future standings unavailable</p>
-            </div>
-          </section>
-          <div class="category-grid" aria-label="Select a category">
-            @for (category of categories(); track category.code) {
-              @let standing = state.standings.find((row) => row.category === category.code);
-              <div class="category-item">
-                <button
-                  type="button"
-                  class="category-card"
-                  [class.selected]="selectedCategory() === category.code"
-                  [attr.aria-pressed]="selectedCategory() === category.code"
-                  (click)="selectCategory(category.code)"
-                >
-                  <span>{{ category.code }}</span>
-                  <strong>{{ format(standing?.value, category) }}</strong>
-                  <small
-                    >{{ standing?.rank == null ? 'Rank unavailable' : 'Rank ' + standing?.rank }} ·
-                    {{
-                      standing?.points == null
-                        ? 'points unavailable'
-                        : format(standing?.points) + ' pts'
-                    }}</small
-                  >
-                </button>
-                <app-help-tip
-                  [label]="category.code + ' category details'"
-                  [text]="
-                    category.supported
-                      ? 'Current ESPN category value. Rank and point gaps use the league scoring direction and category weights when all required team values are available.'
-                      : 'This category is present in the league but derived standings are not supported by current evidence.'
-                  "
-                />
-              </div>
-            }
-          </div>
-          <div class="analysis-grid">
-            <section class="surface">
-              <div class="surface-heading">
-                <div>
-                  <h2>{{ selectedCategory() || 'Category' }} · current league values</h2>
-                  <p>Credited totals · shooting ratios use makes and attempts.</p>
-                </div>
-                <span class="pill">{{
-                  selectedStanding()?.reconciled === false
-                    ? 'Reconciliation needs review'
-                    : 'Current values'
-                }}</span>
-              </div>
-              @if (selectedCategoryInfo()?.supported && chartTeams().length) {
-                <svg
-                  class="league-chart"
-                  [attr.viewBox]="'0 0 760 ' + chartHeight()"
-                  role="img"
-                  [attr.aria-label]="selectedCategory() + ' current values for all league teams'"
-                >
-                  <title>{{ selectedCategory() }} current values by team</title>
-                  @for (team of chartTeams(); track team.id; let i = $index) {
-                    @let val = teamValue(team, selectedCategoryInfo());
-                    @let span = chartRange().max - chartRange().min;
-                    <text
-                      x="8"
-                      [attr.y]="24 + i * 27"
-                      [class.my-team]="team.id === selectedTeam()?.id"
-                    >
-                      {{ team.name }}
-                    </text>
-                    @if (val !== null) {
-                      <rect
-                        x="185"
-                        [attr.y]="10 + i * 27"
-                        [attr.width]="span === 0 ? 8 : 8 + ((val - chartRange().min) / span) * 480"
-                        height="17"
-                        rx="4"
-                        [class.my-bar]="team.id === selectedTeam()?.id"
-                        class="bar"
-                      >
-                        <title>{{ team.name }}: {{ format(val, selectedCategoryInfo()) }}</title>
-                      </rect>
-                    }
-                    <text x="690" [attr.y]="24 + i * 27" text-anchor="end">
-                      {{ format(val, selectedCategoryInfo()) }}
-                    </text>
-                  }
-                </svg>
-                <dl class="mobile-league-values">
-                  @for (team of chartTeams(); track team.id) {
-                    <div>
-                      <dt>{{ team.name }}</dt>
-                      <dd>
-                        {{
-                          format(teamValue(team, selectedCategoryInfo()), selectedCategoryInfo())
-                        }}
-                      </dd>
-                    </div>
-                  }
-                </dl>
-              } @else {
-                <p class="empty-inline">
-                  No comparable current values are available for this category.
-                </p>
-              }
-              <div class="gap-summary">
-                <div>
-                  <small>Your rank</small
-                  ><strong>{{
-                    selectedStanding()?.rank == null ? '—' : '#' + selectedStanding()?.rank
-                  }}</strong>
-                </div>
-                <div>
-                  <small>Gap to next rank</small
-                  ><strong>{{
-                    formatGap(selectedStanding()?.gap_up, selectedCategoryInfo())
-                  }}</strong>
-                </div>
-                <div>
-                  <small>Buffer below</small
-                  ><strong>{{
-                    formatGap(selectedStanding()?.buffer_down, selectedCategoryInfo())
-                  }}</strong>
-                </div>
-              </div>
-              <div class="source-line">
-                <strong>Daily scored position</strong
-                ><app-help-tip
-                  label="Daily trend and collection gaps"
-                  text="Each point is a saved scored observation, labeled by collection date. Lines break at missing dates or unavailable category points. Changes across gaps are not daily game stats."
-                />
-              </div>
-              @if (recentTrend().length) {
-                <svg
-                  viewBox="0 0 380 100"
-                  class="daily-trend"
-                  role="img"
-                  aria-label="Saved daily total roto points"
-                >
-                  <path
-                    [attr.d]="trendPath()"
-                    fill="none"
-                    stroke="var(--showcase-green)"
-                    stroke-width="3"
-                  />
-                </svg>
-                <div class="source-line">
-                  @for (point of recentTrend(); track point.date) {
-                    <span
-                      >{{ point.date }} ·
-                      {{
-                        point.points === null ? 'unavailable' : format(point.points) + ' pts'
-                      }}</span
-                    >
-                  }
-                </div>
-              } @else {
-                <span class="muted">Daily trend starts after the first scored observation.</span>
-              }
-              @if (state.missed_dates.length) {
-                <div class="coverage warning">
-                  {{ state.missed_dates.length }} collection dates missing
-                  <app-help-tip
-                    label="Missed collection dates"
-                    [text]="state.missed_dates.join(', ')"
-                  />
-                </div>
-              }
-            </section>
-            <aside class="surface sidebar">
-              <div class="surface-heading">
-                <h2>Available players</h2>
-                <app-help-tip
-                  label="Available player pool coverage"
-                  text="The returned pool may be partial. Coverage and source time below describe what was actually collected; unknown players and waiver rules remain unknown."
-                />
-              </div>
-              <p class="coverage" [class.warning]="!capture()?.pool_complete">
-                {{
-                  capture()?.pool_complete
-                    ? 'Pool coverage: complete'
-                    : 'Pool coverage: partial or undeclared'
-                }}
-              </p>
-              <p class="muted">Pool source: {{ freshness(capture()?.pool_captured_at) }}</p>
-              <div class="filters">
-                <label
-                  >Find player<input
-                    type="search"
-                    [value]="search()"
-                    (input)="search.set($any($event.target).value)"
-                    placeholder="Name or position" /></label
-                ><label
-                  >Position<select
-                    [value]="position()"
-                    (change)="position.set($any($event.target).value)"
-                  >
-                    <option value="all">All positions</option>
-                    @for (pos of ['PG', 'SG', 'SF', 'PF', 'C']; track pos) {
-                      <option [value]="pos">{{ pos }}</option>
-                    }
-                  </select></label
-                >
-              </div>
-              @if (availablePlayers().length) {
-                <div class="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Player</th>
-                        <th>Availability</th>
-                        <th>
-                          {{
-                            selectedCategoryInfo()?.numerator
-                              ? selectedCategoryInfo()?.numerator +
-                                ' / ' +
-                                selectedCategoryInfo()?.denominator
-                              : selectedCategory()
-                          }}
-                          / game
-                        </th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (player of availablePlayers(); track player.id) {
-                        <tr>
-                          <td>
-                            <strong>{{ player.name }}</strong
-                            ><small>{{ player.positions.join(' / ') || 'Position unknown' }}</small>
-                            @if (player.status) {
-                              <small>{{ player.status }}</small>
-                            }
-                          </td>
-                          <td>
-                            {{ player.availability === 'waiver' ? 'Waiver' : 'Free agent' }}
-                            @if (player.availability === 'waiver') {
-                              <small>{{
-                                player.waiver_clear_at
-                                  ? 'Clears ' + freshness(player.waiver_clear_at)
-                                  : 'Clearance unknown'
-                              }}</small>
-                            }
-                          </td>
-                          <td>{{ playerValue(player, selectedCategoryInfo()) }}</td>
-                          <td>
-                            <button
-                              mat-button
-                              type="button"
-                              (click)="choosePlayer(player.id); openTab('compare')"
-                            >
-                              Compare
-                            </button>
-                          </td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              } @else {
-                <p class="empty-inline">No verified available players match this filter.</p>
-              }
-              <p class="footnote">
-                Player rates are source values per game. Starts are manual assumptions in the
-                comparison. No net roto-point or legality claim is made.
-              </p>
-            </aside>
-          </div>
-        }
-
-        @if (tab() === 'compare') {
-          <section class="section-heading">
-            <div>
-              <h2>
-                Compare an add/drop
-                <app-help-tip
-                  label="Manual seven-day comparison"
-                  text="This compares add-minus-drop player contributions using the starts you enter. Starts are hypothetical credited starts from 0 to 7, not schedule-derived or verified lineup feasibility. Full-team shooting percentage and future league ranks cannot be derived from these inputs."
-                />
-              </h2>
-              <p>Manual starts · forecast unavailable</p>
-            </div>
-            <span class="pill">Forecast unavailable</span>
-          </section>
-          <section class="surface">
-            <div class="source-line">
-              <span>Player status: {{ selectedPlayerInfo()?.status ?? 'Unknown' }}</span>
-              @if (selectedPlayerInfo()?.availability === 'waiver') {
-                <span
-                  >Waiver clearance:
-                  {{
-                    selectedPlayerInfo()?.waiver_clear_at
-                      ? freshness(selectedPlayerInfo()?.waiver_clear_at)
-                      : 'Unknown'
-                  }}</span
-                >
-              }
-              <app-help-tip
-                label="Player status and participation"
-                text="A provider status flag is dated context. It is not a return date or a guarantee of participation. Enter only hypothetical starts you want to investigate; source and lineup constraints remain visible."
-              />
-            </div>
-            <div class="split-controls">
-              <label
-                >Add from available pool<select
-                  [value]="selectedPlayer()"
-                  (change)="choosePlayer($any($event.target).value)"
-                >
-                  @if (selectedPlayer() && !selectedPlayerInfo()) {
-                    <option [value]="selectedPlayer()" disabled>
-                      Previously selected player unavailable
-                    </option>
-                  }
-                  @for (player of allAvailablePlayers(); track player.id) {
-                    <option [value]="player.id">
-                      {{ player.name }} ·
-                      {{ player.availability === 'waiver' ? 'waiver' : 'free agent' }}
-                    </option>
-                  }
-                </select></label
-              >
-              <label
-                >Drop from your roster<select
-                  [value]="selectedDrop()"
-                  (change)="chooseDrop($any($event.target).value)"
-                >
-                  @if (selectedDrop() && !selectedDropInfo()) {
-                    <option [value]="selectedDrop()" disabled>
-                      Previously selected roster player unavailable
-                    </option>
-                  }
-                  @for (player of ownRoster(); track player.id) {
-                    <option [value]="player.id">{{ player.name }}</option>
-                  }
-                </select></label
-              >
-              <label
-                >Added starts (0–7)<select
-                  [value]="addedStarts()"
-                  (change)="addedStarts.set(+$any($event.target).value); comparisonChanged()"
-                >
-                  @for (n of [0, 1, 2, 3, 4, 5, 6, 7]; track n) {
-                    <option [value]="n">{{ n }} assumed starts</option>
-                  }
-                </select></label
-              >
-              <label
-                >Removed starts (0–7)<select
-                  [value]="removedStarts()"
-                  (change)="removedStarts.set(+$any($event.target).value); comparisonChanged()"
-                >
-                  @for (n of [0, 1, 2, 3, 4, 5, 6, 7]; track n) {
-                    <option [value]="n">{{ n }} assumed starts</option>
-                  }
-                </select></label
-              >
-            </div>
-            @if (comparisonError()) {
-              <div class="notice error" role="alert">
-                {{ comparisonError() }}
-                <button mat-button type="button" (click)="comparisonChanged()">Retry</button>
-              </div>
-            }
-            @if (comparisonLoading()) {
-              <div class="loading" role="status">
-                <mat-spinner diameter="18" /> Updating comparison…
-              </div>
-            }
-            @if (comparison(); as result) {
-              <div class="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Category</th>
-                      <th>Added contribution</th>
-                      <th>Removed contribution</th>
-                      <th>Add − drop</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (row of comparisonRows(); track row.category.code) {
-                      <tr>
-                        <th scope="row">{{ row.category.code }}</th>
-                        <td>{{ comparisonValue(result.added, row.category) }}</td>
-                        <td>{{ comparisonValue(result.removed, row.category) }}</td>
-                        <td>{{ comparisonValue(result.delta, row.category) }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-              <p class="comparison-label">
-                <strong>Manual starts · recheck availability · forecast unavailable</strong
-                ><app-help-tip
-                  label="Comparison limits"
-                  [text]="
-                    result.messages.length ? result.messages.join(' ') : state.forecast_message
-                  "
-                />
-              </p>
-              @if (comparisonIncomplete()) {
-                <span class="coverage warning">Some contribution inputs are unavailable</span>
-              }
-              <label class="reason"
-                >Reason to watch<textarea
-                  [value]="reason()"
-                  (input)="reason.set($any($event.target).value)"
-                  placeholder="What would make you investigate this move?"
-                ></textarea>
-              </label>
-              <div class="actions">
-                <button
-                  mat-flat-button
-                  type="button"
-                  [disabled]="!reason().trim() || revisionConflict() || savingWatch()"
-                  (click)="saveWatch()"
-                >
-                  {{ savingWatch() ? 'Saving…' : 'Save reason to watchlist' }}
-                </button>
-                @if (watchSaveMessage()) {
-                  <span role="status">{{ watchSaveMessage() }}</span>
-                }
-                @if (writeError()) {
-                  <span class="inline-error" role="alert">{{ writeError() }}</span>
-                  @if (revisionConflict()) {
-                    <button mat-button type="button" (click)="retry()">Reload current view</button>
-                  }
-                }
-              </div>
-            } @else if (!comparisonLoading() && !comparisonError()) {
-              <p class="empty-inline">
-                Select a verified available player and a player on your roster to compare.
-              </p>
-            }
-          </section>
-        }
-
-        @if (tab() === 'watchlist') {
-          <section class="section-heading">
-            <div>
-              <h2>
-                Players you are watching
-                <app-help-tip
-                  label="Watch note context"
-                  text="Each saved note retains the source observation and manual starts used when it was saved. Revisit against fresh league evidence before acting."
-                />
-              </h2>
-              <p>Saved reasons and scenario assumptions</p>
-            </div>
-          </section>
-          <section class="surface">
-            @if (state.watches.length) {
-              @for (watch of state.watches; track watch.id) {
-                @let player = capture()?.players?.find((p) => p.id === watch.player_id);
-                @let dropped = capture()?.players?.find((p) => p.id === watch.drop_id);
-                <article class="watch-item">
+        <p class="notice">
+          Choose your team to set priorities and rank players.
+          <button mat-button (click)="openTab('settings')">Choose team</button>
+        </p>
+      }
+      @if (tab() === 'landscape') {
+        <app-season-landscape
+          [view]="state"
+          [category]="selectedCategory()"
+          [focus]="focusCategories()"
+          (categoryChanged)="selectCategory($event)"
+          (focusChanged)="focusCategories.set($event)"
+        >
+          <app-season-scenario
+            scenario
+            [loading]="recommendationPanel()?.loading() ?? false"
+            [error]="recommendationPanel()?.error() ?? ''"
+            (retryRequested)="recommendationPanel()?.retry.update(recommendationPanel()!.increment)"
+            [view]="state"
+            [overview]="recommendationPanel()?.currentOverview() ?? null"
+            [strategy]="fitStrategy()"
+            [focus]="focusCategories()"
+            [basis]="basis()"
+            [days]="windowDays()"
+            (strategyChanged)="fitStrategy.set($event)"
+            (focusChanged)="focusCategories.set($event)"
+            (basisChanged)="basis.set($event)"
+            (daysChanged)="windowDays.set($event)"
+            (targetsRequested)="openTab('outlook')"
+          />
+          <div categoryResearch>
+            <div class="analysis-grid">
+              <section class="surface">
+                <div class="surface-heading">
                   <div>
-                    <h3>
-                      {{ player?.name ?? 'Player unavailable in current pool' }} →
-                      {{ dropped?.name ?? 'drop context unavailable' }}
-                    </h3>
-                    <p>{{ watch.reason || 'No reason saved.' }}</p>
-                    <small
-                      >Saved {{ freshness(watch.saved_at) }} · {{ watch.added_starts }} added /
-                      {{ watch.removed_starts }} removed starts</small
-                    >
-                    @if (watch.observation_id !== capture()?.id) {
-                      <span class="coverage warning">Recheck newer evidence</span>
+                    <h2>{{ selectedCategory() || 'Category' }} · current league values</h2>
+                    <p>Credited totals · shooting ratios use makes and attempts.</p>
+                  </div>
+                  <span class="pill">{{
+                    selectedStanding()?.reconciled === false
+                      ? 'Reconciliation needs review'
+                      : 'Current values'
+                  }}</span>
+                </div>
+                @if (selectedCategoryInfo()?.supported && chartTeams().length) {
+                  <svg
+                    class="league-chart"
+                    [attr.viewBox]="'0 0 760 ' + chartHeight()"
+                    role="img"
+                    [attr.aria-label]="selectedCategory() + ' current values for all league teams'"
+                  >
+                    <title>{{ selectedCategory() }} current values by team</title>
+                    @for (team of chartTeams(); track team.id; let i = $index) {
+                      @let val = teamValue(team, selectedCategoryInfo());
+                      @let span = chartRange().max - chartRange().min;
+                      <text
+                        x="8"
+                        [attr.y]="24 + i * 27"
+                        [class.my-team]="team.id === selectedTeam()?.id"
+                      >
+                        {{ team.name }}
+                      </text>
+                      @if (val !== null) {
+                        <rect
+                          x="185"
+                          [attr.y]="10 + i * 27"
+                          [attr.width]="
+                            span === 0 ? 8 : 8 + ((val - chartRange().min) / span) * 480
+                          "
+                          height="17"
+                          rx="4"
+                          [class.my-bar]="team.id === selectedTeam()?.id"
+                          class="bar"
+                        >
+                          <title>{{ team.name }}: {{ format(val, selectedCategoryInfo()) }}</title>
+                        </rect>
+                      }
+                      <text x="690" [attr.y]="24 + i * 27" text-anchor="end">
+                        {{ format(val, selectedCategoryInfo()) }}
+                      </text>
                     }
+                  </svg>
+                  <dl class="mobile-league-values">
+                    @for (team of chartTeams(); track team.id) {
+                      <div>
+                        <dt>{{ team.name }}</dt>
+                        <dd>
+                          {{
+                            format(teamValue(team, selectedCategoryInfo()), selectedCategoryInfo())
+                          }}
+                        </dd>
+                      </div>
+                    }
+                  </dl>
+                } @else {
+                  <p class="empty-inline">
+                    No comparable current values are available for this category.
+                  </p>
+                }
+                <div class="gap-summary">
+                  <div>
+                    <small>Your rank</small
+                    ><strong>{{
+                      selectedStanding()?.rank == null ? '—' : '#' + selectedStanding()?.rank
+                    }}</strong>
+                  </div>
+                  <div>
+                    <small>Gap to next rank</small
+                    ><strong>{{
+                      formatGap(selectedStanding()?.gap_up, selectedCategoryInfo())
+                    }}</strong>
+                  </div>
+                  <div>
+                    <small>Buffer below</small
+                    ><strong>{{
+                      formatGap(selectedStanding()?.buffer_down, selectedCategoryInfo())
+                    }}</strong>
+                  </div>
+                </div>
+                <div class="source-line">
+                  <strong>Daily scored position</strong
+                  ><app-help-tip
+                    label="Daily trend and collection gaps"
+                    text="Each point is a saved scored observation, labeled by collection date. Lines break at missing dates or unavailable category points. Changes across gaps are not daily game stats."
+                  />
+                </div>
+                @if (recentTrend().length) {
+                  <svg
+                    viewBox="0 0 380 100"
+                    class="daily-trend"
+                    role="img"
+                    aria-label="Saved daily total roto points"
+                  >
+                    <path
+                      [attr.d]="trendPath()"
+                      fill="none"
+                      stroke="var(--showcase-green)"
+                      stroke-width="3"
+                    />
+                  </svg>
+                  <div class="source-line">
+                    @for (point of recentTrend(); track point.date) {
+                      <span
+                        >{{ point.date }} ·
+                        {{
+                          point.points === null ? 'unavailable' : format(point.points) + ' pts'
+                        }}</span
+                      >
+                    }
+                  </div>
+                } @else {
+                  <span class="muted">Daily trend starts after the first scored observation.</span>
+                }
+                @if (state.missed_dates.length) {
+                  <div class="coverage warning">
+                    {{ state.missed_dates.length }} collection dates missing
                     <app-help-tip
-                      label="Saved watch evidence"
-                      [text]="
-                        'Saved observation: ' +
-                        watch.observation_id +
-                        '. Revisit against current ownership, rules and source dates before acting.'
-                      "
+                      label="Missed collection dates"
+                      [text]="state.missed_dates.join(', ')"
                     />
                   </div>
-                  <button
-                    mat-stroked-button
-                    type="button"
-                    (click)="
-                      revisit(
-                        watch.player_id,
-                        watch.drop_id,
-                        watch.reason,
-                        watch.added_starts,
-                        watch.removed_starts
-                      )
-                    "
+                }
+              </section>
+              <aside class="surface sidebar">
+                <div class="surface-heading">
+                  <h2>Available players · {{ selectedCategory() }}</h2>
+                  <app-help-tip
+                    label="Available player pool coverage"
+                    text="Ranked within the observed available subset, which may be incomplete. Counting categories follow league scoring direction. Shooting ranks use makes above your current team rate per game, a volume-aware research measure, not a forecast of percentage change. Missing or zero attempts remain unranked."
+                  />
+                </div>
+                <p class="coverage" [class.warning]="!capture()?.pool_complete">
+                  {{
+                    capture()?.pool_complete
+                      ? 'Pool coverage: complete'
+                      : 'Pool coverage: partial or undeclared'
+                  }}
+                </p>
+                <p class="muted">Pool source: {{ freshness(capture()?.pool_captured_at) }}</p>
+                @if (research(); as data) {
+                  <p class="muted">
+                    {{
+                      basis() === 'recent'
+                        ? (data.start || 'No recent window') +
+                          ' → ' +
+                          (data.end || 'not yet collected')
+                        : 'Saved projection estimates'
+                    }}
+                    · checked {{ freshness(data.captured_at) }}
+                  </p>
+                  <p class="footnote">
+                    {{ availableCoverage() }} / {{ allAvailablePlayers().length }} available players
+                    ranked · {{ data.message }}
+                  </p>
+                }
+                @if (researchLoading()) {
+                  <p role="status">Loading category rankings…</p>
+                }
+                @if (researchError()) {
+                  <p role="alert" class="coverage warning">
+                    {{ researchError() }}
+                    <button mat-button (click)="loadResearch()">Retry rankings</button>
+                  </p>
+                }
+                @if (capture()?.recent_error && basis() === 'recent') {
+                  <p role="alert" class="coverage warning">
+                    {{ capture()?.recent_error }} Source time above belongs to the retained stats.
+                  </p>
+                }
+                <div class="filters">
+                  <label
+                    >Find player<input
+                      type="search"
+                      [value]="search()"
+                      (input)="search.set($any($event.target).value)"
+                      placeholder="Name or position" /></label
+                  ><label
+                    >Position<select
+                      [value]="position()"
+                      (change)="position.set($any($event.target).value)"
+                    >
+                      <option value="all">All positions</option>
+                      @for (pos of ['PG', 'SG', 'SF', 'PF', 'C']; track pos) {
+                        <option [value]="pos">{{ pos }}</option>
+                      }
+                    </select></label
                   >
-                    Revisit
-                  </button>
-                </article>
-              }
-            } @else {
-              <p class="empty-inline">
-                No watch notes yet. Compare a possible move and save the reason you want to revisit.
-              </p>
-            }
-          </section>
+                </div>
+                @if (availablePlayers().length) {
+                  <div class="table-scroll candidate-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Rank / player</th>
+                          <th>{{ selectedCategory() }} / game</th>
+                          <th>
+                            {{ basis() === 'recent' ? 'vs prior ' + windowDays() + 'd' : 'Source' }}
+                          </th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (
+                          player of availablePlayers().slice(0, search() ? 100 : 12);
+                          track player.id
+                        ) {
+                          @let row = researchRows().get(player.id);
+                          <tr [class.selected-player]="selectedPlayer() === player.id">
+                            <td>
+                              <strong>{{ row?.rank ?? '—' }} · {{ player.name }}</strong
+                              ><small
+                                >{{ player.positions.join(' / ') }} ·
+                                {{
+                                  player.availability === 'waiver' ? 'Waiver' : 'Free agent'
+                                }}</small
+                              ><small
+                                >{{ player.status || 'Status unknown' }}
+                                @if (basis() === 'recent') {
+                                  · {{ row?.games ?? '—' }} GP
+                                }
+                              </small>
+                              @if (player.availability === 'waiver') {
+                                <small>{{
+                                  player.waiver_clear_at
+                                    ? 'Clears ' + freshness(player.waiver_clear_at)
+                                    : 'Clearance unknown'
+                                }}</small>
+                              }
+                            </td>
+                            <td>
+                              {{ researchValue(player.id) }}
+                              @if (selectedCategoryInfo()?.numerator) {
+                                <small>{{
+                                  row?.score == null
+                                    ? 'Impact unavailable'
+                                    : format(row?.score) + ' makes above team rate / game'
+                                }}</small>
+                              }
+                              @if (row?.per_game == null) {
+                                <small>No compatible stats</small>
+                              }
+                            </td>
+                            <td>
+                              @if (basis() === 'recent') {
+                                <span
+                                  [class.positive]="(row?.trend ?? 0) > 0"
+                                  [class.negative]="(row?.trend ?? 0) < 0"
+                                  >{{
+                                    row?.trend == null
+                                      ? '—'
+                                      : (row!.trend! > 0 ? '+' : '') + format(row?.trend)
+                                  }}</span
+                                ><small
+                                  >{{
+                                    row?.previous_games == null
+                                      ? 'Prior sample unavailable'
+                                      : row?.previous_games + ' prior GP'
+                                  }}{{
+                                    selectedCategoryInfo()?.numerator ? ' · impact / game' : ''
+                                  }}</small
+                                >
+                              } @else {
+                                <small>Hashtag</small>
+                              }
+                            </td>
+                            <td>
+                              <button
+                                mat-button
+                                [attr.aria-label]="'Inspect ' + player.name"
+                                (click)="openTarget(player.id)"
+                              >
+                                Inspect
+                              </button>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <p class="empty-inline">No verified available players match this filter.</p>
+                }
+                <p class="footnote">
+                  Recent trends compare the preceding non-overlapping {{ windowDays() }} days.
+                  Played games exclude DNPs. Past per-game performance is descriptive, not expected
+                  future production.
+                </p>
+              </aside>
+            </div>
+          </div>
+        </app-season-landscape>
+        @if (categoryNoteOpen()) {
+          <ng-container [ngTemplateOutlet]="playerInspector" />
         }
       }
-    } @else if (!loading()) {
+      @if (tab() === 'outlook' || tab() === 'compare') {
+        <div class="scenario-summary">
+          <div>
+            <strong
+              >{{
+                fitStrategy() === 'chase'
+                  ? 'Chase gains'
+                  : fitStrategy() === 'protect'
+                    ? 'Protect leads'
+                    : 'Balanced'
+              }}
+              ·
+              {{
+                focusCategories().length
+                  ? 'Extra focus: ' + focusCategories().join(' + ')
+                  : 'Automatic category priorities'
+              }}</strong
+            ><small
+              >{{ basis() === 'recent' ? windowDays() + 'd ESPN actuals' : 'Saved projections' }} ·
+              same priorities for both lists and each alternative</small
+            >
+          </div>
+          <button mat-stroked-button (click)="openTab('landscape')">Edit ranking focus</button>
+        </div>
+      }
+      <app-season-recommendations
+        [view]="state"
+        [leagueId]="leagueId()"
+        [active]="active()"
+        [screen]="tab() === 'outlook' ? 'targets' : tab() === 'compare' ? 'compare' : 'hidden'"
+        [playerId]="selectedPlayer()"
+        [dropId]="selectedDrop()"
+        [addedStarts]="addedStarts()"
+        [removedStarts]="removedStarts()"
+        [strategy]="fitStrategy()"
+        [basis]="basis()"
+        [days]="windowDays()"
+        [focusCategories]="focusCategories()"
+        [selectedIds]="selectedCandidates()"
+        [horizon]="comparisonHorizon()"
+        [inspection]="overallInspection()"
+        (basisChanged)="basis.set($event)"
+        (daysChanged)="windowDays.set($event)"
+        (targetToggled)="toggleCandidate($event)"
+        (compareRequested)="openTab('compare')"
+        (targetsRequested)="openTab('outlook')"
+        (horizonChanged)="comparisonHorizon.set($event)"
+        (playerChosen)="chooseOverallPlayer($event)"
+        (dropChosen)="chooseDrop($event)"
+        (addedChanged)="addedStarts.set($event)"
+        (removedChanged)="removedStarts.set($event)"
+        (researchCategoryChosen)="inspectOverallCategory($event)"
+        (categoryChosen)="inspectCategory($event)"
+        (detailClosed)="overallInspection.set(null)"
+        (reloadRequested)="retry()"
+      >
+        <div investigation>
+          @if (recommendationPanel()?.detailOpen()) {
+            <ng-container [ngTemplateOutlet]="playerInspector" />
+          }
+        </div>
+      </app-season-recommendations>
+      @if (tab() === 'watchlist') {
+        <section class="section-heading">
+          <div>
+            <h2>
+              Players you are watching
+              <app-help-tip
+                label="Watch note context"
+                text="Each saved note retains the source observation and manual starts used when it was saved. Revisit against fresh league evidence before acting."
+              />
+            </h2>
+            <p>Saved reasons and scenario assumptions</p>
+          </div>
+        </section>
+        <section class="surface">
+          @if (state.watches.length) {
+            @for (watch of state.watches; track watch.id) {
+              @let player = capture()?.players?.find((p) => p.id === watch.player_id);
+              @let dropped = capture()?.players?.find((p) => p.id === watch.drop_id);
+              <article class="watch-item">
+                <div>
+                  <h3>
+                    {{ player?.name ?? 'Player unavailable in current pool' }}
+                    @if (watch.drop_id) {
+                      → {{ dropped?.name ?? 'drop context unavailable' }}
+                    }
+                  </h3>
+                  <p>{{ watch.reason || 'No reason saved.' }}</p>
+                  <p>
+                    {{ player?.availability || 'Availability unknown' }} ·
+                    {{ player?.status || 'Status unknown' }} · Current {{ selectedCategory() }}
+                    {{ researchValue(watch.player_id) }} / game ({{
+                      basis() === 'recent' ? 'last ' + windowDays() + ' days' : 'saved projections'
+                    }})
+                  </p>
+                  <p>{{ watchHeadline(watch.player_id) }}</p>
+                  <small
+                    >News checked:
+                    {{
+                      freshness(
+                        news.state(leagueId(), watch.player_id)?.value?.saved?.news_captured_at
+                      )
+                    }}
+                    · Published:
+                    {{ watchPublished(watch.player_id) }}</small
+                  >
+                  @if (watch.fit_strategy) {
+                    <small
+                      >Overall fit · {{ watch.fit_strategy }} · extra focus:
+                      {{ watch.focus_categories?.join(', ') || 'Automatic' }} ·
+                      {{ watch.fit_version }} ·
+                      {{
+                        watch.drop_id
+                          ? 'replacement ' + (dropped?.name || 'No longer in saved pool')
+                          : 'per-game player research'
+                      }}</small
+                    >
+                  }
+                  <small
+                    >Saved research:
+                    {{
+                      watch.category ||
+                        (watch.fit_strategy ? 'All categories' : 'Category not recorded')
+                    }}
+                    · {{ watch.basis || 'projection' }}
+                    @if (watch.basis === 'recent') {
+                      · {{ watch.window_days || 7 }} days
+                      @if (watch.source_window_start && watch.source_window_end) {
+                        · {{ watch.source_window_start }} → {{ watch.source_window_end }}
+                      }
+                    }
+                    · source {{ freshness(watch.source_captured_at) }}</small
+                  >
+                  <small
+                    >Saved {{ freshness(watch.saved_at) }} ·
+                    {{
+                      watch.fit_horizon === 'per_game'
+                        ? 'Per-game difference · 1 played game each'
+                        : watch.drop_id
+                          ? watch.added_starts +
+                            ' added / ' +
+                            watch.removed_starts +
+                            ' removed starts'
+                          : 'Player research'
+                    }}</small
+                  >
+                  @if (
+                    watch.observation_id !== capture()?.id ||
+                    (watch.source_signature && watch.source_signature !== state.signature)
+                  ) {
+                    <span class="coverage warning">Recheck newer evidence</span>
+                  }
+                  <app-help-tip
+                    label="Saved watch evidence"
+                    [text]="
+                      'Saved observation: ' +
+                      watch.observation_id +
+                      '. Revisit against current ownership, rules and source dates before acting.'
+                    "
+                  />
+                </div>
+                <button mat-stroked-button type="button" (click)="revisitWatch(watch)">
+                  Revisit
+                </button>
+              </article>
+            }
+          } @else {
+            <p class="empty-inline">
+              No watch notes yet. Inspect a category target and save a reason; no drop selection is
+              required.
+            </p>
+          }
+        </section>
+      }
+      @if (tab() === 'settings') {
+        <h2>Data & settings</h2>
+        <p>Manage your team, ESPN connection and dated evidence here.</p>
+        <header class="season-action-row">
+          <div class="action-context">
+            Live-season evidence
+            <app-help-tip
+              label="About live-season decisions"
+              [text]="
+                'Review current scored category values and compare available-player contributions with your roster. ' +
+                (view()?.forecast_message ?? '') +
+                ' Current pool and waiver context are limited to returned source data.'
+              "
+            />
+          </div>
+          <div class="actions">
+            @if (view()?.operation.status === 'running') {
+              <button mat-stroked-button type="button" (click)="cancelRefresh()">
+                Cancel refresh
+              </button>
+            }
+            <button
+              mat-flat-button
+              type="button"
+              [disabled]="!isConnected() || refreshing() || view()?.operation.status === 'running'"
+              (click)="requestRefresh()"
+            >
+              {{
+                view()?.operation.status === 'running'
+                  ? 'Refreshing…'
+                  : refreshing()
+                    ? 'Requesting refresh…'
+                    : 'Refresh data'
+              }}
+            </button>
+          </div>
+        </header>
+
+        @if (!isConnected()) {
+          <section class="connection-card">
+            <div>
+              <h3>Connect ESPN to refresh</h3>
+              <p>
+                Saved evidence remains available offline. Sign in directly in the dedicated ESPN
+                window.
+              </p>
+            </div>
+            <button mat-flat-button (click)="connectRequested.emit()">Connect ESPN</button>
+          </section>
+        }
+        <ng-container [ngTemplateOutlet]="seasonContext" />
+        @if (state.operation.status !== 'idle') {
+          <p class="notice" role="status">{{ state.operation.message }}</p>
+        }
+        @for (message of state.capture?.messages ?? []; track $index) {
+          <p class="notice">{{ message }}</p>
+        }
+        <p class="notice">
+          Pool coverage: ESPN's returned pool may be partial or undeclared. The target list shows
+          both returned and completely rankable player counts; a complete fit sample does not
+          establish complete league availability. Refresh after reconnecting to check ownership and
+          source dates.
+        </p>
+      }
+    } @else {
       <section class="empty-state">
         <h2>No saved live-season observation yet</h2>
-        <p>Collect this season’s standings, rosters and available players to begin.</p>
+        <p>
+          Connect ESPN and collect this season’s standings, rosters and available players to begin.
+        </p>
         @if (isConnected()) {
           <button
             mat-flat-button
-            type="button"
             (click)="requestRefresh()"
             [disabled]="refreshing() || state.operation.status === 'running'"
           >
             Collect first check
           </button>
         } @else {
-          <button mat-flat-button type="button" (click)="connectRequested.emit()">
-            Connect ESPN
-          </button>
+          <button mat-flat-button (click)="connectRequested.emit()">Connect ESPN</button>
         }
       </section>
     }

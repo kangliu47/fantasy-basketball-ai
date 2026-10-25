@@ -46,6 +46,7 @@ class SavedSeasonProjections:
                 "FGA": profile.components.get("fga"),
                 "FTM": profile.components.get("ftm"),
                 "FTA": profile.components.get("fta"),
+                "MIN": player.projected_minutes,
             }
         version = sha256(
             (

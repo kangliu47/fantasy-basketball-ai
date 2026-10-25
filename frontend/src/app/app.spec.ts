@@ -186,7 +186,7 @@ describe('League workspace', () => {
     button('Live season').click();
     await settle();
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
-      'Where can your team gain ground?',
+      'Your league. Your next move.',
     );
     expect(fixture.nativeElement.querySelector('app-draft-workspace').hidden).toBe(true);
     http

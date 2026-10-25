@@ -23,7 +23,10 @@ class DuckDBSeasonRepository:
         params = [selection.league_id, selection.season]
         with self.workspace.connection() as db:
             rows = db.execute(
-                "SELECT document FROM season_observations WHERE league_id=? AND season=? "
+                "SELECT CASE WHEN row_number() OVER "
+                "(ORDER BY captured_at DESC, observation_id DESC)=1 "
+                "THEN document ELSE json_merge_patch(document, '{\"recent_games\":[]}') END "
+                "FROM season_observations WHERE league_id=? AND season=? "
                 "ORDER BY captured_at DESC, observation_id DESC LIMIT 2000",
                 params,
             ).fetchall()

@@ -1,0 +1,205 @@
+<section aria-label="Compare moves">
+  <header>
+    <h2>Compare alternatives. Keep the tradeoffs.</h2>
+    <p>Each target replaces the same roster player separately. These are not a combined package.</p>
+  </header>
+  <article class="surface">
+    <div class="controls">
+      <label
+        >Possible replacement<select
+          [ngModel]="dropId()"
+          (ngModelChange)="dropChanged.emit($event)"
+        >
+          <option value="">Choose a roster player</option>
+          @for (p of overview()?.overview?.roster ?? []; track p.player_id) {
+            <option [value]="p.player_id">
+              {{ name(p.player_id) }}{{ p.score === null ? ' · fit unknown' : '' }}
+            </option>
+          }
+        </select></label
+      >
+      <label
+        >Difference shown<select
+          [ngModel]="horizon()"
+          (ngModelChange)="horizonChanged.emit($event)"
+        >
+          <option value="per_game">Per played game</option>
+          <option value="seven_day">Seven-day manual scenario</option>
+        </select></label
+      >
+      @if (horizon() === 'seven_day') {
+        <label
+          >Incoming credited starts<select
+            [ngModel]="addedStarts()"
+            (ngModelChange)="addedChanged.emit($event)"
+          >
+            <option [ngValue]="null">Choose starts</option>
+            @for (n of starts; track n) {
+              <option [ngValue]="n">{{ n }}</option>
+            }
+          </select></label
+        >
+        <label
+          >Outgoing credited starts<select
+            [ngModel]="removedStarts()"
+            (ngModelChange)="removedChanged.emit($event)"
+          >
+            <option [ngValue]="null">Choose starts</option>
+            @for (n of starts; track n) {
+              <option [ngValue]="n">{{ n }}</option>
+            }
+          </select></label
+        >
+      }
+      <button mat-stroked-button type="button" (click)="targetsRequested.emit()">
+        Add another ranked target
+      </button>
+    </div>
+    <p>
+      {{
+        horizon() === 'per_game'
+          ? 'Per-game difference: one played game of each target versus one played game of the same replacement. This does not assume equal future playing time.'
+          : 'Manual next-seven-day scenario. Apply the same incoming/outgoing credited-start assumptions to each alternative. If these observed rates continue; not a forecast.'
+      }}
+    </p>
+    <div class="selected-targets">
+      @for (id of selectedIds(); track id) {
+        <button
+          type="button"
+          (click)="targetToggled.emit(id)"
+          [attr.aria-label]="'Remove ' + name(id) + ' from comparison'"
+        >
+          {{ name(id) }} ×
+        </button>
+      }
+    </div>
+  </article>
+  @if (!selectedIds().length || !dropId()) {
+    <article class="surface empty">
+      <h3>
+        {{
+          !selectedIds().length ? 'Select a target to compare' : 'Choose your possible replacement'
+        }}
+      </h3>
+      <p>Then every selected target gets a stat difference automatically.</p>
+      @if (!selectedIds().length) {
+        <button mat-stroked-button (click)="targetsRequested.emit()">Browse ranked targets</button>
+      }
+    </article>
+  } @else if (horizon() === 'seven_day' && (addedStarts() === null || removedStarts() === null)) {
+    <article class="surface empty">
+      <h3>Set both credited-start assumptions</h3>
+      <p>These are hypothetical starts, not verified schedule or lineup opportunities.</p>
+    </article>
+  }
+  @if (loading()) {
+    <p role="status">Comparing saved contributions…</p>
+  }
+  @if (error()) {
+    <p class="notice error" role="alert">
+      {{ error() }} <button mat-button (click)="retryRequested.emit()">Retry comparison</button>
+    </p>
+  }
+  @if (result(); as data) {
+    <div class="comparison-cards">
+      @for (p of selected(); track p.id) {
+        <article class="surface">
+          <button class="player-name" (click)="inspectRequested.emit(p.id)">
+            {{ name(p.id) }} →</button
+          ><small>Instead of {{ name(dropId()) }}</small
+          ><strong [class.loss]="(p.row?.score ?? 0) < 0">{{ signed(p.row?.score) }}</strong
+          ><small
+            >Net fit versus keep 0 ·
+            {{
+              horizon() === 'per_game' ? 'per-game difference' : 'manual seven-day scenario'
+            }}</small
+          >
+          <p>
+            {{
+              !p.row
+                ? 'This target is outside the current returned available pool. Recheck ownership.'
+                : p.row.score === null
+                  ? 'Required inputs are missing; no complete net fit. Known stat differences remain below.'
+                  : p.row.score <= 0
+                    ? 'Does not beat keeping the roster on the selected index.'
+                    : 'Positive on the selected index; review the category losses below.'
+            }}
+          </p>
+          @if (horizon() === 'seven_day' && p.row) {
+            <small
+              >Incoming-start sensitivity: {{ data.fit.lower_starts }} → {{ signed(p.row.lower) }};
+              {{ data.fit.higher_starts }} → {{ signed(p.row.higher) }}. Outgoing stays at
+              {{ data.fit.removed_starts }}.</small
+            >
+          }
+        </article>
+      }
+    </div>
+    <article class="surface">
+      <div class="heading">
+        <h3>What changes versus {{ name(dropId()) }}?</h3>
+        <span>Keep roster = 0</span>
+      </div>
+      <p>
+        {{
+          horizon() === 'per_game'
+            ? 'Difference per one played game'
+            : data.fit.added_starts +
+              ' incoming / ' +
+              data.fit.removed_starts +
+              ' outgoing credited starts'
+        }}
+        ·
+        {{
+          data.evidence.basis === 'recent'
+            ? data.evidence.days + 'd ESPN actuals'
+            : 'Saved projection baseline'
+        }}
+      </p>
+      <div class="table-scroll">
+        <table aria-label="Alternative stat differences">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Keep {{ name(dropId()) }}</th>
+              @for (p of selected(); track p.id) {
+                <th>
+                  {{ name(p.id) }}<small>Δ versus {{ name(dropId()) }}</small>
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of view().capture?.categories ?? []; track c.code) {
+              <tr>
+                <th>{{ c.code }}</th>
+                <td>{{ native(data.fit.removed, c) }}</td>
+                @for (p of selected(); track p.id) {
+                  @let coord = coordinate(p.row, c.code);
+                  <td
+                    [class.loss]="(coord?.weighted ?? 0) < 0"
+                    [class.gain]="(coord?.weighted ?? 0) > 0"
+                  >
+                    {{ delta(coord, c) }}<small>Add {{ native(p.row?.added, c) }}</small>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Shooting differences show makes / attempts, not percentage-point changes. Each column is an
+        independent alternative; never sum them as a package.
+      </p>
+      <p class="notice">
+        Earned stats stay intact. Future roto points, claim clearance, usable starts and lineup
+        feasibility remain unverified.
+        <app-help-tip
+          label="Comparison assumptions and units"
+          text="Per-game mode compares one played game on each side. Seven-day mode uses only the starts you enter, with no schedule-derived eligibility claim. The fit index uses the same source and priorities as discovery. Negative effects and keep zero remain visible; it is not expected roto gain."
+        />
+      </p>
+    </article>
+  }
+</section>

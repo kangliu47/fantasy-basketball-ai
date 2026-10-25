@@ -8,7 +8,10 @@ import {
   output,
   signal,
   untracked,
+  viewChild,
+  ElementRef,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -23,21 +26,42 @@ import {
   timer,
 } from 'rxjs';
 import { HelpTip } from '../core/help-tip';
+import { SeasonLandscape } from './season-landscape';
+import { SeasonScenario } from './season-scenario';
+import { SeasonRecommendations } from './season-recommendations';
+import { SeasonPlayerResearch } from './season-player-research';
+import { SeasonNewsStore } from './season-news-store';
 import { SeasonApi } from './season-api';
 import {
+  FitHorizon,
+  FitStrategy,
+  FitInspection,
   SeasonCapture,
   SeasonCategory,
-  SeasonComparison,
   SeasonPlayer,
   SeasonTeam,
   SeasonView,
+  SeasonResearch,
+  PlayerResearch,
+  SeasonStanding,
+  SeasonWatch,
 } from './season.models';
 
-type PageTab = 'outlook' | 'compare' | 'watchlist';
+type PageTab = 'landscape' | 'outlook' | 'compare' | 'watchlist' | 'settings';
 
 @Component({
   selector: 'app-season-page',
-  imports: [FormsModule, MatButtonModule, MatProgressSpinnerModule, HelpTip],
+  imports: [
+    FormsModule,
+    NgTemplateOutlet,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    HelpTip,
+    SeasonPlayerResearch,
+    SeasonRecommendations,
+    SeasonLandscape,
+    SeasonScenario,
+  ],
   templateUrl: './season-page.html',
   styleUrl: './season-page.scss',
 })
@@ -53,27 +77,78 @@ export class SeasonPage {
   readonly savingWatch = signal(false);
   readonly watchSaveMessage = signal('');
   readonly revisionConflict = signal(false);
-  readonly tab = signal<PageTab>('outlook');
+  readonly tab = signal<PageTab>('landscape');
+  readonly categoryNoteOpen = signal(false);
+  readonly researchMode = signal<'category' | 'overall'>('category');
+  readonly focusCategories = signal<string[]>([]);
+  readonly selectedCandidates = signal<string[]>([]);
+  readonly comparisonHorizon = signal<FitHorizon>('per_game');
+  readonly fitStrategy = signal<FitStrategy>('balanced');
+  readonly recommendationPanel = viewChild(SeasonRecommendations);
+  readonly overallInspection = signal<FitInspection | null>(null);
+  private inspectionToken = 0;
+  readonly overviewReady = computed(() => {
+    const overview = this.recommendationPanel()?.currentOverview();
+    return (
+      !!overview &&
+      overview.signature === this.view()?.signature &&
+      overview.evidence.basis === this.basis() &&
+      overview.evidence.days === this.windowDays() &&
+      overview.overview.strategy === this.fitStrategy() &&
+      (overview.overview.focus_categories ?? []).join(',') === this.focusCategories().join(',') &&
+      [...overview.overview.available, ...overview.overview.roster].some(
+        (p) => p.player_id === this.selectedPlayer(),
+      )
+    );
+  });
+  readonly fitReady = computed(() => {
+    const result = this.recommendationPanel()?.currentResult();
+    return (
+      !!result &&
+      result.evidence.basis === this.basis() &&
+      result.evidence.days === this.windowDays() &&
+      result.fit.strategy === this.fitStrategy() &&
+      result.fit.horizon === this.comparisonHorizon() &&
+      result.fit.focus_categories.join(',') === this.focusCategories().join(',') &&
+      result.fit.drop_id === this.selectedDrop() &&
+      result.fit.added_starts ===
+        (this.comparisonHorizon() === 'per_game' ? 1 : this.addedStarts()) &&
+      result.fit.removed_starts ===
+        (this.comparisonHorizon() === 'per_game' ? 1 : this.removedStarts()) &&
+      this.selectedCandidates().includes(this.selectedPlayer()) &&
+      result.fit.players.some((p) => p.player_id === this.selectedPlayer())
+    );
+  });
   readonly selectedCategory = signal('');
   readonly selectedPlayer = signal('');
   readonly selectedDrop = signal('');
-  readonly addedStarts = signal(0);
-  readonly removedStarts = signal(0);
-  readonly reason = signal('');
-  readonly comparison = signal<SeasonComparison | null>(null);
-  readonly comparisonIncomplete = computed(() =>
-    Object.values(this.comparison()?.delta ?? {}).some((value) => value === null),
+  readonly addedStarts = signal<number | null>(null);
+  readonly removedStarts = signal<number | null>(null);
+  readonly basis = signal<'recent' | 'projection'>('recent');
+  readonly windowDays = signal(7);
+  readonly research = signal<SeasonResearch | null>(null);
+  readonly researchLoading = signal(false);
+  readonly researchError = signal<string | null>(null);
+  readonly researchRows = computed(
+    () => new Map((this.research()?.players ?? []).map((row) => [row.player_id, row])),
   );
-  readonly comparisonLoading = signal(false);
-  readonly comparisonError = signal<string | null>(null);
+  readonly inspectedRow = computed(() => this.researchRows().get(this.selectedPlayer()) ?? null);
+  readonly news = inject(SeasonNewsStore);
+  readonly researchPanel = viewChild<ElementRef<HTMLElement>>('researchPanel');
+  readonly reason = signal('');
   readonly search = signal('');
   readonly position = signal('all');
   private readonly api = inject(SeasonApi);
   private generation = 0;
   private displayedLeagueId: number | null = null;
   private poll?: Subscription;
-  private comparisonGeneration = 0;
   private readonly noteDrafts = new Map<string, string>();
+  private researchGeneration = 0;
+  private researchRequest?: Subscription;
+  private readonly researchKey = computed(
+    () =>
+      `${this.view()?.signature}|${this.selectedCategory()}|${this.basis()}|${this.windowDays()}|${this.researchMode()}|${this.active()}|${this.leagueId()}`,
+  );
   private readonly scopeStop = new Subject<void>();
 
   readonly capture = computed(() => this.view()?.capture ?? null);
@@ -103,15 +178,21 @@ export class SeasonPage {
     const capture = this.capture();
     const term = this.search().trim().toLowerCase();
     const position = this.position();
-    return this.allAvailablePlayers().filter((player) => {
-      const matchesTerm =
-        !term || `${player.name} ${player.positions.join(' ')}`.toLowerCase().includes(term);
-      const matchesPosition = position === 'all' || player.positions.includes(position);
-      return matchesTerm && matchesPosition;
-    });
+    return this.allAvailablePlayers()
+      .filter((player) => {
+        const matchesTerm =
+          !term || `${player.name} ${player.positions.join(' ')}`.toLowerCase().includes(term);
+        const matchesPosition = position === 'all' || player.positions.includes(position);
+        return matchesTerm && matchesPosition;
+      })
+      .sort((a, b) => {
+        const ar = this.researchRows().get(a.id)?.rank,
+          br = this.researchRows().get(b.id)?.rank;
+        return (ar ?? Infinity) - (br ?? Infinity) || a.name.localeCompare(b.name);
+      });
   });
   readonly selectedPlayerInfo = computed(
-    () => this.allAvailablePlayers().find((player) => player.id === this.selectedPlayer()) ?? null,
+    () => this.capture()?.players.find((player) => player.id === this.selectedPlayer()) ?? null,
   );
   readonly selectedDropInfo = computed(
     () => this.ownRoster().find((player) => player.id === this.selectedDrop()) ?? null,
@@ -135,15 +216,6 @@ export class SeasonPage {
     return { min: Math.min(...values, 0), max: Math.max(...values, 1) };
   });
   readonly chartHeight = computed(() => Math.max(100, this.chartTeams().length * 27 + 30));
-  readonly comparisonRows = computed(() => {
-    const c = this.comparison();
-    return this.categories().map((category) => ({
-      category,
-      added: c?.added[category.code] ?? null,
-      removed: c?.removed[category.code] ?? null,
-      delta: c?.delta[category.code] ?? null,
-    }));
-  });
   readonly hasCapture = computed(() => !!this.capture());
   readonly isConnected = computed(() =>
     ['connected', 'saved'].includes(this.view()?.connection ?? ''),
@@ -176,6 +248,19 @@ export class SeasonPage {
 
   constructor() {
     effect((onCleanup) => {
+      this.researchKey();
+      untracked(() => this.loadResearch());
+      onCleanup(() => this.researchRequest?.unsubscribe());
+    });
+    effect(() => {
+      const tab = this.tab(),
+        watches = this.view()?.watches ?? [],
+        league = this.leagueId(),
+        active = this.active();
+      if (tab === 'watchlist' && active)
+        untracked(() => watches.forEach((w) => this.news.load(league, w.player_id)));
+    });
+    effect((onCleanup) => {
       const active = this.active();
       const leagueId = this.leagueId();
       const generation = ++this.generation;
@@ -189,15 +274,20 @@ export class SeasonPage {
           untracked(() => this.rememberReason(this.displayedLeagueId!));
         this.displayedLeagueId = leagueId;
         this.view.set(null);
-        this.comparison.set(null);
-        this.comparisonLoading.set(false);
         this.error.set(null);
         this.writeError.set(null);
         this.revisionConflict.set(false);
+        this.categoryNoteOpen.set(false);
         this.selectedCategory.set('');
         this.selectedPlayer.set('');
+        this.overallInspection.set(null);
         this.selectedDrop.set('');
+        this.selectedCandidates.set([]);
+        this.focusCategories.set([]);
         this.reason.set('');
+        this.research.set(null);
+        this.addedStarts.set(null);
+        this.removedStarts.set(null);
       }
       if (!active) return;
       this.loading.set(true);
@@ -209,6 +299,177 @@ export class SeasonPage {
         this.poll = undefined;
       });
     });
+  }
+
+  loadResearch() {
+    const generation = ++this.researchGeneration,
+      league = this.leagueId(),
+      signature = this.view()?.signature;
+    const basis = this.researchMode() === 'overall' ? 'recent' : this.basis(),
+      days = this.windowDays(),
+      category = this.selectedCategory();
+    this.researchRequest?.unsubscribe();
+    this.research.set(null);
+    this.researchError.set(null);
+    if (!this.active() || !signature || !this.selectedCategory()) {
+      this.researchLoading.set(false);
+      return;
+    }
+    this.researchLoading.set(true);
+    this.researchRequest = this.api.research(league, category, days, basis).subscribe({
+      next: (result) => {
+        if (
+          generation !== this.researchGeneration ||
+          signature !== this.view()?.signature ||
+          league !== this.leagueId()
+        )
+          return;
+        if (
+          result.signature !== signature ||
+          result.basis !== basis ||
+          result.days !== days ||
+          result.category !== category
+        ) {
+          this.researchError.set('Evidence changed. Reload current data before ranking players.');
+          this.researchLoading.set(false);
+          return;
+        }
+        this.research.set(result);
+        this.researchLoading.set(false);
+      },
+      error: (err) => {
+        if (generation === this.researchGeneration) {
+          this.researchError.set(this.safeError(err));
+          this.researchLoading.set(false);
+        }
+      },
+    });
+  }
+
+  categoryBand(standing: SeasonStanding | undefined) {
+    const n = this.capture()?.teams.length ?? 0;
+    if (standing?.rank == null || standing.reconciled === false || n < 2) return 'unknown';
+    const position = (standing.rank - 1) / (n - 1);
+    return position <= 1 / 3 ? 'high' : position >= 2 / 3 ? 'low' : 'middle';
+  }
+
+  categoryBandLabel(standing: SeasonStanding | undefined) {
+    if (this.categoryBand(standing) === 'unknown') return 'Unknown';
+    return standing?.rank === 1
+      ? 'Leading'
+      : this.categoryBand(standing) === 'high'
+        ? 'Higher standing'
+        : this.categoryBand(standing) === 'low'
+          ? 'Lower standing'
+          : 'Middle standing';
+  }
+
+  researchValue(playerId: string) {
+    const rates = this.researchRows().get(playerId)?.per_game,
+      category = this.selectedCategoryInfo();
+    if (!rates || !category) return '—';
+    if (category.numerator && category.denominator) {
+      const makes = rates[category.numerator],
+        attempts = rates[category.denominator];
+      if (makes == null || attempts == null || attempts <= 0 || makes < 0 || makes > attempts)
+        return '—';
+      return `${this.format(makes / attempts, category)} · ${this.format(makes)} / ${this.format(attempts)}`;
+    }
+    return this.format(rates[category.code], category);
+  }
+
+  availableCoverage() {
+    return this.allAvailablePlayers().filter((p) => this.researchRows().get(p.id)?.rank != null)
+      .length;
+  }
+
+  watchHeadline(playerId: string) {
+    const saved = this.news.state(this.leagueId(), playerId)?.value?.saved;
+    return (
+      saved?.fantasy_update?.headline ??
+      saved?.articles[0]?.headline ??
+      'No saved news. Review the player to check ESPN.'
+    );
+  }
+
+  watchPublished(playerId: string) {
+    const saved = this.news.state(this.leagueId(), playerId)?.value?.saved;
+    const at = saved?.fantasy_update?.published_at ?? saved?.articles[0]?.published_at;
+    return at ? this.freshness(at) : 'Publication time unknown';
+  }
+
+  toggleCandidate(id: string) {
+    if (!id) return;
+    this.selectedCandidates.update((ids) =>
+      ids.includes(id) ? ids.filter((p) => p !== id) : [...ids, id],
+    );
+  }
+
+  compareCurrent() {
+    if (!this.selectedCandidates().includes(this.selectedPlayer()))
+      this.toggleCandidate(this.selectedPlayer());
+    this.openTab('compare');
+  }
+
+  openTarget(id: string) {
+    this.openTab('outlook');
+    this.choosePlayer(id);
+    this.overallInspection.set({ playerId: id, token: ++this.inspectionToken, compare: false });
+  }
+
+  openOverall() {
+    this.openTab('outlook');
+    this.overallInspection.set(null);
+    this.recommendationPanel()?.back();
+    this.researchMode.set('overall');
+  }
+
+  chooseOverallPlayer(id: string) {
+    if (id !== this.selectedPlayer()) this.choosePlayer(id);
+  }
+
+  inspectOverallCategory(category: string) {
+    this.selectedCategory.set(category);
+  }
+
+  inspectCategory(category: string) {
+    this.openTab('landscape');
+    this.selectedCategory.set(category);
+    this.researchMode.set('category');
+  }
+
+  revisitWatch(watch: SeasonWatch) {
+    if (watch.category && this.categories().some((c) => c.code === watch.category))
+      this.selectedCategory.set(watch.category);
+    this.basis.set(watch.basis ?? 'projection');
+    this.windowDays.set(
+      [7, 15, 30].includes(watch.window_days ?? 7) ? (watch.window_days ?? 7) : 7,
+    );
+    this.revisit(
+      watch.player_id,
+      watch.drop_id,
+      watch.reason,
+      watch.added_starts,
+      watch.removed_starts,
+      watch.fit_strategy ? (watch.drop_id ? 'compare' : 'outlook') : 'landscape',
+    );
+    this.researchMode.set(watch.fit_strategy ? 'overall' : 'category');
+    this.categoryNoteOpen.set(!watch.fit_strategy);
+    if (watch.fit_strategy) {
+      this.fitStrategy.set(watch.fit_strategy);
+      this.focusCategories.set(
+        (watch.focus_categories ?? []).filter((code) =>
+          this.categories().some((c) => c.code === code),
+        ),
+      );
+      this.comparisonHorizon.set(watch.fit_horizon ?? (watch.drop_id ? 'seven_day' : 'per_game'));
+      this.selectedCandidates.set(watch.drop_id ? [watch.player_id] : []);
+      this.overallInspection.set({
+        playerId: watch.player_id,
+        token: ++this.inspectionToken,
+        compare: !!watch.drop_id,
+      });
+    }
   }
 
   private schedulePoll(generation: number, leagueId: number, delay: number) {
@@ -241,7 +502,6 @@ export class SeasonPage {
       this.writeError.set(null);
       this.revisionConflict.set(false);
       this.ensureSelections(result.capture);
-      if (this.tab() === 'compare') this.loadComparison();
     } catch (err) {
       if (generation === this.generation && this.active()) this.error.set(this.safeError(err));
     } finally {
@@ -254,10 +514,8 @@ export class SeasonPage {
     if (!capture.categories.some((category) => category.code === this.selectedCategory())) {
       this.selectedCategory.set(capture.categories[0]?.code ?? '');
     }
-    const own = this.ownRoster();
     const available = this.allAvailablePlayers();
     if (!this.selectedPlayer()) this.selectedPlayer.set(available[0]?.id ?? '');
-    if (!this.selectedDrop()) this.selectedDrop.set(own[0]?.id ?? '');
   }
 
   retry() {
@@ -348,16 +606,17 @@ export class SeasonPage {
   }
 
   openTab(tab: PageTab) {
+    if (tab !== this.tab()) this.watchSaveMessage.set('');
+    this.recommendationPanel()?.back();
+    this.overallInspection.set(null);
+    this.categoryNoteOpen.set(false);
     this.tab.set(tab);
-    if (tab === 'compare') this.loadComparison();
-  }
-
-  comparisonChanged() {
-    this.loadComparison();
+    if (tab === 'landscape') this.researchMode.set('category');
+    if (tab === 'outlook' || tab === 'compare') this.researchMode.set('overall');
   }
 
   private draftKey(leagueId = this.leagueId()) {
-    return `${leagueId}|${this.selectedPlayer()}|${this.selectedDrop()}`;
+    return `${leagueId}|${this.selectedPlayer()}|${this.researchMode() === 'overall' ? 'player-fit' : this.selectedDrop()}`;
   }
 
   private rememberReason(leagueId = this.leagueId()) {
@@ -365,75 +624,33 @@ export class SeasonPage {
   }
 
   choosePlayer(id: string) {
+    this.watchSaveMessage.set('');
     this.rememberReason();
     this.selectedPlayer.set(id);
     this.reason.set(this.noteDrafts.get(this.draftKey()) ?? '');
-    if (this.tab() === 'compare') this.loadComparison();
+
+    if (this.researchMode() === 'category')
+      this.researchPanel()?.nativeElement.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }
 
   chooseDrop(id: string) {
     this.rememberReason();
     this.selectedDrop.set(id);
     this.reason.set(this.noteDrafts.get(this.draftKey()) ?? '');
-    this.loadComparison();
   }
 
-  private loadComparison() {
-    const generation = ++this.comparisonGeneration;
-    this.comparison.set(null);
-    const signature = this.view()?.signature;
-    const player = this.selectedPlayerInfo();
-    const drop = this.selectedDropInfo();
-    if (!signature || !player || !drop || !this.active()) {
-      this.comparisonLoading.set(false);
-      return;
-    }
-    const pageGeneration = this.generation;
-    const leagueId = this.leagueId();
-    this.comparisonLoading.set(true);
-    this.comparisonError.set(null);
-    this.api
-      .compare(leagueId, {
-        player_id: player.id,
-        drop_id: drop.id,
-        added_starts: this.addedStarts(),
-        removed_starts: this.removedStarts(),
-        signature,
-      })
-      .subscribe({
-        next: (result) => {
-          if (
-            generation !== this.comparisonGeneration ||
-            pageGeneration !== this.generation ||
-            leagueId !== this.leagueId() ||
-            result.signature !== this.view()?.signature
-          )
-            return;
-          this.comparison.set(result);
-          this.comparisonLoading.set(false);
-        },
-        error: (err: unknown) => {
-          if (
-            generation !== this.comparisonGeneration ||
-            pageGeneration !== this.generation ||
-            leagueId !== this.leagueId()
-          )
-            return;
-          this.comparisonError.set(this.safeError(err));
-          this.comparison.set(null);
-          this.comparisonLoading.set(false);
-        },
-      });
-  }
-
-  saveWatch() {
+  saveWatch(playerOnly = false) {
     const current = this.view();
     const player = this.selectedPlayerInfo();
     const drop = this.selectedDropInfo();
+    const overall = this.researchMode() === 'overall';
+    const added = overall && this.comparisonHorizon() === 'per_game' ? 1 : this.addedStarts();
+    const removed = overall && this.comparisonHorizon() === 'per_game' ? 1 : this.removedStarts();
+    if (overall && (playerOnly ? !this.overviewReady() : !this.fitReady())) return;
     if (
       !current ||
       !player ||
-      !drop ||
+      (!playerOnly && (!drop || added === null || removed === null)) ||
       !current.signature ||
       this.savingWatch() ||
       this.revisionConflict()
@@ -447,12 +664,19 @@ export class SeasonPage {
     this.api
       .saveWatch(leagueId, {
         player_id: player.id,
-        drop_id: drop.id,
+        drop_id: playerOnly ? null : drop!.id,
         reason: this.reason(),
-        added_starts: this.addedStarts(),
-        removed_starts: this.removedStarts(),
+        added_starts: playerOnly ? 0 : added!,
+        removed_starts: playerOnly ? 0 : removed!,
         signature: current.signature,
         expected_revision: current.watch_revision,
+        category: overall ? undefined : this.selectedCategory(),
+        basis: overall || playerOnly ? this.basis() : 'projection',
+        window_days: this.windowDays(),
+        fit_strategy: overall ? this.fitStrategy() : undefined,
+        fit_context: overall ? (playerOnly ? 'player' : 'move') : undefined,
+        focus_categories: overall ? this.focusCategories() : [],
+        fit_horizon: overall && !playerOnly ? this.comparisonHorizon() : undefined,
       })
       .subscribe({
         next: (view) => {
@@ -477,14 +701,15 @@ export class SeasonPage {
     savedReason: string,
     added: number,
     removed: number,
+    targetTab?: PageTab,
   ) {
     this.rememberReason();
     this.selectedPlayer.set(playerId);
     if (dropId) this.selectedDrop.set(dropId);
     this.reason.set(savedReason);
-    this.addedStarts.set(added);
-    this.removedStarts.set(removed);
-    this.openTab('compare');
+    this.addedStarts.set(dropId ? added : null);
+    this.removedStarts.set(dropId ? removed : null);
+    this.openTab(targetTab ?? (dropId ? 'compare' : 'outlook'));
   }
 
   playerValue(player: SeasonPlayer, category: SeasonCategory | null): string {
@@ -556,11 +781,16 @@ export class SeasonPage {
     )
       return;
     if (this.isOlderView(view)) return;
+    if (this.view()?.preferences.team_id !== view.preferences.team_id) {
+      this.selectedDrop.set('');
+      this.selectedCandidates.set([]);
+      this.overallInspection.set(null);
+      this.recommendationPanel()?.back();
+    }
     this.view.set(view);
     this.writeError.set(null);
     this.revisionConflict.set(false);
     this.ensureSelections(view.capture);
-    this.loadComparison();
   }
 
   private isOlderView(incoming: SeasonView) {
