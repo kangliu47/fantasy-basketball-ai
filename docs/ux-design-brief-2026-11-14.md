@@ -2,6 +2,8 @@
 
 November 14, 2026 · For workflow review · Live-season roster decisions
 
+The [interactive My season preview](my-season-preview.html) is ready for workflow approval. It places team needs and the target shortlist side by side on desktop and stacks them on narrow screens. Use **Preview data states** to try a stale watch, first launch, or incomplete stats.
+
 **Recommendation.** Open on **My season**, with team needs and a short list of available players on the same screen. Start a comparison from a player, carry the ranking context forward, and make **Keep roster** the comparison baseline. Give Draft and History stable entries for their occasional jobs.
 
 ## Who uses it and what they need
@@ -48,4 +50,4 @@ Choose **B** for the daily journey. Its advantage is that a manager can see why 
 | You want to protect assists. Compare two available players from the last 15 days against the same roster player, then check a scenario with two incoming starts and three outgoing starts. | Find ranking options from the shortlist. Both alternatives retain the selected focus and source. The manager can explain the two independent swaps, the manual starts, and the units. |
 | Yesterday you saved an injury-related watch. Today the last league check is stale, and reconnecting fails. Later, a fresh check shows the player is rostered. Decide whether to keep pursuing the move. | Find the note and its original evidence, recognize the stale ownership before deciding, and find recovery without leaving the journey. On fresh evidence the candidate drops out of available targets, and the watch reason is still readable. |
 
-**Review boundary.** This brief uses a read-only walkthrough of the running app plus the current templates and approved workflow. The scenarios are proposed acceptance checks and have yet to be run with a participant. Review the one-screen entry and the visibility of expert controls here. An interactive synthetic mock is the next review step before production changes. [Approved live-season workflow](season-workflow-design.md), [Data sync design](data-sync-design.md).
+**Review boundary.** This brief uses a read-only walkthrough of the running app plus the current templates and approved workflow. The scenarios have been checked in the synthetic preview and have yet to be run with a participant. Review the one-screen entry and visibility of expert controls in the preview before production changes. [Approved live-season workflow](season-workflow-design.md), [Data sync design](data-sync-design.md).
