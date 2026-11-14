@@ -157,19 +157,24 @@ def parse_history(
         and obj(r).get("scoringPeriodId") == 0
     ]
     gp = number(obj(totals[0].get("stats")).get("42")) if len(totals) == 1 else None
+    # ESPN can include scheduled daily rows with literally empty stat objects.
+    # They are not played games or explicit DNPs. Exclude them only when every
+    # season appearance is accounted for by the nonempty records and aggregate GP.
+    nonempty = [r for r in current if r.get("stats") != {}]
+    played = [number(obj(r.get("stats")).get("42")) for r in nonempty]
+    gp_reconciled = gp is not None and gp == played.count(1)
     # The source returns the last 60 games (including earlier seasons). A full
     # season GP reconciliation, or a returned official game before the 60-day
     # window, establishes window coverage. No guessed scoring-period dates.
     dates = [
         official[str(r.get("externalId"))][0]
-        for r in current
+        for r in nonempty
         if str(r.get("externalId")) in official
     ]
-    played = [number(obj(r.get("stats")).get("42")) for r in current]
-    complete = (gp is not None and gp == played.count(1)) or bool(
-        dates and min(dates) <= since + timedelta(days=1)
-    )
+    complete = gp_reconciled or bool(dates and min(dates) <= since + timedelta(days=1))
     if any(value not in {0, 1} for value in played):
+        complete = False
+    if len(nonempty) != len(current) and not gp_reconciled:
         complete = False
     games: list[PlayerGame] = []
     seen: set[str] = set()
@@ -186,6 +191,10 @@ def parse_history(
         values = stats(row.get("stats"))
         if row.get("scoringPeriodId") != period:
             return PlayerGameHistory(player_id, (), False)
+        if row.get("stats") == {}:
+            if not gp_reconciled:
+                return PlayerGameHistory(player_id, (), False)
+            continue
         if values.get("GP") == 0:
             if any(value > 0 for value in values.values()):
                 return PlayerGameHistory(player_id, (), False)

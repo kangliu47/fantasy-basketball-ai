@@ -1,0 +1,150 @@
+<ng-template #dialog
+  ><div class="sync-dialog">
+    <div class="dialog-heading">
+      <h2 id="data-sync-title">Data & connection</h2>
+      <button mat-icon-button aria-label="Close data and connection" (click)="sync.close()">
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+    <small>{{ sync.state()?.league_name || 'Current league' }} · 2026–27</small>
+    <div class="connection-line">
+      <span class="status-dot" [class.warning]="sync.needsConnection()"></span
+      ><span>{{ sync.needsConnection() ? 'ESPN disconnected' : 'ESPN connected' }}</span>
+      <app-help-tip
+        label="ESPN connection"
+        text="Connect to read your league’s rosters and standings. Sync updates your saved data; being signed in alone doesn’t make it current."
+      />
+      @if (!sync.needsConnection()) {
+        <button
+          mat-button
+          class="disconnect"
+          (click)="sync.disconnect()"
+          [disabled]="sync.running() || sync.workspace.busy()"
+        >
+          Disconnect
+        </button>
+      }
+    </div>
+    <div class="sync-main">
+      <div>
+        <strong>{{ sync.label() }}</strong
+        ><small
+          >{{ leagueDate() ? 'League checked' : 'Current season' }}
+          {{ leagueDate() | date: 'MMM d, h:mm a' }}</small
+        >
+      </div>
+      <button
+        mat-flat-button
+        (click)="sync.start()"
+        [disabled]="!sync.workspace.state()?.selection || sync.running() || sync.signingIn()"
+      >
+        <app-sync-icon [class.spinning]="sync.running()" />{{
+          sync.needsConnection() ? 'Connect & sync' : sync.running() ? 'Syncing…' : 'Sync now'
+        }}
+      </button>
+    </div>
+    @if (sync.error() || sync.workspace.error()) {
+      <p class="feedback error" role="alert">
+        {{ sync.error() || sync.workspace.error() }}
+        <button mat-button (click)="sync.load()">Check status</button>
+      </p>
+    }
+    @if (sync.signingIn()) {
+      <p class="feedback" role="status">{{ sync.workspace.state()?.operation?.message }}</p>
+    } @else if (
+      sync.workspace.state()?.operation?.kind === 'login' &&
+      sync.workspace.state()?.operation?.status === 'error'
+    ) {
+      <p class="feedback error" role="alert">{{ sync.workspace.state()?.operation?.message }}</p>
+    }
+    @if (sync.state()?.status !== 'idle' && sync.state()?.message) {
+      <p class="feedback" [class.error]="sync.state()?.status === 'error'" role="status">
+        {{ sync.state()?.message }}
+      </p>
+    }
+    @if (!sync.workspace.state()?.selection) {
+      <p class="feedback">Save your league details to begin.</p>
+    }
+    @if (sync.running() || sync.signingIn()) {
+      <button mat-button (click)="sync.cancel()">
+        {{ sync.signingIn() ? 'Cancel sign-in' : 'Cancel sync' }}
+      </button>
+    }
+    <div class="group-list">
+      @for (group of groups(); track group.label) {
+        <div class="group">
+          <app-sync-icon [kind]="group.icon" /><span>{{ group.label }}</span
+          ><span
+            class="group-status"
+            [class.attention]="groupLabel(group.sources) === 'Needs attention'"
+            ><app-sync-icon
+              [kind]="groupIcon(group.sources)"
+              [class.spinning]="groupLabel(group.sources) === 'Checking…'"
+            />{{ groupLabel(group.sources) }}</span
+          >
+        </div>
+      }
+    </div>
+    <details>
+      <summary>
+        Source details
+        <span class="issue-count">{{
+          sync.issues().length
+            ? sync.issues().length + (sync.issues().length === 1 ? ' issue' : ' issues')
+            : ''
+        }}</span>
+      </summary>
+      <p class="source-method">
+        Current season · 2026–27<app-help-tip
+          label="Sync scope and coverage"
+          text="Rosters first, then recent actuals, ESPN injuries and roster levels, bounded RotoWire-via-ESPN / ESPN player news, and NBA Official reports when accessible. Successful requests do not prove complete coverage. Published dates and market-history gaps remain with the evidence."
+        />
+      </p>
+      @for (source of sync.state()?.sources ?? []; track source.key) {
+        <div class="source-row">
+          <div>
+            <strong>{{ source.label }}</strong
+            ><small>{{ (source.succeeded_at | date: 'MMM d, h:mm a') || 'Never checked' }}</small>
+          </div>
+          <span>{{ sourceLabel(source) }}</span>
+          @if (source.message) {
+            <app-help-tip [label]="source.label + ' details'" [text]="source.message" />
+          }
+        </div>
+        @if (source.status === 'error' || source.status === 'warning') {
+          <p class="source-error">{{ source.message }}</p>
+        }
+      }
+      <small class="run-date"
+        >{{ sync.state()?.finished_at ? 'Last run' : 'Started' }}
+        {{ sync.state()?.finished_at || sync.state()?.started_at | date: 'MMM d, h:mm a' }}</small
+      >
+    </details>
+    <details>
+      <summary>Other saved inputs</summary>
+      <div class="source-row">
+        <div>
+          <strong>Saved projections</strong
+          ><small>{{
+            (sync.state()?.projection_captured_at | date: 'MMM d, y') || 'No saved import'
+          }}</small>
+        </div>
+        <app-help-tip
+          label="Projection imports"
+          text="Reviewed projection imports stay separate. Current-season sync does not update estimates, auction prices or draft plans."
+        />
+      </div>
+      <div class="source-row">
+        <div>
+          <strong>Saved archive</strong
+          ><small>{{
+            (sync.state()?.workspace_captured_at | date: 'MMM d, y') || 'No saved snapshot'
+          }}</small>
+        </div>
+        <app-help-tip
+          label="Other league evidence"
+          text="This is the separately saved league snapshot date. Archive import dates remain in Historical patterns. Completed seasons and reviewed manager assignments are unchanged by current-season sync."
+        />
+      </div>
+    </details></div
+></ng-template>

@@ -22,9 +22,9 @@
   <button
     mat-stroked-button
     [disabled]="state()?.refreshing || state()?.loading"
-    (click)="news.refresh(leagueId(), player().id)"
+    (click)="sync.start(player().id)"
   >
-    {{ state()?.refreshing ? 'Refreshing news…' : 'Refresh player news' }}
+    Sync data
   </button>
 </div>
 @if (loading()) {
@@ -113,7 +113,7 @@
     <h3>Latest player news</h3>
     <app-help-tip
       label="Player news checks"
-      text="Public ESPN reports refresh on inspection when the last successful news check is over 30 minutes old. Publication and check dates differ. Saved news remains on failures; news does not alter projections or establish a return date."
+      text="Use global Sync data to check public ESPN reports with league ownership. Publication and check dates differ. Saved news remains on failures; news does not alter projections or establish a return date."
     />
   </div>
   @if (state()?.loading) {
@@ -189,6 +189,6 @@
       <p>No player news returned in this check. No report does not establish healthy status.</p>
     }
   } @else if (!state()?.loading) {
-    <p>No saved report yet. Refresh player news to check ESPN.</p>
+    <p>No saved report yet. Use Sync data to check ESPN.</p>
   }
 </section>

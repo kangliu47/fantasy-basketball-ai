@@ -6,7 +6,7 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime, timedelta
 from hashlib import sha256
 from threading import Event
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -29,6 +29,7 @@ from fantasy_ai.domain.season.landscape import LeaguePosition, landscape
 from fantasy_ai.domain.season.models import (
     CALCULATION_VERSION,
     STAT_KEYS,
+    InjuryWatchContext,
     SeasonCapture,
     SeasonPreferences,
     SeasonStanding,
@@ -52,7 +53,12 @@ from fantasy_ai.domain.season.recommendations import (
 )
 from fantasy_ai.domain.season.research import PlayerResearch, ResearchBasis, investigate
 
+if TYPE_CHECKING:
+    from fantasy_ai.application.season.data_sync import DataSyncService
+    from fantasy_ai.application.season.injuries import InjuryService
+
 ZONE = ZoneInfo("America/New_York")
+ACTIVE_SEASON = 2027
 FORECAST_MESSAGE = (
     "Season endpoints and future roto-point gains need verified league-wide schedules, "
     "lineups and participation. Compare manual seven-day contribution assumptions for research."
@@ -84,6 +90,7 @@ class SeasonView:
     forecast_message: str = FORECAST_MESSAGE
     league_values: dict[str, dict[str, float | None]] = field(default_factory=dict)
     league_positions: tuple[LeaguePosition, ...] = ()
+    projection_version: str | None = None
 
 
 @dataclass(frozen=True)
@@ -168,6 +175,8 @@ class SeasonService:
         self._read_cancelled = Event()
         self._lock = asyncio.Lock()
         self.news = news
+        self.injuries: InjuryService | None = None
+        self.sync: DataSyncService | None = None
 
     async def view(self, selection: LeagueSelection) -> SeasonView:
         # Intentionally no credential reads: all GETs remain usable after restart.
@@ -213,6 +222,8 @@ class SeasonService:
             ).encode()
         ).hexdigest()
         op = self.operation if self._selection == selection else Operation()
+        if self.sync and self.sync.running and self.sync.selection() == selection:
+            op = Operation("refresh", "running", "Syncing current-season data…")
         return SeasonView(
             selection.season,
             selection.league_id,
@@ -236,13 +247,17 @@ class SeasonService:
             if capture
             else {},
             league_positions=landscape(capture) if capture else (),
+            projection_version=rates.version if rates else None,
         )
 
-    async def refresh(self, selection: LeagueSelection) -> SeasonView:
+    async def refresh(self, selection: LeagueSelection, *, coordinated: bool = False) -> SeasonView:
+        if self.sync and not coordinated:
+            await self.sync.start(selection)
+            return await self.view(selection)
         async with self._lock:
             if self._task and not self._task.done():
                 raise OperationBusy("A live-season refresh is already running.")
-            self.workspace._ensure_idle()
+            self.workspace._ensure_idle(allow_collection=coordinated)
             if (
                 not self.workspace.selection
                 or self.workspace.selection.league_id != selection.league_id
@@ -340,6 +355,10 @@ class SeasonService:
 
             self._task = asyncio.create_task(run())
         return await self.view(selection)
+
+    async def wait_for_refresh(self) -> None:
+        if self._task:
+            await asyncio.shield(self._task)
 
     async def cancel(self, selection: LeagueSelection) -> SeasonView:
         async with self._lock:
@@ -519,6 +538,8 @@ class SeasonService:
             )
         if view.operation.status == "running":
             raise OperationBusy("Wait for the current refresh before comparing a move.")
+        if self.sync and not self.sync.ownership_ready():
+            raise WorkspaceError("Sync league ownership before comparing a pickup.")
         if not 0 <= added_starts <= 7 or not 0 <= removed_starts <= 7:
             raise WorkspaceError("Assumed credited starts must be between zero and seven.")
         capture = view.capture
@@ -598,6 +619,7 @@ class SeasonService:
         fit_context: Literal["player", "move"] | None = None,
         focus_categories: tuple[str, ...] = (),
         fit_horizon: FitHorizon | None = None,
+        injury_context: InjuryWatchContext | None = None,
     ) -> SeasonView:
         if fit_context not in {None, "player", "move"}:
             raise WorkspaceError("Choose player research or a complete move context.")
@@ -696,6 +718,7 @@ class SeasonService:
                 fit_evidence.version if fit_evidence else None,
                 tuple(c.code for c in view.capture.categories if c.code in focus_categories),
                 (fit_horizon or "seven_day") if fit_strategy and drop_id else None,
+                injury_context,
             ),
             revision,
         )
@@ -766,12 +789,19 @@ class SeasonService:
         )
 
     async def tick(self, now: datetime | None = None) -> None:
+        if self.sync:
+            await self.sync.tick(now or datetime.now(UTC))
+            return
         selection = self.workspace.selection
+        if selection and self.injuries:
+            await self.injuries.tick(
+                LeagueSelection(selection.league_id, ACTIVE_SEASON), now or datetime.now(UTC)
+            )
         if selection is None or self.workspace.connection not in {"connected", "saved"}:
             return
         if self._task and not self._task.done():
             return
-        current = LeagueSelection(selection.league_id, 2027)
+        current = LeagueSelection(selection.league_id, ACTIVE_SEASON)
         saved = await asyncio.to_thread(self.repository.load, current)
         latest = saved.captures[0].captured_at if saved.captures else None
         if saved.preferences.automatic_daily and daily_due(
@@ -789,6 +819,8 @@ class SeasonService:
         self._scheduler = asyncio.create_task(loop())
 
     async def close(self) -> None:
+        if self.sync:
+            await self.sync.close()
         self._cancelled = True
         self._read_cancelled.set()
         for task in (self._scheduler, self._task):
@@ -797,3 +829,5 @@ class SeasonService:
         await asyncio.gather(
             *(t for t in (self._scheduler, self._task) if t), return_exceptions=True
         )
+        if self.injuries:
+            await self.injuries.close()

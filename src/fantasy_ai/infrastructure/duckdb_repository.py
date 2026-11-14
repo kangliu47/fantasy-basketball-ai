@@ -27,7 +27,7 @@ from .player_information_schema import PLAYER_INFORMATION_SCHEMA
 from .player_notes_schema import PLAYER_NOTES_SCHEMA
 from .season_schema import SEASON_SCHEMA
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS league_snapshots (
     snapshot_id UUID PRIMARY KEY,
@@ -96,13 +96,24 @@ class DuckDBWorkspaceRepository:
                     [(6,)],
                     [(7,)],
                     [(8,)],
+                    [(9,)],
                     [(SCHEMA_VERSION,)],
                 ):
                     raise WorkspaceError(
                         "This history database uses a different version. "
                         "Ask Codex to update the app."
                     )
-                if versions in ([(1,)], [(2,)], [(3,)], [(4,)], [(5,)], [(6,)], [(7,)], [(8,)]):
+                if versions in (
+                    [(1,)],
+                    [(2,)],
+                    [(3,)],
+                    [(4,)],
+                    [(5,)],
+                    [(6,)],
+                    [(7,)],
+                    [(8,)],
+                    [(9,)],
+                ):
                     # Flush the WAL before copying under the same process-wide connection lock.
                     connection.execute("CHECKPOINT")
                     backup_dir = self.root / "backups"

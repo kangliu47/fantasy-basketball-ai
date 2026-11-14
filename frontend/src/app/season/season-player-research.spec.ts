@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SeasonNewsStore } from './season-news-store';
+import { DataSyncStore } from '../core/data-sync-store';
 import { SeasonPlayerResearch } from './season-player-research';
 
 describe('SeasonPlayerResearch source safety', () => {
@@ -30,7 +31,10 @@ describe('SeasonPlayerResearch source safety', () => {
     };
     await TestBed.configureTestingModule({
       imports: [SeasonPlayerResearch],
-      providers: [{ provide: SeasonNewsStore, useValue: news }],
+      providers: [
+        { provide: SeasonNewsStore, useValue: news },
+        { provide: DataSyncStore, useValue: { start: vi.fn() } },
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(SeasonPlayerResearch);
     fixture.componentRef.setInput('leagueId', 123);

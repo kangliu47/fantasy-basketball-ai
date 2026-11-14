@@ -1,5 +1,78 @@
 # Implementation plan
 
+## Unified current-season sync — November 8, 2026, latest
+
+Implement the approved global Sync data flow with the user's correction:
+minimal visible copy, icon-assisted status, accessible tooltip help and collapsed
+source details. Keep current ownership before dependent injury/market/news
+research, preserve complete saved observations on failure/cancel, reject stale
+selections, and coordinate existing background checks. Preserve source bounds,
+fit formulas, manual projection/archive scope and all private-session boundaries.
+
+Use the existing repositories and shared connection lock without migration.
+Propagate new evidence to open lists, roster/comparison choices and player-news
+cache; retain notes and saved watches. Saved GETs remain provider-free. See the
+[decision contract](data-sync-design.md) and
+[delivery record](qa/2026-11-08-data-sync-delivery.md).
+
+
+## Injury opportunities — November 7, 2026, latest
+
+Implemented the approved compact desktop mode inside Waiver targets, source
+attribution / collection details, Python-only candidate rules, source-isolated
+refresh/cancel, saved market baselines, reviewed-change filtering and existing
+comparison/watch handoffs. Added explicit source/version watch context, a backed-up
+schema-v10 migration and bounded while-running public checks following the first
+explicit collection. No model/API-token dependency, paid data subscription,
+external notification, mobile flow or ESPN write is introduced.
+
+Real public-source validation returned 1,100 identities across 30 NBA teams,
+1,100 dated percentage levels and 91 injury entries; 89 matched ID/name/team and
+the remaining two stayed unlinked. The official NBA directory returned 403 to
+local HTTP. Its adapter retains an honest unavailable/last-good state; report
+PDFs remain review evidence rather than automatically linked absence records.
+History starts at collection; ownership changes need comparable saved endpoints.
+Claim cutoffs, verified absence splits and recovery predictions remain unavailable.
+
+Validation and local activation are recorded in
+[delivery evidence](qa/2026-11-07-injury-opportunities-delivery.md). Existing user
+edits and prior observations are preserved. No commit, PR or publication is part
+of this local feature delivery.
+
+## Recent-game collector repair — October 28, 2026, latest
+
+The user reported unknown GP/minutes and unranked players, then selected
+“Diagnose and fix the collector (Recommended).” Bounded saved-state and public
+source diagnostics separated a working connection from incomplete samples.
+Fixed literal empty daily stat objects invalidating otherwise GP-reconciled
+histories. Preserve unknown data, event/date guards, actuals-only rates and all
+ranking formulas; no frontend changes or new collection policy are introduced.
+
+Added 15 synthetic regression cases; 111 relevant season/MCP/HTTP/probe checks
+passed, with lint and strict type checks. Public-source spot verification through
+the corrected reader and existing fit calculations recovered usable samples for
+both reported players. Reloaded the verified local backend after graceful shutdown;
+the saved observation remains intact. Its memory-only session is cleared, so the
+user must Connect ESPN and choose Live season → Data & settings → Refresh data
+to persist new corrected evidence. No private league refresh or observation rewrite
+was performed by the repair. See [verification](qa/2026-10-28-recent-game-empty-records.md).
+
+## In-season MCP outlook and ranking implementation — October 25, 2026, latest follow-up
+
+The user requested implementation of the in-season guide and selected
+“Outlook + rankings first (Recommended)” in the scope popup. Delivered the separate
+saved-read MCP proxy, typed local facade, application composition/currency guards,
+source references, overall/category rankings, inverse category roster ordering,
+explicit filters and bounded cursor pages. Reuse the existing actuals/projection,
+priority and fit formulas. No new UI flow or mock is needed for this slice.
+
+Stop at these two tools plus synthetic parity/security/regression checks and
+[setup documentation](in-season-mcp.md). No collection, note writes, client
+configuration changes, commit, PR or merge is included. The rest of the
+[design catalog](in-season-mcp-design.md) remains future work. See
+[delivery evidence](qa/2026-10-25-in-season-mcp.md). This supersedes the prior
+release's design-only status for these two tools.
+
 ## Reviewed release delivery — October 25, 2026, latest follow-up
 
 The user resumed delivery and authorized security review, commit, PR and merge

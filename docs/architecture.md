@@ -1,5 +1,92 @@
 # Architecture and learning guide
 
+## Unified data sync — November 8, 2026, latest
+
+`DataSyncService` orchestrates existing current-season and injury use cases,
+without a second provider parser or database writer. Saved-only `/api/sync`
+returns source clocks and current-run progress; scoped POST start/cancel commands
+reuse local request protections. One run coordinates explicit, legacy and enabled
+background reads. League collection precedes public research, and its successful
+capture is the ownership context. Selection changes are blocked during collection;
+disconnect/shutdown cancel and drain the run. Provider failures retain each
+complete last-good observation; run progress is process-local and is not claimed
+as a durable receipt after restart. No schema change is needed.
+
+Angular exposes a compact global action/status and a lazy Material dialog with
+two groups, source disclosures, SVG icons and the existing accessible HelpTip.
+A shared store invalidates active season, injury and player-news reads when
+observations or run state change; old requests cannot replace newer scopes or
+completed results. Player inspection reads saved news, while explicit news checks
+join the coordinator. Draft-specific ESPN context and reviewed projection/archive
+imports retain their separate contracts and dated evidence. Current-season sync
+does not claim those inputs were refreshed. See [contract](data-sync-design.md).
+
+
+## Injury opportunity evidence — November 7, 2026, latest
+
+The approved desktop mode uses `SeasonInjuries` and a separate local
+`/api/season/opportunities` interface. `application/season/injuries.py` composes
+saved public observations with existing league snapshots and category fit.
+Domain rules in `domain/season/injuries.py` generate possible shared-role links,
+explicit before/after-report samples and compatible dated roster-share changes.
+No model calls, scoring-formula changes, causal injury effects or new forecast
+are introduced. App analysis remains separate from attributed reporting.
+
+`PublicInjuryCollector` uses fixed-host credential-free ESPN injury-index,
+public identity/roster-share and existing player-news readers, plus an official
+NBA index/PDF reader. Each source has independent timestamps, coverage and
+last-good retention. Returned ESPN IDs, names and NBA teams must agree; unresolved
+rows are counted and stay unlinked. NBA PDF names are not automatically joined.
+Player-news fan-out is bounded and shares the existing successful-news cache.
+
+Schema v10 adds append-only `injury_observations` and league/team/revision-scoped
+`injury_reviews`, backing up v9 and older stores under the existing connection
+lock before migration. Successful news and public captures publish atomically;
+older retained reports never displace newer player checks. Watches add optional
+injury source/version context, preserving old documents and revision guards.
+The existing while-running scheduler checks an explicitly initialized public
+collection every 30 minutes when automatic checking is enabled. Private refresh
+still requires the existing memory-only session. Offline startup and saved GETs
+remain provider- and credential-free. See
+[delivery and limits](qa/2026-11-07-injury-opportunities-delivery.md).
+
+## Recent-game empty-record repair — October 28, 2026, latest
+
+The ESPN recent-game adapter can receive current-season daily rows whose `stats`
+object is literally empty alongside valid played-game rows. It now excludes those
+placeholders only when the reported season GP total exactly reconciles with the
+returned played appearances. Empty rows cannot establish the older window-coverage
+boundary, count as played games or become explicit DNPs. Missing/malformed/nonempty
+unknown-GP rows, mismatched totals, duplicate events and period/identity conflicts
+still withhold usable history. No rates, fit formula, UI flow, database schema or
+credential boundary changed. A new explicit refresh collects corrected evidence;
+old observations are preserved. See [repair verification](qa/2026-10-28-recent-game-empty-records.md).
+
+## In-season MCP saved-read slice — October 25, 2026, latest follow-up
+
+The user selected outlook and rankings first from the
+[design](in-season-mcp-design.md). `application/season/agent_reports.py` composes
+existing season views, fit and category research, then rechecks selection and
+evidence currency. Frozen report contracts carry canonical scenarios, stateless
+analysis keys, dated source/window/method evidence, bounded pages and explicit
+coverage. No score/priority formula changed. A small domain category-ordering
+extension supports inverse own-roster review with existing competition ties.
+
+Closed nested schemas feed two GET reports under `/api/season/agent/`.
+`interfaces/mcp/season_server.py` exposes exactly the two saved-read tools over
+fixed loopback requests, without constructing services or opening DuckDB.
+The existing app owns its repository/lock, sessions and collection policy.
+Historical/auction MCP contracts remain separate. The active-season constant
+now supplies the existing HTTP default, collector and new facade. The season
+view also exposes the already-read projection version for report provenance.
+
+Synthetic checks cover app/report/MCP parity, real STDIO discovery, changing
+evidence, missingness, filters, ties, budgets, safe failures and local request
+protections. Installed client registration is a separate unverified step.
+See [setup](in-season-mcp.md) and [verification](qa/2026-10-25-in-season-mcp.md).
+Other catalog tools, UI changes, provider reads and watch writes are outside
+this delivered slice. Older release records below describe their own snapshots.
+
 ## Security-reviewed delivery — October 25, 2026, latest follow-up
 
 The [release review](qa/2026-10-25-release-security-review.md) covers this approved

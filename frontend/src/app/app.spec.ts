@@ -27,6 +27,24 @@ describe('League workspace', () => {
 
   const settle = async () => {
     await Promise.resolve();
+    fixture.detectChanges();
+    for (const request of http.match('/api/sync'))
+      request.flush({
+        selection: fixture.componentInstance.store.state()?.selection
+          ? { league_id: 12345, season: 2027 }
+          : null,
+        connection: fixture.componentInstance.store.state()?.connection,
+        status: 'idle',
+        run_id: null,
+        started_at: null,
+        finished_at: null,
+        message: '',
+        sources: [],
+        league_capture_id: null,
+        research_snapshot_id: null,
+        projection_captured_at: null,
+        workspace_captured_at: null,
+      });
     await fixture.whenStable();
     fixture.detectChanges();
   };
@@ -54,7 +72,7 @@ describe('League workspace', () => {
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
       'Build a shortlist you can use.',
     );
-    expect(button('Refresh data').disabled).toBe(true);
+    expect(button('Sync data').disabled).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Save your league details');
   });
 
@@ -71,7 +89,7 @@ describe('League workspace', () => {
     expect(request.request.body).toEqual({ league_id: 12345, season: 2026 });
     request.flush({ ...empty, selection: { league_id: 12345, season: 2026 } });
     await settle();
-    expect(button('Connect ESPN').disabled).toBe(false);
+    expect(button('Sync data').disabled).toBe(false);
   });
 
   it('shows login progress and supports cancellation', async () => {
@@ -79,7 +97,7 @@ describe('League workspace', () => {
     const configured = { ...empty, selection: { league_id: 12345, season: 2026 } };
     http.expectOne('/api/state').flush(configured);
     await settle();
-    button('Connect ESPN').click();
+    void fixture.componentInstance.sync.start();
     http.expectOne('/api/auth/connect').flush({
       ...configured,
       operation: {
@@ -90,7 +108,7 @@ describe('League workspace', () => {
     });
     await settle();
     expect(button('Cancel sign-in')).toBeTruthy();
-    expect(button('Connect ESPN').disabled).toBe(true);
+    expect(button('Sync data').disabled).toBe(true);
     button('Cancel sign-in').click();
     http.expectOne('/api/auth/cancel').flush({
       ...configured,
@@ -98,7 +116,7 @@ describe('League workspace', () => {
     });
     await settle();
     expect(fixture.nativeElement.textContent).toContain('Sign-in cancelled');
-    expect(button('Connect ESPN').disabled).toBe(false);
+    expect(button('Sync data').disabled).toBe(false);
   });
 
   it('opens the analytics profile instead of mounting roster and archive tools', async () => {
@@ -137,7 +155,7 @@ describe('League workspace', () => {
     http.expectNone('/api/archive/category-allocation');
     await settle();
     expect(fixture.nativeElement.querySelector('h1').textContent.trim()).toBe('Synthetic League');
-    expect(button('Refresh data').disabled).toBe(false);
+    expect(button('Sync data').disabled).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('My profile');
     expect(fixture.nativeElement.textContent).toContain('one reviewed manager link');
     expect(fixture.nativeElement.textContent).not.toContain('Example Player');
@@ -236,13 +254,13 @@ describe('League workspace', () => {
     const overview = fixture.debugElement.query(
       By.directive(AuctionOpportunities),
     ).componentInstance;
-    button('Connection').click();
+    fixture.componentInstance.openConnection();
     await settle();
-    expect(fixture.componentInstance.activeWorkspace()).toBeNull();
+    expect(fixture.componentInstance.activeWorkspace()).toBe('draft');
     expect(
       fixture.nativeElement.querySelector('app-auction-opportunities').parentElement.hidden,
-    ).toBe(true);
-    button('Back to previous workspace').click();
+    ).toBe(false);
+    fixture.componentInstance.sync.close();
     await settle();
     expect(fixture.componentInstance.activeSection()).toBe('auction');
     expect(

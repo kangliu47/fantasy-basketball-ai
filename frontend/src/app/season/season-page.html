@@ -6,7 +6,7 @@
         { id: 'outlook', label: '2 · Waiver targets' },
         { id: 'compare', label: '3 · Compare moves' },
         { id: 'watchlist', label: 'Watchlist' },
-        { id: 'settings', label: 'Data & settings' },
+        { id: 'settings', label: 'Team & settings' },
       ];
       track item.id
     ) {
@@ -38,20 +38,20 @@
       <div class="notice" [class.error]="state.operation.status === 'error'" role="status">
         {{ state.operation.message }}
         @if (state.operation.status === 'running') {
-          <button mat-button (click)="cancelRefresh()">Cancel refresh</button>
+          <button mat-button (click)="sync.open()">View sync status</button>
         }
       </div>
     }
     @if (tab() !== 'settings' && hasCapture()) {
       <div class="evidence-line">
         <span
-          >{{ selectedTeam()?.name || 'Choose your team in Data & settings' }} · League checked
+          >{{ selectedTeam()?.name || 'Choose your team in Team & settings' }} · League checked
           {{ freshness(capture()?.captured_at) }}</span
         ><span
           >{{ isConnected() ? 'ESPN connected' : 'Saved evidence · offline' }}
           <app-help-tip
             label="Saved evidence and pool coverage"
-            text="League standings and ownership come from the dated saved observation. ESPN may return only part of the available-player pool; returned player count is not proof that every free agent was collected. Rankable players also need complete statistics in the selected source. Rankings cover returned players only. Open Data & settings to check source dates or refresh."
+            text="League standings and ownership come from the dated saved observation. ESPN may return only part of the available-player pool; returned player count is not proof that every free agent was collected. Rankable players also need complete statistics in the selected source. Rankings cover returned players only. Open Data & connection for source dates or use Sync data to update."
         /></span>
       </div>
     }
@@ -80,7 +80,7 @@
               "
               [disabled]="!state.preferences.team_id || revisionConflict()"
             />
-            Daily check while open and connected</label
+            Automatic checks while open and connected</label
           >
           @if (writeError()) {
             <div class="write-feedback">
@@ -90,6 +90,10 @@
               }
             </div>
           }
+          <app-help-tip
+            label="Automatic check cadence"
+            text="While open and connected, the daily 9 AM New York check and initialized 30-minute injury checks use the same coordinator, refreshing ownership before research. Disabled means manual Sync data only. The app cannot collect while closed or asleep."
+          />
           <div class="source-line">
             <span
               >{{ state.capture!.league_name }} · {{ state.capture!.teams.length }} teams ·
@@ -612,11 +616,52 @@
           <button mat-stroked-button (click)="openTab('landscape')">Edit ranking focus</button>
         </div>
       }
+      @if (tab() === 'outlook') {
+        <nav class="tabs" aria-label="Waiver discovery mode">
+          <button
+            type="button"
+            [class.active]="!injuryMode()"
+            [attr.aria-pressed]="!injuryMode()"
+            (click)="injuryMode.set(false)"
+          >
+            All targets
+          </button>
+          <button
+            type="button"
+            [class.active]="injuryMode()"
+            [attr.aria-pressed]="injuryMode()"
+            (click)="injuryMode.set(true)"
+          >
+            Injury opportunities
+          </button>
+        </nav>
+      }
+      <app-season-injuries
+        [hidden]="tab() !== 'outlook' || !injuryMode()"
+        [active]="active() && tab() === 'outlook' && injuryMode()"
+        [leagueId]="leagueId()"
+        [view]="state"
+        [strategy]="fitStrategy()"
+        [basis]="basis()"
+        [days]="windowDays()"
+        [focus]="focusCategories()"
+        [inspection]="injuryInspection()"
+        (compareRequested)="compareInjuryPlayer($event)"
+        (watched)="acceptInjuryWatch($event)"
+        (settingsRequested)="openTab('settings')"
+        (allTargetsRequested)="injuryMode.set(false)"
+      />
       <app-season-recommendations
         [view]="state"
         [leagueId]="leagueId()"
         [active]="active()"
-        [screen]="tab() === 'outlook' ? 'targets' : tab() === 'compare' ? 'compare' : 'hidden'"
+        [screen]="
+          tab() === 'outlook' && !injuryMode()
+            ? 'targets'
+            : tab() === 'compare'
+              ? 'compare'
+              : 'hidden'
+        "
         [playerId]="selectedPlayer()"
         [dropId]="selectedDrop()"
         [addedStarts]="addedStarts()"
@@ -676,6 +721,15 @@
                     }
                   </h3>
                   <p>{{ watch.reason || 'No reason saved.' }}</p>
+                  @if (watch.injury_context) {
+                    <small
+                      >Injury opportunity ·
+                      {{ watch.injury_context.linked_player_ids.length }} linked reports · saved
+                      evidence and category-fit context retained. Revisit to check current sources
+                      and whether the role thesis still holds.</small
+                    >
+                  }
+
                   <p>
                     {{ player?.availability || 'Availability unknown' }} ·
                     {{ player?.status || 'Status unknown' }} · Current {{ selectedCategory() }}
@@ -763,55 +817,10 @@
         </section>
       }
       @if (tab() === 'settings') {
-        <h2>Data & settings</h2>
-        <p>Manage your team, ESPN connection and dated evidence here.</p>
-        <header class="season-action-row">
-          <div class="action-context">
-            Live-season evidence
-            <app-help-tip
-              label="About live-season decisions"
-              [text]="
-                'Review current scored category values and compare available-player contributions with your roster. ' +
-                (view()?.forecast_message ?? '') +
-                ' Current pool and waiver context are limited to returned source data.'
-              "
-            />
-          </div>
-          <div class="actions">
-            @if (view()?.operation.status === 'running') {
-              <button mat-stroked-button type="button" (click)="cancelRefresh()">
-                Cancel refresh
-              </button>
-            }
-            <button
-              mat-flat-button
-              type="button"
-              [disabled]="!isConnected() || refreshing() || view()?.operation.status === 'running'"
-              (click)="requestRefresh()"
-            >
-              {{
-                view()?.operation.status === 'running'
-                  ? 'Refreshing…'
-                  : refreshing()
-                    ? 'Requesting refresh…'
-                    : 'Refresh data'
-              }}
-            </button>
-          </div>
-        </header>
-
-        @if (!isConnected()) {
-          <section class="connection-card">
-            <div>
-              <h3>Connect ESPN to refresh</h3>
-              <p>
-                Saved evidence remains available offline. Sign in directly in the dedicated ESPN
-                window.
-              </p>
-            </div>
-            <button mat-flat-button (click)="connectRequested.emit()">Connect ESPN</button>
-          </section>
-        }
+        <div class="season-action-row">
+          <h2>Team & settings</h2>
+          <button mat-stroked-button (click)="sync.open()">Data & connection</button>
+        </div>
         <ng-container [ngTemplateOutlet]="seasonContext" />
         @if (state.operation.status !== 'idle') {
           <p class="notice" role="status">{{ state.operation.message }}</p>
@@ -835,13 +844,13 @@
         @if (isConnected()) {
           <button
             mat-flat-button
-            (click)="requestRefresh()"
-            [disabled]="refreshing() || state.operation.status === 'running'"
+            (click)="sync.start()"
+            [disabled]="sync.running() || state.operation.status === 'running'"
           >
             Collect first check
           </button>
         } @else {
-          <button mat-flat-button (click)="connectRequested.emit()">Connect ESPN</button>
+          <button mat-flat-button (click)="sync.start()">Connect & sync</button>
         }
       </section>
     }

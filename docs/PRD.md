@@ -1,5 +1,18 @@
 # PRD: Fantasy Basketball Intelligence Platform
 
+> **November 8, 2026 · Unified current-season sync approved.** Amendment 89
+> consolidates connection, freshness and collection into a global Sync data action.
+> The user approved the mock and requested fewer visible words, icons and accessible
+> tooltip explanations. Source details are disclosed on demand. See the
+> [sync contract](data-sync-design.md).
+
+> **November 7, 2026 · Injury opportunities approved for implementation.**
+> Amendment 88 adds the reviewed desktop discovery mode inside Waiver targets,
+> explicit news attribution, Python-only rules, dated market observations and
+> evidence-linked comparison/watches. Existing fit formulas and five-tab journey
+> remain. See [design](injury-opportunities-design.md) and
+> [delivery](qa/2026-11-07-injury-opportunities-delivery.md).
+
 > **October 25, 2026 · Approved league-to-waiver workflow.** Amendment 86 and
 > the [reviewed contract](season-workflow-design.md) govern the current interface:
 > League landscape → shared scenario → ranked waiver/roster lists → independent
@@ -130,6 +143,69 @@
 > [personal-product direction](personal-product-direction.md).
 
 ## Amendment history — newest first
+
+## 89. One current-season sync — approved 2026-11-08
+
+The user reported mismatched roster ownership and injury candidates across
+separate refresh controls. They selected current-season sync and generally
+approved the desktop mock, directing a cleaner presentation with icons, widgets
+and short explanations behind accessible tooltips. This approval covers the same
+flow with a quieter default; it does not require another approval cycle.
+
+Provide one global Sync data action and a shared Data & connection panel. Read
+current ownership before dependent research; coordinate background/legacy actions,
+propagate successful observations into open views, and remove confirmed pickups
+from available targets. Preserve notes, watches, source dates, missingness and
+existing fit calculations. Failed ownership checks cannot certify availability;
+partial source failures and cancellation retain complete saved evidence with
+honest dates. Current-season sync lists but does not replace projection/archive
+imports. No model calls, paid feeds, ESPN writes, schema migration or new external
+notification service. See [decision contract](data-sync-design.md).
+
+
+## 88. Desktop injury opportunities — implementation approved 2026-11-07
+
+The user reviewed the balanced injury-first / market-first feature, requested a
+quieter full-size desktop interface and explicit news origins, then authorized
+implementation after confirming runtime should use ordinary Python without
+Codex/model calls or AI-token dependence. The approved
+[desktop mock](injury-opportunities-preview.html) adds a mode within Waiver
+targets and retains existing Compare moves and Watchlist flows. Supporting
+history, watch editing and source details are disclosed on demand.
+
+Use the existing public ESPN player-news adapter with distinct RotoWire via ESPN
+and ESPN article labels; add a credential-free ESPN injury-index / public-player
+collector, dated roster-share levels and an official NBA report/PDF adapter.
+Real source validation found the official directory unavailable to the local
+HTTP client; that failure stays visible, with ESPN status labeled separately.
+Unverified PDF names are not automatically linked. Shared NBA team/position is a
+beneficiary hypothesis, and before/after-report minutes are descriptive rather
+than verified absence splits. Missing history never becomes zero change. Global
+popularity does not establish availability in this league or future value.
+
+Persist append-only public evidence with a backed-up schema-v10 migration using
+the existing shared lock. First explicit collection enables 30-minute checks
+while the backend runs and the existing automatic-check preference is on. Saved
+GETs never fetch providers; private league reads retain the memory-only Connect
+ESPN boundary. Reviews are scoped by league/team and guarded by revisions;
+watches retain source evidence plus existing fit context. Claim-cutoff timing,
+future standings, automated transactions, paid feeds, external notifications and
+mobile-specific design are outside this release. See the
+[adapter contract](injury-opportunities-adapters.md) and
+[delivery evidence](qa/2026-11-07-injury-opportunities-delivery.md).
+
+## 87. In-season MCP outlook and rankings — implementation approved 2026-10-25
+
+The user requested implementation of the [in-season MCP design](in-season-mcp-design.md)
+and chose “Outlook + rankings first (Recommended)” after context inspection.
+This bounds the first slice to saved outlook and overall/category player rankings,
+a dedicated loopback STDIO proxy, closed typed reports, consistent evidence,
+synthetic parity/security checks and setup documentation. Reuse existing formulas,
+missingness, source/window policy and strategy/focus meanings. No frontend flow,
+provider collection, watch write or remaining catalog tool is part of this pass.
+The running app retains sole database/session ownership. Client registration and
+publication are separate from this local implementation. See
+[delivery evidence](qa/2026-10-25-in-season-mcp.md).
 
 ## 86. League landscape → scenario → waiver alternatives — implementation approved 2026-10-25
 

@@ -1,5 +1,60 @@
 # Project learning journal
 
+## Freshness needs dependency order and a quiet summary — November 8, 2026, latest
+
+User decision: consolidate current-season refresh into one global action, then
+reduce information overload with icons and hover explanations. Assistant finding:
+a public news check uses saved ownership and cannot make league availability
+current. A shared coordinator must refresh ownership first and invalidate every
+consumer; source clocks and failures remain independent. Two visible groups plus
+source disclosures provide a quieter interface without hiding errors. See the
+[contract](../data-sync-design.md) and
+[delivery evidence](../qa/2026-11-08-data-sync-delivery.md).
+
+
+## Verify realistic feed size and preserve one news history — November 7, 2026, latest delivery
+
+User decision: implement desktop injury opportunities with explicit sources and
+no model calls. Assistant findings: the full public ESPN payload needed a bounded
+stat filter, and new collection needed to share the existing player-news cache.
+Strict ID/name/team joins retain unmatched coverage; source failures preserve
+last-good evidence; market history begins at observation. See the
+[sourced learning](injury-opportunity-evidence.md) and
+[delivery](../qa/2026-11-07-injury-opportunities-delivery.md).
+
+## Less initial detail still needs visible provenance — November 7, 2026, latest follow-up
+
+User correction: simplify injury research for a full-size local desktop and make
+news sources explicit. Assistant finding: the existing ESPN player adapter
+separately parses RotoWire fantasy updates and ESPN articles. Surface those
+attributions beside the report, distinguish app inference, and move supporting
+history behind disclosure. See the [learning](injury-opportunity-evidence.md) and
+[adapter preparation](../injury-opportunities-adapters.md). The revised desktop
+mock is for review; production collection is not yet implemented.
+
+## Injury facts, role opportunity and pickup trends need separate evidence — November 7, 2026
+
+User decision: design balanced injury-first and pickup-trend discovery with league
+fit and risks. Assistant synthesis: a verified absence does not establish its
+beneficiary, duration or local availability. Save dated market levels, preserve
+unknowns, and revisit the thesis when the injured player returns. Decision review
+follows a verified claim cutoff; collection follows NBA reporting and local-app
+availability. The [sourced learning](injury-opportunity-evidence.md) and
+[feature proposal](../injury-opportunities-design.md) distinguish research findings
+from unverified ingestion capabilities. Design/mock only; UI approval is pending.
+
+## An empty provider record is not a zero-game observation — October 28, 2026, latest
+
+User decision: diagnose and fix unknown GP/minutes in recent-actuals rankings.
+Assistant finding: a successful refresh can contain both valid played games and
+literally empty daily stat objects. Rejecting the whole history loses recoverable
+evidence; treating every empty object as zero invents completeness. Exclude an
+empty placeholder only when the independent season GP total accounts for all
+played appearances, and retain event/period checks. Empty records cannot prove
+window coverage. The [synthetic regression cases](../../tests/season/test_research.py)
+also preserve missing/malformed data, unreconciled totals and explicit DNP behavior.
+See the [repair evidence](../qa/2026-10-28-recent-game-empty-records.md).
+
 ## A source-only review misses changed dependency risk — October 25, 2026, latest follow-up
 
 User decision: check security before committing and merging the completed

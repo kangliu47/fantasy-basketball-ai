@@ -15,19 +15,13 @@ import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import {
-  finalize,
-  firstValueFrom,
-  Subject,
-  Subscription,
-  takeUntil,
-  timeout,
-  TimeoutError,
-  timer,
-} from 'rxjs';
+import { firstValueFrom, Subject, Subscription, takeUntil, timer } from 'rxjs';
 import { HelpTip } from '../core/help-tip';
+import { DataSyncStore } from '../core/data-sync-store';
 import { SeasonLandscape } from './season-landscape';
 import { SeasonScenario } from './season-scenario';
+import { SeasonInjuries } from './season-injuries';
+import { InjuryInspection } from './injury.models';
 import { SeasonRecommendations } from './season-recommendations';
 import { SeasonPlayerResearch } from './season-player-research';
 import { SeasonNewsStore } from './season-news-store';
@@ -61,23 +55,26 @@ type PageTab = 'landscape' | 'outlook' | 'compare' | 'watchlist' | 'settings';
     SeasonRecommendations,
     SeasonLandscape,
     SeasonScenario,
+    SeasonInjuries,
   ],
   templateUrl: './season-page.html',
   styleUrl: './season-page.scss',
 })
 export class SeasonPage {
+  readonly sync = inject(DataSyncStore);
   readonly leagueId = input.required<number>();
   readonly active = input(true);
   readonly connectRequested = output<void>();
   readonly view = signal<SeasonView | null>(null);
   readonly loading = signal(false);
-  readonly refreshing = signal(false);
   readonly error = signal<string | null>(null);
   readonly writeError = signal<string | null>(null);
   readonly savingWatch = signal(false);
   readonly watchSaveMessage = signal('');
   readonly revisionConflict = signal(false);
   readonly tab = signal<PageTab>('landscape');
+  readonly injuryMode = signal(false);
+  readonly injuryInspection = signal<InjuryInspection | null>(null);
   readonly categoryNoteOpen = signal(false);
   readonly researchMode = signal<'category' | 'overall'>('category');
   readonly focusCategories = signal<string[]>([]);
@@ -247,6 +244,11 @@ export class SeasonPage {
   });
 
   constructor() {
+    effect(() => {
+      const revision = this.sync.revision();
+      const active = this.active();
+      if (revision > 0 && active) untracked(() => this.retry());
+    });
     effect((onCleanup) => {
       this.researchKey();
       untracked(() => this.loadResearch());
@@ -264,7 +266,6 @@ export class SeasonPage {
       const active = this.active();
       const leagueId = this.leagueId();
       const generation = ++this.generation;
-      this.refreshing.set(false);
       this.savingWatch.set(false);
       this.watchSaveMessage.set('');
       this.poll?.unsubscribe();
@@ -291,8 +292,15 @@ export class SeasonPage {
       }
       if (!active) return;
       this.loading.set(true);
-      void this.load(generation, leagueId, true);
-      this.schedulePoll(generation, leagueId, 1000);
+      void this.load(generation, leagueId, true).finally(() => {
+        if (generation === this.generation && this.active()) {
+          this.schedulePoll(
+            generation,
+            leagueId,
+            this.view()?.operation.status === 'running' ? 1000 : 60000,
+          );
+        }
+      });
       onCleanup(() => {
         this.scopeStop.next();
         this.poll?.unsubscribe();
@@ -439,6 +447,25 @@ export class SeasonPage {
   }
 
   revisitWatch(watch: SeasonWatch) {
+    if (watch.injury_context) {
+      this.basis.set(watch.basis ?? 'recent');
+      this.windowDays.set(watch.window_days ?? 7);
+      this.fitStrategy.set(watch.fit_strategy ?? 'balanced');
+      this.focusCategories.set(
+        (watch.focus_categories ?? []).filter((code) =>
+          this.categories().some((c) => c.code === code),
+        ),
+      );
+      this.injuryMode.set(true);
+      this.injuryInspection.set({
+        playerId: watch.player_id,
+        reason: watch.reason,
+        snapshotId: watch.injury_context.snapshot_id,
+        token: ++this.inspectionToken,
+      });
+      this.openTab('outlook');
+      return;
+    }
     if (watch.category && this.categories().some((c) => c.code === watch.category))
       this.selectedCategory.set(watch.category);
     this.basis.set(watch.basis ?? 'projection');
@@ -515,66 +542,20 @@ export class SeasonPage {
       this.selectedCategory.set(capture.categories[0]?.code ?? '');
     }
     const available = this.allAvailablePlayers();
+    const availableIds = new Set(available.map((player) => player.id));
+    this.selectedCandidates.update((ids) => ids.filter((id) => availableIds.has(id)));
+    if (
+      this.selectedDrop() &&
+      !this.ownRoster().some((player) => player.id === this.selectedDrop())
+    ) {
+      this.selectedDrop.set('');
+    }
     if (!this.selectedPlayer()) this.selectedPlayer.set(available[0]?.id ?? '');
   }
 
   retry() {
     const id = this.leagueId();
     void this.load(this.generation, id, true);
-  }
-
-  requestRefresh() {
-    if (!this.active() || this.refreshing() || this.view()?.operation.status === 'running') return;
-    const generation = this.generation;
-    const leagueId = this.leagueId();
-    this.error.set(null);
-    this.refreshing.set(true);
-    // Keep checking the server even when the refresh acknowledgement is delayed.
-    // This never retries the write: it may already have started on the server.
-    this.schedulePoll(generation, leagueId, 1000);
-    this.api
-      .refresh(leagueId)
-      .pipe(
-        timeout(30000),
-        takeUntil(this.scopeStop),
-        finalize(() => {
-          if (generation === this.generation) this.refreshing.set(false);
-        }),
-      )
-      .subscribe({
-        next: (view) => {
-          if (generation !== this.generation || leagueId !== this.leagueId()) return;
-          this.acceptWrite(view, generation, leagueId);
-          this.schedulePoll(
-            generation,
-            leagueId,
-            view.operation.status === 'running' ? 1000 : 60000,
-          );
-        },
-        error: (err: unknown) => {
-          if (generation !== this.generation || leagueId !== this.leagueId()) return;
-          this.error.set(
-            err instanceof TimeoutError
-              ? 'Refresh request was not confirmed. Saved data is still available. Check collection status before retrying.'
-              : this.safeError(err),
-          );
-        },
-      });
-  }
-
-  cancelRefresh() {
-    const generation = this.generation;
-    const leagueId = this.leagueId();
-    this.api.cancel(leagueId).subscribe({
-      next: (view) => {
-        if (generation === this.generation && leagueId === this.leagueId())
-          this.acceptWrite(view, generation, leagueId);
-      },
-      error: (err: unknown) => {
-        if (generation === this.generation && leagueId === this.leagueId())
-          this.error.set(this.safeError(err));
-      },
-    });
   }
 
   savePreferences(teamId: string, automaticDaily: boolean) {
@@ -770,6 +751,17 @@ export class SeasonPage {
     if (!value) return 'Not yet collected';
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  }
+
+  compareInjuryPlayer(playerId: string) {
+    this.selectedPlayer.set(playerId);
+    this.selectedCandidates.set([playerId]);
+    this.comparisonHorizon.set('per_game');
+    this.openTab('compare');
+  }
+
+  acceptInjuryWatch(view: SeasonView) {
+    this.acceptWrite(view, this.generation, this.leagueId());
   }
 
   private acceptWrite(view: SeasonView, generation: number, leagueId: number) {

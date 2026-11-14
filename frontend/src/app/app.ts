@@ -11,6 +11,8 @@ import { AuctionOpportunities } from './draft/auction-opportunities';
 import { DraftMode } from './draft/draft.models';
 import { BuildStatus } from './core/build-status';
 import { SeasonPage } from './season/season-page';
+import { DataSync } from './core/data-sync';
+import { DataSyncStore } from './core/data-sync-store';
 
 type Section =
   'prepare' | 'auction' | 'evidence' | 'profile' | 'competitors' | 'league' | 'live' | 'connection';
@@ -28,6 +30,7 @@ type Workspace = 'draft' | 'live' | 'history';
     CompetitorTeamsPage,
     LeagueComparisonPage,
     SeasonPage,
+    DataSync,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -84,21 +87,7 @@ export class App implements OnInit {
     };
   });
   readonly store = inject(WorkspaceStore);
-  readonly connectionLabel = computed(
-    () =>
-      ({
-        disconnected: 'Not connected',
-        saved: 'Session available',
-        connected: 'Connected',
-        expired: 'Sign-in needed',
-      })[this.store.state()?.connection ?? 'disconnected'],
-  );
-  readonly canRefresh = computed(() => {
-    const state = this.store.state();
-    return (
-      !!state?.selection && ['saved', 'connected'].includes(state.connection) && !this.store.busy()
-    );
-  });
+  readonly sync = inject(DataSyncStore);
   openDraft(mode: DraftMode) {
     this.draftMode.set(mode);
     this.section.set(mode);
@@ -113,6 +102,10 @@ export class App implements OnInit {
     else this.section.set('live');
   }
   openConnection() {
+    if (this.store.state()?.selection) {
+      this.sync.open();
+      return;
+    }
     const section = this.section();
     if (section !== 'connection') this.previousSection.set(section);
     this.section.set('connection');

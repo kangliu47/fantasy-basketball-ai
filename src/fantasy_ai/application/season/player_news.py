@@ -46,7 +46,9 @@ class SeasonPlayerNews:
             saved = None
         return SeasonNewsView(player_id, saved)
 
-    async def refresh(self, selection: LeagueSelection, player_id: str) -> SeasonNewsView:
+    async def refresh(
+        self, selection: LeagueSelection, player_id: str, *, coordinated: bool = False
+    ) -> SeasonNewsView:
         identity = await asyncio.to_thread(self.identity, selection, player_id)
         if identity.espn_id in self._running:
             raise OperationBusy("This player's ESPN news check is already running.")

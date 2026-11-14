@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from fantasy_ai.application.models import LeagueSelection, WorkspaceError
 from fantasy_ai.application.season.player_news import SeasonNewsView
 from fantasy_ai.application.season.service import (
+    ACTIVE_SEASON,
     SeasonComparison,
     SeasonPlayerFitView,
     SeasonRecommendationView,
@@ -52,7 +53,7 @@ def create_season_router(service: SeasonService, workspace: WorkspaceService) ->
     router = APIRouter(prefix="/api/season", tags=["Live season"])
 
     def selection(
-        season: int = Query(default=2027, ge=2018, le=9999),
+        season: int = Query(default=ACTIVE_SEASON, ge=2018, le=9999),
         league_id: int | None = Query(default=None, gt=0),
     ) -> LeagueSelection:
         if workspace.selection is None:
@@ -73,6 +74,9 @@ def create_season_router(service: SeasonService, workspace: WorkspaceService) ->
 
     @router.post("/cancel", response_model=SeasonView)
     async def cancel(selected: Selected) -> SeasonView:
+        if service.sync:
+            await service.sync.cancel()
+            return await service.view(selected)
         return await service.cancel(selected)
 
     @router.put("/preferences", response_model=SeasonView)
@@ -176,6 +180,10 @@ def create_season_router(service: SeasonService, workspace: WorkspaceService) ->
     async def refresh_news(data: NewsRequest, selected: Selected) -> SeasonNewsView:
         if service.news is None:
             raise WorkspaceError("Player news is unavailable in this workspace.")
+        if service.sync:
+            await service.sync.start(selected, data.player_id)
+            await service.sync.wait()
+            return service.news.view(selected, data.player_id)
         return await service.news.refresh(selected, data.player_id)
 
     return router

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" data-ui-style="fantasy-analytics-v1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fantasy Basketball · Unified data sync proposal</title>
+  <link rel="stylesheet" href="showcase-theme.css">
+  <style>
+    html{min-width:1100px} [hidden]{display:none!important}
+    h1,h2,h3{color:var(--showcase-heading);letter-spacing:-.025em}
+    h1{font-size:34px;font-weight:560;margin:20px 0 24px}h2{font-size:21px;margin:0}h3{font-size:17px;margin:0 0 12px}
+    p{line-height:1.6}.muted,small{color:var(--showcase-muted)}small{display:block;font-size:12px;line-height:1.5}
+    .showcase-header{height:96px;padding:0 max(6vw,24px)}.showcase-page{max-width:1220px;padding:28px 32px 60px}
+    .row,.header-actions,.actions{display:flex;align-items:center;gap:12px}.spread{justify-content:space-between}.header-actions{gap:18px}
+    .quiet{background:transparent;border:0;color:var(--showcase-green-strong);padding:9px 12px;cursor:pointer;border-radius:6px}
+    .primary,.showcase-button.primary:hover{background:var(--showcase-green-strong);color:white;border-color:var(--showcase-green-strong)}button:disabled{opacity:.5;cursor:default}
+    .status-link{font-size:12px;text-align:right;padding:4px}.status-link strong{display:block;font-size:13px;color:var(--showcase-ink)}
+    .workspace-nav,.tabs{display:flex;gap:6px;border-bottom:1px solid var(--showcase-line);padding-bottom:12px;margin-bottom:22px}
+    .workspace-nav button,.tabs button{border:0;background:transparent;color:var(--showcase-muted);border-radius:5px;padding:9px 14px;cursor:pointer;font-size:13px}
+    .workspace-nav .active{background:var(--showcase-green-soft);color:var(--showcase-green-strong);font-weight:650}.tabs .active{color:var(--showcase-green-strong);box-shadow:inset 0 -2px var(--showcase-green-strong)}
+    .showcase-banner{margin-bottom:18px;font-size:12px}.evidence-line{font-size:12px;color:var(--showcase-muted);margin:12px 0 20px;display:flex;justify-content:space-between}
+    .notice{padding:12px 16px;background:var(--showcase-surface-soft);border:1px solid var(--showcase-line);border-radius:7px;font-size:13px;margin:14px 0;line-height:1.6}
+    .warning{background:#fff7ec;border-color:#ead8b9}.error{background:#fdf0ee;border-color:#e7c6c2}.success{background:var(--showcase-green-soft)}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;margin:26px 0 14px}.layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;margin-top:18px}
+    .showcase-card{padding:22px}.heading-line{margin-top:12px}.source{font-size:12px;color:var(--showcase-muted);line-height:1.6}
+    table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--showcase-muted);font-size:11px;font-weight:600;padding:13px 10px;border-bottom:1px solid var(--showcase-line)}td{padding:15px 10px;border-bottom:1px solid var(--showcase-line);vertical-align:top}
+    .selected{background:var(--showcase-blue-soft)}.player-link{border:0;background:transparent;color:var(--showcase-blue);font-weight:650;padding:0;text-align:left;cursor:pointer}
+    .label{color:var(--showcase-green-strong);font-size:11px;font-weight:650;letter-spacing:.05em;text-transform:uppercase}.fit{font-size:20px;color:var(--showcase-green-strong);margin:20px 0}
+    details{margin-top:18px}summary{cursor:pointer;font-size:13px;color:var(--showcase-green-strong);padding:7px 0}textarea{width:100%;min-height:90px;border:1px solid var(--showcase-control-line);border-radius:6px;padding:10px;margin-top:10px;resize:vertical}
+    dialog{border:1px solid var(--showcase-line);border-radius:12px;width:560px;max-height:90vh;padding:0;color:var(--showcase-ink);background:var(--showcase-surface);box-shadow:0 20px 80px #203c3422}dialog::backdrop{background:#183c3030}
+    .panel-head{padding:24px 26px 20px;border-bottom:1px solid var(--showcase-line)}.panel-body{padding:0 26px 24px}.panel-head .muted{font-size:12px;margin:8px 0 0}.connection{padding:18px 0;border-bottom:1px solid var(--showcase-line)}
+    .sync-controls{margin:20px 0 12px;justify-content:space-between}.sync-controls p{margin:0}.sync-table td{padding:12px 8px}.sync-table td:first-child{width:43%}.sync-table td:nth-child(2){width:25%}.sync-table td:last-child{width:32%}.state{font-size:12px;font-weight:650}.ok{color:var(--showcase-green-strong)}.bad{color:var(--showcase-red)}.pending{color:var(--showcase-muted)}
+    .other-inputs{margin-top:22px;border-top:1px solid var(--showcase-line);padding-top:12px}.other-inputs p{font-size:12px;margin:10px 0}.demo{margin-top:40px;border-top:1px dashed var(--showcase-line);padding-top:10px;font-size:12px}select{padding:8px;border:1px solid var(--showcase-control-line);border-radius:6px;background:white;color:var(--showcase-ink);margin:8px}
+    .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--showcase-line);border-top-color:var(--showcase-green);border-radius:50%;animation:spin 1s linear infinite;margin-right:6px}@keyframes spin{to{transform:rotate(360deg)}}
+    .empty{padding:32px;border:1px dashed var(--showcase-line);border-radius:8px}.receipt{font-size:12px;color:var(--showcase-muted);margin-top:14px}.scope-copy{font-size:12px;margin:14px 0 0;color:var(--showcase-muted)}
+  </style>
+</head>
+<body>
+  <header class="showcase-header">
+    <div class="showcase-brand">Fantasy Basketball</div>
+    <div class="header-actions"><span class="showcase-status"><i></i>Local · ESPN read-only</span><button class="quiet status-link" id="data-status"><strong id="global-label">Data needs a check</strong><span id="global-time">Last league check · Nov 7, 9:00 AM</span></button><button class="showcase-button primary" id="global-sync">Sync data</button></div>
+  </header>
+  <main class="showcase-page">
+    <div class="showcase-banner">Interactive design proposal · All league, player, status and timing examples are synthetic. No source requests or account changes.</div>
+    <nav class="workspace-nav" aria-label="Main workspaces"><button data-workspace="draft">Auction prep</button><button data-workspace="live" class="active" aria-current="page">Live season</button><button data-workspace="history">Historical patterns</button></nav>
+    <h1 id="workspace-title">Your league. Your next move.</h1>
+    <section id="live-view">
+      <nav class="tabs" aria-label="Live-season views"><button data-tab="landscape">1 · League landscape</button><button class="active" data-tab="targets" aria-current="page">2 · Waiver targets</button><button data-tab="compare">3 · Compare moves</button><button data-tab="watches">Watchlist</button><button data-tab="settings">Team & settings</button></nav>
+      <div class="evidence-line"><span id="league-line">Example league · My team · League checked Nov 7, 9:00 AM</span><button class="quiet" data-open-sync>Data & connection</button></div>
+      <div id="view-notice" class="notice warning" role="status">League ownership needs a check. News and roster checks have different dates. <button class="quiet" data-open-sync>Review data status</button></div>
+      <section id="targets-view"><div class="toolbar"><h2>Injury opportunities</h2><span class="source">Sources & supporting evidence remain with each player</span></div><small>Balanced · Last 7 days of ESPN actuals</small><div class="layout"><section><table aria-label="Available injury opportunities"><thead><tr><th>Player</th><th>Why look now?</th><th>Team fit</th></tr></thead><tbody id="candidate-rows"></tbody></table><p class="source" id="pool-note">Showing saved availability · source coverage remains unverified</p></section><section class="showcase-card" id="player-detail"></section></div></section>
+      <section id="landscape-view" hidden><div class="showcase-card"><h2>League landscape</h2><p id="landscape-status">Showing the saved league observation from Nov 7, 9:00 AM.</p><p class="source">Standings, roster ownership and waiver availability share the selected league observation. Sync status is available above every workspace.</p></div></section>
+      <section id="compare-view" hidden><div class="showcase-card"><h2>Compare moves</h2><p id="compare-status">Check league ownership before evaluating a pickup.</p><button class="showcase-button" id="compare-action" disabled>Compare selected candidate</button><p class="source">The existing comparison formulas and replacement-selection flow remain unchanged.</p></div></section>
+      <section id="watches-view" hidden><div class="showcase-card"><h2>Watchlist</h2><p>Saved research and reasons stay here after a sync. A rostered player can remain in saved research without appearing as an available pickup.</p><p class="source">Mock example: saved research for Rowan Vale remains available for review.</p></div></section>
+      <section id="settings-view" hidden><div class="showcase-card"><h2>Team & settings</h2><p>My team: Example team</p><p>Team preferences stay in this view. Connection, source dates and collection controls move to <button class="quiet" data-open-sync>Data & connection</button>.</p><p class="source">Existing automatic-check preference is preserved. The app cannot collect while closed or asleep.</p></div></section>
+    </section>
+    <section id="draft-view" hidden class="showcase-card"><h2>Auction prep</h2><p>Saved projections and preparation remain available.</p><p class="source">The global Sync data button checks the active live season. Saved projection imports have their own source date and are listed in Data & connection.</p><button class="showcase-button" data-open-sync>Data & connection</button></section>
+    <section id="history-view" hidden class="showcase-card"><h2>Historical patterns</h2><p>Completed-season observations remain available offline.</p><p class="source">Sync data checks the current live season. It does not re-import archived seasons or rewrite manager assignments.</p><button class="showcase-button" data-open-sync>Data & connection</button></section>
+    <details class="demo"><summary>Design review scenarios</summary><label for="scenario">Next sync outcome</label><select id="scenario"><option value="success">All current-season sources succeed</option><option value="partial">News source unavailable</option><option value="league-failure">League check fails</option><option value="disconnected">ESPN disconnected</option><option value="empty">No saved observations</option></select><button class="quiet" id="reset-demo">Reset example</button><p class="source">Choose a scenario, then click Sync data. Close the panel during a run to see progress remain in the header. Cancel retains already completed observations and their individual dates.</p></details>
+  </main>
+  <dialog id="sync-dialog" aria-labelledby="sync-title">
+    <header class="panel-head"><div class="row spread"><h2 id="sync-title">Data & connection</h2><button class="quiet" id="close-sync" aria-label="Close data and connection">Close ✕</button></div><p class="muted">2026–27 live season</p></header>
+    <div class="panel-body">
+      <div class="row spread connection"><div><strong id="connection-label">ESPN connected</strong><small id="connection-copy" hidden>Private league reads use your dedicated ESPN session.</small></div><button class="showcase-button" id="connection-action">Disconnect ESPN</button></div>
+      <div class="row sync-controls"><div><h3 id="run-title">One check for your current season</h3><small id="run-subtitle" hidden>League ownership first, then the research that depends on it.</small></div><div class="actions"><button class="quiet" id="cancel-sync" hidden>Cancel sync</button><button class="showcase-button primary" id="panel-sync">Sync data</button></div></div>
+      <div id="sync-outcome" class="notice" role="status" aria-live="polite">Ready to check. Saved information stays available during collection.</div>
+<div class="notice row spread"><span title="Rosters, availability, standings and recent completed games">♧ League & game stats ⓘ</span><span>↻</span></div><div class="notice row spread"><span title="ESPN injury reports, roster levels, bounded player news and NBA Official when accessible">▤ Injuries & player news ⓘ</span><span>↻</span></div>
+      <details><summary>Source details ⓘ</summary><table class="sync-table" aria-label="Source sync status"><thead><tr><th>Source</th><th>This sync</th><th>Last success</th></tr></thead><tbody id="source-rows"></tbody></table>
+      <p class="receipt" id="run-receipt">No coordinated sync has run yet.</p>
+      <p class="scope-copy">A check records what the provider returned. Publication dates, market history and pool coverage stay visible with the evidence; a successful request cannot establish complete coverage.</p>
+      </details>
+      <details class="other-inputs"><summary>Other saved inputs · outside current-season sync</summary><p><strong>Saved projections</strong> · Imported Oct 20, 2026<br><span class="muted">Manual reviewed input. Sync does not update estimates or prices.</span></p><p><strong>Historical archive</strong> · Last import Oct 18, 2026<br><span class="muted">Completed seasons remain unchanged. Existing archive import is an explicit setup action.</span></p><p><strong>Automatic checks</strong><br><span class="muted">The existing while-open setting is preserved. All current-season checks use this shared status and coordination.</span></p></details>
+    </div>
+  </dialog>
+  <script src="data-sync-preview.js"></script>
+</body>
+</html>

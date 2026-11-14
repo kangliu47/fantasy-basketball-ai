@@ -19,6 +19,7 @@ from fantasy_ai.domain.projections.player_information import (
     PlayerMetadata,
     PlayerNewsItem,
 )
+from fantasy_ai.domain.season.fit_evidence import select_fit_rates
 from fantasy_ai.domain.season.models import SeasonCapture, SeasonPlayer, SeasonPreferences
 from fantasy_ai.domain.season.research import (
     PlayerGame,
@@ -358,6 +359,88 @@ def test_explicit_dnp_is_not_a_played_game() -> None:
         p, 2027, PICKUP, {"101": (NOW, 2), "105": (NOW, 4)}, NOW - timedelta(days=61)
     )
     assert parsed.complete and len(parsed.games) == 1
+
+
+def empty_game_fixture() -> tuple[dict[str, Any], dict[str, tuple[datetime, int]]]:
+    """Synthetic source shape: two played games and two empty daily placeholders."""
+    player = public_player()
+    official = {"101": (NOW, 2), "102": (NOW, 3), "105": (NOW, 4), "106": (NOW, 5)}
+    player["stats"].extend(
+        {
+            "seasonId": 2027,
+            "statSourceId": 0,
+            "statSplitTypeId": 5,
+            "scoringPeriodId": period,
+            "externalId": event,
+            "stats": {},
+        }
+        for event, period in (("105", 4), ("106", 5))
+    )
+    return player, official
+
+
+def test_empty_daily_placeholders_preserve_reconciled_played_game_samples() -> None:
+    player, official = empty_game_fixture()
+    history = parse_history(player, 2027, PICKUP, official, NOW - timedelta(days=61), set(official))
+    assert history.complete and len(history.games) == 2
+    assert {g.event_id for g in history.games} == {"101", "102"}
+    sample = window(history, NOW.date(), NOW.date())
+    assert sample and sample.games == 2 and sample.minutes == 32.5
+    assert sample.per_game["PTS"] == 57
+    # The same evidence consumed by both UI and MCP recovers GP/minutes without a fallback.
+    selected, evidence = select_fit_rates(
+        replace(capture(), recent_games=(history,), recent_captured_at=NOW), "recent", 7, None
+    )
+    current = next(p for p in evidence.players if p.player_id == PICKUP)
+    assert current.games == 2 and current.minutes == 32.5
+    assert next(p for p in selected.players if p.id == PICKUP).per_game == sample.per_game
+
+
+@pytest.mark.parametrize("aggregate_gp", [None, 3, -1])
+def test_empty_placeholders_require_exact_season_gp_even_with_old_window_boundary(
+    aggregate_gp: float | None,
+) -> None:
+    player, official = empty_game_fixture()
+    player["stats"][0]["stats"]["42"] = aggregate_gp
+    # An old record alone cannot establish that an empty recent record was not played.
+    since = NOW - timedelta(days=61)
+    official["105"] = (since - timedelta(days=1), 4)
+    history = parse_history(player, 2027, PICKUP, official, since, set(official))
+    assert not history.complete
+    assert window(history, NOW.date(), NOW.date()) is None
+
+
+@pytest.mark.parametrize(
+    "invalid_stats", [None, [], "", {"0": 0}, {"28": 30}, {"42": None}, {"42": 0, "0": 1}]
+)
+def test_missing_or_nonempty_invalid_stats_are_not_empty_placeholders(invalid_stats: Any) -> None:
+    player, official = empty_game_fixture()
+    player["stats"][-1]["stats"] = invalid_stats
+    history = parse_history(player, 2027, PICKUP, official, NOW - timedelta(days=61), set(official))
+    assert not history.complete
+
+
+@pytest.mark.parametrize("invalid", ["event", "period", "duplicate"])
+def test_empty_placeholder_does_not_bypass_event_identity_and_period_guards(invalid: str) -> None:
+    player, official = empty_game_fixture()
+    if invalid == "event":
+        player["stats"][-1]["externalId"] = "unknown-event"
+    elif invalid == "period":
+        player["stats"][-1]["scoringPeriodId"] = 99
+    else:
+        player["stats"].append(player["stats"][-1])
+    assert not parse_history(
+        player, 2027, PICKUP, official, NOW - timedelta(days=61), set(official)
+    ).complete
+
+
+def test_all_empty_records_are_zero_played_games_only_with_verified_zero_total() -> None:
+    player, official = empty_game_fixture()
+    player["stats"] = [player["stats"][0], *player["stats"][-2:]]
+    player["stats"][0]["stats"]["42"] = 0
+    history = parse_history(player, 2027, PICKUP, official, NOW - timedelta(days=61), set(official))
+    sample = window(history, NOW.date(), NOW.date())
+    assert history.complete and sample and sample.games == 0 and sample.minutes is None
 
 
 def test_research_http_validation_and_local_write_boundary(tmp_path: Path) -> None:

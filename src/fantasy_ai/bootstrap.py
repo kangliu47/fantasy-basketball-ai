@@ -14,6 +14,8 @@ from fantasy_ai.application.planning.service import PreparationService
 from fantasy_ai.application.projections.player_information import PlayerInformationService
 from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
+from fantasy_ai.application.season.data_sync import DataSyncService
+from fantasy_ai.application.season.injuries import InjuryService
 from fantasy_ai.application.season.player_news import SeasonPlayerNews
 from fantasy_ai.application.season.service import SeasonService
 from fantasy_ai.application.workspace import WorkspaceService
@@ -27,8 +29,12 @@ from fantasy_ai.infrastructure.espn_recent_games import ESPNRecentGamesReader
 from fantasy_ai.infrastructure.espn_season import ESPNSeasonReader
 from fantasy_ai.infrastructure.history_gateway import ESPNHistoryGateway
 from fantasy_ai.infrastructure.history_repository import DuckDBHistoryRepository
+from fantasy_ai.infrastructure.injury_collection import PublicInjuryCollector
+from fantasy_ai.infrastructure.injury_repository import DuckDBInjuryRepository
+from fantasy_ai.infrastructure.injury_sources import ESPNInjurySources
 from fantasy_ai.infrastructure.live_auction.browser import ESPNRoomBrowser
 from fantasy_ai.infrastructure.live_auction.repository import DuckDBLiveRepository
+from fantasy_ai.infrastructure.nba_injury_reports import NBAInjuryReportReader
 from fantasy_ai.infrastructure.planning_repository import DuckDBPlanRepository
 from fantasy_ai.infrastructure.player_information_repository import (
     DuckDBPlayerInformationRepository,
@@ -104,6 +110,29 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         draft,
         DuckDBPlayerInformationRepository(repository),
     )
+    season = SeasonService(
+        DuckDBSeasonRepository(repository),
+        ESPNSeasonReader(recent=ESPNRecentGamesReader()),
+        SavedSeasonProjections(draft.repository, DuckDBPlayerInformationRepository(repository)),
+        workspace,
+        SeasonPlayerNews(
+            DuckDBSeasonRepository(repository),
+            DuckDBPlayerInformationRepository(repository),
+            ESPNPlayerInformationReader(),
+        ),
+    )
+    season.injuries = InjuryService(
+        DuckDBInjuryRepository(repository),
+        PublicInjuryCollector(
+            ESPNInjurySources(),
+            NBAInjuryReportReader(),
+            ESPNPlayerInformationReader(),
+            DuckDBPlayerInformationRepository(repository),
+        ),
+        season.repository,
+        season,
+    )
+    DataSyncService(season)
     return ApplicationServices(
         workspace,
         history,
@@ -116,17 +145,7 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         OpportunityService(
             draft, live, LocalAuctionPrices(root / ".local/auction-prices/espn-2027.json")
         ),
-        SeasonService(
-            DuckDBSeasonRepository(repository),
-            ESPNSeasonReader(recent=ESPNRecentGamesReader()),
-            SavedSeasonProjections(draft.repository, DuckDBPlayerInformationRepository(repository)),
-            workspace,
-            SeasonPlayerNews(
-                DuckDBSeasonRepository(repository),
-                DuckDBPlayerInformationRepository(repository),
-                ESPNPlayerInformationReader(),
-            ),
-        ),
+        season,
     )
 
 

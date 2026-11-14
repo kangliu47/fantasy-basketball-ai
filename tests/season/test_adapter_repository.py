@@ -279,5 +279,5 @@ def test_v8_migration_backs_up_database_and_preserves_existing_data(tmp_path: Pa
         assert db.execute("SELECT version FROM schema_version").fetchone() == (8,)
         assert db.execute("SELECT count(*) FROM league_snapshots").fetchone() == (1,)
     with migrated.connection() as db:
-        assert db.execute("SELECT version FROM schema_version").fetchone() == (9,)
+        assert db.execute("SELECT version FROM schema_version").fetchone() == (10,)
         assert "season_observations" in {row[0] for row in db.execute("SHOW TABLES").fetchall()}

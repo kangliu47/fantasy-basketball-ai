@@ -111,6 +111,16 @@ class DuckDBSeasonRepository:
                 ).fetchone()
                 if revision != (expected_revision,):
                     raise OperationBusy("Watchlist changed. Reload before saving your note again.")
+                if watch.injury_context:
+                    latest = db.execute(
+                        "SELECT observation_id FROM injury_observations WHERE season=? "
+                        "ORDER BY captured_at DESC, observation_id DESC LIMIT 1",
+                        [selection.season],
+                    ).fetchone()
+                    if latest != (watch.injury_context.snapshot_id,):
+                        raise OperationBusy(
+                            "Injury evidence changed. Reload before saving your watch."
+                        )
                 db.execute(
                     "INSERT INTO season_watches VALUES (?, ?, ?, ?)",
                     [

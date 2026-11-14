@@ -1,12 +1,16 @@
 # In-season analytics through MCP
 
 **Design date:** October 25, 2026
-**Status:** Design only; no MCP tools, routes, calculations or UI changes implemented.
+**Status:** First implementation slice delivered locally: saved outlook and
+overall/category player rankings. See [setup and boundaries](in-season-mcp.md)
+and [verification](qa/2026-10-25-in-season-mcp.md). The remaining catalog is still
+design work. Installed client registration has not been changed or verified.
 **Decision:** The user wants the live-season analysis journey available to Codex
 through chat. They confirmed inclusion of explicitly invoked refresh and local
-watch-note tools. Implementation belongs in a separate chat. The user subsequently
-authorized security-reviewed commit/PR merge; this does not authorize implementing
-the proposed tools.
+watch-note tools. In the implementation chat, they selected “Outlook + rankings
+first (Recommended).” This authorizes the bounded saved-read slice, checks and
+setup documentation. The earlier security-reviewed merge concerned the previous
+release. This pass does not publish or merge changes.
 
 ## 1. Outcome and scope
 
@@ -41,9 +45,12 @@ introduce an expected-roto-point optimizer, future participation model,
 injury-adjusted projections, lineup optimizer, multi-add package search, FAAB
 bidding recommendation or ESPN transaction capability.
 
-## 2. Starting point: what exists and what does not
+## 2. Design starting point: what existed before implementation
 
-The proposed names in this document are **not currently callable tools**.
+The table records the pre-implementation baseline. Only
+`get_in_season_outlook` and `rank_in_season_players` now have implementations;
+other proposed names remain unavailable. The catalog below remains the target
+contract, not a claim that the complete journey is delivered.
 
 | Existing capability | Current implementation | MCP status today |
 | --- | --- | --- |
@@ -701,6 +708,6 @@ Required evaluation before delivery:
    implementation/registration docs. No new model benchmark or calculation version
    change unless semantics actually change.
 
-**Stopping point for this chat:** this Markdown design only. It contains synthetic
+**Original design-chat stopping point:** this Markdown design only. It contained synthetic
 examples, proposed contracts and local-source references; it does not assert that
 any new tool is registered, that a refresh happened, or that a watch was saved.

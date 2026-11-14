@@ -73,6 +73,15 @@ class SeasonPreferences:
 
 
 @dataclass(frozen=True)
+class InjuryWatchContext:
+    snapshot_id: str
+    change_key: str
+    linked_player_ids: tuple[str, ...]
+    evidence_ids: tuple[str, ...]
+    method: str
+
+
+@dataclass(frozen=True)
 class SeasonWatch:
     id: str
     player_id: str
@@ -96,6 +105,7 @@ class SeasonWatch:
     fit_evidence_version: str | None = None
     focus_categories: tuple[str, ...] = ()
     fit_horizon: Literal["per_game", "seven_day"] | None = None
+    injury_context: InjuryWatchContext | None = None
 
 
 @dataclass(frozen=True)

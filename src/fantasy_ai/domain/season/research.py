@@ -1,6 +1,6 @@
 """Descriptive recent-game windows and category research, never future standings."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta
 from math import isfinite
 from typing import Literal
@@ -44,6 +44,46 @@ class PlayerResearch:
     previous_games: int | None
     trend: float | None
     game_values: tuple[tuple[date, float | None], ...]
+
+
+def rank_population(
+    rows: tuple[PlayerResearch, ...],
+    player_ids: tuple[str, ...],
+    names: dict[str, str],
+    *,
+    descending: bool,
+) -> tuple[PlayerResearch, ...]:
+    """Same category score and competition ties; inverse order for roster review."""
+    by_id = {row.player_id: row for row in rows}
+    selected = [
+        by_id.get(pid) or PlayerResearch(pid, None, None, None, None, None, None, None, ())
+        for pid in player_ids
+    ]
+    ranked = [
+        replace(
+            row,
+            rank=1
+            + sum(
+                other.score is not None
+                and (other.score > row.score if descending else other.score < row.score)
+                for other in selected
+            )
+            if row.score is not None
+            else None,
+        )
+        for row in selected
+    ]
+    return tuple(
+        sorted(
+            ranked,
+            key=lambda row: (
+                row.rank is None,
+                row.rank or 0,
+                names.get(row.player_id, "Player details unavailable").casefold(),
+                row.player_id,
+            ),
+        )
+    )
 
 
 def window(history: PlayerGameHistory | None, start: date, end: date) -> GameWindow | None:

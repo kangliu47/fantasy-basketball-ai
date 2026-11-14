@@ -1,6 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { DestroyRef, effect, inject, Injectable, signal, untracked } from '@angular/core';
+import { Subscription, timeout } from 'rxjs';
 import { ESPNContextView } from '../draft/espn-context.models';
+import { DataSyncStore } from '../core/data-sync-store';
 
 export interface SeasonNews {
   player_id: string;
@@ -16,9 +18,26 @@ interface NewsState {
 @Injectable({ providedIn: 'root' })
 export class SeasonNewsStore {
   private readonly http = inject(HttpClient);
+  private readonly sync = inject(DataSyncStore);
   readonly states = signal<Partial<Record<string, NewsState>>>({});
-  private readonly attempted = new Map<string, number>();
-  private readonly inspected = new Set<string>();
+  private readonly inspected = new Map<string, [number, string]>();
+  private readonly requests = new Map<string, Subscription>();
+  constructor() {
+    effect(() => {
+      const revision = this.sync.revision();
+      if (revision > 0)
+        untracked(() => {
+          this.requests.forEach((request) => request.unsubscribe());
+          this.requests.clear();
+          this.states.set({});
+          this.inspected.forEach(([league, player]) => {
+            if (league === this.sync.workspace.state()?.selection?.league_id)
+              this.load(league, player);
+          });
+        });
+    });
+    inject(DestroyRef).onDestroy(() => this.requests.forEach((request) => request.unsubscribe()));
+  }
   private key(league: number, player: string) {
     return `${league}|${player}`;
   }
@@ -26,9 +45,8 @@ export class SeasonNewsStore {
     return this.states()[this.key(league, player)];
   }
   inspect(league: number, player: string) {
-    this.inspected.add(this.key(league, player));
+    this.inspected.set(this.key(league, player), [league, player]);
     this.load(league, player);
-    this.refreshIfStale(league, player);
   }
   leave(league: number, player: string) {
     this.inspected.delete(this.key(league, player));
@@ -36,52 +54,20 @@ export class SeasonNewsStore {
   load(league: number, player: string) {
     if (!/^espn:player:\d{1,10}$/.test(player) || this.state(league, player)) return;
     this.set(league, player, { value: null, loading: true, refreshing: false, error: null });
-    this.http
+    const request = this.http
       .get<SeasonNews>('/api/season/player-news', {
         params: { league_id: league, player_id: player },
       })
-      .subscribe({
-        next: (value) => {
-          this.set(league, player, { value, loading: false, refreshing: false, error: null });
-          this.refreshIfStale(league, player);
-        },
-        error: (err) => this.failed(league, player, err),
-      });
-  }
-  refresh(league: number, player: string) {
-    const old = this.state(league, player);
-    if (!/^espn:player:\d{1,10}$/.test(player) || old?.loading || old?.refreshing) return;
-    this.attempted.set(this.key(league, player), Date.now());
-    this.set(league, player, {
-      value: old?.value ?? null,
-      loading: false,
-      refreshing: true,
-      error: null,
-    });
-    this.http
-      .post<SeasonNews>(
-        '/api/season/player-news/refresh',
-        { player_id: player },
-        {
-          params: { league_id: league },
-          headers: { 'X-Fantasy-Client': 'local-ui' },
-        },
-      )
+      .pipe(timeout(30000))
       .subscribe({
         next: (value) =>
           this.set(league, player, { value, loading: false, refreshing: false, error: null }),
         error: (err) => this.failed(league, player, err),
       });
+    this.requests.set(this.key(league, player), request);
   }
-  private refreshIfStale(league: number, player: string) {
-    const key = this.key(league, player),
-      state = this.state(league, player),
-      now = Date.now();
-    if (!this.inspected.has(key) || !state?.value || state.loading || state.refreshing) return;
-    const checked = Date.parse(state.value.saved?.news_captured_at ?? '');
-    if (Number.isFinite(checked) && checked <= now && now - checked < 1800000) return;
-    if (now - (this.attempted.get(key) ?? 0) < 1800000) return;
-    this.refresh(league, player);
+  refresh(league: number, player: string) {
+    if (league === this.sync.workspace.state()?.selection?.league_id) void this.sync.start(player);
   }
   private failed(league: number, player: string, err: unknown) {
     this.set(league, player, {

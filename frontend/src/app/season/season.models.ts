@@ -87,6 +87,13 @@ export interface SeasonWatch {
   fit_evidence_version?: string | null;
   focus_categories?: string[];
   fit_horizon?: FitHorizon | null;
+  injury_context?: {
+    snapshot_id: string;
+    change_key: string;
+    linked_player_ids: string[];
+    evidence_ids: string[];
+    method: string;
+  } | null;
 }
 export interface LeaguePosition {
   team_id: string;

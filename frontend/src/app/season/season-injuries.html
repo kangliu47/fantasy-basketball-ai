@@ -1,0 +1,424 @@
+<section aria-label="Injury opportunities">
+  <header class="heading">
+    <h2>Injury opportunities</h2>
+    <div class="injury-actions">
+      <button mat-stroked-button (click)="openSources()">
+        Sources
+        @if (failures()) {
+          · {{ failures() }} {{ failures() === 1 ? 'issue' : 'issues' }}
+        }
+      </button>
+    </div>
+  </header>
+  @if (error()) {
+    <p class="notice error" role="alert">
+      {{ error() }} <button mat-button (click)="load()">Reload saved view</button>
+    </p>
+  }
+  @if (message()) {
+    <p class="notice" role="status">{{ message() }}</p>
+  }
+  @if (loading() && !current()) {
+    <p role="status">Loading saved injury evidence…</p>
+  }
+  @if (current(); as data) {
+    @if (data.operation.status !== 'idle') {
+      <p class="source" role="status">{{ data.operation.message }}</p>
+    }
+    @if (injuryCheck()?.error) {
+      <p class="notice">
+        Injury status check failed. Showing saved reports; current status is unverified. Last
+        success {{ (injuryCheck()?.succeeded_at | date: 'medium') || 'none' }}.
+      </p>
+    }
+    @if (!data.snapshot_id) {
+      <div class="empty">
+        <h3>Check the league's injury opportunities</h3>
+        <p>
+          Collect public ESPN injury reports, player news and a first roster-share baseline. This
+          does not change your roster.
+        </p>
+        <p class="source">
+          Sources are checked separately. Earlier ownership history is unavailable until collected.
+        </p>
+      </div>
+    } @else {
+      @if (!data.availability_fresh) {
+        <p class="notice">
+          League availability needs a fresh check before comparing a pickup. Saved research and
+          watch notes remain usable.
+          <button mat-button (click)="sync.open()">Data & connection</button>
+        </p>
+      }
+      @if (missingRevisit()) {
+        <p class="notice">
+          {{ missingRevisit() }}
+          <button mat-button (click)="allTargetsRequested.emit()">All targets</button>
+        </p>
+      }
+      <div class="toolbar">
+        <span class="source"
+          >{{ includeRostered() ? 'Linked players' : 'Available leads' }}:
+          {{ candidates().length }}</span
+        ><label
+          >Show
+          <select [ngModel]="changedOnly()" (ngModelChange)="changedOnly.set($event)">
+            <option [ngValue]="false">Ongoing opportunities</option>
+            <option [ngValue]="true">Changes since review</option>
+          </select></label
+        >
+      </div>
+      @if (visible().length) {
+        <div class="injury-layout">
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Why look now?</th>
+                  <th>Roster trend · 7d</th>
+                  <th>Team fit</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of visible(); track p.player_id) {
+                  <tr [class.selected]="selected()?.player_id === p.player_id">
+                    <td>
+                      <button
+                        class="player-link"
+                        (click)="choose(p.player_id)"
+                        [attr.aria-current]="selected()?.player_id === p.player_id ? 'true' : null"
+                      >
+                        {{ p.name }}</button
+                      ><small>{{ p.nba_team }}</small
+                      ><small>{{
+                        p.availability === 'free_agent'
+                          ? 'Free agent'
+                          : p.availability === 'waiver'
+                            ? 'On waivers'
+                            : p.availability
+                      }}</small>
+                    </td>
+                    <td>
+                      @if (p.injuries.length) {
+                        {{ p.injuries[0].player_name }}: {{ p.injuries[0].status }}
+                        @if (p.injuries.length > 1) {
+                          + {{ p.injuries.length - 1 }} linked reports
+                        }
+                      } @else {
+                        Adds rising; no supported injury link.
+                      }
+                      <small
+                        ><button class="source-link" (click)="choose(p.player_id); openSources()">
+                          {{
+                            p.news[0]?.attribution ||
+                              p.injuries[0]?.attribution ||
+                              'ESPN roster share'
+                          }}
+                        </button></small
+                      ><small>{{ p.lane }} · role unconfirmed</small>
+                    </td>
+                    <td class="numeric">
+                      {{ delta(p.market_week.delta_pp)
+                      }}<small>
+                        @if (p.market_week.current !== null) {
+                          {{ format(p.market_week.current) }}% rostered
+                        } @else {
+                          Roster share unknown
+                        }
+                      </small>
+                    </td>
+                    <td class="numeric">{{ fit(p.player_id) }}<small>Research index</small></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <div class="table-foot">
+              <span class="source"
+                >League checked {{ (data.league_checked_at | date: 'short') || 'unknown' }} ·
+                {{ data.pool_complete ? 'Pool complete' : 'Pool coverage partial' }}</span
+              ><button
+                mat-button
+                (click)="reviewed()"
+                [disabled]="submitting() || !view().preferences.team_id"
+              >
+                Mark visible changes reviewed
+              </button>
+            </div>
+            @if (visibleCount() < candidates().length) {
+              <button mat-button (click)="visibleCount.update(increase)">Show more players</button>
+            }
+            <details>
+              <summary>League-wide context & more filters</summary>
+              <label
+                ><input
+                  type="checkbox"
+                  [ngModel]="includeRostered()"
+                  (ngModelChange)="includeRostered.set($event)"
+                />
+                Include rostered beneficiaries</label
+              >
+              <p class="source">
+                Rostered players provide context. Popularity is separate from category fit. Unknown
+                fit is unranked; coverage limits remain visible.
+              </p>
+            </details>
+          </div>
+          @if (selected(); as p) {
+            <article class="player-summary">
+              <div class="heading">
+                <h3>{{ p.name }}</h3>
+                <span class="source">{{ p.nba_team }}</span>
+              </div>
+              @if (primary(); as article) {
+                <div class="reported">
+                  <small>{{ article.attribution }}</small>
+                  <p>
+                    <strong>{{ article.headline }}</strong>
+                  </p>
+                  <span class="source"
+                    >Published {{ (article.published_at | date: 'medium') || 'unknown' }} · </span
+                  ><button class="source-link" (click)="openSources()">Source info</button>
+                </div>
+              }
+              <p><span class="analysis-label">App analysis</span> {{ p.explanation }}</p>
+              <div class="role">
+                <strong>
+                  @if (p.role.before_minutes !== null && p.role.after_minutes !== null) {
+                    {{ format(p.role.before_minutes) }} → {{ format(p.role.after_minutes) }} min /
+                    played game
+                  } @else {
+                    Role change not observed yet
+                  }</strong
+                ><small
+                  >{{ p.role.before_games }} before / {{ p.role.after_games }} after-report
+                  appearances · not a verified absence split</small
+                >
+              </div>
+              <p class="risk">{{ p.risk }}</p>
+              <div class="injury-actions">
+                <button
+                  mat-flat-button
+                  (click)="compareRequested.emit(p.player_id)"
+                  [disabled]="!canCompare(p)"
+                >
+                  Compare move →</button
+                ><button
+                  mat-stroked-button
+                  (click)="saveWatch()"
+                  [disabled]="
+                    submitting() ||
+                    !view().preferences.team_id ||
+                    !['free_agent', 'waiver'].includes(p.availability)
+                  "
+                >
+                  Watch
+                </button>
+              </div>
+              <p class="source">
+                Participation, waiver clearance, usable starts and transaction legality are
+                unverified.
+              </p>
+              <details>
+                <summary>Sources & supporting evidence</summary>
+                @for (report of p.injuries; track report.id) {
+                  <section class="evidence">
+                    <strong
+                      >{{ report.attribution }} · {{ report.player_name }}:
+                      {{ report.status }}</strong
+                    >
+                    <p>{{ report.summary }}</p>
+                    <p class="source">
+                      Published {{ (report.published_at | date: 'medium') || 'unknown' }}
+                    </p>
+                    @if (sourceUrl(report.source_url); as url) {
+                      <a [href]="url" target="_blank" rel="noopener noreferrer"
+                        >ESPN player page ↗</a
+                      >
+                    }
+                  </section>
+                }
+                @for (article of p.news; track article.id) {
+                  <section class="evidence">
+                    <strong>{{ article.attribution }} · {{ article.headline }}</strong>
+                    <p>{{ article.summary }}</p>
+                    <p class="source">
+                      Published {{ (article.published_at | date: 'medium') || 'unknown' }}
+                    </p>
+                    @if (sourceUrl(article.source_url); as url) {
+                      <a [href]="url" target="_blank" rel="noopener noreferrer"
+                        >{{
+                          article.attribution === 'RotoWire via ESPN'
+                            ? 'ESPN player page'
+                            : 'Original article'
+                        }}
+                        ↗</a
+                      >
+                    }
+                  </section>
+                }
+                <p class="source">
+                  Latest successful news batch:
+                  {{ (newsCheckedAt() | date: 'medium') || 'unknown / partial' }}. Collection and
+                  publication dates differ; batch coverage is in Sources & collection.
+                </p>
+                <h4>Observed games</h4>
+                <p class="source">
+                  Report reference: {{ (p.role.report_at | date: 'medium') || 'unknown' }}.
+                  {{ p.role.message }}
+                </p>
+                <h4>Pickup interest · ESPN roster share</h4>
+                <p>
+                  24h: {{ delta(p.market_day.delta_pp) }} · 7d: {{ delta(p.market_week.delta_pp) }}
+                </p>
+                <p class="source">
+                  Current provider level:
+                  {{ (p.market_week.current_at | date: 'medium') || 'unknown' }}. Seven-day
+                  baseline:
+                  {{
+                    (p.market_week.previous_at | date: 'medium') || 'not collected / incompatible'
+                  }}. Changes are percentage points, not transaction counts. Earlier missing history
+                  is not reconstructed.
+                </p>
+                @if (p.competing_players.length) {
+                  <h4>Other teammates may share the role</h4>
+                  <p>{{ p.competing_players.join(', ') }}</p>
+                }
+                <p class="source">
+                  Fit uses the source, window and priorities selected above. Injury severity and
+                  popularity do not multiply that index. No future roto-point gain or causal injury
+                  effect is claimed.
+                </p>
+              </details>
+              <details>
+                <summary>Edit watch reason</summary>
+                <label
+                  >Reason and recheck condition<textarea
+                    maxlength="2000"
+                    [ngModel]="note()"
+                    (ngModelChange)="setNote($event)"
+                  ></textarea></label
+                ><button
+                  mat-stroked-button
+                  (click)="saveWatch()"
+                  [disabled]="
+                    submitting() ||
+                    !view().preferences.team_id ||
+                    !['free_agent', 'waiver'].includes(p.availability)
+                  "
+                >
+                  Save watch reason
+                </button>
+              </details>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="empty">
+          <h3>No matching leads in this saved sample</h3>
+          <p>
+            No result does not establish that no opportunities exist. Source and player coverage may
+            be incomplete.
+          </p>
+          <button mat-button (click)="changedOnly.set(false)">Show ongoing opportunities</button>
+        </div>
+      }
+    }
+  }
+  <dialog #sourceDialog aria-labelledby="injury-source-title">
+    <div class="heading">
+      <h2 id="injury-source-title">Where the information comes from</h2>
+      <button mat-button (click)="closeSources()">Close</button>
+    </div>
+    <p>News attribution and the app's interpretation are kept separate.</p>
+    <table class="sources">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Information / adapter</th>
+          <th>Last source check</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>RotoWire via ESPN / ESPN</td>
+          <td>
+            Existing public player JSON adapter: RotoWire fantasy updates and separate
+            athlete-linked ESPN articles. Undated season outlooks do not trigger leads. At most 12
+            prioritized player checks per run, not exhaustive league-wide news.
+          </td>
+          <td>See the news check below; partial failures retain saved articles.</td>
+        </tr>
+        @for (source of current()?.sources || []; track source.key) {
+          <tr>
+            <td>
+              <strong>{{ source.label }}</strong>
+              @if (sourceUrl(source.source_url); as url) {
+                <small
+                  ><a [href]="url" target="_blank" rel="noopener noreferrer"
+                    >Provider page ↗</a
+                  ></small
+                >
+              }
+            </td>
+            <td>{{ source.coverage }}</td>
+            <td>
+              <small>Attempt {{ source.checked_at | date: 'medium' }}</small
+              ><small>Last success {{ (source.succeeded_at | date: 'medium') || 'none' }}</small>
+              @if (source.error) {
+                <p class="error">{{ source.error }}</p>
+              } @else {
+                <span class="source">Check succeeded</span>
+              }
+            </td>
+          </tr>
+        }
+        <tr>
+          <td>ESPN game stats / your league</td>
+          <td>
+            Existing completed-game and connected-league adapters. Minutes, category fit, ownership
+            and rules are data, not news.
+          </td>
+          <td>
+            {{ (current()?.league_checked_at | date: 'medium') || 'No league check'
+            }}<small>Private refresh requires Connect ESPN.</small>
+          </td>
+        </tr>
+        <tr>
+          <td>App analysis</td>
+          <td>
+            Ordinary Python rules connect same-team / shared-position reports, observed role changes
+            and market trends. No model calls or AI-token dependency. Possible roles remain
+            hypotheses.
+          </td>
+          <td>Computed from saved source versions.</td>
+        </tr>
+      </tbody>
+    </table>
+    @if (current()?.official; as official) {
+      <p>
+        @if (sourceUrl(official.source_url); as url) {
+          <a [href]="url" target="_blank" rel="noopener noreferrer"
+            >Original official NBA report ↗</a
+          >
+        }
+        · {{ official.published_at | date: 'medium' }} ·
+        {{ official.unsubmitted ? 'Some teams not yet submitted' : 'Completeness unverified' }}. PDF
+        names are not automatically joined to ESPN identities.
+      </p>
+    }
+    <p class="source">
+      First explicit check enables subsequent 30-minute checks while this app is open and the
+      existing automatic-check preference is on. Current preference:
+      {{ view().preferences.automatic_daily ? 'on' : 'off' }}. Closed/asleep intervals are gaps. No
+      scheduled notification or ESPN claim is created.
+    </p>
+    <p class="source">
+      Claim weekdays, cutoff and timezone need verification. No deadline countdown or paid source is
+      assumed.
+    </p>
+    <button mat-stroked-button (click)="closeSources(); settingsRequested.emit()">
+      Data & settings
+    </button>
+  </dialog>
+</section>

@@ -215,61 +215,59 @@ describe('SeasonPage', () => {
     expect(fixture.nativeElement.textContent).toContain('No saved live-season observation yet');
   });
 
-  it('clears a pending refresh when leaving and returning, then follows saved server status', async () => {
+  it('retains navigation while global sync continues outside the live view', async () => {
     await load(populatedView);
     const page = fixture.componentInstance;
-    page.requestRefresh();
-    const pending = http.expectOne('/api/season/refresh?league_id=123&season=2027');
-    expect(page.refreshing()).toBe(true);
+    page.reason.set('Keep my research');
+    page.sync.pending.set(true);
     fixture.componentRef.setInput('active', false);
     fixture.detectChanges();
-    expect(pending.cancelled).toBe(true);
-    expect(page.refreshing()).toBe(false);
+    expect(page.sync.running()).toBe(true);
     fixture.componentRef.setInput('active', true);
-    await load({
-      ...populatedView,
-      operation: {
-        kind: 'refresh',
-        status: 'success',
-        message: 'Current-season observation saved.',
-      },
-    });
-    page.openTab('settings');
-    fixture.detectChanges();
-    const button = fixture.nativeElement.querySelector('.actions button') as HTMLButtonElement;
-    expect(button.textContent).toContain('Refresh data');
-    expect(button.disabled).toBe(false);
+    await load(populatedView);
+    expect(page.reason()).toBe('Keep my research');
+    http.expectNone((r) => r.method === 'POST');
   });
 
-  it('times out an unconfirmed refresh without resubmitting it or hiding saved data', async () => {
-    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
-    try {
-      await load(populatedView);
-      const page = fixture.componentInstance;
-      page.requestRefresh();
-      const pending = http.expectOne('/api/season/refresh?league_id=123&season=2027');
-      page.requestRefresh();
-      http.expectNone((request) => request.method === 'POST');
-      await vi.advanceTimersByTimeAsync(1000);
-      http.expectOne('/api/season?league_id=123&season=2027').flush({
-        ...populatedView,
-        operation: {
-          kind: 'refresh',
-          status: 'success',
-          message: 'Current-season observation saved.',
-        },
-      });
-      await vi.advanceTimersByTimeAsync(29000);
-      fixture.detectChanges();
-      expect(pending.cancelled).toBe(true);
-      expect(page.refreshing()).toBe(false);
-      expect(page.error()).toContain('not confirmed');
-      expect(page.capture()?.id).toBe('capture-1');
-      expect(page.selectedTeam()?.id).toBe('team-1');
-      http.expectNone((request) => request.method === 'POST');
-    } finally {
-      vi.useRealTimers();
+  it('reloads global sync evidence and removes a newly rostered comparison candidate', async () => {
+    await load(populatedView);
+    const page = fixture.componentInstance;
+    page.reason.set('Keep my unfinished reason');
+    page.selectedCandidates.set(['free-1']);
+    page.sync.revision.update((n) => n + 1);
+    fixture.detectChanges();
+    const updated: SeasonView = {
+      ...populatedView,
+      signature: 'synced-source',
+      capture: {
+        ...populatedView.capture!,
+        id: 'capture-2',
+        captured_at: '2026-11-12T10:00:00Z',
+        players: populatedView.capture!.players.map((p) =>
+          p.id === 'free-1' ? { ...p, availability: 'rostered', team_id: 'team-1' } : p,
+        ),
+        teams: populatedView.capture!.teams.map((t) =>
+          t.id === 'team-1' ? { ...t, roster: [...t.roster, 'free-1'] } : t,
+        ),
+      },
+    };
+    http.expectOne('/api/season?league_id=123&season=2027').flush(updated);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    for (const request of http.match((r) => r.url === '/api/season/research')) {
+      if (!request.cancelled)
+        request.flush({
+          signature: updated.signature,
+          category: 'PTS',
+          basis: 'recent',
+          days: 7,
+          players: [],
+        });
     }
+    expect(page.allAvailablePlayers().length).toBe(0);
+    expect(page.ownRoster().some((p) => p.id === 'free-1')).toBe(true);
+    expect(page.selectedCandidates()).toEqual([]);
+    expect(page.reason()).toBe('Keep my unfinished reason');
   });
 
   it('compares multiple independent alternatives with one replacement and retains the source signature', async () => {

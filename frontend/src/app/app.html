@@ -2,13 +2,7 @@
   <div class="brand">Fantasy Basketball</div>
   <div class="header-actions">
     <div class="local-label"><span></span>Local · ESPN read-only</div>
-    <button
-      mat-button
-      (click)="openConnection()"
-      [attr.aria-current]="activeSection() === 'connection' ? 'page' : null"
-    >
-      Connection
-    </button>
+    <app-data-sync />
     <app-build-status />
   </div>
 </header>
@@ -111,13 +105,6 @@
           <p class="intro-copy">{{ introduction().copy }}</p>
         }
       </div>
-      @if (showingEvidence() || activeSection() === 'connection') {
-        <div class="connection-actions">
-          <button mat-flat-button [disabled]="!canRefresh()" (click)="store.refresh()">
-            Refresh data
-          </button>
-        </div>
-      }
     </section>
     @if (store.error()) {
       <div class="notice error" role="alert">
@@ -194,15 +181,8 @@
         <section class="setup-grid">
           <div class="connection-card">
             <button mat-button (click)="backFromConnection()">← Back to previous workspace</button>
-            <h2>{{ connectionLabel() }}</h2>
-            <p>
-              Draft preparation and saved evidence stay available on this Mac. Sign in only when
-              connecting or refreshing ESPN. Refresh data updates the selected league snapshot;
-              completed-season archive imports remain separate.
-            </p>
-            <button mat-flat-button [disabled]="store.busy()" (click)="store.connect()">
-              {{ state.connection === 'disconnected' ? 'Connect ESPN' : 'Reconnect ESPN' }}
-            </button>
+            <h2>Data & connection</h2>
+            <button mat-flat-button (click)="sync.open()">Open data status</button>
           </div>
         </section>
       }

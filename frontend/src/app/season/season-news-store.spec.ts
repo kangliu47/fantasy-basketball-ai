@@ -14,7 +14,7 @@ describe('SeasonNewsStore', () => {
     http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => http.verify());
-  it('loads saved watch reports without provider reads and refreshes only inspected stale news', () => {
+  it('loads saved watch reports without provider reads and keeps inspection saved-only under coordinated refresh', () => {
     const saved = { ...sampleESPNContext().saved!, news_captured_at: '2026-10-18T12:00:00Z' };
     store.load(123, 'espn:player:1001');
     http
@@ -22,9 +22,7 @@ describe('SeasonNewsStore', () => {
       .flush({ player_id: 'espn:player:1001', saved });
     http.expectNone((r) => r.method === 'POST');
     store.inspect(123, 'espn:player:1001');
-    const refresh = http.expectOne('/api/season/player-news/refresh?league_id=123');
-    expect(refresh.request.headers.get('X-Fantasy-Client')).toBe('local-ui');
-    refresh.flush({ message: 'Source unavailable' }, { status: 500, statusText: 'Failure' });
+    http.expectNone((r) => r.method === 'POST');
     expect(store.state(123, 'espn:player:1001')?.value?.saved).toEqual(saved);
     store.leave(123, 'espn:player:1001');
     store.inspect(123, 'espn:player:1001');

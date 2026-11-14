@@ -36,6 +36,7 @@ class WorkspaceService:
         self._task: asyncio.Task[None] | None = None
         self._cancelled = asyncio.Event()
         self._lock = asyncio.Lock()
+        self.collection_running = False
 
     async def initialize(self) -> None:
         try:
@@ -50,7 +51,9 @@ class WorkspaceService:
     def state(self) -> WorkspaceState:
         return WorkspaceState(self.selection, self.connection, self.operation, self.snapshot)
 
-    def _ensure_idle(self) -> None:
+    def _ensure_idle(self, *, allow_collection: bool = False) -> None:
+        if self.collection_running and not allow_collection:
+            raise OperationBusy("Wait for or cancel the data sync first.")
         if self._task is not None and not self._task.done():
             raise OperationBusy("Please finish or cancel the current operation first.")
 

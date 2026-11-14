@@ -2,11 +2,13 @@
 
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Query, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +21,7 @@ from fantasy_ai.application.draft.service import DraftService
 from fantasy_ai.application.history.service import HistoryService
 from fantasy_ai.application.models import (
     LeagueSelection,
+    Operation,
     OperationBusy,
     SnapshotNotFound,
     WorkspaceError,
@@ -27,11 +30,14 @@ from fantasy_ai.application.planning.service import PreparationService
 from fantasy_ai.application.projections.player_information import PlayerInformationService
 from fantasy_ai.application.projections.player_notes import PlayerNotesService
 from fantasy_ai.application.projections.premium import PremiumProjectionService
-from fantasy_ai.application.season.service import SeasonService
+from fantasy_ai.application.season.agent_models import failure as season_agent_failure
+from fantasy_ai.application.season.service import ACTIVE_SEASON, SeasonService
 from fantasy_ai.application.workspace import WorkspaceService
 
+from .data_sync_api import create_sync_router
 from .draft_api import create_draft_router
 from .history_api import create_history_router
+from .injury_api import create_injury_router
 from .live_auction_api import create_live_auction_router
 from .opportunities_api import create_opportunities_router
 from .planning_api import create_planning_router
@@ -45,6 +51,7 @@ from .schemas import (
     SnapshotSummaryDTO,
     StateDTO,
 )
+from .season_agent_api import create_season_agent_router
 from .season_api import create_season_router
 from .valuation_api import create_valuation_router
 
@@ -90,7 +97,12 @@ def create_api(
     if opportunities:
         app.include_router(create_opportunities_router(opportunities, service))
     if season_service:
+        if season_service.sync:
+            app.include_router(create_sync_router(season_service.sync))
         app.include_router(create_season_router(season_service, service))
+        app.include_router(create_season_agent_router(season_service))
+        if season_service.injuries:
+            app.include_router(create_injury_router(season_service.injuries, service))
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "testserver"]
     )
@@ -151,6 +163,13 @@ def create_api(
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, error: RequestValidationError) -> JSONResponse:
         # Do not echo arbitrary submitted field values in validation diagnostics.
+        if request.url.path.startswith("/api/season/agent/"):
+            return JSONResponse(
+                jsonable_encoder(
+                    season_agent_failure("INVALID_ARGUMENT", "Check the report arguments.")
+                ),
+                status_code=422,
+            )
         message = (
             "Choose a valid saved snapshot and history page."
             if request.url.path.startswith("/api/history")
@@ -170,6 +189,13 @@ def create_api(
 
     @app.get("/api/state", response_model=StateDTO)
     async def state(workspace: Annotated[WorkspaceService, Depends(workspace)]) -> StateDTO:
+        if season_service and season_service.sync and season_service.sync.running:
+            return StateDTO.from_state(
+                replace(
+                    workspace.state(),
+                    operation=Operation("refresh", "running", "Syncing current-season data…"),
+                )
+            )
         return StateDTO.from_state(workspace.state())
 
     @app.put("/api/settings", response_model=StateDTO)
@@ -197,6 +223,8 @@ def create_api(
         if history:
             history.ensure_idle()
         if season_service:
+            if season_service.sync:
+                await season_service.sync.cancel(wait=True)
             await season_service.cancel_active()
         return StateDTO.from_state(await workspace.disconnect())
 
@@ -204,6 +232,22 @@ def create_api(
     async def refresh(workspace: Annotated[WorkspaceService, Depends(workspace)]) -> StateDTO:
         if history:
             history.ensure_idle()
+        if (
+            season_service
+            and season_service.sync
+            and workspace.selection
+            and workspace.selection.season == ACTIVE_SEASON
+        ):
+            selected = season_service.sync.selection()
+            if selected is None:
+                raise WorkspaceError("Save your league details first.")
+            await season_service.sync.start(selected)
+            return StateDTO.from_state(
+                replace(
+                    workspace.state(),
+                    operation=Operation("refresh", "running", "Syncing current-season data…"),
+                )
+            )
         return StateDTO.from_state(await workspace.refresh())
 
     @app.get("/api/history", response_model=SnapshotPageDTO)

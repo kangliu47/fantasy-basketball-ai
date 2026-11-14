@@ -1,8 +1,26 @@
 # Fantasy Basketball Intelligence Platform
 
+Current-season data now has one **Sync data** action in the global header.
+**Data & connection** shows a compact result, source dates and recovery. League
+ownership is checked before injury research; confirmed pickups leave available
+targets. Projection and historical imports remain separately dated inputs.
+See [the sync contract](docs/data-sync-design.md).
+
+**Injury opportunities (November 7, 2026):** Live season → Waiver targets →
+Injury opportunities. Check public sources, inspect attributed news and possible
+role changes, then compare or watch a candidate in your league. Runs as ordinary
+Python with no model calls. Roster-share history starts with collection; source
+coverage and failures are explicit. See [delivery and limits](docs/qa/2026-11-07-injury-opportunities-delivery.md).
+
 A local, read-only ESPN league workspace built with **FastAPI**, **Angular**, and
 **Angular Material**. Domain Driven Design and Clean Architecture guide the
 boundaries between the fantasy model, use cases, adapters, and UI.
+
+**Latest delivery — October 25, 2026:** a separate in-season MCP server now
+implements saved outlook and overall/category player rankings, sharing the app's
+calculations and evidence checks. See [setup and current scope](docs/in-season-mcp.md).
+The server is tested locally; registration in the user's actual client remains
+unverified. The remaining in-season tool catalog is future work.
 
 **Current direction — October 21, 2026:** the draft is complete. **Live season**
 now opens first: collect current standings, choose My team, investigate available

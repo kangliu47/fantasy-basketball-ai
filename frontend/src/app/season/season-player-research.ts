@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { HelpTip } from '../core/help-tip';
 import { PlayerResearch, SeasonCategory, SeasonPlayer } from './season.models';
 import { SeasonNewsStore } from './season-news-store';
+import { DataSyncStore } from '../core/data-sync-store';
 
 @Component({
   selector: 'app-season-player-research',
@@ -12,6 +13,7 @@ import { SeasonNewsStore } from './season-news-store';
   styleUrl: './season-player-research.scss',
 })
 export class SeasonPlayerResearch {
+  readonly sync = inject(DataSyncStore);
   readonly leagueId = input.required<number>();
   readonly player = input.required<SeasonPlayer>();
   readonly loading = input(false);
