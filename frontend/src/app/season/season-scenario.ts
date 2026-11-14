@@ -20,6 +20,7 @@ export class SeasonScenario {
   readonly focus = input<string[]>([]);
   readonly basis = input<FitBasis>('recent');
   readonly days = input(7);
+  readonly showTargetsLink = input(true);
   readonly strategyChanged = output<FitStrategy>();
   readonly focusChanged = output<string[]>();
   readonly basisChanged = output<FitBasis>();

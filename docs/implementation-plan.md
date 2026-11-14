@@ -1,5 +1,21 @@
 # Implementation plan
 
+## Trending-first My season — November 14, 2026, latest
+
+Implement the [approved My season design](ux-design-brief-2026-11-14.md) on a
+branch from the verified remote main baseline. Reuse saved public evidence,
+per-game fit, move calculations and the shared sync coordinator. Keep Draft and
+History directly reachable. Verify routine pickup decisions, market and fit
+ordering, source and focus retention, incomplete evidence, and stale ownership
+and watch recovery with synthetic fixtures.
+
+Verification passed 551 Python tests, 193 Angular tests and the production build.
+Browser testing used the production bundle, an isolated synthetic DuckDB database
+and fake readers. It covered signed trends and missing data, injury and role
+evidence, category focus, comparing with keeping the roster, watch saves, stale
+ownership and the shared team settings. The existing local ESPN session stayed
+open during verification.
+
 ## Unified current-season sync — November 8, 2026, latest
 
 Implement the approved global Sync data flow with the user's correction:

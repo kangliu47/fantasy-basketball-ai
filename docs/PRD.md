@@ -144,6 +144,22 @@
 
 ## Amendment history — newest first
 
+## 90. Trending-first My season — approved 2026-11-14
+
+Open on available players ordered by comparable dated ESPN roster-share changes.
+Keep Team fit as an alternate order based on the existing fit index. Place
+current league category gaps and focus controls alongside discovery. Carry the
+focus, rate source and window into a comparison with a named replacement.
+Show reports and any before/after played-game minutes, including uncertainty
+around the cause of a change. Compare against keeping the roster and show native
+gains, losses and both shooting volumes. Place data status, sync, team
+preferences and pickup rules in Data & connection.
+
+The market read uses saved, league-eligible observations with compatible provider
+dates. Missing history and missing fit stay distinct. Current gaps do not forecast
+future roto points or determine transaction eligibility. Draft, History, full
+league research and existing watches remain accessible. [Approved design](ux-design-brief-2026-11-14.md).
+
 ## 89. One current-season sync — approved 2026-11-08
 
 The user reported mismatched roster ownership and injury candidates across

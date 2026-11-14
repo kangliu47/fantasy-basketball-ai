@@ -1,6 +1,35 @@
 :host {
   display: block;
 }
+.season-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.season-actions button:first-child:not(:only-child) {
+  margin-right: auto;
+}
+.season-disclosure summary {
+  color: var(--showcase-green-strong);
+  cursor: pointer;
+}
+.category-links {
+  display: flex;
+  flex-wrap: wrap;
+}
+.choose-team {
+  margin-block: 14px;
+  padding: 16px;
+}
+.stale-notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .daily-trend {
   display: block;
   max-width: 380px;
@@ -514,16 +543,7 @@ textarea {
   margin-top: 12px;
 }
 
-.workflow-tabs {
-  margin: 0 0 16px;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-.workflow-tabs small {
-  margin-left: 5px;
-}
-.evidence-line,
-.scenario-summary {
+.evidence-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -532,19 +552,6 @@ textarea {
   margin: 12px 0 18px;
   color: var(--showcase-muted);
   font-size: 12px;
-}
-.scenario-summary {
-  border: 1px solid var(--showcase-line);
-  background: var(--showcase-surface);
-  padding: 14px 18px;
-  border-radius: 12px;
-}
-.scenario-summary strong {
-  color: var(--showcase-ink);
-}
-.scenario-summary small {
-  display: block;
-  margin-top: 5px;
 }
 app-season-landscape .analysis-grid {
   grid-template-columns: minmax(0, 1fr);

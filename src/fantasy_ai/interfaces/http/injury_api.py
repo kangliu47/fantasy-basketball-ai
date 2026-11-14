@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from fantasy_ai.application.models import LeagueSelection, WorkspaceError
-from fantasy_ai.application.season.injuries import InjuryService, InjuryView
+from fantasy_ai.application.season.injuries import InjuryService, InjuryView, WaiverTrends
 from fantasy_ai.application.season.service import ACTIVE_SEASON, SeasonView
 from fantasy_ai.application.workspace import WorkspaceService
 
@@ -42,6 +42,10 @@ def create_injury_router(service: InjuryService, workspace: WorkspaceService) ->
         return LeagueSelection(league_id, season)
 
     Selected = Annotated[LeagueSelection, Depends(selection)]
+
+    @router.get("/trends", response_model=WaiverTrends)
+    async def trends(selected: Selected) -> WaiverTrends:
+        return await service.trends(selected)
 
     @router.get("", response_model=InjuryView)
     async def view(

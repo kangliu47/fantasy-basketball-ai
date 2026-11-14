@@ -1,7 +1,9 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { HelpTip } from '../core/help-tip';
+import { SeasonCategoryFocus } from './season-category-focus';
 import {
   CandidateFit,
   FitCoordinate,
@@ -14,7 +16,7 @@ import {
 
 @Component({
   selector: 'app-season-alternatives',
-  imports: [FormsModule, MatButtonModule, HelpTip],
+  imports: [DatePipe, FormsModule, MatButtonModule, HelpTip, SeasonCategoryFocus],
   templateUrl: './season-alternatives.html',
   styleUrl: './season-alternatives.scss',
 })
@@ -25,6 +27,7 @@ export class SeasonAlternatives {
   readonly selectedIds = input<string[]>([]);
   readonly dropId = input('');
   readonly horizon = input<FitHorizon>('per_game');
+  readonly focus = input<string[]>([]);
   readonly addedStarts = input<number | null>(null);
   readonly removedStarts = input<number | null>(null);
   readonly loading = input(false);
@@ -40,6 +43,23 @@ export class SeasonAlternatives {
   readonly starts = [0, 1, 2, 3, 4, 5, 6, 7];
   readonly players = computed(
     () => new Map((this.view().capture?.players ?? []).map((p) => [p.id, p])),
+  );
+  readonly replacementOptions = computed(() => {
+    const ranked = this.overview()?.overview.roster;
+    return (
+      ranked ??
+      (
+        this.view().capture?.teams.find((t) => t.id === this.view().preferences.team_id)?.roster ??
+        []
+      )
+        .filter((id) => this.players().has(id))
+        .map((player_id) => ({ player_id, score: null }))
+    );
+  });
+  readonly faab = computed(
+    () =>
+      this.view().capture?.teams.find((t) => t.id === this.view().preferences.team_id)
+        ?.faab_remaining,
   );
   readonly selected = computed(() =>
     this.selectedIds().map((id) => ({

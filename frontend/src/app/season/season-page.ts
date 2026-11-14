@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -10,6 +11,8 @@ import {
   untracked,
   viewChild,
   ElementRef,
+  Injector,
+  TemplateRef,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +22,7 @@ import { firstValueFrom, Subject, Subscription, takeUntil, timer } from 'rxjs';
 import { HelpTip } from '../core/help-tip';
 import { DataSyncStore } from '../core/data-sync-store';
 import { SeasonLandscape } from './season-landscape';
+import { SeasonCategoryFocus } from './season-category-focus';
 import { SeasonScenario } from './season-scenario';
 import { SeasonInjuries } from './season-injuries';
 import { InjuryInspection } from './injury.models';
@@ -54,6 +58,7 @@ type PageTab = 'landscape' | 'outlook' | 'compare' | 'watchlist' | 'settings';
     SeasonPlayerResearch,
     SeasonRecommendations,
     SeasonLandscape,
+    SeasonCategoryFocus,
     SeasonScenario,
     SeasonInjuries,
   ],
@@ -72,16 +77,19 @@ export class SeasonPage {
   readonly savingWatch = signal(false);
   readonly watchSaveMessage = signal('');
   readonly revisionConflict = signal(false);
-  readonly tab = signal<PageTab>('landscape');
+  readonly tab = signal<PageTab>('outlook');
   readonly injuryMode = signal(false);
   readonly injuryInspection = signal<InjuryInspection | null>(null);
   readonly categoryNoteOpen = signal(false);
-  readonly researchMode = signal<'category' | 'overall'>('category');
+  readonly researchMode = signal<'category' | 'overall'>('overall');
   readonly focusCategories = signal<string[]>([]);
   readonly selectedCandidates = signal<string[]>([]);
   readonly comparisonHorizon = signal<FitHorizon>('per_game');
   readonly fitStrategy = signal<FitStrategy>('balanced');
   readonly recommendationPanel = viewChild(SeasonRecommendations);
+  readonly settingsTemplate = viewChild<TemplateRef<unknown>>('seasonContext');
+  readonly journeyNav = viewChild<ElementRef<HTMLElement>>('journeyNav');
+  private readonly injector = inject(Injector);
   readonly overallInspection = signal<FitInspection | null>(null);
   private inspectionToken = 0;
   readonly overviewReady = computed(() => {
@@ -214,6 +222,16 @@ export class SeasonPage {
   });
   readonly chartHeight = computed(() => Math.max(100, this.chartTeams().length * 27 + 30));
   readonly hasCapture = computed(() => !!this.capture());
+  readonly ownershipStale = computed(() => {
+    const date = this.view()?.capture?.pool_captured_at;
+    const age = date ? Date.now() - Date.parse(date) : Infinity;
+    return (
+      !Number.isFinite(age) ||
+      age < 0 ||
+      age > 30 * 60 * 1000 ||
+      this.recommendationPanel()?.currentTrends()?.availability_fresh === false
+    );
+  });
   readonly isConnected = computed(() =>
     ['connected', 'saved'].includes(this.view()?.connection ?? ''),
   );
@@ -271,8 +289,12 @@ export class SeasonPage {
       this.poll?.unsubscribe();
       this.poll = undefined;
       if (this.displayedLeagueId !== leagueId) {
-        if (this.displayedLeagueId !== null)
+        if (this.displayedLeagueId !== null) {
           untracked(() => this.rememberReason(this.displayedLeagueId!));
+          this.tab.set('outlook');
+          this.injuryMode.set(false);
+          this.researchMode.set('overall');
+        }
         this.displayedLeagueId = leagueId;
         this.view.set(null);
         this.error.set(null);
@@ -426,6 +448,7 @@ export class SeasonPage {
   }
 
   openOverall() {
+    this.injuryMode.set(false);
     this.openTab('outlook');
     this.overallInspection.set(null);
     this.recommendationPanel()?.back();
@@ -466,19 +489,25 @@ export class SeasonPage {
       this.openTab('outlook');
       return;
     }
+    this.injuryMode.set(false);
     if (watch.category && this.categories().some((c) => c.code === watch.category))
       this.selectedCategory.set(watch.category);
     this.basis.set(watch.basis ?? 'projection');
     this.windowDays.set(
       [7, 15, 30].includes(watch.window_days ?? 7) ? (watch.window_days ?? 7) : 7,
     );
+    const replacement = watch.drop_id;
+    const canCompare =
+      !!replacement &&
+      this.ownRoster().some((p) => p.id === replacement) &&
+      this.allAvailablePlayers().some((p) => p.id === watch.player_id);
     this.revisit(
       watch.player_id,
-      watch.drop_id,
+      watch.fit_strategy && !canCompare ? null : replacement,
       watch.reason,
       watch.added_starts,
       watch.removed_starts,
-      watch.fit_strategy ? (watch.drop_id ? 'compare' : 'outlook') : 'landscape',
+      watch.fit_strategy ? (canCompare ? 'compare' : 'outlook') : 'landscape',
     );
     this.researchMode.set(watch.fit_strategy ? 'overall' : 'category');
     this.categoryNoteOpen.set(!watch.fit_strategy);
@@ -490,11 +519,11 @@ export class SeasonPage {
         ),
       );
       this.comparisonHorizon.set(watch.fit_horizon ?? (watch.drop_id ? 'seven_day' : 'per_game'));
-      this.selectedCandidates.set(watch.drop_id ? [watch.player_id] : []);
+      this.selectedCandidates.set(canCompare ? [watch.player_id] : []);
       this.overallInspection.set({
         playerId: watch.player_id,
         token: ++this.inspectionToken,
-        compare: !!watch.drop_id,
+        compare: canCompare,
       });
     }
   }
@@ -587,8 +616,11 @@ export class SeasonPage {
   }
 
   openTab(tab: PageTab) {
-    if (tab !== this.tab()) this.watchSaveMessage.set('');
-    this.recommendationPanel()?.back();
+    if (tab !== this.tab()) {
+      this.watchSaveMessage.set('');
+      afterNextRender(() => this.journeyNav()?.nativeElement.focus(), { injector: this.injector });
+    }
+    this.recommendationPanel()?.back(false);
     this.overallInspection.set(null);
     this.categoryNoteOpen.set(false);
     this.tab.set(tab);
@@ -686,7 +718,7 @@ export class SeasonPage {
   ) {
     this.rememberReason();
     this.selectedPlayer.set(playerId);
-    if (dropId) this.selectedDrop.set(dropId);
+    this.selectedDrop.set(dropId ?? '');
     this.reason.set(savedReason);
     this.addedStarts.set(dropId ? added : null);
     this.removedStarts.set(dropId ? removed : null);
@@ -754,7 +786,7 @@ export class SeasonPage {
   }
 
   compareInjuryPlayer(playerId: string) {
-    this.selectedPlayer.set(playerId);
+    this.choosePlayer(playerId);
     this.selectedCandidates.set([playerId]);
     this.comparisonHorizon.set('per_game');
     this.openTab('compare');

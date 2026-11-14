@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   computed,
@@ -6,6 +6,7 @@ import {
   DestroyRef,
   TemplateRef,
   inject,
+  input,
   viewChild,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,15 +14,25 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { DataSyncStore, SyncSource } from './data-sync-store';
 import { HelpTip } from './help-tip';
 import { SyncIcon } from './sync-icon';
+import { BuildStatus } from './build-status';
 
 @Component({
   selector: 'app-data-sync-panel',
-  imports: [DatePipe, MatButtonModule, MatDialogModule, HelpTip, SyncIcon],
+  imports: [
+    DatePipe,
+    NgTemplateOutlet,
+    MatButtonModule,
+    MatDialogModule,
+    HelpTip,
+    SyncIcon,
+    BuildStatus,
+  ],
   templateUrl: './data-sync.html',
   styleUrl: './data-sync.scss',
 })
 export class DataSyncPanel {
   readonly sync = inject(DataSyncStore);
+  readonly seasonSettings = input<TemplateRef<unknown> | null>(null);
   readonly dialog = viewChild<TemplateRef<unknown>>('dialog');
   private readonly dialogs = inject(MatDialog);
   private dialogRef: MatDialogRef<unknown> | null = null;

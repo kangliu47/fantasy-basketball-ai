@@ -390,6 +390,73 @@ def setup(tmp_path: Path) -> tuple[InjuryService, DuckDBInjuryRepository, FakeRe
     return service, public, reader
 
 
+def test_waiver_trends_join_only_saved_available_players_and_keep_signed_changes(
+    tmp_path: Path,
+) -> None:
+    service, public, reader = setup(tmp_path)
+    declining = "espn:player:4"
+    unmatched = "espn:player:5"
+    old_date = NOW - timedelta(days=7)
+    old = snapshot(old_date, "week", 4)
+    public.save(
+        replace(
+            old,
+            players=(
+                *old.players,
+                PublicPlayer(declining, "Synthetic Decline", "2", (), 20, old_date),
+            ),
+        )
+    )
+    at = NOW + timedelta(minutes=5)
+    latest = snapshot(at, "current")
+    public.save(
+        replace(
+            latest,
+            players=(
+                *latest.players,
+                PublicPlayer(declining, "Synthetic Decline", "2", (), 16, at),
+                PublicPlayer(unmatched, "Different Identity", "2", (), 9, at),
+            ),
+        )
+    )
+    season = service.season_service
+    saved = capture()
+    service.seasons.save_capture(
+        replace(
+            saved,
+            id="league-new",
+            captured_at=at,
+            players=(
+                *saved.players,
+                SeasonPlayer(declining, "Synthetic Decline", (), None, None, "free_agent"),
+                SeasonPlayer(unmatched, "Synthetic Unmatched", (), None, None, "free_agent"),
+            ),
+            recent_games=(
+                PlayerGameHistory(
+                    PICKUP,
+                    (
+                        PlayerGame("pre", NOW - timedelta(days=3), {"MIN": 18.0}),
+                        PlayerGame("post", NOW - timedelta(days=1), {"MIN": 27.0}),
+                    ),
+                    True,
+                ),
+            ),
+        )
+    )
+    season.workspace.repository.save_selection(SELECTION)
+    with TestClient(create_api(season.workspace, season_service=season)) as client:
+        url = "/api/season/opportunities/trends"
+        result = client.get(url, params={"league_id": SELECTION.league_id})
+        assert result.status_code == 200
+        data = result.json()
+        assert set(data["market_week"]) == {PICKUP, declining}
+        assert data["market_week"][PICKUP]["delta_pp"] == 14
+        assert data["market_week"][declining]["delta_pp"] == -4
+        assert data["opportunities"][0]["role"]["after_minutes"] == 27
+        assert client.get(url, params={"league_id": 999}).status_code == 400
+        assert reader.calls == 0
+
+
 def test_saved_views_review_revisions_and_watches_preserve_context_offline(tmp_path: Path) -> None:
     service, repo, reader = setup(tmp_path)
 

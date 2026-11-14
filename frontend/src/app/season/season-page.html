@@ -1,24 +1,13 @@
 <section class="season-page" aria-label="Live season">
-  <nav class="tabs workflow-tabs" aria-label="Live-season views">
-    @for (
-      item of [
-        { id: 'landscape', label: '1 · League landscape' },
-        { id: 'outlook', label: '2 · Waiver targets' },
-        { id: 'compare', label: '3 · Compare moves' },
-        { id: 'watchlist', label: 'Watchlist' },
-        { id: 'settings', label: 'Team & settings' },
-      ];
-      track item.id
-    ) {
-      <button
-        type="button"
-        [class.active]="tab() === item.id"
-        [attr.aria-current]="tab() === item.id ? 'page' : null"
-        (click)="openTab($any(item.id))"
-      >
-        {{ item.label }}
-        @if (item.id === 'watchlist' && view()?.watches?.length) {
-          <small>{{ view()?.watches?.length }}</small>
+  <nav class="season-actions" aria-label="My season actions" #journeyNav tabindex="-1">
+    @if (tab() !== 'outlook' || injuryMode()) {
+      <button mat-button type="button" (click)="openOverall()">← Back to available players</button>
+    }
+    @if (tab() !== 'watchlist' && hasCapture()) {
+      <button mat-stroked-button type="button" (click)="openTab('watchlist')">
+        Watchlist
+        @if (view()?.watches?.length) {
+          ({{ view()?.watches?.length }})
         }
       </button>
     }
@@ -45,7 +34,7 @@
     @if (tab() !== 'settings' && hasCapture()) {
       <div class="evidence-line">
         <span
-          >{{ selectedTeam()?.name || 'Choose your team in Team & settings' }} · League checked
+          >{{ selectedTeam()?.name || 'Choose your team' }} · League checked
           {{ freshness(capture()?.captured_at) }}</span
         ><span
           >{{ isConnected() ? 'ESPN connected' : 'Saved evidence · offline' }}
@@ -53,6 +42,12 @@
             label="Saved evidence and pool coverage"
             text="League standings and ownership come from the dated saved observation. ESPN may return only part of the available-player pool; returned player count is not proof that every free agent was collected. Rankable players also need complete statistics in the selected source. Rankings cover returned players only. Open Data & connection for source dates or use Sync data to update."
         /></span>
+      </div>
+    }
+    @if (hasCapture() && tab() !== 'settings' && ownershipStale()) {
+      <div class="notice stale-notice" role="status">
+        <span>Saved player ownership needs a recheck before acting.</span>
+        <button mat-button type="button" (click)="sync.open()">Check data</button>
       </div>
     }
     @if (hasCapture()) {
@@ -255,11 +250,30 @@
         }
       </ng-template>
 
-      @if (!selectedTeam()) {
-        <p class="notice">
-          Choose your team to set priorities and rank players.
-          <button mat-button (click)="openTab('settings')">Choose team</button>
-        </p>
+      @if (!selectedTeam() && tab() === 'outlook') {
+        <section class="surface choose-team">
+          <h2>Choose your team</h2>
+          <p>Use your roster and league category gaps to rank team fit.</p>
+          <label
+            >My team
+            <select
+              [ngModel]="state.preferences.team_id ?? ''"
+              (ngModelChange)="savePreferences($event, state.preferences.automatic_daily)"
+              [disabled]="revisionConflict()"
+            >
+              <option value="" disabled>Select a team</option>
+              @for (team of state.capture!.teams; track team.id) {
+                <option [value]="team.id">{{ team.name }}</option>
+              }
+            </select>
+          </label>
+          @if (writeError()) {
+            <p role="alert">{{ writeError() }}</p>
+            @if (revisionConflict()) {
+              <button mat-button type="button" (click)="retry()">Reload current view</button>
+            }
+          }
+        </section>
       }
       @if (tab() === 'landscape') {
         <app-season-landscape
@@ -284,7 +298,7 @@
             (focusChanged)="focusCategories.set($event)"
             (basisChanged)="basis.set($event)"
             (daysChanged)="windowDays.set($event)"
-            (targetsRequested)="openTab('outlook')"
+            (targetsRequested)="openOverall()"
           />
           <div categoryResearch>
             <div class="analysis-grid">
@@ -591,51 +605,6 @@
           <ng-container [ngTemplateOutlet]="playerInspector" />
         }
       }
-      @if (tab() === 'outlook' || tab() === 'compare') {
-        <div class="scenario-summary">
-          <div>
-            <strong
-              >{{
-                fitStrategy() === 'chase'
-                  ? 'Chase gains'
-                  : fitStrategy() === 'protect'
-                    ? 'Protect leads'
-                    : 'Balanced'
-              }}
-              ·
-              {{
-                focusCategories().length
-                  ? 'Extra focus: ' + focusCategories().join(' + ')
-                  : 'Automatic category priorities'
-              }}</strong
-            ><small
-              >{{ basis() === 'recent' ? windowDays() + 'd ESPN actuals' : 'Saved projections' }} ·
-              same priorities for both lists and each alternative</small
-            >
-          </div>
-          <button mat-stroked-button (click)="openTab('landscape')">Edit ranking focus</button>
-        </div>
-      }
-      @if (tab() === 'outlook') {
-        <nav class="tabs" aria-label="Waiver discovery mode">
-          <button
-            type="button"
-            [class.active]="!injuryMode()"
-            [attr.aria-pressed]="!injuryMode()"
-            (click)="injuryMode.set(false)"
-          >
-            All targets
-          </button>
-          <button
-            type="button"
-            [class.active]="injuryMode()"
-            [attr.aria-pressed]="injuryMode()"
-            (click)="injuryMode.set(true)"
-          >
-            Injury opportunities
-          </button>
-        </nav>
-      }
       <app-season-injuries
         [hidden]="tab() !== 'outlook' || !injuryMode()"
         [active]="active() && tab() === 'outlook' && injuryMode()"
@@ -648,8 +617,8 @@
         [inspection]="injuryInspection()"
         (compareRequested)="compareInjuryPlayer($event)"
         (watched)="acceptInjuryWatch($event)"
-        (settingsRequested)="openTab('settings')"
-        (allTargetsRequested)="injuryMode.set(false)"
+        (settingsRequested)="sync.open()"
+        (allTargetsRequested)="openOverall()"
       />
       <app-season-recommendations
         [view]="state"
@@ -677,7 +646,7 @@
         (daysChanged)="windowDays.set($event)"
         (targetToggled)="toggleCandidate($event)"
         (compareRequested)="openTab('compare')"
-        (targetsRequested)="openTab('outlook')"
+        (targetsRequested)="openOverall()"
         (horizonChanged)="comparisonHorizon.set($event)"
         (playerChosen)="chooseOverallPlayer($event)"
         (dropChosen)="chooseDrop($event)"
@@ -688,6 +657,38 @@
         (detailClosed)="overallInspection.set(null)"
         (reloadRequested)="retry()"
       >
+        <details rankingOptions class="season-disclosure">
+          <summary>Ranking options</summary>
+          <app-season-scenario
+            [view]="state"
+            [showTargetsLink]="false"
+            [overview]="recommendationPanel()?.currentOverview() ?? null"
+            [strategy]="fitStrategy()"
+            [focus]="focusCategories()"
+            [basis]="basis()"
+            [days]="windowDays()"
+            (strategyChanged)="fitStrategy.set($event)"
+            (focusChanged)="focusCategories.set($event)"
+            (basisChanged)="basis.set($event)"
+            (daysChanged)="windowDays.set($event)"
+          />
+        </details>
+        <app-season-category-focus
+          categoryFocus
+          [view]="state"
+          [focus]="focusCategories()"
+          [priorities]="recommendationPanel()?.currentOverview()?.overview?.priorities ?? []"
+          (focusChanged)="focusCategories.set($event)"
+        >
+          <div class="category-links">
+            <button mat-button type="button" (click)="openTab('landscape')">
+              League standings
+            </button>
+            <button mat-button type="button" (click)="injuryMode.set(true)">
+              Injury opportunities
+            </button>
+          </div>
+        </app-season-category-focus>
         <div investigation>
           @if (recommendationPanel()?.detailOpen()) {
             <ng-container [ngTemplateOutlet]="playerInspector" />
@@ -810,8 +811,7 @@
             }
           } @else {
             <p class="empty-inline">
-              No watch notes yet. Inspect a category target and save a reason; no drop selection is
-              required.
+              No watch notes yet. Open an available player to save a reason.
             </p>
           }
         </section>

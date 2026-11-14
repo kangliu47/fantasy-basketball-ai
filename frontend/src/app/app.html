@@ -2,8 +2,7 @@
   <div class="brand">Fantasy Basketball</div>
   <div class="header-actions">
     <div class="local-label"><span></span>Local · ESPN read-only</div>
-    <app-data-sync />
-    <app-build-status />
+    <app-data-sync [seasonSettings]="seasonPage()?.settingsTemplate() ?? null" />
   </div>
 </header>
 <main>
@@ -12,19 +11,19 @@
       <nav class="workspace-nav primary-nav" aria-label="Main workspaces">
         <button
           mat-button
-          [class.nav-active]="activeWorkspace() === 'draft'"
-          [attr.aria-current]="activeWorkspace() === 'draft' ? 'page' : null"
-          (click)="openWorkspace('draft')"
-        >
-          Auction prep
-        </button>
-        <button
-          mat-button
           [class.nav-active]="activeWorkspace() === 'live'"
           [attr.aria-current]="activeWorkspace() === 'live' ? 'page' : null"
           (click)="openWorkspace('live')"
         >
-          Live season
+          My season
+        </button>
+        <button
+          mat-button
+          [class.nav-active]="activeWorkspace() === 'draft'"
+          [attr.aria-current]="activeWorkspace() === 'draft' ? 'page' : null"
+          (click)="openWorkspace('draft')"
+        >
+          Draft
         </button>
         <button
           mat-button
@@ -32,7 +31,7 @@
           [attr.aria-current]="activeWorkspace() === 'history' ? 'page' : null"
           (click)="openWorkspace('history')"
         >
-          Historical patterns
+          History
         </button>
       </nav>
       @if (showingDraft()) {
@@ -171,6 +170,7 @@
       @defer (when activeSection() === 'live') {
         <div [hidden]="activeSection() !== 'live'">
           <app-season-page
+            #seasonPage
             [leagueId]="state.selection.league_id"
             [active]="activeSection() === 'live'"
             (connectRequested)="openConnection()"

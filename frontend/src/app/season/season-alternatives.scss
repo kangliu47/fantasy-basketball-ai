@@ -2,6 +2,10 @@
   display: block;
   min-width: 0;
 }
+.focused th {
+  background: var(--showcase-blue-soft);
+  color: var(--showcase-blue);
+}
 header {
   margin: 14px 0;
 }

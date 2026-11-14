@@ -1,7 +1,7 @@
 """Saved-only opportunity views and explicit, cancellable public-source collection."""
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from threading import Event
@@ -12,10 +12,12 @@ from fantasy_ai.application.season.ports import SeasonRepository
 from fantasy_ai.application.season.service import SeasonService, SeasonView
 from fantasy_ai.domain.season.injuries import (
     METHOD,
+    MarketChange,
     OfficialReport,
     Opportunity,
     SourceCheck,
     discover,
+    market_change,
 )
 from fantasy_ai.domain.season.models import InjuryWatchContext
 from fantasy_ai.domain.season.recommendations import EMPHASIS, FitStrategy
@@ -39,6 +41,15 @@ class InjuryView:
     method: str = METHOD
 
 
+@dataclass(frozen=True)
+class WaiverTrends:
+    league_signature: str
+    league_checked_at: datetime | None
+    availability_fresh: bool
+    market_week: dict[str, MarketChange]
+    opportunities: tuple[Opportunity, ...]
+
+
 class InjuryService:
     def __init__(
         self,
@@ -54,6 +65,48 @@ class InjuryService:
         self._task: asyncio.Task[None] | None = None
         self._cancel = Event()
         self._lock = asyncio.Lock()
+
+    async def trends(self, selection: LeagueSelection) -> WaiverTrends:
+        """Join saved market and injury evidence to the current returned waiver pool."""
+        league = await self.season_service.view(selection)
+        history, saved = await asyncio.gather(
+            asyncio.to_thread(self.repository.history, selection.season),
+            asyncio.to_thread(self.seasons.load, selection),
+        )
+        capture = saved.captures[0] if saved.captures else None
+        if (capture.id if capture else None) != (league.capture.id if league.capture else None):
+            raise OperationBusy("League evidence changed. Reload saved trends.")
+        checked = capture.pool_captured_at if capture else None
+        snapshot = history.latest
+        if capture is None or snapshot is None:
+            return WaiverTrends(
+                league.signature, checked, self._availability_fresh(checked), {}, ()
+            )
+        available = tuple(
+            p
+            for p in capture.players
+            if p.team_id is None and p.availability in {"free_agent", "waiver"}
+        )
+        public = {p.id: p for p in snapshot.players}
+        market = {
+            p.id: market_change(matched, snapshot.captured_at, history.week, 7)
+            for p in available
+            if (matched := public.get(p.id)) is not None
+            and matched.name.casefold() == p.name.casefold()
+        }
+        opportunities = discover(
+            snapshot, replace(capture, players=available), history.day, history.week
+        )
+        return WaiverTrends(
+            league.signature, checked, self._availability_fresh(checked), market, opportunities
+        )
+
+    def _availability_fresh(self, checked: datetime | None) -> bool:
+        return (
+            checked is not None
+            and (not self.season_service.sync or self.season_service.sync.ownership_ready())
+            and timedelta(0) <= datetime.now(UTC) - checked <= timedelta(minutes=30)
+        )
 
     async def view(
         self,
@@ -122,9 +175,7 @@ class InjuryService:
             scores,
             review,
             checked,
-            checked is not None
-            and (not self.season_service.sync or self.season_service.sync.ownership_ready())
-            and timedelta(0) <= datetime.now(UTC) - checked <= timedelta(minutes=30),
+            self._availability_fresh(checked),
             capture.pool_complete if capture else False,
             snapshot.official if snapshot else None,
         )

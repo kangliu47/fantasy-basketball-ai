@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { WorkspaceStore } from './core/workspace-store';
@@ -9,7 +9,6 @@ import { LeagueComparisonPage } from './analytics/league-comparison-page';
 import { DraftWorkspace } from './draft/draft-workspace';
 import { AuctionOpportunities } from './draft/auction-opportunities';
 import { DraftMode } from './draft/draft.models';
-import { BuildStatus } from './core/build-status';
 import { SeasonPage } from './season/season-page';
 import { DataSync } from './core/data-sync';
 import { DataSyncStore } from './core/data-sync-store';
@@ -23,7 +22,6 @@ type Workspace = 'draft' | 'live' | 'history';
     MatButtonModule,
     MatProgressSpinnerModule,
     LeagueSetup,
-    BuildStatus,
     DraftWorkspace,
     AuctionOpportunities,
     MyProfilePage,
@@ -36,6 +34,7 @@ type Workspace = 'draft' | 'live' | 'history';
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
+  readonly seasonPage = viewChild<SeasonPage>('seasonPage');
   readonly section = signal<Section>('live');
   readonly draftMode = signal<DraftMode>('auction');
   readonly historySection = signal<'profile' | 'competitors' | 'league'>('profile');
@@ -64,7 +63,7 @@ export class App implements OnInit {
     if (section === 'live')
       return {
         eyebrow: '2027 · LIVE SEASON',
-        title: 'Your league. Your next move.',
+        title: 'My season',
         copy: 'Follow earned category results, investigate available players and compare a roster change.',
       };
     if (section === 'connection' && this.store.state()?.selection)
@@ -99,7 +98,10 @@ export class App implements OnInit {
   openWorkspace(workspace: Workspace) {
     if (workspace === 'draft') this.openDraft(this.draftMode());
     else if (workspace === 'history') this.openEvidence();
-    else this.section.set('live');
+    else {
+      this.section.set('live');
+      this.seasonPage()?.openOverall();
+    }
   }
   openConnection() {
     if (this.store.state()?.selection) {

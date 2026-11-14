@@ -1,5 +1,20 @@
 # Architecture and learning guide
 
+## Trending-first My season — November 14, 2026, latest
+
+The season page presents market discovery and category focus together. Fit and
+comparison retain their scoring definitions, signature validation and source
+controls. The category summary uses saved standings. Comparison keeps the
+per-played-game and manual seven-day units and shows current league gaps
+separately from roster contributions.
+
+The saved-read `/api/season/opportunities/trends` joins available players to
+comparable ESPN roster shares by verified identity. It includes signed market
+changes even when an injury opportunity was not identified. Report and role
+context reuse the injury service. The read verifies the league observation and
+requires no provider call or schema migration. The UI uses the league signature
+and sync revision to discard obsolete results. [Approved design](ux-design-brief-2026-11-14.md).
+
 ## Unified data sync — November 8, 2026, latest
 
 `DataSyncService` orchestrates existing current-season and injury use cases,

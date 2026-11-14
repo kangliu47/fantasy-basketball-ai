@@ -6,7 +6,17 @@
 move supporting detail into accessible help icons; support what to do during the
 season and evaluate waiver pickups using this league's context.
 
-## October 25 approved workflow extension — latest
+## November 14 approved workflow — latest
+
+The user approved the [Trending-first My season preview](my-season-preview.html)
+after describing their ESPN research workflow. Start with comparable dated ESPN
+roster-share movement and offer the existing Team fit order alongside it. Set
+category focus beside the list, inspect reports and role evidence, and compare
+independent alternatives with a named roster player. Show current gaps and
+tradeoffs in their own units. This supersedes the five-tab navigation described
+below. [Design and evidence boundaries](ux-design-brief-2026-11-14.md).
+
+## October 25 approved workflow extension
 
 The user approved [the reviewed five-tab flow](season-workflow-design.md):
 League landscape → Waiver targets → Compare moves, with Watchlist and Data &

@@ -120,6 +120,12 @@
         {{ sync.state()?.finished_at || sync.state()?.started_at | date: 'MMM d, h:mm a' }}</small
       >
     </details>
+    @if (seasonSettings(); as settings) {
+      <details>
+        <summary>My team &amp; pickup rules</summary>
+        <ng-container [ngTemplateOutlet]="settings" />
+      </details>
+    }
     <details>
       <summary>Other saved inputs</summary>
       <div class="source-row">
@@ -146,5 +152,9 @@
           text="This is the separately saved league snapshot date. Archive import dates remain in Historical patterns. Completed seasons and reviewed manager assignments are unchanged by current-season sync."
         />
       </div>
+    </details>
+    <details>
+      <summary>App version</summary>
+      <app-build-status />
     </details></div
 ></ng-template>

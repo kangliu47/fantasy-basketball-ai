@@ -1,6 +1,8 @@
 # Fantasy Basketball UX design brief
 
-November 14, 2026 · For workflow review · Live-season roster decisions
+November 14, 2026 · Live-season roster decisions
+
+**Implementation approval.** On November 14, the user approved the Trending-first interactive preview and asked for production implementation. The approved scope covers the available-player scan, in-place category focus, player evidence, comparison against keeping the roster, and watch and data recovery. The preview uses the shared `fantasy-analytics-v1` style. [Approved preview](my-season-preview.html).
 
 ## November 14 follow-up · Start with Trending
 
