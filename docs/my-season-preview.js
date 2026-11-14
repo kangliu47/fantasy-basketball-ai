@@ -7,7 +7,30 @@ const players = {
   reed: { name: 'Jordan Reed', rates: [0.7, 2.8, 11, 4, 0.5, 1.4, 4.4, 9, 0.8, 1.0] },
   cruz: { name: 'Cameron Cruz', rates: [1.4, 4.1, 9, 3, 0.4, 0.8, 3.6, 8, 1.0, 1.2] },
 };
+const signals = {
+  vale: { previous: 4, current: 12, minutes: [18, 27], fit: 'Steals strength · FG% risk', clue: 'Teammate out', note: 'Nov 10 · ESPN injury report lists a same-position teammate out. Vale averaged 18 minutes in 3 appearances before the report and 27 in 2 after. A larger role is plausible. Other teammates may share the minutes.' },
+  stone: { previous: 6, current: 12.5, minutes: [26, 26], fit: 'Assists strength · low rebounds', clue: 'Minutes steady', note: 'Minutes held at 26 per played game. The covered reports offer no supported injury or lineup explanation for the roster-share rise.' },
+  brooks: { previous: 8, current: 10.2, minutes: [19, 23], fit: 'Threes strength · low assists', clue: 'Minutes rising', note: 'Brooks averaged 19 then 23 minutes per played game in the covered samples. The rotation change remains unexplained by the checked reports.' },
+  ellis: { previous: null, current: 3, minutes: null, fit: 'Blocks and rebounds strength', clue: 'Role evidence limited', note: 'One roster-share reading is available. More observations are needed to establish a trend or role change.' },
+};
 const categories = ['STL', 'AST', 'PTS', 'REB', 'BLK', '3PM', 'FG%', 'FT%'];
+const categoryLabels = ['Steals', 'Assists', 'Points', 'Rebounds', 'Blocks', 'Threes', 'FG%', 'FT%'];
+const fitExamples = {
+  balanced: ['stone', 'vale', 'brooks', 'ellis'],
+  STL: ['vale', 'brooks', 'stone', 'ellis'],
+  AST: ['stone', 'brooks', 'vale', 'ellis'],
+  PTS: ['brooks', 'vale', 'stone', 'ellis'],
+  REB: ['ellis', 'brooks', 'vale', 'stone'],
+  BLK: ['ellis', 'brooks', 'vale', 'stone'],
+  '3PM': ['brooks', 'vale', 'stone', 'ellis'],
+  'FG%': ['brooks', 'ellis', 'stone', 'vale'],
+  'FT%': ['stone', 'vale', 'brooks', 'ellis'],
+};
+const leagueRows = [
+  ['Northside', 83, 296, 1102, 584, 72, 154, 47.1, 80.2],
+  ['Cedar Court', 89, 293, 1175, 590, 66, 158, 46.9, 81.0],
+  ['West Street', 94, 318, 1250, 612, 83, 146, 48.2, 79.4],
+];
 const roster = ['reed', 'cruz'];
 const featured = ['vale', 'stone', 'brooks', 'ellis'];
 const options = { approach: 'Balanced', basis: 'ESPN actuals', days: '7', focus: [] };
@@ -23,9 +46,9 @@ const sampleWatch = {
 
 function initialState() {
   return {
-    screen: 'season', entry: 'season', data: 'ready', ...options, all: false, injuries: false,
+    screen: 'season', entry: 'season', data: 'ready', ...options, all: false, sort: 'trending',
     target: '', drop: '', alternatives: [], span: false, incoming: '', outgoing: '',
-    rankingOpen: false, standingsOpen: false, notes: {}, watches: { vale: sampleWatch },
+    rankingOpen: false, gapsOpen: false, standingsOpen: false, notes: {}, watches: { vale: sampleWatch },
   };
 }
 
@@ -39,6 +62,8 @@ const actualsDate = () => stale() ? 'Nov 11' : 'Nov 13';
 const pool = () => featured.filter((id) => state.data !== 'owned' || id !== 'vale');
 const availability = (id) => id === 'vale' && state.data === 'owned' ? 'Rostered · Nov 14 check' : players[id].status;
 const dateLabel = (basis) => basis === 'ESPN actuals' ? `through ${actualsDate()}` : 'saved Nov 10';
+const marketDates = () => stale() ? 'Nov 5–12' : 'Nov 7–14';
+const marketDelta = (id) => signals[id].previous === null ? null : signals[id].current - signals[id].previous;
 const contextLabel = ({ approach, basis, days, focus }) => [
   approach, basis === 'ESPN actuals' ? `Last ${days} days of ESPN actuals` : 'Saved projections',
   focus.length ? `Extra focus ${focus.join(', ')}` : '',
@@ -70,17 +95,82 @@ function evidenceWarning() {
   return `<div class="row warning" role="status"><p>${message}</p>${button(state.data === 'failed' ? 'Retry reconnect' : 'Recheck ownership', 'sync')}</div>`;
 }
 
+function categoryGaps() {
+  return `<details id="category-gaps" ${state.gapsOpen ? 'open' : ''}>
+    <summary>All category gaps</summary><div class="table-scroll"><table>
+    <thead><tr><th scope="col">Category</th><th scope="col">Rank</th><th scope="col">Gap up</th><th scope="col">Lead below</th></tr></thead>
+    <tbody>${categories.map((category, index) => {
+      const rank = categoryRank(index);
+      return `<tr><th scope="row">${focusButton(category, category)}</th><td>${rank.place}</td><td>${gapText(rank.above, rank.mine, index)}</td><td>${gapText(rank.mine, rank.below, index)}</td></tr>`;
+    }).join('')}</tbody></table></div><p class="muted">Select a category to give it extra focus. League totals are from the last saved check.</p></details>`;
+}
+
 function standings() {
-  const rows = [
-    ['Northside', 83, 296, 1102, 584, 72, 154, '47.1%', '80.2%'],
-    ['Cedar Court', 89, 293, 1175, 590, 66, 158, '46.9%', '81.0%'],
-    ['West Street', 94, 318, 1250, 612, 83, 146, '48.2%', '79.4%'],
-  ];
   return `<details id="standings" ${state.standingsOpen ? 'open' : ''}>
     <summary>League standings</summary><div class="table-scroll"><table>
-    <thead><tr><th scope="col">Team</th>${categories.map((c) => `<th scope="col">${c}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(([name, ...stats]) => `<tr><th scope="row">${name}</th>${stats.map((n) => `<td>${n}</td>`).join('')}</tr>`).join('')}</tbody>
+    <thead><tr><th scope="col">Team</th>${categories.map((code) => `<th scope="col">${code}</th>`).join('')}</tr></thead>
+    <tbody>${leagueRows.map(([name, ...stats]) => `<tr><th scope="row">${name}</th>${stats.map((n, i) => `<td>${n}${i >= 6 ? '%' : ''}</td>`).join('')}</tr>`).join('')}</tbody>
     </table></div></details>`;
+}
+
+function categoryRank(index) {
+  const values = leagueRows.map((row) => row[index + 1]).sort((a, b) => b - a);
+  const mine = leagueRows[0][index + 1];
+  const place = values.indexOf(mine) + 1;
+  return { mine, place, above: values[place - 2], below: values[place] };
+}
+
+function gapText(higher, lower, index) {
+  if (higher === undefined || lower === undefined) return '—';
+  const gap = higher - lower;
+  return index >= 6 ? `${gap.toFixed(1)} pp` : `${gap} ${categories[index]}`;
+}
+
+function focusButton(category, label) {
+  const active = state.focus.includes(category);
+  return `<button class="link" id="focus-${label === category ? 'table' : 'card'}-${category}" data-action="focus" data-value="${category}" aria-pressed="${active}">${active ? '✓ ' : ''}${label}</button>`;
+}
+
+function categoryCard() {
+  return `<article class="showcase-card">
+    <h2>Where can I gain ground?</h2>
+    <p class="muted">Your current gaps and leads in this league</p>
+    <div class="stats">
+      <div class="stat"><strong>Steals · 3rd</strong><span>83 vs 89 · 6 to tie, 7 to pass</span>${focusButton('STL', 'Focus on steals')}</div>
+      <div class="stat"><strong>Assists · 2nd</strong><span>296 vs 293 · 3 ahead of third</span>${focusButton('AST', 'Focus on assists')}</div>
+      <div class="stat"><strong>FG% · 2nd</strong><span>47.1% vs 46.9% · 0.2 pp lead</span>${focusButton('FG%', 'Focus on FG%')}</div>
+    </div>
+    <p class="muted">Gaps use saved opponent totals. Opponents will keep scoring.</p>
+    ${categoryGaps()}${standings()}</article>`;
+}
+
+function fitCue(id) {
+  const rates = playerRates(id);
+  const values = state.focus.map((code) => {
+    const index = categories.indexOf(code);
+    if (index < 6) return `${rates[index]} ${code}`;
+    const makes = index === 6 ? 6 : 8;
+    return `${rates[makes]}/${rates[makes + 1]} ${code}`;
+  });
+  return [values.length ? `${values.join(' · ')} per game` : '', signals[id].fit].filter(Boolean).join(' · ');
+}
+
+function trendCell(id) {
+  const { current, previous } = signals[id];
+  return previous === null ? `<span>History unavailable</span><small>${current}% rostered</small>` :
+    `<strong>${signed(marketDelta(id))} pp</strong><small>${previous}% → ${current}% rostered</small>`;
+}
+
+function sortedPlayers() {
+  const sorted = [...pool()];
+  if (state.sort === 'trending') {
+    return sorted.sort((a, b) => (marketDelta(b) ?? -Infinity) - (marketDelta(a) ?? -Infinity));
+  }
+  if (state.data === 'partial') return sorted.sort((a, b) => players[a].name.localeCompare(players[b].name));
+  const exampleRank = (id) => state.focus.reduce(
+    (rank, code) => rank + 2 * fitExamples[code].indexOf(id), fitExamples.balanced.indexOf(id),
+  );
+  return sorted.sort((a, b) => exampleRank(a) - exampleRank(b));
 }
 
 function rankingOptions() {
@@ -101,32 +191,25 @@ function season() {
   if (state.data === 'empty') return `${title}<article class="showcase-card"><h2>No saved league check</h2><p>Connect ESPN to load your standings and available players.</p>${button('Connect & sync', 'sync', '', 'primary')}</article>`;
   if (state.data === 'setup') return `${title}<article class="showcase-card"><h2>Choose your team</h2><p>League check saved ${leagueDate()}.</p>${select('team', 'My team', [['', 'Select a team'], ['northside', 'Northside']], '')}</article>`;
   const scope = pool().length;
-  const rankable = state.data === 'partial' ? 'Ranking unavailable' : `${scope} of ${scope} returned players rankable · pool coverage unknown`;
-  const sorted = [...pool()];
-  if (state.data === 'partial') sorted.sort((a, b) => players[a].name.localeCompare(players[b].name));
-  else if (state.focus.includes('AST')) sorted.sort((a, b) => playerRates(b)[1] - playerRates(a)[1]);
-  const candidates = state.injuries ? sorted.filter((id) => id === 'vale') : sorted.slice(0, state.all ? undefined : 3);
+  const marketCoverage = pool().filter((id) => marketDelta(id) !== null).length;
+  const rankable = state.data === 'partial' ? 'Fit ranking unavailable' : `${scope} of ${scope} returned players rankable for fit`;
+  const candidates = sortedPlayers().slice(0, state.all ? undefined : 3);
   return `${title}<p class="muted">Northside · League checked ${leagueDate()}</p>${evidenceWarning()}<div class="season-grid">
     <article class="showcase-card">
-      <h2>Your category needs</h2>
-      <div class="stats">
-        <div class="stat"><strong>Steals · 3rd</strong><span class="muted">6 behind the next team</span></div>
-        <div class="stat"><strong>Assists · 2nd</strong><span class="muted">3 ahead of the next team</span></div>
-        <div class="stat"><strong>FG% · 2nd</strong><span class="muted">0.2 percentage point lead</span></div>
+      <div class="row between"><h2>Available players</h2>${button(state.all ? 'Show shortlist' : 'All targets', 'all')}</div>
+      <div class="row sort" role="group" aria-label="Order available players">
+        ${[['trending', 'Trending'], ['fit', 'Team fit']].map(([sort, label]) => `<button class="showcase-button" id="sort-${sort}" data-action="sort" data-value="${sort}" aria-pressed="${state.sort === sort}">${label}</button>`).join('')}
       </div>
-      ${standings()}
-    </article>
-    <article class="showcase-card">
-      <div class="row between"><h2>${state.injuries ? 'Injury opportunities' : 'Waiver targets'}</h2>${button(state.all ? 'Show shortlist' : 'All targets', 'all')}</div>
-      <p class="muted">${contextLabel(state)} · ${dateLabel(state.basis)}</p>
-      <p class="muted">${rankable}</p>
+      <p class="muted">ESPN roster-share change · ${marketDates()} · percentage points (pp)</p>
+      <p class="muted">Fit · ${contextLabel(state)} · ${dateLabel(state.basis)}</p>
+      <p class="muted">${marketCoverage} of ${scope} with trend history · ${rankable} · pool coverage unknown</p>
       ${rankingOptions()}
-      ${state.all ? `<div class="row">${button(state.injuries ? 'All available players' : 'Injury opportunities', 'injuries')}</div>` : ''}
-      ${state.data === 'partial' ? '<p class="warning">Required player stats are incomplete. Inspect available players and their known stats below.</p>' : ''}
-      ${candidates.map((id) => `<div class="player-row row between"><div><h3>${players[id].name}</h3>
-        <p class="muted">${availability(id)} · ${['vale', 'brooks'].includes(id) ? 'Steals' : id === 'stone' ? 'Assists' : 'Rebounds and blocks'}</p></div>
-        <button class="showcase-button" id="review-${id}" aria-label="Review ${players[id].name}" data-action="player" data-value="${id}">Review</button></div>`).join('') || '<p>No available injury leads in this check.</p>'}
-    </article></div>`;
+      ${state.data === 'partial' ? '<p class="warning">Required player stats are incomplete. Market trends and covered player stats are available.</p>' : ''}
+      ${candidates.map((id) => `<div class="player-row scan-row"><div>
+        <button class="link player-name" id="review-${id}" aria-label="Review ${players[id].name}" data-action="player" data-value="${id}">${players[id].name}</button><small>${availability(id)}</small></div>
+        <div>${trendCell(id)}</div>
+        <div><span>${state.data === 'partial' ? 'Team fit unknown' : fitCue(id)}</span><small>${signals[id].clue}${signals[id].minutes ? ` · ${signals[id].minutes.join(' → ')} min/game` : ''}</small></div></div>`).join('') || '<p>No available players in this check.</p>'}
+    </article>${categoryCard()}</div>`;
 }
 
 function watchEditor() {
@@ -145,15 +228,20 @@ function player() {
   const owned = !pool().includes(id);
   const strengths = id === 'vale' ? `${rates[0]} steals per game. His ${rates[6]} makes on ${rates[7]} attempts are worth checking against your roster.` :
     `${rates[1]} assists and ${rates[0]} steals per game. Review the shooting volume and roster tradeoffs.`;
-  return `<button class="link" data-action="back">← ${state.entry === 'watchlist' ? 'Back to Watchlist' : 'Back to waiver targets'}</button>
+  return `<button class="link" data-action="back">← ${state.entry === 'watchlist' ? 'Back to Watchlist' : 'Back to available players'}</button>
     ${heading(p.name)}${evidenceWarning()}
     <article class="showcase-card">
       <h2>${availability(id)}</h2>
       <p class="muted">Ownership checked ${leagueDate()} · ${contextLabel(state)}</p>
       ${owned ? '<p class="warning">This player is no longer in the available pool.</p>' : ''}
-      <p>${strengths}</p>
+      <h3>Team fit</h3>
+      <p>${strengths} ${state.data === 'partial' ? 'Complete team fit is unavailable.' : fitCue(id)}</p>
       <p class="muted">${state.basis} ${dateLabel(state.basis)} · Recent sample ${p.games} games, ${p.minutes} minutes per game over 7 days</p>
-      ${id === 'vale' ? '<details><summary>Injury evidence</summary><p>A starter’s absence coincided with Vale’s extra minutes in this synthetic sample. Check the next game for a role change.</p></details>' : ''}
+      <section class="trend-evidence" aria-labelledby="trend-title">
+        <h3 id="trend-title">Why is this player trending?</h3>
+        <p>${trendCell(id)} <span class="muted">· ESPN roster share · ${marketDates()}</span></p>
+        <p>${signals[id].note}</p>
+      </section>
       ${owned ? '' : button('Compare with my roster', 'compare', '', 'primary')}
       ${watchEditor()}
     </article>`;
@@ -164,6 +252,17 @@ function signed(number) {
   return rounded === 0 ? '0' : `${rounded > 0 ? '+' : ''}${rounded.toFixed(1)}`;
 }
 
+function selectedGaps() {
+  if (!state.focus.length) return '';
+  const gaps = state.focus.map((code) => {
+    const index = categories.indexOf(code);
+    const { mine, above, below } = categoryRank(index);
+    const pieces = [above === undefined ? '' : `${gapText(above, mine, index)} to tie the team above`, below === undefined ? '' : `${gapText(mine, below, index)} ahead of the team below`].filter(Boolean);
+    return `<li><strong>${categoryLabels[index]}</strong> · ${pieces.join(' · ')}</li>`;
+  });
+  return `<div class="gap-reference"><h3>Current league gaps in focus</h3><ul>${gaps.join('')}</ul><p class="muted">Saved league totals. The swap table shows player contributions over the selected horizon.</p></div>`;
+}
+
 function compareTable(ids) {
   const dropRates = playerRates(state.drop);
   const incoming = state.span ? Number(state.incoming) : 1;
@@ -171,10 +270,12 @@ function compareTable(ids) {
   const comparisons = ids.map((id) => playerRates(id).map((rate, i) => rate * incoming - dropRates[i] * outgoing));
   return `<div class="table-scroll"><table aria-label="Category differences against keeping the roster">
     <thead><tr><th scope="col">Category</th><th scope="col">Keep roster</th>${ids.map((id) => `<th scope="col">Add ${players[id].name}</th>`).join('')}</tr></thead>
-    <tbody>${categories.map((label, i) => `<tr><th scope="row">${label}</th><td>${i < 6 ? '0' : '0 makes / 0 attempts'}</td>${comparisons.map((delta) => {
+    <tbody>${categories.map((label, i) => `<tr><th scope="row" class="${state.focus.includes(label) ? 'focused' : ''}">${label}</th><td>${i < 6 ? '0' : '0 makes / 0 attempts'}</td>${comparisons.map((delta, alternativeIndex) => {
       if (i >= 6) {
         const index = i === 6 ? 6 : 8;
-        return `<td>${signed(delta[index])} makes / ${signed(delta[index + 1])} attempts</td>`;
+        const add = playerRates(ids[alternativeIndex]);
+        return `<td>${signed(delta[index])} makes / ${signed(delta[index + 1])} attempts
+          <small>In ${add[index]}/${add[index + 1]} vs out ${dropRates[index]}/${dropRates[index + 1]} per game</small></td>`;
       }
       if (state.data === 'partial' && label === 'BLK') return '<td>Unknown</td>';
       return `<td class="${delta[i] > 0 ? 'gain' : delta[i] < 0 ? 'loss' : ''}">${signed(delta[i])}</td>`;
@@ -192,6 +293,7 @@ function compare() {
     <article class="showcase-card">
       <h2>${players[state.target].name}${state.alternatives.length ? ' and alternatives' : ''}</h2>
       <p class="muted">${contextLabel(state)} · ${dateLabel(state.basis)}</p>
+      ${selectedGaps()}
       <div class="row">
         ${select('drop', 'Roster player to replace', [['', 'Choose a player'], ...roster.map((id) => [id, players[id].name])], state.drop)}
         ${select('alternative', 'Add another target', [['', 'Choose a target'], ...available.map((id) => [id, players[id].name])], '')}
@@ -254,8 +356,12 @@ document.addEventListener('click', (event) => {
   if (['season', 'draft', 'history', 'watchlist'].includes(action)) state.screen = action;
   if (action === 'back') { state.screen = state.entry; focus = `review-${state.target}`; }
   if (action === 'data') { dialog.showModal(); return; }
-  if (action === 'all') { state.all = !state.all; state.injuries = false; }
-  if (action === 'injuries') state.injuries = !state.injuries;
+  if (action === 'all') state.all = !state.all;
+  if (action === 'sort') { state.sort = value; focus = button.id; }
+  if (action === 'focus') {
+    state.focus = state.focus.includes(value) ? state.focus.filter((category) => category !== value) : [...state.focus, value];
+    focus = button.id;
+  }
   if (action === 'player') {
     if (state.screen !== 'compare') state.entry = 'season';
     if (state.target !== value) { state.drop = ''; state.alternatives = []; state.span = false; state.incoming = ''; state.outgoing = ''; }
@@ -299,6 +405,7 @@ view.addEventListener('change', ({ target }) => {
 view.addEventListener('toggle', ({ target }) => {
   if (!target.isConnected) return;
   if (target.id === 'ranking-options') state.rankingOpen = target.open;
+  if (target.id === 'category-gaps') state.gapsOpen = target.open;
   if (target.id === 'standings') state.standingsOpen = target.open;
   if (target.id === 'scenario' && state.span !== target.open) {
     state.span = target.open;

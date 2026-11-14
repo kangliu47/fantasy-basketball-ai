@@ -2,7 +2,18 @@
 
 November 14, 2026 · For workflow review · Live-season roster decisions
 
-The [interactive My season preview](my-season-preview.html) is ready for workflow approval. It places team needs and the target shortlist side by side on desktop and stacks them on narrow screens. Use **Preview data states** to try a stale watch, first launch, or incomplete stats.
+## November 14 follow-up · Start with Trending
+
+The user described scanning ESPN for trending players, checking whether injuries or lineup changes explain their recent play, and weighing each player against category opportunities in the league. The user chose **Trending first**. The workflow question is **Which rising player is worth investigating for my team, and what would I give up to improve the category?** The closest existing product views are Waiver targets, Injury opportunities and League landscape. [Updated interactive My season preview](my-season-preview.html).
+
+1. **Scan available players.** Open **My season** on **Trending**. Each row shows league availability, dated ESPN roster-share movement in percentage points when covered, and a short team-fit and role cue. **Team fit** changes the order of the same list. Show missing trend history or fit where it occurs, and keep coverage visible. In production, check eligibility against the saved league pool and market dates against the existing saved public observations. [Existing injury and market evidence](injury-opportunities-design.md).
+2. **Set category focus beside the list.** Show current gaps to the next team and leads over the team below in the category’s own units. Open all category gaps or league standings for the rest of the picture. Select a category in place to carry its extra weight into fit and comparison. The market order stays stable. At desktop size the list and league context sit together. On narrow screens, the list leads.
+3. **Investigate the trend.** Player detail pairs the roster-share readings with a dated report when one exists and observed minutes before and after the report. It distinguishes a plausible role opening from a documented lineup change and shows when the available reports leave the trend unexplained. A player can move straight to a roster comparison or a watch note.
+4. **Check the cost of acting.** Carry the selected league gaps into **Compare with my roster**. Show the gains and losses against **Keep roster** after naming a roster player, with both shooting players’ makes and attempts. For example, the synthetic team has 83 steals against the next team’s 89. It needs six to tie at those saved totals. Replacing Jordan Reed with Jonah Vale adds 1.4 steals per played-game comparison, with 4.6 makes on 11 shots coming in and 4.4 on 9 going out. League gaps describe current standings. The swap describes contributions at the selected rates. [Approved category and comparison evidence rules](season-workflow-design.md).
+
+Try opening Vale and Stone to compare how two rising players are explained. Then choose **Focus on steals**, review Vale, and compare with Reed. Try **All targets** for a player with no comparable market history and **Preview data states → Incomplete stats** for a market trend with incomplete fit. Player ordering and figures in the preview use synthetic examples. Production fit would reuse the app’s existing research index.
+
+## November 14 initial architecture review
 
 **Recommendation.** Open on **My season**, with team needs and a short list of available players on the same screen. Start a comparison from a player, carry the ranking context forward, and make **Keep roster** the comparison baseline. Give Draft and History stable entries for their occasional jobs.
 

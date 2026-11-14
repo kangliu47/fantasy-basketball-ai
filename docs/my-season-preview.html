@@ -24,7 +24,15 @@
       .stats { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); margin: 12px 0; }
       .stat { background: var(--showcase-surface-soft); border-radius: 8px; padding: 10px 12px; }
       .stat span { display: block; margin-top: 4px; }
+      .stat .link[aria-pressed='true'], td.focused, th.focused { background: var(--showcase-blue-soft); color: var(--showcase-blue); }
+      .stat .link[aria-pressed='true'] { border-radius: 5px; padding-inline: 5px; }
       .player-row { border-top: 1px solid var(--showcase-line); padding: 10px 0; }
+      .scan-row { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(115px, .9fr) minmax(140px, 1.3fr); gap: 10px; align-items: start; font-size: .9rem; }
+      .scan-row small, table small { display: block; color: var(--showcase-muted); margin-top: 3px; }
+      .player-name { padding: 0; font-weight: 700; text-align: left; }
+      .sort { margin-top: 10px; }
+      .trend-evidence, .gap-reference { margin: 14px 0; border-top: 1px solid var(--showcase-line); padding-top: 12px; }
+      .gap-reference ul { margin: 8px 0; padding-inline-start: 20px; }
       .gain { color: var(--showcase-green-strong); }
       .loss { color: var(--showcase-red); }
       .showcase-banner { margin: 14px 0; }
@@ -41,7 +49,7 @@
       dialog { width: min(92vw, 460px); border: 1px solid var(--showcase-control-line); color: inherit; }
       dialog::backdrop { background: #183c3044; }
       @media (min-width: 800px) {
-        .season-grid { grid-template-columns: minmax(250px, 1fr) minmax(0, 2fr); gap: 14px; }
+        .season-grid { grid-template-columns: minmax(0, 2fr) minmax(250px, 1fr); gap: 14px; }
         .stats { grid-template-columns: 1fr; }
       }
       @media (max-width: 540px) {
@@ -49,6 +57,8 @@
         .showcase-page { padding-inline: 14px; }
         .showcase-card { padding: 13px; }
         .stats { grid-template-columns: 1fr; }
+        .scan-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+        .scan-row > :last-child { grid-column: 1 / -1; }
         .table-scroll table { min-width: 340px; }
       }
     </style>
