@@ -127,8 +127,19 @@ export class SeasonRecommendations {
     return data?.league_signature === this.view().signature ? data : null;
   });
   readonly market = computed(() => this.currentTrends()?.market_week ?? {});
+  readonly earlyLeads = computed(() => new Set(this.currentTrends()?.injury_lead_ids ?? []));
+  readonly discoveryPool = computed(() => {
+    const trends = this.currentTrends();
+    const ids = new Set([...(trends?.played_player_ids ?? []), ...this.earlyLeads()]);
+    if (!trends && this.trendError()) {
+      for (const [id, sample] of this.samples()) {
+        if (sample.games != null && sample.games > 0) ids.add(id);
+      }
+    }
+    return this.available().filter((player) => ids.has(player.id));
+  });
   readonly trendCoverage = computed(
-    () => this.available().filter((p) => this.market()[p.id]?.delta_pp != null).length,
+    () => this.discoveryPool().filter((p) => this.market()[p.id]?.delta_pp != null).length,
   );
   readonly opportunities = computed(
     () => new Map((this.currentTrends()?.opportunities ?? []).map((p) => [p.player_id, p])),
@@ -150,12 +161,17 @@ export class SeasonRecommendations {
         (this.currentOverview()?.overview.available ?? []).map((row) => [row.player_id, row]),
       ),
   );
+  readonly rankableDiscovery = computed(
+    () =>
+      this.discoveryPool().filter((player) => this.availableFit().get(player.id)?.score != null)
+        .length,
+  );
   readonly samples = computed(
     () => new Map((this.currentOverview()?.evidence.players ?? []).map((p) => [p.player_id, p])),
   );
   readonly comparisonStats = ['MIN', 'PTS', 'REB', 'AST', 'STL'];
   readonly positions = computed(() =>
-    [...new Set(this.available().flatMap((player) => player.positions))].sort(),
+    [...new Set(this.discoveryPool().flatMap((player) => player.positions))].sort(),
   );
   readonly candidates = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -163,7 +179,8 @@ export class SeasonRecommendations {
     const fits = this.availableFit();
     const market = this.market();
     const trending = this.order() === 'trending';
-    return this.available()
+    if (!trending && !this.currentOverview()) return [];
+    return this.discoveryPool()
       .filter(
         (player) =>
           player.name.toLowerCase().includes(term) &&

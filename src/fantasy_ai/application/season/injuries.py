@@ -17,6 +17,7 @@ from fantasy_ai.domain.season.injuries import (
     Opportunity,
     SourceCheck,
     discover,
+    has_recent_injury_link,
     market_change,
 )
 from fantasy_ai.domain.season.models import InjuryWatchContext
@@ -48,6 +49,8 @@ class WaiverTrends:
     availability_fresh: bool
     market_week: dict[str, MarketChange]
     opportunities: tuple[Opportunity, ...]
+    played_player_ids: tuple[str, ...] = ()
+    injury_lead_ids: tuple[str, ...] = ()
 
 
 class InjuryService:
@@ -78,7 +81,7 @@ class InjuryService:
             raise OperationBusy("League evidence changed. Reload saved trends.")
         checked = capture.pool_captured_at if capture else None
         snapshot = history.latest
-        if capture is None or snapshot is None:
+        if capture is None:
             return WaiverTrends(
                 league.signature, checked, self._availability_fresh(checked), {}, ()
             )
@@ -87,6 +90,16 @@ class InjuryService:
             for p in capture.players
             if p.team_id is None and p.availability in {"free_agent", "waiver"}
         )
+        available_ids = {p.id for p in available}
+        played_ids = tuple(
+            history.player_id
+            for history in capture.recent_games
+            if history.player_id in available_ids and history.games
+        )
+        if snapshot is None:
+            return WaiverTrends(
+                league.signature, checked, self._availability_fresh(checked), {}, (), played_ids
+            )
         public = {p.id: p for p in snapshot.players}
         market = {
             p.id: market_change(matched, snapshot.captured_at, history.week, 7)
@@ -97,8 +110,21 @@ class InjuryService:
         opportunities = discover(
             snapshot, replace(capture, players=available), history.day, history.week
         )
+        played = set(played_ids)
+        now = datetime.now(UTC)
+        injury_leads = tuple(
+            lead.player_id
+            for lead in opportunities
+            if lead.player_id not in played and has_recent_injury_link(lead, now)
+        )
         return WaiverTrends(
-            league.signature, checked, self._availability_fresh(checked), market, opportunities
+            league.signature,
+            checked,
+            self._availability_fresh(checked),
+            market,
+            opportunities,
+            played_ids,
+            injury_leads,
         )
 
     def _availability_fresh(self, checked: datetime | None) -> bool:

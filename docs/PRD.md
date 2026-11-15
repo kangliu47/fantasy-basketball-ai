@@ -144,6 +144,15 @@
 
 ## Amendment history — newest first
 
+## 92. Current-season waiver candidates — approved 2026-11-14
+
+Trending and Team fit show players with at least one saved verified game for
+the current season, plus an early injury lead backed by a dated player report
+that names a recently reported out or doubtful teammate. Label early leads and
+use a loading status while discovery checks its evidence. Apply the same screen
+filter to the shortlist, expanded list, and search. Preserve the pool, current
+roster, watches, comparisons and existing scoring definitions.
+
 ## 91. Actionable sync warnings — approved 2026-11-14
 
 The user removed NBA Official from the interface and asked that it be marked

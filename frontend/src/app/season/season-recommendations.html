@@ -56,14 +56,12 @@
           <app-help-tip
             label="How Trending works"
             [text]="
-              available().length +
+              discoveryPool().length +
               ' players listed · ' +
               trendCoverage() +
               ' with trend history' +
-              (currentOverview()
-                ? ' · ' + covered(currentOverview()!.overview.available) + ' rankable for Team fit'
-                : '') +
-              '. Trending compares dated ESPN roster-share readings about seven days apart. The list covers players ESPN sent to the app.'
+              (currentOverview() ? ' · ' + rankableDiscovery() + ' rankable for Team fit' : '') +
+              '. The list uses saved games from this season and dated player reports linked to a teammate’s absence. Trending compares ESPN roster-share readings about seven days apart.'
             "
           />
         </p>
@@ -155,6 +153,9 @@
                 {{ row.player.name }}
               </button>
               <small>{{ availability(row.player) }} · {{ row.player.positions.join(' / ') }}</small>
+              @if (earlyLeads().has(row.player_id)) {
+                <small>Injury lead · awaiting game evidence</small>
+              }
               @if (row.player.waiver_clear_at) {
                 <small>Clears {{ row.player.waiver_clear_at | date: 'MMM d, h:mm a' }}</small>
               }
@@ -211,13 +212,17 @@
             /></label>
           </div>
         } @empty {
-          <p class="empty">
-            {{
-              available().length
-                ? 'No players match this filter.'
-                : 'No available players returned in the saved league check.'
-            }}
-          </p>
+          @if (!trendLoading() && !loading() && !trendError() && !error()) {
+            <p class="empty">
+              {{
+                order() === 'fit' && !view().preferences.team_id
+                  ? 'Choose your team to see Team fit.'
+                  : discoveryPool().length && (search().trim() || position() !== 'all')
+                    ? 'No current-season targets match this filter.'
+                    : 'No available players have saved game evidence or a recent linked injury report.'
+              }}
+            </p>
+          }
         }
         @if (visibleCount() > 3 && candidates().length > visibleCount()) {
           <button mat-button type="button" (click)="visibleCount.update(incrementMore)">

@@ -18,6 +18,11 @@ from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 from fantasy_ai.application.models import OperationBusy, WorkspaceError
 from fantasy_ai.application.season.injuries import InjuryService
+from fantasy_ai.domain.projections.player_information import (
+    PlayerInformation,
+    PlayerMetadata,
+    PlayerNewsItem,
+)
 from fantasy_ai.domain.season.injuries import (
     InjuryItem,
     InjurySnapshot,
@@ -392,26 +397,47 @@ def test_waiver_trends_join_only_saved_available_players_and_keep_signed_changes
     service, public, reader = setup(tmp_path)
     declining = "espn:player:4"
     unmatched = "espn:player:5"
-    old_date = NOW - timedelta(days=7)
+    rookie = "espn:player:6"
+    at = datetime.now(UTC)
+    old_date = at - timedelta(days=7)
     old = snapshot(old_date, "week", 4)
     public.save(
         replace(
             old,
             players=(
                 *old.players,
-                PublicPlayer(declining, "Synthetic Decline", "2", (), 20, old_date),
+                PublicPlayer(declining, "Synthetic Decline", "1", ("PG",), 20, old_date),
             ),
         )
     )
-    at = NOW + timedelta(minutes=5)
     latest = snapshot(at, "current")
+    report = PlayerNewsItem(
+        "synthetic-report",
+        "Rookie may play with Synthetic Starter out",
+        "",
+        at - timedelta(hours=1),
+        None,
+        "https://www.espn.com/nba/",
+        "ESPN",
+    )
+    player_info = PlayerInformation(
+        "6",
+        PlayerMetadata("6", "Synthetic Rookie", None, None, "PG", None, "", at),
+        report,
+        (),
+        at,
+        None,
+        at,
+    )
     public.save(
         replace(
             latest,
+            news=(player_info,),
             players=(
                 *latest.players,
-                PublicPlayer(declining, "Synthetic Decline", "2", (), 16, at),
+                PublicPlayer(declining, "Synthetic Decline", "1", ("PG",), 16, at),
                 PublicPlayer(unmatched, "Different Identity", "2", (), 9, at),
+                PublicPlayer(rookie, "Synthetic Rookie", "1", ("PG",), 1, at),
             ),
         )
     )
@@ -426,13 +452,14 @@ def test_waiver_trends_join_only_saved_available_players_and_keep_signed_changes
                 *saved.players,
                 SeasonPlayer(declining, "Synthetic Decline", (), None, None, "free_agent"),
                 SeasonPlayer(unmatched, "Synthetic Unmatched", (), None, None, "free_agent"),
+                SeasonPlayer(rookie, "Synthetic Rookie", ("PG",), None, None, "free_agent"),
             ),
             recent_games=(
                 PlayerGameHistory(
                     PICKUP,
                     (
-                        PlayerGame("pre", NOW - timedelta(days=3), {"MIN": 18.0}),
-                        PlayerGame("post", NOW - timedelta(days=1), {"MIN": 27.0}),
+                        PlayerGame("pre", at - timedelta(days=3), {"MIN": 18.0}),
+                        PlayerGame("post", at - timedelta(days=1), {"MIN": 27.0}),
                     ),
                     True,
                 ),
@@ -445,10 +472,12 @@ def test_waiver_trends_join_only_saved_available_players_and_keep_signed_changes
         result = client.get(url, params={"league_id": SELECTION.league_id})
         assert result.status_code == 200
         data = result.json()
-        assert set(data["market_week"]) == {PICKUP, declining}
+        assert set(data["market_week"]) == {PICKUP, declining, rookie}
         assert data["market_week"][PICKUP]["delta_pp"] == 14
         assert data["market_week"][declining]["delta_pp"] == -4
         assert data["opportunities"][0]["role"]["after_minutes"] == 27
+        assert data["played_player_ids"] == [PICKUP]
+        assert data["injury_lead_ids"] == [rookie]
         assert client.get(url, params={"league_id": 999}).status_code == 400
         assert reader.calls == 0
 

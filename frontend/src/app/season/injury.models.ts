@@ -86,4 +86,6 @@ export interface WaiverTrends {
   availability_fresh: boolean;
   market_week: Partial<Record<string, MarketChange>>;
   opportunities: Opportunity[];
+  played_player_ids: string[];
+  injury_lead_ids: string[];
 }

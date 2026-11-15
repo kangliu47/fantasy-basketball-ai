@@ -162,6 +162,19 @@ describe('SeasonPage', () => {
     }
     await fixture.whenStable();
     fixture.detectChanges();
+    if (view.capture && overall !== null) {
+      for (const request of http.match((r) => r.url === '/api/season/opportunities/trends')) {
+        if (!request.cancelled)
+          request.flush({
+            league_signature: view.signature,
+            availability_fresh: true,
+            market_week: {},
+            opportunities: [],
+            played_player_ids: view.capture.players.map((player) => player.id),
+            injury_lead_ids: [],
+          });
+      }
+    }
   }
 
   it('shows an honest empty state without invented players or statistics', async () => {
@@ -175,11 +188,19 @@ describe('SeasonPage', () => {
 
   it('starts with dated market movement and carries in-place focus into a roster comparison', async () => {
     const extra = { ...populatedView.capture!.players[1], id: 'free-2', name: 'Trending Player' };
+    const retired = { ...extra, id: 'retired', name: 'A Retired Player' };
+    const rookie = { ...extra, id: 'rookie', name: 'Rookie Injury Lead' };
     const view = {
       ...populatedView,
-      capture: { ...populatedView.capture!, players: [...populatedView.capture!.players, extra] },
+      capture: {
+        ...populatedView.capture!,
+        players: [...populatedView.capture!.players, extra, retired, rookie],
+      },
     };
     await load(view, null);
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Loading saved roster-share history');
+    expect(root.querySelectorAll('.scan-row')).toHaveLength(0);
     const path = '/api/season/opportunities/trends';
     http
       .expectOne((r) => r.url === path)
@@ -187,6 +208,8 @@ describe('SeasonPage', () => {
         league_signature: view.signature,
         availability_fresh: true,
         opportunities: [],
+        played_player_ids: ['free-1', 'free-2'],
+        injury_lead_ids: ['rookie'],
         market_week: {
           'free-2': {
             current: 17,
@@ -198,12 +221,18 @@ describe('SeasonPage', () => {
         },
       });
     fixture.detectChanges();
-    const root = fixture.nativeElement as HTMLElement;
     const page = fixture.componentInstance;
     const textButton = (text: string) =>
       Array.from(root.querySelectorAll('button')).find((b) => b.textContent?.trim() === text)!;
     expect(textButton('Trending').getAttribute('aria-pressed')).toBe('true');
     expect(root.querySelector('.scan-row')?.textContent).toContain('Trending Player');
+    expect(root.textContent).toContain('Rookie Injury Lead');
+    expect(root.textContent).not.toContain('A Retired Player');
+    textButton('Team fit').click();
+    fixture.detectChanges();
+    expect(root.textContent).not.toContain('A Retired Player');
+    textButton('Trending').click();
+    fixture.detectChanges();
     expect(root.textContent).toContain('+9 pp');
     expect(root.textContent).toContain('Trend history unavailable');
     expect(root.textContent).not.toContain('Pool coverage unconfirmed');

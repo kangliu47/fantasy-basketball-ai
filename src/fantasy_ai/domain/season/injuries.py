@@ -105,6 +105,24 @@ class Opportunity:
     competing_players: tuple[str, ...]
 
 
+def has_recent_injury_link(lead: Opportunity, now: datetime) -> bool:
+    """Require recent player-specific reporting that names a linked absent teammate."""
+    since = now - timedelta(days=7)
+    teammates = tuple(
+        injury.player_name.casefold()
+        for injury in lead.injuries
+        if injury.published_at is not None
+        and since <= injury.published_at <= now
+        and injury.status.casefold() in {"out", "doubtful"}
+    )
+    return any(
+        article.published_at is not None
+        and since <= article.published_at <= now
+        and any(name in f"{article.headline} {article.summary}".casefold() for name in teammates)
+        for article in lead.news
+    )
+
+
 def market_change(
     current: PublicPlayer, at: datetime, old: InjurySnapshot | None, days: int
 ) -> MarketChange:

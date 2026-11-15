@@ -1,5 +1,11 @@
 # Implementation plan
 
+## Current-season waiver candidates — November 14, 2026, latest
+
+Replace the eager alphabetical waiver list with a loading status and saved
+season evidence. Exercise the pending, ready and failed reads and retain a
+player-specific injury lead before its first recorded game.
+
 ## Actionable sync warnings — November 14, 2026, latest
 
 Remove NBA Official from the live interface and sync coordinator. Keep ordinary
