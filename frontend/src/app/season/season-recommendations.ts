@@ -13,9 +13,11 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { DataSyncStore } from '../core/data-sync-store';
 import { HelpTip } from '../core/help-tip';
+import { WaiverTrends } from './injury.models';
 import { SeasonApi } from './season-api';
 import { SeasonAlternatives } from './season-alternatives';
 import {
@@ -25,6 +27,7 @@ import {
   FitStrategy,
   PlayerFit,
   SeasonPlayerFits,
+  SeasonPlayer,
   SeasonRecommendation,
   SeasonView,
 } from './season.models';
@@ -33,7 +36,7 @@ type FitList = 'available' | 'roster';
 
 @Component({
   selector: 'app-season-recommendations',
-  imports: [FormsModule, DatePipe, MatButtonModule, HelpTip, SeasonAlternatives],
+  imports: [FormsModule, DatePipe, NgTemplateOutlet, MatButtonModule, HelpTip, SeasonAlternatives],
   templateUrl: './season-recommendations.html',
   styleUrl: './season-recommendations.scss',
 })
@@ -49,6 +52,7 @@ export class SeasonRecommendations {
   readonly basis = input<'recent' | 'projection'>('recent');
   readonly days = input(7);
   readonly screen = input<'targets' | 'compare' | 'hidden'>('targets');
+  readonly sync = inject(DataSyncStore);
   readonly focusCategories = input<string[]>([]);
   readonly selectedIds = input<string[]>([]);
   readonly horizon = input<'per_game' | 'seven_day'>('per_game');
@@ -81,8 +85,14 @@ export class SeasonRecommendations {
   readonly selectedList = signal<FitList>('available');
   readonly search = signal('');
   readonly position = signal('all');
-  readonly visibleCount = signal(8);
+  readonly visibleCount = signal(3);
+  readonly order = signal<'trending' | 'fit'>('trending');
+  readonly trends = signal<WaiverTrends | null>(null);
+  readonly trendLoading = signal(false);
+  readonly trendError = signal('');
+  readonly trendRetry = signal(0);
   private lastInspection = -1;
+  private returnFocus: HTMLElement | null = null;
   private readonly api = inject(SeasonApi);
   private readonly injector = inject(Injector);
   readonly detailTop = viewChild<ElementRef<HTMLElement>>('detailTop');
@@ -93,7 +103,11 @@ export class SeasonRecommendations {
       () => {
         const dialog = this.playerDialog()?.nativeElement;
         if (detail && dialog && !dialog.open) dialog.showModal?.();
-        const element = (detail ? this.detailTop() : this.overviewTop())?.nativeElement;
+        const element = detail
+          ? this.detailTop()?.nativeElement
+          : this.returnFocus?.isConnected
+            ? this.returnFocus
+            : this.overviewTop()?.nativeElement;
         element?.focus({ preventScroll: true });
         element?.scrollIntoView?.({ block: 'start' });
       },
@@ -102,6 +116,33 @@ export class SeasonRecommendations {
   }
   readonly players = computed(
     () => new Map((this.view().capture?.players ?? []).map((p) => [p.id, p])),
+  );
+  readonly available = computed(() =>
+    [...this.players().values()].filter(
+      (p) => p.team_id === null && (p.availability === 'free_agent' || p.availability === 'waiver'),
+    ),
+  );
+  readonly currentTrends = computed(() => {
+    const data = this.trends();
+    return data?.league_signature === this.view().signature ? data : null;
+  });
+  readonly market = computed(() => this.currentTrends()?.market_week ?? {});
+  readonly earlyLeads = computed(() => new Set(this.currentTrends()?.injury_lead_ids ?? []));
+  readonly discoveryPool = computed(() => {
+    const trends = this.currentTrends();
+    const ids = new Set([...(trends?.played_player_ids ?? []), ...this.earlyLeads()]);
+    if (!trends && this.trendError()) {
+      for (const [id, sample] of this.samples()) {
+        if (sample.games != null && sample.games > 0) ids.add(id);
+      }
+    }
+    return this.available().filter((player) => ids.has(player.id));
+  });
+  readonly trendCoverage = computed(
+    () => this.discoveryPool().filter((p) => this.market()[p.id]?.delta_pp != null).length,
+  );
+  readonly opportunities = computed(
+    () => new Map((this.currentTrends()?.opportunities ?? []).map((p) => [p.player_id, p])),
   );
   readonly currentOverview = computed(() => {
     const value = this.overview();
@@ -114,29 +155,52 @@ export class SeasonRecommendations {
       : null;
   });
   readonly roster = computed(() => this.currentOverview()?.overview.roster ?? []);
+  readonly availableFit = computed(
+    () =>
+      new Map(
+        (this.currentOverview()?.overview.available ?? []).map((row) => [row.player_id, row]),
+      ),
+  );
+  readonly rankableDiscovery = computed(
+    () =>
+      this.discoveryPool().filter((player) => this.availableFit().get(player.id)?.score != null)
+        .length,
+  );
   readonly samples = computed(
     () => new Map((this.currentOverview()?.evidence.players ?? []).map((p) => [p.player_id, p])),
   );
   readonly comparisonStats = ['MIN', 'PTS', 'REB', 'AST', 'STL'];
   readonly positions = computed(() =>
-    [
-      ...new Set(
-        (this.currentOverview()?.overview.available ?? []).flatMap(
-          (p) => this.players().get(p.player_id)?.positions ?? [],
-        ),
-      ),
-    ].sort(),
+    [...new Set(this.discoveryPool().flatMap((player) => player.positions))].sort(),
   );
-  readonly candidates = computed(() =>
-    (this.currentOverview()?.overview.available ?? []).filter((row) => {
-      const player = this.players().get(row.player_id);
-      return (
-        (!this.search().trim() ||
-          this.name(row.player_id).toLowerCase().includes(this.search().trim().toLowerCase())) &&
-        (this.position() === 'all' || player?.positions.includes(this.position()))
+  readonly candidates = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    const position = this.position();
+    const fits = this.availableFit();
+    const market = this.market();
+    const trending = this.order() === 'trending';
+    if (!trending && !this.currentOverview()) return [];
+    return this.discoveryPool()
+      .filter(
+        (player) =>
+          player.name.toLowerCase().includes(term) &&
+          (position === 'all' || player.positions.includes(position)),
+      )
+      .map((player) => ({
+        player,
+        player_id: player.id,
+        fit: fits.get(player.id),
+        trend: market[player.id],
+      }))
+      .sort(
+        (a, b) =>
+          (trending
+            ? (b.trend?.delta_pp ?? -Infinity) - (a.trend?.delta_pp ?? -Infinity)
+            : (a.fit?.rank ?? Infinity) - (b.fit?.rank ?? Infinity)) ||
+          a.player.name.localeCompare(b.player.name) ||
+          a.player_id.localeCompare(b.player_id),
       );
-    }),
-  );
+  });
   readonly visibleCandidates = computed(() => this.candidates().slice(0, this.visibleCount()));
   readonly queue = computed(() =>
     this.selectedList() === 'roster' ? this.roster() : this.candidates(),
@@ -193,12 +257,38 @@ export class SeasonRecommendations {
     () =>
       `${this.view().signature}|${this.basis()}|${this.days()}|${this.strategy()}|${this.focusCategories().join(',')}|${this.active()}|${this.leagueId()}|${this.view().operation.status}|${this.retry()}`,
   );
+  private readonly trendKey = computed(
+    () =>
+      `${this.leagueId()}|${this.view().season}|${this.view().signature}|${!!this.view().capture}|${this.active()}|${this.sync.revision()}|${this.trendRetry()}`,
+  );
   private readonly moveKey = computed(
     () =>
       `${this.overviewKey()}|${this.screen()}|${this.dropId()}|${this.comparisonAdded()}|${this.comparisonRemoved()}|${this.horizon()}|${!!this.selectedIds().length}|${this.moveRetry()}`,
   );
 
   constructor() {
+    effect((onCleanup) => {
+      this.trendKey();
+      const { signature, capture, season } = untracked(() => this.view());
+      const league = untracked(() => this.leagueId());
+      this.trends.set(null);
+      this.trendError.set('');
+      this.trendLoading.set(false);
+      if (!untracked(() => this.active()) || !capture) return;
+      this.trendLoading.set(true);
+      const request = this.api.trends(league, season).subscribe({
+        next: (data) => {
+          if (data.league_signature === signature) this.trends.set(data);
+          else this.trendError.set('League evidence changed. Reload the current view.');
+          this.trendLoading.set(false);
+        },
+        error: () => {
+          this.trendError.set('Could not load saved trend evidence.');
+          this.trendLoading.set(false);
+        },
+      });
+      onCleanup(() => request.unsubscribe());
+    });
     effect((onCleanup) => {
       this.overviewKey();
       const view = untracked(() => this.view()),
@@ -304,7 +394,13 @@ export class SeasonRecommendations {
     effect(() => {
       const request = this.inspection(),
         overview = this.currentOverview();
-      if (!request || !overview || request.token === this.lastInspection) return;
+      if (
+        !request ||
+        !this.players().has(request.playerId) ||
+        request.token === this.lastInspection
+      )
+        return;
+      if (request.compare && !overview) return;
       this.lastInspection = request.token;
       untracked(() => {
         this.inspect(request.playerId);
@@ -312,7 +408,8 @@ export class SeasonRecommendations {
     });
   }
 
-  inspect(id: string, list?: FitList) {
+  inspect(id: string, list?: FitList, trigger?: HTMLElement) {
+    if (!this.detailOpen()) this.returnFocus = trigger ?? null;
     this.selectedList.set(
       list ?? (this.roster().some((p) => p.player_id === id) ? 'roster' : 'available'),
     );
@@ -329,11 +426,12 @@ export class SeasonRecommendations {
       ) ?? null
     );
   }
-  back() {
+  back(restoreFocus = true) {
+    const wasOpen = this.detailOpen();
     this.playerDialog()?.nativeElement.close?.();
     this.detailOpen.set(false);
     this.detailClosed.emit();
-    this.focusAfterRender(false);
+    if (wasOpen && restoreFocus) this.focusAfterRender(false);
   }
   step(direction: number) {
     const row = this.queue()[this.queueIndex() + direction];
@@ -348,8 +446,9 @@ export class SeasonRecommendations {
     if (this.selectedIds().length) this.compareRequested.emit();
   }
   compareSelected() {
+    if (!this.availableNow(this.playerId())) return;
     if (!this.selectedIds().includes(this.playerId())) this.targetToggled.emit(this.playerId());
-    this.back();
+    this.back(false);
     this.compareRequested.emit();
   }
   chooseDrop(id: string) {
@@ -357,6 +456,21 @@ export class SeasonRecommendations {
   }
   name(id: string) {
     return this.players().get(id)?.name ?? 'Player details unavailable';
+  }
+  availability(player: SeasonPlayer) {
+    return {
+      free_agent: 'Free agent',
+      waiver: 'On waivers',
+      rostered: 'Rostered',
+      unknown: 'Availability unknown',
+    }[player.availability];
+  }
+  marketChange(id: string) {
+    const value = this.market()[id]?.delta_pp;
+    return value == null ? 'Trend history unavailable' : `${this.signed(value)} pp`;
+  }
+  availableNow(id: string) {
+    return this.available().some((player) => player.id === id);
   }
   covered(rows: PlayerFit[]) {
     return rows.filter((p) => p.score !== null).length;
@@ -423,17 +537,5 @@ export class SeasonRecommendations {
   bar(row: FitCoordinate, candidate: PlayerFit | CandidateFit): number {
     const max = Math.max(...candidate.coordinates.map((c) => Math.abs(c.weighted ?? 0)), 0.000001);
     return (Math.abs(row.weighted ?? 0) / max) * 48;
-  }
-  opportunities(direction: 'gap_up' | 'buffer_down') {
-    return (
-      (this.currentOverview()?.overview.priorities ?? [])
-        .filter(
-          (p) => p[direction] !== null && p.scale !== null && p.scale > 0 && p.weight !== null,
-        )
-        .sort((a, b) => a[direction]! / a.scale! - b[direction]! / b.scale!)
-        .slice(0, 2)
-        .map((p) => p.category)
-        .join(', ') || 'Unavailable'
-    );
   }
 }

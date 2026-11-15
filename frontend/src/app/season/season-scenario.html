@@ -90,8 +90,10 @@
       before judging fit.
     </p>
   }
-  <button mat-flat-button type="button" (click)="targetsRequested.emit()">
-    See ranked waiver targets →
-  </button>
+  @if (showTargetsLink()) {
+    <button mat-flat-button type="button" (click)="targetsRequested.emit()">
+      See ranked waiver targets →
+    </button>
+  }
   <small>Changes carry into targets and comparisons immediately.</small>
 </aside>

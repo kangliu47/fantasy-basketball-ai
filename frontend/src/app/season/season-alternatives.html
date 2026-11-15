@@ -1,7 +1,27 @@
 <section aria-label="Compare moves">
   <header>
-    <h2>Compare alternatives. Keep the tradeoffs.</h2>
-    <p>Each target replaces the same roster player separately. These are not a combined package.</p>
+    <h2>Compare with my roster</h2>
+    <p>Each target replaces the same roster player separately.</p>
+    @if (overview(); as context) {
+      <p>
+        {{
+          context.overview.strategy === 'chase'
+            ? 'Chase gains'
+            : context.overview.strategy === 'protect'
+              ? 'Protect leads'
+              : 'Balanced'
+        }}
+        ·
+        {{
+          context.evidence.basis === 'recent'
+            ? 'Last ' + context.evidence.days + ' days of ESPN actuals'
+            : 'Saved projections'
+        }}
+        @if (context.evidence.source_captured_at) {
+          · Source {{ context.evidence.source_captured_at | date: 'medium' }}
+        }
+      </p>
+    }
   </header>
   <article class="surface">
     <div class="controls">
@@ -11,7 +31,7 @@
           (ngModelChange)="dropChanged.emit($event)"
         >
           <option value="">Choose a roster player</option>
-          @for (p of overview()?.overview?.roster ?? []; track p.player_id) {
+          @for (p of replacementOptions(); track p.player_id) {
             <option [value]="p.player_id">
               {{ name(p.player_id) }}{{ p.score === null ? ' · fit unknown' : '' }}
             </option>
@@ -52,7 +72,7 @@
         >
       }
       <button mat-stroked-button type="button" (click)="targetsRequested.emit()">
-        Add another ranked target
+        Add another target
       </button>
     </div>
     <p>
@@ -74,6 +94,7 @@
       }
     </div>
   </article>
+  <app-season-category-focus [view]="view()" [focus]="focus()" [compare]="true" />
   @if (!selectedIds().length || !dropId()) {
     <article class="surface empty">
       <h3>
@@ -171,7 +192,7 @@
           </thead>
           <tbody>
             @for (c of view().capture?.categories ?? []; track c.code) {
-              <tr>
+              <tr [class.focused]="focus().includes(c.code)">
                 <th>{{ c.code }}</th>
                 <td>{{ native(data.fit.removed, c) }}</td>
                 @for (p of selected(); track p.id) {
@@ -192,6 +213,19 @@
         Shooting differences show makes / attempts, not percentage-point changes. Each column is an
         independent alternative; never sum them as a package.
       </p>
+      @if (view().capture?.waiver; as rules) {
+        <p>
+          @if (rules.faab === true) {
+            Remaining FAAB {{ faab() == null ? 'unknown' : '$' + number(faab()) }} ·
+          }
+          Acquisition limit
+          {{
+            rules.acquisition_limit == null || rules.acquisition_limit < 0
+              ? 'unknown'
+              : number(rules.acquisition_limit)
+          }}
+        </p>
+      }
       <p class="notice">
         Earned stats stay intact. Future roto points, claim clearance, usable starts and lineup
         feasibility remain unverified.

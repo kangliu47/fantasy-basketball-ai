@@ -135,8 +135,7 @@
             </table>
             <div class="table-foot">
               <span class="source"
-                >League checked {{ (data.league_checked_at | date: 'short') || 'unknown' }} ·
-                {{ data.pool_complete ? 'Pool complete' : 'Pool coverage partial' }}</span
+                >League checked {{ (data.league_checked_at | date: 'short') || 'unknown' }}</span
               ><button
                 mat-button
                 (click)="reviewed()"
@@ -395,18 +394,6 @@
         </tr>
       </tbody>
     </table>
-    @if (current()?.official; as official) {
-      <p>
-        @if (sourceUrl(official.source_url); as url) {
-          <a [href]="url" target="_blank" rel="noopener noreferrer"
-            >Original official NBA report ↗</a
-          >
-        }
-        · {{ official.published_at | date: 'medium' }} ·
-        {{ official.unsubmitted ? 'Some teams not yet submitted' : 'Completeness unverified' }}. PDF
-        names are not automatically joined to ESPN identities.
-      </p>
-    }
     <p class="source">
       First explicit check enables subsequent 30-minute checks while this app is open and the
       existing automatic-check preference is on. Current preference:

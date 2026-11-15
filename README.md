@@ -1,12 +1,14 @@
 # Fantasy Basketball Intelligence Platform
 
-Current-season data now has one **Sync data** action in the global header.
-**Data & connection** shows a compact result, source dates and recovery. League
-ownership is checked before injury research; confirmed pickups leave available
-targets. Projection and historical imports remain separately dated inputs.
-See [the sync contract](docs/data-sync-design.md).
+**My season** opens on available players ordered by recent ESPN roster-share
+movement. Switch to **Team fit**, set category focus beside current league gaps,
+or open a player to review dated news and compare a roster change. Use the global
+**Data & connection** button for sync, source dates, team settings and recovery.
+League ownership is checked before injury research; confirmed pickups leave the
+available list. [My season design](docs/ux-design-brief-2026-11-14.md) ·
+[Sync contract](docs/data-sync-design.md).
 
-**Injury opportunities (November 7, 2026):** Live season → Waiver targets →
+**Injury opportunities (November 7, 2026):** My season →
 Injury opportunities. Check public sources, inspect attributed news and possible
 role changes, then compare or watch a candidate in your league. Runs as ordinary
 Python with no model calls. Roster-share history starts with collection; source
@@ -119,9 +121,9 @@ create a Finder alias for convenient access elsewhere.
 
 The workspace is available at [127.0.0.1:8765](http://127.0.0.1:8765) while running.
 Use the complete **http://127.0.0.1:8765/** address in Chrome on this Mac.
-The UI build strip identifies the Angular bundle loaded in each tab. **Check
-version** compares it with the local server; save unfinished edits before manually
-refreshing an outdated tab. The check does not change league or draft data.
+**Data & connection → App version** identifies the Angular bundle loaded in each
+tab. **Check version** compares it with the local server; save unfinished edits
+before manually refreshing an outdated tab.
 
 
 For initial setup, open **Connection**:

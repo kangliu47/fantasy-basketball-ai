@@ -76,6 +76,7 @@ def map_capture(
     pool: tuple[SeasonPlayer, ...],
     complete: bool,
     pool_at: datetime | None,
+    pool_error: str | None = None,
 ) -> SeasonCapture:
     cfg = _object(settings.get("settings"))
     scoring = _object(cfg.get("scoringSettings"))
@@ -170,7 +171,9 @@ def map_capture(
     }:
         raise ValueError("Team populations do not match")
     players = {p.id: p for p in pool}
-    complete = complete and set(roster_players).issubset(players)
+    if complete and not set(roster_players).issubset(players):
+        complete = False
+        pool_error = "ESPN's player list conflicted with the saved team rosters. Retry sync."
     for pid, player in roster_players.items():
         if pid in players and players[pid].availability in {"free_agent", "waiver"}:
             messages.append(
@@ -197,6 +200,7 @@ def map_capture(
         complete,
         pool_at,
         tuple(dict.fromkeys(messages)),
+        pool_error=pool_error,
     )
 
 
@@ -225,6 +229,7 @@ class ESPNSeasonReader:
                     core[view] = cast(JsonObject, redact_credentials(client.get_view(view), config))
                 players: dict[str, SeasonPlayer] = {}
                 complete, pool_at, offset, declared = False, None, 0, None
+                pool_error = None
                 try:
                     for _ in range(10):
                         if cancelled and cancelled.is_set():
@@ -236,8 +241,12 @@ class ESPNSeasonReader:
                         rows = _objects(page.get("players"))
                         total = integer(page.get("totalPlayers"))
                         if total is not None and not 0 <= total <= 2000:
+                            pool_error = (
+                                "ESPN reported a player-list size outside the supported range."
+                            )
                             break
                         if declared is not None and total != declared:
+                            pool_error = "ESPN's player count changed between pages. Retry sync."
                             break
                         declared = total
                         mapped = tuple(
@@ -247,19 +256,32 @@ class ESPNSeasonReader:
                         if len({p.id for p in mapped}) != len(mapped) or any(
                             p.id in players for p in mapped
                         ):
+                            pool_error = "ESPN repeated players across pages. Retry sync."
+                            break
+                        if total is not None and offset + len(rows) > total:
+                            pool_error = "ESPN returned more players than it reported. Retry sync."
                             break
                         players.update({p.id: p for p in mapped})
-                        pool_at = datetime.now(UTC)
+                        if rows:
+                            pool_at = datetime.now(UTC)
                         offset += len(rows)
                         if total is not None and offset == total:
                             complete = True
                             break
-                        if not rows or (total is None and len(rows) < 200) or offset >= 2000:
+                        if not rows:
+                            if not players or total is not None:
+                                pool_error = "ESPN stopped sending player pages. Retry sync."
                             break
+                        if total is None and len(rows) < 200:
+                            break
+                    else:
+                        pool_error = (
+                            "The player list reached the page limit. Some players may be missing."
+                        )
                 except ESPNAuthenticationError:
                     raise
                 except (ESPNError, ValueError, TypeError):
-                    complete = False
+                    pool_error = "ESPN's player list could not be fully read. Retry sync."
                 capture = map_capture(
                     selection,
                     core[ESPNView.SETTINGS],
@@ -268,6 +290,7 @@ class ESPNSeasonReader:
                     tuple(players.values()),
                     complete,
                     pool_at,
+                    pool_error,
                 )
             if self.recent:
                 try:

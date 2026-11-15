@@ -6,6 +6,7 @@
     [selectedIds]="selectedIds()"
     [dropId]="dropId()"
     [horizon]="horizon()"
+    [focus]="focusCategories()"
     [addedStarts]="addedStarts()"
     [removedStarts]="removedStarts()"
     [loading]="moveLoading()"
@@ -22,207 +23,265 @@
 }
 @if (screen() === 'targets') {
   <section class="fit-workspace" aria-label="Whole-team player research">
-    <header #overviewTop tabindex="-1">
-      <div>
-        <h2>
-          Find a better fit for your focus
-          <app-help-tip
-            label="Whole-team per-game fit"
-            text="Both lists use the same selected source and category priorities. Fit per game is a descriptive research index, not roto points or a drop instruction. All categories count, including losses. Selecting extra focus doubles that category's priority before normalization."
-          />
-        </h2>
-        <p>Investigate a name. Select alternatives and a possible replacement to compare.</p>
-      </div>
-    </header>
-    @if (loading()) {
-      <p role="status">Ranking saved player contributions…</p>
-    }
-    @if (error()) {
-      <p class="notice error" role="alert">
-        {{ error() }} <button mat-button (click)="retry.update(increment)">Retry fit</button
-        ><button mat-button (click)="reloadRequested.emit()">Reload current view</button>
-      </p>
-    }
-    @if (currentOverview(); as data) {
-      <p class="source">
-        {{
-          data.evidence.basis === 'recent'
-            ? 'Observed games · ' +
-              (data.evidence.actual_start || 'window unavailable') +
-              ' → ' +
-              (data.evidence.actual_end || 'cutoff unavailable')
-            : 'Saved projections'
-        }}
-        · Source {{ (data.evidence.source_captured_at | date: 'medium') || 'not yet collected' }}
-        <app-help-tip
-          label="Ranking sample dates"
-          [text]="
-            data.evidence.message +
-            ' Small samples can rank highly. Missing or zero-game samples remain unranked; projections never fill actuals gaps.'
-          "
-        />
-      </p>
-      <p class="source">
-        {{ data.overview.available.length }} available players returned ·
-        {{ covered(data.overview.available) }} can be ranked
-        <app-help-tip
-          label="Explain player pool coverage"
-          text="These are players returned by the saved ESPN read. If full pool coverage was not confirmed, another available player could be missing. Separately, returned players with incomplete stats or league evidence stay unranked. Counts distinguish the returned pool from complete fits; rankings do not prove the best option across every player in the league."
-        />
-        <app-help-tip
-          label="How to read fit bars"
-          text="Both lists use one zero-centered scale across all returned players and your roster. Search does not change the scale. Longer blue bars mean more positive contribution to the selected fit index; orange is negative. Numeric values remain visible. This is not a probability or projected roto gain."
-        />
-      </p>
-      @if (selectedIds().length) {
-        <div class="selection-tray">
-          <div>
-            <strong
-              >{{ selectedIds().length }} alternative{{
-                selectedIds().length === 1 ? '' : 's'
-              }}
-              selected</strong
-            ><small>{{
-              dropId()
-                ? 'Each against ' + name(dropId())
-                : 'Choose a possible replacement here or in Compare moves'
-            }}</small>
-          </div>
-          <button mat-stroked-button (click)="compareRequested.emit()">
-            Compare stat differences →
+    <div class="season-grid">
+      <article class="surface" id="season-waiver-list" aria-label="Ranked waiver targets">
+        <header #overviewTop tabindex="-1">
+          <h2>Available players</h2>
+          @if (candidates().length > 3) {
+            <button mat-stroked-button (click)="visibleCount.set(visibleCount() > 3 ? 3 : 23)">
+              {{ visibleCount() > 3 ? 'Show shortlist' : 'All targets' }}
+            </button>
+          }
+        </header>
+        <div class="row order" role="group" aria-label="Order available players">
+          <button
+            mat-stroked-button
+            type="button"
+            [attr.aria-pressed]="order() === 'trending'"
+            (click)="order.set('trending')"
+          >
+            Trending
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            [attr.aria-pressed]="order() === 'fit'"
+            (click)="order.set('fit')"
+          >
+            Team fit
           </button>
         </div>
-      }
-      <nav class="row jumps" aria-label="Jump to ranked list">
-        <a mat-stroked-button href="#season-waiver-list">Waiver targets ↓</a
-        ><a mat-stroked-button href="#season-roster-list">Review roster ↓</a>
-      </nav>
-      <div class="lists">
-        <article class="surface" id="season-waiver-list" aria-label="Ranked waiver targets">
-          <div class="list-heading">
-            <h3>Waiver targets</h3>
-            <small
-              >Strongest fit first ↓ · {{ covered(data.overview.available) }} /
-              {{ data.overview.available.length }} complete fits</small
+        <p class="source-line">
+          ESPN roster-share change · percentage points
+          <app-help-tip
+            label="How Trending works"
+            [text]="
+              discoveryPool().length +
+              ' players listed · ' +
+              trendCoverage() +
+              ' with trend history' +
+              (currentOverview() ? ' · ' + rankableDiscovery() + ' rankable for Team fit' : '') +
+              '. The list uses saved games from this season and dated player reports linked to a teammate’s absence. Trending compares ESPN roster-share readings about seven days apart.'
+            "
+          />
+        </p>
+        <p class="source-line">
+          {{
+            strategy() === 'chase'
+              ? 'Chase gains'
+              : strategy() === 'protect'
+                ? 'Protect leads'
+                : 'Balanced'
+          }}
+          ·
+          {{
+            basis() === 'recent' ? 'Last ' + days() + ' days of ESPN actuals' : 'Saved projections'
+          }}
+          @if (focusCategories().length) {
+            · Extra focus {{ focusCategories().join(' + ') }}
+          }
+          @if (currentOverview(); as data) {
+            <app-help-tip
+              label="Ranking sample dates"
+              [text]="
+                (data.evidence.source_captured_at
+                  ? 'Source saved ' + (data.evidence.source_captured_at | date: 'medium') + '. '
+                  : '') + data.evidence.message
+              "
+            />
+          }
+        </p>
+        @if (trendLoading()) {
+          <p role="status">Loading saved roster-share history…</p>
+        }
+        @if (trendError()) {
+          <p role="status">
+            {{ trendError() }}
+            <button mat-button (click)="trendRetry.update(increment)">Retry trends</button>
+          </p>
+        }
+        @if (loading()) {
+          <p role="status">Ranking saved player contributions…</p>
+        }
+        @if (error()) {
+          <p class="notice error" role="alert">
+            {{ error() }} <button mat-button (click)="retry.update(increment)">Retry fit</button>
+            <button mat-button (click)="reloadRequested.emit()">Reload current view</button>
+          </p>
+        }
+        <ng-content select="[rankingOptions]" />
+        <details>
+          <summary>Find or filter players</summary>
+          <div class="filters">
+            <label
+              >Find player<input
+                [ngModel]="search()"
+                (ngModelChange)="search.set($event); visibleCount.set(3)"
+            /></label>
+            <label
+              >Position<select
+                [ngModel]="position()"
+                (ngModelChange)="position.set($event); visibleCount.set(3)"
+              >
+                <option value="all">All positions</option>
+                @for (position of positions(); track position) {
+                  <option [value]="position">{{ position }}</option>
+                }
+              </select></label
             >
           </div>
-          <div class="filter-disclosure">
-            <div class="filters">
-              <label
-                >Find player<input
-                  [ngModel]="search()"
-                  (ngModelChange)="search.set($event); visibleCount.set(8)" /></label
-              ><label
-                >Position<select
-                  [ngModel]="position()"
-                  (ngModelChange)="position.set($event); visibleCount.set(8)"
-                >
-                  <option value="all">All positions</option>
-                  @for (position of positions(); track position) {
-                    <option [value]="position">{{ position }}</option>
-                  }
-                </select></label
-              >
-            </div>
+        </details>
+        @if (selectedIds().length) {
+          <div class="selection-tray">
+            <small
+              >{{ selectedIds().length }} selected ·
+              {{
+                dropId() ? 'Each against ' + name(dropId()) : 'Choose one replacement in comparison'
+              }}</small
+            >
+            <button mat-stroked-button (click)="compareRequested.emit()">Compare selected</button>
           </div>
-          @for (row of visibleCandidates(); track row.player_id) {
-            <div class="player-row">
-              <span class="ordinal">{{ row.rank ?? '—' }}</span>
-              <div>
-                <button class="player-name" (click)="inspect(row.player_id, 'available')">
-                  {{ name(row.player_id) }} →</button
-                ><small
-                  >{{ players().get(row.player_id)?.positions?.join(' / ') }} ·
-                  {{ players().get(row.player_id)?.availability }} ·
-                  {{ players().get(row.player_id)?.status || 'Status unknown'
-                  }}<app-help-tip
-                    [label]="name(row.player_id) + ' playing time and availability'"
-                    text="The GP and minutes are observed NBA actuals. They do not guarantee future health, claim clearance, lineup capacity or credited starts. Check dated news and league rules before deciding. No future starts are assumed by this per-game ranking." /></small
-                ><small>{{ exposure(row.player_id) }}</small
-                ><small>{{ reason(row) }}</small>
-              </div>
-              <span class="score"
-                ><span>{{ row.score === null ? 'Unranked' : number(row.score) }}</span
-                ><span class="fit-scale" aria-hidden="true"
-                  ><i
-                    [class.loss-fill]="(row.score ?? 0) < 0"
-                    [style.width.%]="fitWidth(row.score)"
-                    [style.left.%]="(row.score ?? 0) < 0 ? 50 - fitWidth(row.score) : 50"
-                  ></i></span
-                ><small>fit / game</small></span
-              ><label class="pick-control"
-                ><input
-                  type="checkbox"
-                  [checked]="selectedIds().includes(row.player_id)"
-                  (change)="targetToggled.emit(row.player_id)"
-                  [attr.aria-label]="'Compare ' + name(row.player_id)"
-              /></label>
+        }
+        @for (row of visibleCandidates(); track row.player_id) {
+          <div class="scan-row">
+            <div>
+              <button
+                #playerLink
+                class="player-name"
+                (click)="inspect(row.player_id, 'available', playerLink)"
+              >
+                {{ row.player.name }}
+              </button>
+              <small>{{ availability(row.player) }} · {{ row.player.positions.join(' / ') }}</small>
+              @if (earlyLeads().has(row.player_id)) {
+                <small>Injury lead · awaiting game evidence</small>
+              }
+              @if (row.player.waiver_clear_at) {
+                <small>Clears {{ row.player.waiver_clear_at | date: 'MMM d, h:mm a' }}</small>
+              }
             </div>
-          } @empty {
+            <div>
+              <strong>{{
+                trendLoading() ? 'Checking saved trend' : marketChange(row.player_id)
+              }}</strong>
+              @if (row.trend?.delta_pp != null) {
+                <small
+                  >{{ row.trend.previous_at | date: 'MMM d, h:mm a' }} →
+                  {{ row.trend.current_at | date: 'MMM d, h:mm a' }}</small
+                >
+              } @else if (row.trend?.current != null) {
+                <small
+                  >{{ number(row.trend.current) }}% rostered ·
+                  {{ (row.trend.current_at | date: 'MMM d, h:mm a') || 'Date unavailable' }}</small
+                >
+              }
+            </div>
+            <div class="fit-cue">
+              <span>{{ row.fit ? reason(row.fit) : 'Team fit unavailable' }}</span>
+              @if (row.fit) {
+                <small>{{ exposure(row.player_id) }}</small>
+              }
+              @if (row.fit?.score != null) {
+                <small>{{ signed(row.fit.score) }} fit / game</small>
+                <span class="fit-scale" aria-hidden="true"
+                  ><i
+                    [class.loss-fill]="row.fit.score < 0"
+                    [style.width.%]="fitWidth(row.fit.score)"
+                    [style.left.%]="row.fit.score < 0 ? 50 - fitWidth(row.fit.score) : 50"
+                  ></i
+                ></span>
+              }
+              @if (opportunities().get(row.player_id); as lead) {
+                @if (lead.injuries[0]; as injury) {
+                  <small>{{ injury.player_name }} · {{ injury.status }}</small>
+                }
+                @if (lead.role.before_minutes != null && lead.role.after_minutes != null) {
+                  <small
+                    >{{ number(lead.role.before_minutes) }} →
+                    {{ number(lead.role.after_minutes) }} min / played game</small
+                  >
+                }
+              }
+            </div>
+            <label class="pick-control"
+              ><input
+                type="checkbox"
+                [checked]="selectedIds().includes(row.player_id)"
+                (change)="targetToggled.emit(row.player_id)"
+                [attr.aria-label]="'Compare ' + row.player.name"
+            /></label>
+          </div>
+        } @empty {
+          @if (!trendLoading() && !loading() && !trendError() && !error()) {
             <p class="empty">
               {{
-                data.overview.available.length
-                  ? 'No players match this filter.'
-                  : 'No available players returned. Pool coverage cannot establish an optimal roster.'
+                order() === 'fit' && !view().preferences.team_id
+                  ? 'Choose your team to see Team fit.'
+                  : discoveryPool().length && (search().trim() || position() !== 'all')
+                    ? 'No current-season targets match this filter.'
+                    : 'No available players have saved game evidence or a recent linked injury report.'
               }}
             </p>
           }
-          @if (candidates().length > visibleCount()) {
-            <button mat-button (click)="visibleCount.update(incrementMore)">
-              Show more players · {{ candidates().length - visibleCount() }} remaining
-            </button>
-          }
-        </article>
-        <article class="surface" id="season-roster-list" aria-label="Ranked roster review">
-          <div class="list-heading">
-            <h3>Review your roster</h3>
-            <small
-              >Lowest fit first ↑ · {{ covered(roster()) }} / {{ roster().length }} complete
-              fits</small
-            >
-          </div>
-          @for (row of roster(); track row.player_id) {
-            <div class="player-row">
-              <span class="ordinal">{{ row.rank ?? '—' }}</span>
-              <div>
-                <button class="player-name" (click)="inspect(row.player_id, 'roster')">
-                  {{ name(row.player_id) }} →</button
-                ><small
-                  >{{ players().get(row.player_id)?.positions?.join(' / ') }} ·
-                  {{ players().get(row.player_id)?.status || 'Status unknown'
-                  }}<app-help-tip
-                    [label]="name(row.player_id) + ' playing time and availability'"
-                    text="The GP and minutes are observed NBA actuals. They do not guarantee future health, claim clearance, lineup capacity or credited starts. Check dated news and league rules before deciding. No future starts are assumed by this per-game ranking." /></small
-                ><small>{{ exposure(row.player_id) }}</small
-                ><small>{{ reason(row, true) }}</small>
-              </div>
-              <span class="score"
-                ><span>{{ row.score === null ? 'Unranked' : number(row.score) }}</span
-                ><span class="fit-scale" aria-hidden="true"
-                  ><i
-                    [class.loss-fill]="(row.score ?? 0) < 0"
-                    [style.width.%]="fitWidth(row.score)"
-                    [style.left.%]="(row.score ?? 0) < 0 ? 50 - fitWidth(row.score) : 50"
-                  ></i></span
-                ><small>fit / game</small></span
-              ><label class="pick-control"
-                ><input
-                  type="radio"
-                  name="replacement-row"
-                  [checked]="dropId() === row.player_id"
-                  (change)="chooseDrop(row.player_id)"
-                  [attr.aria-label]="'Use ' + name(row.player_id) + ' as replacement'"
-              /></label>
-            </div>
-          } @empty {
-            <p class="empty">No observed roster players returned.</p>
-          }
-          <p class="footnote">
-            Low fit flags a player to review. Check role, health and positional needs before
-            considering a drop. Missing evidence is unranked.
-          </p>
-        </article>
+        }
+        @if (visibleCount() > 3 && candidates().length > visibleCount()) {
+          <button mat-button type="button" (click)="visibleCount.update(incrementMore)">
+            Show more players
+          </button>
+        }
+      </article>
+      <ng-content select="[categoryFocus]" />
+    </div>
+    <details class="surface" aria-label="Ranked roster review">
+      <summary>Review roster fit</summary>
+      <div class="list-heading">
+        <h3>Review your roster</h3>
+        <small
+          >Lowest fit first ↑ · {{ covered(roster()) }} / {{ roster().length }} complete fits</small
+        >
       </div>
+      @for (row of roster(); track row.player_id) {
+        <div class="player-row">
+          <span class="ordinal">{{ row.rank ?? '—' }}</span>
+          <div>
+            <button class="player-name" (click)="inspect(row.player_id, 'roster')">
+              {{ name(row.player_id) }} →</button
+            ><small
+              >{{ players().get(row.player_id)?.positions?.join(' / ') }} ·
+              {{ players().get(row.player_id)?.status || 'Status unknown'
+              }}<app-help-tip
+                [label]="name(row.player_id) + ' playing time and availability'"
+                text="The GP and minutes are observed NBA actuals. They do not guarantee future health, claim clearance, lineup capacity or credited starts. Check dated news and league rules before deciding. No future starts are assumed by this per-game ranking." /></small
+            ><small>{{ exposure(row.player_id) }}</small
+            ><small>{{ reason(row, true) }}</small>
+          </div>
+          <span class="score"
+            ><span>{{ row.score === null ? 'Unranked' : number(row.score) }}</span
+            ><span class="fit-scale" aria-hidden="true"
+              ><i
+                [class.loss-fill]="(row.score ?? 0) < 0"
+                [style.width.%]="fitWidth(row.score)"
+                [style.left.%]="(row.score ?? 0) < 0 ? 50 - fitWidth(row.score) : 50"
+              ></i></span
+            ><small>fit / game</small></span
+          ><label class="pick-control"
+            ><input
+              type="radio"
+              name="replacement-row"
+              [checked]="dropId() === row.player_id"
+              (change)="chooseDrop(row.player_id)"
+              [attr.aria-label]="'Use ' + name(row.player_id) + ' as replacement'"
+          /></label>
+        </div>
+      } @empty {
+        <p class="empty">No observed roster players returned.</p>
+      }
+      <p class="footnote">
+        Low fit flags a player to review. Check role, health and positional needs before considering
+        a drop. Missing evidence is unranked.
+      </p>
+    </details>
+    @if (currentOverview(); as data) {
       <details>
         <summary>How per-game fit works</summary>
         <p>
@@ -286,13 +345,86 @@
     <header>
       <div>
         <h2 id="season-player-title">{{ name(playerId()) }}</h2>
-        <p>
-          {{ players().get(playerId())?.positions?.join(' / ') }} ·
-          {{ players().get(playerId())?.status || 'Status unknown' }} · {{ exposure(playerId()) }}
-        </p>
+        @if (players().get(playerId()); as player) {
+          <p>
+            {{ availability(player) }} · {{ player.positions.join(' / ') }} ·
+            {{ player.status || 'Status unknown' }} · {{ exposure(playerId()) }}
+          </p>
+          @if (player.waiver_clear_at) {
+            <p>Waiver clears {{ player.waiver_clear_at | date: 'medium' }}</p>
+          }
+        }
       </div>
       <strong class="score">{{ number(selected()?.score) }} <small>fit / game</small></strong>
     </header>
+    @if (selectedList() === 'available') {
+      @if (availableNow(playerId())) {
+        <button
+          mat-flat-button
+          type="button"
+          [disabled]="!view().preferences.team_id"
+          (click)="compareSelected()"
+        >
+          Compare with my roster
+        </button>
+        <article class="surface trend-evidence">
+          <h3>Why is this player trending?</h3>
+          <p>ESPN roster share · {{ marketChange(playerId()) }}</p>
+          @if (market()[playerId()]; as reading) {
+            <p>
+              @if (reading.delta_pp != null) {
+                {{ number(reading.previous) }}% on {{ reading.previous_at | date: 'medium' }} →
+              }
+              @if (reading.current != null) {
+                {{ number(reading.current) }}%
+                {{
+                  reading.current_at
+                    ? 'on ' + (reading.current_at | date: 'medium')
+                    : '· date unavailable'
+                }}
+              }
+            </p>
+          }
+          @if (opportunities().get(playerId()); as lead) {
+            @for (injury of lead.injuries; track injury.id) {
+              <p>
+                <strong>{{ injury.player_name }} · {{ injury.status }}</strong> ·
+                {{ injury.attribution }} ·
+                {{ (injury.published_at | date: 'medium') || 'Publication time unavailable' }}
+              </p>
+            }
+            @if (lead.news[0]; as article) {
+              <p>
+                {{ article.headline }} · {{ article.attribution }} ·
+                {{ (article.published_at | date: 'medium') || 'Publication time unavailable' }}
+              </p>
+            }
+            @if (lead.role.before_minutes != null && lead.role.after_minutes != null) {
+              <p>
+                {{ number(lead.role.before_minutes) }} min in {{ lead.role.before_games }} games
+                before the report → {{ number(lead.role.after_minutes) }} min in
+                {{ lead.role.after_games }} games after, per played game.
+              </p>
+            } @else if (lead.injuries.length) {
+              <p>Role change remains unconfirmed in the saved game sample.</p>
+            }
+            <p>{{ lead.explanation }}</p>
+          } @else {
+            <p>
+              {{
+                currentTrends()
+                  ? 'No supported injury or lineup link in the available evidence.'
+                  : 'Saved trend evidence is unavailable.'
+              }}
+            </p>
+          }
+        </article>
+      } @else {
+        <p class="notice">
+          This player is outside the current available pool. Recheck ownership before acting.
+        </p>
+      }
+    }
     @if (currentOverview(); as data) {
       <p class="source">
         {{
@@ -416,10 +548,6 @@
                   <button mat-stroked-button (click)="useReplacement()">
                     Use as a comparison replacement…
                   </button>
-                } @else {
-                  <button mat-stroked-button (click)="compareSelected()">
-                    Compare this player…
-                  </button>
                 }
               </div>
             </article>
@@ -430,8 +558,11 @@
             </p>
           }
         </div>
-        <div><ng-content select="[investigation]" /></div>
+        <div><ng-container [ngTemplateOutlet]="investigation" /></div>
       </div>
+    } @else {
+      <ng-container [ngTemplateOutlet]="investigation" />
     }
   </dialog>
 }
+<ng-template #investigation><ng-content select="[investigation]" /></ng-template>

@@ -144,6 +144,42 @@
 
 ## Amendment history — newest first
 
+## 92. Current-season waiver candidates — approved 2026-11-14
+
+Trending and Team fit show players with at least one saved verified game for
+the current season, plus an early injury lead backed by a dated player report
+that names a recently reported out or doubtful teammate. Label early leads and
+use a loading status while discovery checks its evidence. Apply the same screen
+filter to the shortlist, expanded list, and search. Preserve the pool, current
+roster, watches, comparisons and existing scoring definitions.
+
+## 91. Actionable sync warnings — approved 2026-11-14
+
+The user removed NBA Official from the interface and asked that it be marked
+unused in the backend. Retain the standalone adapter and archived observations.
+Current sync only checks league and game data, the ESPN injury index, ESPN
+roster share, and ESPN and RotoWire player news.
+
+Keep a missing ESPN player-list total as an internal coverage limitation.
+Display an actionable message for a repeated, failed, inconsistent or bounded
+player-list read that stopped early. Place routine sample counts in help.
+
+## 90. Trending-first My season — approved 2026-11-14
+
+Open on available players ordered by comparable dated ESPN roster-share changes.
+Keep Team fit as an alternate order based on the existing fit index. Place
+current league category gaps and focus controls alongside discovery. Carry the
+focus, rate source and window into a comparison with a named replacement.
+Show reports and any before/after played-game minutes, including uncertainty
+around the cause of a change. Compare against keeping the roster and show native
+gains, losses and both shooting volumes. Place data status, sync, team
+preferences and pickup rules in Data & connection.
+
+The market read uses saved, league-eligible observations with compatible provider
+dates. Missing history and missing fit stay distinct. Current gaps do not forecast
+future roto points or determine transaction eligibility. Draft, History, full
+league research and existing watches remain accessible. [Approved design](ux-design-brief-2026-11-14.md).
+
 ## 89. One current-season sync — approved 2026-11-08
 
 The user reported mismatched roster ownership and injury candidates across

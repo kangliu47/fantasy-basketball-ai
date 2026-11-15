@@ -11,18 +11,16 @@ from fantasy_ai.domain.season.injuries import InjurySnapshot, SourceCheck
 from fantasy_ai.domain.season.models import SeasonPlayer
 from fantasy_ai.infrastructure.espn_player_information import ESPNPlayerInformationReader
 from fantasy_ai.infrastructure.injury_sources import ESPNInjurySources, cancelled
-from fantasy_ai.infrastructure.nba_injury_reports import NBAInjuryReportReader
 
 
 class PublicInjuryCollector:
     def __init__(
         self,
         espn: ESPNInjurySources,
-        official: NBAInjuryReportReader,
         news: ESPNPlayerInformationReader,
         news_cache: NewsRepository | None = None,
     ) -> None:
-        self.espn, self.official, self.news = espn, official, news
+        self.espn, self.news = espn, news
         self.news_cache = news_cache
 
     def read(
@@ -52,7 +50,6 @@ class PublicInjuryCollector:
 
         players = previous.players if previous else ()
         injuries = previous.injuries if previous else ()
-        report = previous.official if previous else None
         try:
             players = self.espn.players(season, event)
             check(
@@ -98,30 +95,6 @@ class PublicInjuryCollector:
                 "https://www.espn.com/nba/injuries",
                 "ESPN injury index check failed. Last good entries retained.",
                 "Current statuses are unverified; saved reports remain inspectable.",
-            )
-        try:
-            report = self.official.read(season, event)
-            check(
-                "official",
-                "NBA Official",
-                report.source_url,
-                None,
-                "Original PDF retained for review; names are not automatically joined to ESPN IDs. "
-                + (
-                    "Some teams have not submitted."
-                    if report.unsubmitted
-                    else "No completeness claim."
-                ),
-            )
-        except WorkspaceError:
-            cancelled(event)
-            check(
-                "official",
-                "NBA Official",
-                f"https://official.nba.com/nba-injury-report-"
-                f"{season - 1}-{str(season)[-2:]}-season/",
-                "Official NBA report unavailable. ESPN evidence is labeled separately.",
-                "Last good official report retained, if any; no automatic PDF identity matching.",
             )
         cancelled(event)
         directory = {p.id: p for p in players}
@@ -203,5 +176,5 @@ class PublicInjuryCollector:
             )
         )[:200]
         return InjurySnapshot(
-            str(uuid4()), season, now, players, injuries, retained, report, tuple(checks)
+            str(uuid4()), season, now, players, injuries, retained, None, tuple(checks)
         )

@@ -1,5 +1,34 @@
 # Implementation plan
 
+## Current-season waiver candidates — November 14, 2026, latest
+
+Replace the eager alphabetical waiver list with a loading status and saved
+season evidence. Exercise the pending, ready and failed reads and retain a
+player-specific injury lead before its first recorded game.
+
+## Actionable sync warnings — November 14, 2026, latest
+
+Remove NBA Official from the live interface and sync coordinator. Keep ordinary
+unverified player-list coverage in help and surface concrete interruptions and
+inconsistencies with a recovery entry to Data & connection. Verify both a normal
+ESPN response without a total and a partial read with repeated pages.
+
+## Trending-first My season — November 14, 2026, latest
+
+Implement the [approved My season design](ux-design-brief-2026-11-14.md) on a
+branch from the verified remote main baseline. Reuse saved public evidence,
+per-game fit, move calculations and the shared sync coordinator. Keep Draft and
+History directly reachable. Verify routine pickup decisions, market and fit
+ordering, source and focus retention, incomplete evidence, and stale ownership
+and watch recovery with synthetic fixtures.
+
+Verification passed 551 Python tests, 193 Angular tests and the production build.
+Browser testing used the production bundle, an isolated synthetic DuckDB database
+and fake readers. It covered signed trends and missing data, injury and role
+evidence, category focus, comparing with keeping the roster, watch saves, stale
+ownership and the shared team settings. The existing local ESPN session stayed
+open during verification.
+
 ## Unified current-season sync — November 8, 2026, latest
 
 Implement the approved global Sync data flow with the user's correction:

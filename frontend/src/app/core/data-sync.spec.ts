@@ -31,6 +31,13 @@ describe('Compact data panel', () => {
             succeeded_at: null,
             message: 'Official report unavailable',
           },
+          {
+            key: 'news',
+            label: 'Player news',
+            status: 'error',
+            succeeded_at: null,
+            message: 'Player news unavailable',
+          },
         ],
       }),
     );
@@ -44,6 +51,8 @@ describe('Compact data panel', () => {
       'ESPN connection',
     );
     expect(root.querySelector('.group-status.attention')?.textContent).toContain('Needs attention');
+    expect(root.textContent).not.toContain('NBA Official');
+    expect(sync.issues().map((s) => s.key)).toEqual(['news']);
     fixture.destroy();
   });
 });

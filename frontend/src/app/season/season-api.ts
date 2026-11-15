@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { WaiverTrends } from './injury.models';
 import {
   SeasonComparison,
   SeasonView,
@@ -79,6 +80,12 @@ export class SeasonApi {
   ) {
     return this.http.get<SeasonPlayerFits>('/api/season/player-fits', {
       params: this.params(leagueId, 2027).appendAll({ signature, strategy, basis, days, focus }),
+    });
+  }
+
+  trends(leagueId: number, season: number) {
+    return this.http.get<WaiverTrends>('/api/season/opportunities/trends', {
+      params: this.params(leagueId, season),
     });
   }
 

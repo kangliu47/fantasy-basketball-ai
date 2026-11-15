@@ -18,6 +18,11 @@ from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 from fantasy_ai.application.models import OperationBusy, WorkspaceError
 from fantasy_ai.application.season.injuries import InjuryService
+from fantasy_ai.domain.projections.player_information import (
+    PlayerInformation,
+    PlayerMetadata,
+    PlayerNewsItem,
+)
 from fantasy_ai.domain.season.injuries import (
     InjuryItem,
     InjurySnapshot,
@@ -311,11 +316,6 @@ class FakePublic(ESPNInjurySources):
         return snapshot().injuries
 
 
-class NoOfficial(NBAInjuryReportReader):
-    def read(self, season: int, event: Event | None = None) -> Any:
-        raise WorkspaceError("Synthetic unavailable official source")
-
-
 def news_reader() -> ESPNPlayerInformationReader:
     def handle(request: httpx.Request) -> httpx.Response:
         pid = (
@@ -343,9 +343,10 @@ def news_reader() -> ESPNPlayerInformationReader:
 
 def test_collector_partial_failure_retains_source_clocks_and_attribution() -> None:
     source = FakePublic()
-    collector = PublicInjuryCollector(source, NoOfficial(), news_reader())
+    collector = PublicInjuryCollector(source, news_reader())
     first = collector.read(2027, capture().players, None, Event())
-    assert next(c for c in first.checks if c.key == "official").error
+    assert {c.key for c in first.checks} == {"market", "injuries", "news"}
+    assert first.official is None
     assert first.injuries and first.news[0].fantasy_update
     assert first.news[0].fantasy_update.attribution == "RotoWire via ESPN"
     source.failed = True
@@ -388,6 +389,97 @@ def setup(tmp_path: Path) -> tuple[InjuryService, DuckDBInjuryRepository, FakeRe
     service = InjuryService(public, reader, repo, season)
     season.injuries = service
     return service, public, reader
+
+
+def test_waiver_trends_join_only_saved_available_players_and_keep_signed_changes(
+    tmp_path: Path,
+) -> None:
+    service, public, reader = setup(tmp_path)
+    declining = "espn:player:4"
+    unmatched = "espn:player:5"
+    rookie = "espn:player:6"
+    at = datetime.now(UTC)
+    old_date = at - timedelta(days=7)
+    old = snapshot(old_date, "week", 4)
+    public.save(
+        replace(
+            old,
+            players=(
+                *old.players,
+                PublicPlayer(declining, "Synthetic Decline", "1", ("PG",), 20, old_date),
+            ),
+        )
+    )
+    latest = snapshot(at, "current")
+    report = PlayerNewsItem(
+        "synthetic-report",
+        "Rookie may play with Synthetic Starter out",
+        "",
+        at - timedelta(hours=1),
+        None,
+        "https://www.espn.com/nba/",
+        "ESPN",
+    )
+    player_info = PlayerInformation(
+        "6",
+        PlayerMetadata("6", "Synthetic Rookie", None, None, "PG", None, "", at),
+        report,
+        (),
+        at,
+        None,
+        at,
+    )
+    public.save(
+        replace(
+            latest,
+            news=(player_info,),
+            players=(
+                *latest.players,
+                PublicPlayer(declining, "Synthetic Decline", "1", ("PG",), 16, at),
+                PublicPlayer(unmatched, "Different Identity", "2", (), 9, at),
+                PublicPlayer(rookie, "Synthetic Rookie", "1", ("PG",), 1, at),
+            ),
+        )
+    )
+    season = service.season_service
+    saved = capture()
+    service.seasons.save_capture(
+        replace(
+            saved,
+            id="league-new",
+            captured_at=at,
+            players=(
+                *saved.players,
+                SeasonPlayer(declining, "Synthetic Decline", (), None, None, "free_agent"),
+                SeasonPlayer(unmatched, "Synthetic Unmatched", (), None, None, "free_agent"),
+                SeasonPlayer(rookie, "Synthetic Rookie", ("PG",), None, None, "free_agent"),
+            ),
+            recent_games=(
+                PlayerGameHistory(
+                    PICKUP,
+                    (
+                        PlayerGame("pre", at - timedelta(days=3), {"MIN": 18.0}),
+                        PlayerGame("post", at - timedelta(days=1), {"MIN": 27.0}),
+                    ),
+                    True,
+                ),
+            ),
+        )
+    )
+    season.workspace.repository.save_selection(SELECTION)
+    with TestClient(create_api(season.workspace, season_service=season)) as client:
+        url = "/api/season/opportunities/trends"
+        result = client.get(url, params={"league_id": SELECTION.league_id})
+        assert result.status_code == 200
+        data = result.json()
+        assert set(data["market_week"]) == {PICKUP, declining, rookie}
+        assert data["market_week"][PICKUP]["delta_pp"] == 14
+        assert data["market_week"][declining]["delta_pp"] == -4
+        assert data["opportunities"][0]["role"]["after_minutes"] == 27
+        assert data["played_player_ids"] == [PICKUP]
+        assert data["injury_lead_ids"] == [rookie]
+        assert client.get(url, params={"league_id": 999}).status_code == 400
+        assert reader.calls == 0
 
 
 def test_saved_views_review_revisions_and_watches_preserve_context_offline(tmp_path: Path) -> None:

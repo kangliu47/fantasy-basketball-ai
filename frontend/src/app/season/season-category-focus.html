@@ -1,0 +1,93 @@
+@if (compare()) {
+  @if (selected().length) {
+    <section class="compare" aria-label="Current league gaps in focus">
+      <h3>Current league gaps in focus</h3>
+      <ul>
+        @for (row of selected(); track row.category.code) {
+          <li>
+            <strong>{{ row.category.code }}</strong>
+            @if (row.standing?.gap_up != null) {
+              · {{ gap(row.standing.gap_up, row.category) }} to tie the next tier
+            }
+            @if (row.standing?.buffer_down != null) {
+              · {{ gap(row.standing.buffer_down, row.category) }} ahead of the lower tier
+            }
+            @if (row.standing?.gap_up == null && row.standing?.buffer_down == null) {
+              · Gap evidence unavailable
+            }
+          </li>
+        }
+      </ul>
+      <p>
+        These are gaps in saved league totals. The swap shows player contributions over the selected
+        horizon.
+      </p>
+    </section>
+  }
+} @else {
+  <aside class="surface" aria-label="League category focus">
+    <h2>Where can I gain ground?</h2>
+    @if (featured().length) {
+      <div class="categories">
+        @for (row of featured(); track row.category.code) {
+          <section class="category">
+            <h3>{{ row.category.code }} · Rank {{ row.standing?.rank | number: '1.0-2' }}</h3>
+            @if (row.standing?.gap_up != null) {
+              <p>{{ gap(row.standing.gap_up, row.category) }} to tie the next tier</p>
+            }
+            @if (row.standing?.buffer_down != null) {
+              <p>{{ gap(row.standing.buffer_down, row.category) }} ahead of the lower tier</p>
+            }
+            <button
+              mat-button
+              type="button"
+              [attr.aria-pressed]="focus().includes(row.category.code)"
+              (click)="toggle(row.category.code)"
+            >
+              Focus on {{ row.category.code }}
+            </button>
+          </section>
+        }
+      </div>
+    } @else {
+      <p>Category gaps are unavailable for the saved league check.</p>
+    }
+    <p>Current league totals · opponents will keep scoring.</p>
+    <details>
+      <summary>All category gaps</summary>
+      <div class="table-scroll">
+        <table aria-label="Current category gaps">
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Rank</th>
+              <th scope="col">Gap up</th>
+              <th scope="col">Lead below</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.category.code) {
+              <tr>
+                <th scope="row">
+                  <button
+                    mat-button
+                    type="button"
+                    [attr.aria-label]="'Focus on ' + row.category.code"
+                    [attr.aria-pressed]="focus().includes(row.category.code)"
+                    (click)="toggle(row.category.code)"
+                  >
+                    {{ row.category.code }}
+                  </button>
+                </th>
+                <td>{{ (row.standing?.rank | number: '1.0-2') ?? '—' }}</td>
+                <td>{{ gap(row.standing?.gap_up, row.category) }}</td>
+                <td>{{ gap(row.standing?.buffer_down, row.category) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+    <ng-content />
+  </aside>
+}

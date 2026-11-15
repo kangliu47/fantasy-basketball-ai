@@ -72,7 +72,7 @@ describe('League workspace', () => {
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
       'Build a shortlist you can use.',
     );
-    expect(button('Sync data').disabled).toBe(true);
+    expect(button('Data & connection')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Save your league details');
   });
 
@@ -89,7 +89,7 @@ describe('League workspace', () => {
     expect(request.request.body).toEqual({ league_id: 12345, season: 2026 });
     request.flush({ ...empty, selection: { league_id: 12345, season: 2026 } });
     await settle();
-    expect(button('Sync data').disabled).toBe(false);
+    expect(button('Data & connection')).toBeTruthy();
   });
 
   it('shows login progress and supports cancellation', async () => {
@@ -108,7 +108,7 @@ describe('League workspace', () => {
     });
     await settle();
     expect(button('Cancel sign-in')).toBeTruthy();
-    expect(button('Sync data').disabled).toBe(true);
+    expect(button('Data & connection')).toBeTruthy();
     button('Cancel sign-in').click();
     http.expectOne('/api/auth/cancel').flush({
       ...configured,
@@ -116,7 +116,7 @@ describe('League workspace', () => {
     });
     await settle();
     expect(fixture.nativeElement.textContent).toContain('Sign-in cancelled');
-    expect(button('Sync data').disabled).toBe(false);
+    expect(button('Data & connection')).toBeTruthy();
   });
 
   it('opens the analytics profile instead of mounting roster and archive tools', async () => {
@@ -155,7 +155,7 @@ describe('League workspace', () => {
     http.expectNone('/api/archive/category-allocation');
     await settle();
     expect(fixture.nativeElement.querySelector('h1').textContent.trim()).toBe('Synthetic League');
-    expect(button('Sync data').disabled).toBe(false);
+    expect(button('Data & connection')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('My profile');
     expect(fixture.nativeElement.textContent).toContain('one reviewed manager link');
     expect(fixture.nativeElement.textContent).not.toContain('Example Player');
@@ -174,7 +174,7 @@ describe('League workspace', () => {
       .componentInstance as DraftWorkspace;
     draft.targetForm.controls.note.setValue('Keep my unfinished draft reason');
     draft.targetForm.markAsDirty();
-    button('Historical patterns').click();
+    button('History').click();
     await settle();
     http
       .expectOne('/api/archive/managers')
@@ -183,7 +183,7 @@ describe('League workspace', () => {
       .expectOne('/api/archive/catalog')
       .flush({ candidates: [], imported_seasons: [], job: null });
     await settle();
-    button('Auction prep').click();
+    button('Draft').click();
     await settle();
     expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
     expect(draft.targetForm.controls.note.value).toBe('Keep my unfinished draft reason');
@@ -201,11 +201,9 @@ describe('League workspace', () => {
       .componentInstance as DraftWorkspace;
     draft.targetForm.controls.note.setValue('Still comparing two draft targets');
     draft.targetForm.markAsDirty();
-    button('Live season').click();
+    button('My season').click();
     await settle();
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain(
-      'Your league. Your next move.',
-    );
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('My season');
     expect(fixture.nativeElement.querySelector('app-draft-workspace').hidden).toBe(true);
     http
       .expectOne((request) => request.url === '/api/season')
@@ -230,10 +228,10 @@ describe('League workspace', () => {
     expect(
       fixture.nativeElement.querySelector('nav[aria-label="Main workspaces"] [aria-current="page"]')
         .textContent,
-    ).toContain('Live season');
+    ).toContain('My season');
     http.expectNone('/api/archive/managers');
     http.expectNone('/api/archive/catalog');
-    button('Auction prep').click();
+    button('Draft').click();
     await settle();
     expect(fixture.debugElement.query(By.directive(DraftWorkspace)).componentInstance).toBe(draft);
     expect(draft.targetForm.controls.note.value).toBe('Still comparing two draft targets');
@@ -267,9 +265,9 @@ describe('League workspace', () => {
       fixture.nativeElement.querySelector('nav[aria-label="Auction prep"] [aria-current="page"]')
         .textContent,
     ).toContain('Auction companion');
-    button('Live season').click();
+    button('My season').click();
     await settle();
-    button('Auction prep').click();
+    button('Draft').click();
     await settle();
     expect(fixture.componentInstance.activeSection()).toBe('auction');
     expect(fixture.debugElement.query(By.directive(AuctionOpportunities)).componentInstance).toBe(

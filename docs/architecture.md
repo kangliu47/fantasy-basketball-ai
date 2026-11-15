@@ -1,5 +1,39 @@
 # Architecture and learning guide
 
+## Current-season waiver candidates — November 14, 2026, latest
+
+The saved waiver-trends response identifies available players with verified
+current-season game records. It separately identifies early injury leads when
+both a linked out or doubtful report and a player-specific report naming that
+teammate were published in the last seven days. Discovery waits for those IDs
+and applies them before sorting, expansion, and search. This is a presentation
+population filter for the My season list. The existing fit and comparison
+calculations retain their original populations and formulas.
+
+## Actionable sync warnings — November 14, 2026, latest
+
+Player-list completeness remains an analytical flag. The ESPN reader records a
+separate optional issue on the observation when pages stop early or report
+inconsistent evidence. Existing observations load with no issue value. Sync
+persists successful portions and surfaces the specific problem when available.
+The NBA Official adapter is inactive and saved historical reports retain their
+existing format. Active source lists disregard legacy NBA Official checks.
+
+## Trending-first My season — November 14, 2026, latest
+
+The season page presents market discovery and category focus together. Fit and
+comparison retain their scoring definitions, signature validation and source
+controls. The category summary uses saved standings. Comparison keeps the
+per-played-game and manual seven-day units and shows current league gaps
+separately from roster contributions.
+
+The saved-read `/api/season/opportunities/trends` joins available players to
+comparable ESPN roster shares by verified identity. It includes signed market
+changes even when an injury opportunity was not identified. Report and role
+context reuse the injury service. The read verifies the league observation and
+requires no provider call or schema migration. The UI uses the league signature
+and sync revision to discard obsolete results. [Approved design](ux-design-brief-2026-11-14.md).
+
 ## Unified data sync — November 8, 2026, latest
 
 `DataSyncService` orchestrates existing current-season and injury use cases,

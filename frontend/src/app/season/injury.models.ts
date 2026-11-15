@@ -79,3 +79,13 @@ export interface InjuryInspection {
   snapshotId: string;
   token: number;
 }
+
+export interface WaiverTrends {
+  league_signature: string;
+  league_checked_at: string | null;
+  availability_fresh: boolean;
+  market_week: Partial<Record<string, MarketChange>>;
+  opportunities: Opportunity[];
+  played_player_ids: string[];
+  injury_lead_ids: string[];
+}

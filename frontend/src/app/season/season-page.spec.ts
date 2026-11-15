@@ -125,9 +125,11 @@ describe('SeasonPage', () => {
     http.verify({ ignoreCancelled: true });
   });
 
-  async function load(view: SeasonView, overall = false) {
-    fixture.componentInstance.tab.set(overall ? 'outlook' : 'landscape');
-    fixture.componentInstance.researchMode.set(overall ? 'overall' : 'category');
+  async function load(view: SeasonView, overall: boolean | null = false) {
+    if (overall !== null) {
+      fixture.componentInstance.tab.set(overall ? 'outlook' : 'landscape');
+      fixture.componentInstance.researchMode.set(overall ? 'overall' : 'category');
+    }
     fixture.detectChanges();
     http
       .expectOne(
@@ -160,6 +162,19 @@ describe('SeasonPage', () => {
     }
     await fixture.whenStable();
     fixture.detectChanges();
+    if (view.capture && overall !== null) {
+      for (const request of http.match((r) => r.url === '/api/season/opportunities/trends')) {
+        if (!request.cancelled)
+          request.flush({
+            league_signature: view.signature,
+            availability_fresh: true,
+            market_week: {},
+            opportunities: [],
+            played_player_ids: view.capture.players.map((player) => player.id),
+            injury_lead_ids: [],
+          });
+      }
+    }
   }
 
   it('shows an honest empty state without invented players or statistics', async () => {
@@ -171,7 +186,92 @@ describe('SeasonPage', () => {
     expect(fixture.nativeElement.querySelectorAll('table')).toHaveLength(0);
   });
 
-  it('leads with the landscape and keeps team and refresh settings out of the main journey', async () => {
+  it('starts with dated market movement and carries in-place focus into a roster comparison', async () => {
+    const extra = { ...populatedView.capture!.players[1], id: 'free-2', name: 'Trending Player' };
+    const retired = { ...extra, id: 'retired', name: 'A Retired Player' };
+    const rookie = { ...extra, id: 'rookie', name: 'Rookie Injury Lead' };
+    const view = {
+      ...populatedView,
+      capture: {
+        ...populatedView.capture!,
+        players: [...populatedView.capture!.players, extra, retired, rookie],
+      },
+    };
+    await load(view, null);
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Loading saved roster-share history');
+    expect(root.querySelectorAll('.scan-row')).toHaveLength(0);
+    const path = '/api/season/opportunities/trends';
+    http
+      .expectOne((r) => r.url === path)
+      .flush({
+        league_signature: view.signature,
+        availability_fresh: true,
+        opportunities: [],
+        played_player_ids: ['free-1', 'free-2'],
+        injury_lead_ids: ['rookie'],
+        market_week: {
+          'free-2': {
+            current: 17,
+            previous: 8,
+            current_at: '2026-11-14T13:00:00Z',
+            previous_at: '2026-11-07T13:00:00Z',
+            delta_pp: 9,
+          },
+        },
+      });
+    fixture.detectChanges();
+    const page = fixture.componentInstance;
+    const textButton = (text: string) =>
+      Array.from(root.querySelectorAll('button')).find((b) => b.textContent?.trim() === text)!;
+    expect(textButton('Trending').getAttribute('aria-pressed')).toBe('true');
+    expect(root.querySelector('.scan-row')?.textContent).toContain('Trending Player');
+    expect(root.textContent).toContain('Rookie Injury Lead');
+    expect(root.textContent).not.toContain('A Retired Player');
+    textButton('Team fit').click();
+    fixture.detectChanges();
+    expect(root.textContent).not.toContain('A Retired Player');
+    textButton('Trending').click();
+    fixture.detectChanges();
+    expect(root.textContent).toContain('+9 pp');
+    expect(root.textContent).toContain('Trend history unavailable');
+    expect(root.textContent).not.toContain('Pool coverage unconfirmed');
+    textButton('Focus on FG%').click();
+    fixture.detectChanges();
+    expect(root.querySelector('.scan-row')?.textContent).toContain('Trending Player');
+    const request = http.expectOne((r) => r.url === '/api/season/player-fits');
+    expect(request.request.params.getAll('focus')).toEqual(['FG%']);
+    const result = overviewResponse(view);
+    result.overview.focus_categories = ['FG%'];
+    request.flush(result);
+    fixture.detectChanges();
+    textButton('Trending Player').click();
+    fixture.detectChanges();
+    flushSupportingResearch();
+    expect(
+      root.querySelector('dialog[aria-labelledby="season-player-title"]')?.textContent,
+    ).toContain('Why is this player trending?');
+    textButton('Compare with my roster').click();
+    fixture.detectChanges();
+    expect(page.selectedCandidates()).toEqual(['free-2']);
+    expect(root.textContent).toContain('Current league gaps in focus');
+    page.chooseDrop('own-1');
+    fixture.detectChanges();
+    expect(
+      http.expectOne((r) => r.url === '/api/season/recommendations').request.params.getAll('focus'),
+    ).toEqual(['FG%']);
+    http.expectNone((r) => r.url === path);
+    page.view.set({
+      ...view,
+      capture: { ...view.capture, pool_error: 'ESPN repeated players across pages. Retry sync.' },
+    });
+    fixture.detectChanges();
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain(
+      'ESPN repeated players across pages.',
+    );
+  });
+
+  it('keeps the landscape reachable and puts team and refresh settings outside the main journey', async () => {
     await load({
       ...populatedView,
       league_positions: [
@@ -191,14 +291,16 @@ describe('SeasonPage', () => {
         ?.querySelectorAll('tr'),
     ).toHaveLength(2);
     expect(root.textContent).toContain('Your category playbook');
-    expect(root.querySelector('.workflow-tabs')?.textContent).toContain('League landscape');
+    expect(root.querySelector('[aria-label="My season actions"]')?.textContent).toContain(
+      'Back to available players',
+    );
     expect(root.querySelector('.controls-card')).toBeNull();
     expect(root.querySelector('app-season-scenario')).not.toBeNull();
     fixture.componentInstance.openTab('settings');
     fixture.detectChanges();
     expect(root.querySelector('.controls-card')).not.toBeNull();
     expect(root.textContent).toContain('FAAB');
-    expect(root.textContent).toContain('Pool coverage: ESPN');
+    expect(root.textContent).not.toContain('Pool coverage: ESPN');
   });
 
   it('clears the previous league snapshot immediately when the league input changes', async () => {
@@ -584,7 +686,7 @@ describe('SeasonPage', () => {
     panel.back();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('textarea')).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('Waiver targets');
+    expect(fixture.nativeElement.textContent).toContain('Available players');
     panel.categoryChosen.emit('AST');
     fixture.detectChanges();
     flushSupportingResearch();

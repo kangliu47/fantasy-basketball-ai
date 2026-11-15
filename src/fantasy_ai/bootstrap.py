@@ -34,7 +34,6 @@ from fantasy_ai.infrastructure.injury_repository import DuckDBInjuryRepository
 from fantasy_ai.infrastructure.injury_sources import ESPNInjurySources
 from fantasy_ai.infrastructure.live_auction.browser import ESPNRoomBrowser
 from fantasy_ai.infrastructure.live_auction.repository import DuckDBLiveRepository
-from fantasy_ai.infrastructure.nba_injury_reports import NBAInjuryReportReader
 from fantasy_ai.infrastructure.planning_repository import DuckDBPlanRepository
 from fantasy_ai.infrastructure.player_information_repository import (
     DuckDBPlayerInformationRepository,
@@ -125,7 +124,6 @@ def build_services(root: Path | None = None) -> ApplicationServices:
         DuckDBInjuryRepository(repository),
         PublicInjuryCollector(
             ESPNInjurySources(),
-            NBAInjuryReportReader(),
             ESPNPlayerInformationReader(),
             DuckDBPlayerInformationRepository(repository),
         ),

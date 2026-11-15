@@ -49,6 +49,7 @@ export interface SeasonCapture {
   messages: string[];
   recent_captured_at?: string | null;
   recent_error?: string | null;
+  pool_error?: string | null;
 }
 export interface SeasonPreferences {
   revision: number;

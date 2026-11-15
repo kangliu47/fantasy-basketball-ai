@@ -54,8 +54,8 @@ describe('Unified data sync state', () => {
             message: '',
           },
           {
-            key: 'official',
-            label: 'NBA Official',
+            key: 'news',
+            label: 'Player news',
             status: 'error',
             succeeded_at: '2026-11-07T15:00:00Z',
             message: 'Source unavailable',

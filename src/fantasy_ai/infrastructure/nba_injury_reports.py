@@ -1,4 +1,4 @@
-"""Official NBA report adapter. Unmatched PDF names remain unlinked, never inferred IDs."""
+"""Inactive official NBA report adapter retained for standalone use and its tests."""
 
 import re
 from datetime import UTC, datetime, timedelta

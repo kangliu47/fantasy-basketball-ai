@@ -63,6 +63,7 @@ class SeasonCapture:
     recent_games: tuple[PlayerGameHistory, ...] = ()
     recent_captured_at: datetime | None = None
     recent_error: str | None = None
+    pool_error: str | None = None
 
 
 @dataclass(frozen=True)
