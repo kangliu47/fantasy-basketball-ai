@@ -206,6 +206,7 @@ describe('SeasonPage', () => {
     expect(root.querySelector('.scan-row')?.textContent).toContain('Trending Player');
     expect(root.textContent).toContain('+9 pp');
     expect(root.textContent).toContain('Trend history unavailable');
+    expect(root.textContent).not.toContain('Pool coverage unconfirmed');
     textButton('Focus on FG%').click();
     fixture.detectChanges();
     expect(root.querySelector('.scan-row')?.textContent).toContain('Trending Player');
@@ -231,6 +232,14 @@ describe('SeasonPage', () => {
       http.expectOne((r) => r.url === '/api/season/recommendations').request.params.getAll('focus'),
     ).toEqual(['FG%']);
     http.expectNone((r) => r.url === path);
+    page.view.set({
+      ...view,
+      capture: { ...view.capture, pool_error: 'ESPN repeated players across pages. Retry sync.' },
+    });
+    fixture.detectChanges();
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain(
+      'ESPN repeated players across pages.',
+    );
   });
 
   it('keeps the landscape reachable and puts team and refresh settings outside the main journey', async () => {
@@ -262,7 +271,7 @@ describe('SeasonPage', () => {
     fixture.detectChanges();
     expect(root.querySelector('.controls-card')).not.toBeNull();
     expect(root.textContent).toContain('FAAB');
-    expect(root.textContent).toContain('Pool coverage: ESPN');
+    expect(root.textContent).not.toContain('Pool coverage: ESPN');
   });
 
   it('clears the previous league snapshot immediately when the league input changes', async () => {

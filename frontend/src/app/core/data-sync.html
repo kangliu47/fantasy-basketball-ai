@@ -97,10 +97,10 @@
       <p class="source-method">
         Current season · 2026–27<app-help-tip
           label="Sync scope and coverage"
-          text="Rosters first, then recent actuals, ESPN injuries and roster levels, bounded RotoWire-via-ESPN / ESPN player news, and NBA Official reports when accessible. Successful requests do not prove complete coverage. Published dates and market-history gaps remain with the evidence."
+          text="Rosters first, then recent actuals, ESPN injuries and roster-share data, and a limited set of RotoWire-via-ESPN and ESPN player news checks."
         />
       </p>
-      @for (source of sync.state()?.sources ?? []; track source.key) {
+      @for (source of sync.sources(); track source.key) {
         <div class="source-row">
           <div>
             <strong>{{ source.label }}</strong

@@ -156,6 +156,7 @@ def test_pool_is_complete_only_after_matching_explicit_total() -> None:
     partial, partial_offsets = read_capture(no_total)
     assert partial_offsets == [0]
     assert partial.pool_complete is False
+    assert partial.pool_error is None
 
 
 def test_declared_pool_without_roster_coverage_remains_partial() -> None:
@@ -163,6 +164,7 @@ def test_declared_pool_without_roster_coverage_remains_partial() -> None:
     assert result.pool_complete is False
     assert {p.id for p in result.players} == {"espn:player:901", "espn:player:902"}
     assert "Available-player pool coverage is partial" in " ".join(result.messages)
+    assert result.pool_error and "team rosters" in result.pool_error
 
 
 def test_ignored_pool_offset_repeats_are_incomplete() -> None:
@@ -172,6 +174,8 @@ def test_ignored_pool_offset_repeats_are_incomplete() -> None:
     capture, offsets = read_capture(data)
     assert offsets == [0, 1]
     assert capture.pool_complete is False
+    assert capture.pool_error and "repeated players" in capture.pool_error
+    assert capture.pool_captured_at is not None
 
 
 def test_duplicate_pool_ids_within_page_are_incomplete() -> None:
@@ -182,6 +186,8 @@ def test_duplicate_pool_ids_within_page_are_incomplete() -> None:
     capture, offsets = read_capture(data)
     assert offsets == [0]
     assert capture.pool_complete is False
+    assert capture.pool_error and "repeated players" in capture.pool_error
+    assert capture.pool_captured_at is None
 
 
 @pytest.mark.parametrize("status", ["FREEAGENT", "WAIVERS"])

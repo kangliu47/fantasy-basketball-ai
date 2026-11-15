@@ -56,7 +56,7 @@ class PublicReader:
                 "Synthetic bounded coverage",
                 "https://www.espn.com/nba/injuries",
             )
-            for k in ("injuries", "market", "news", "official")
+            for k in ("injuries", "market", "news")
         )
         return replace(snapshot(at, str(uuid4())), checks=checks)
 
@@ -135,7 +135,7 @@ def test_pickup_ownership_is_read_before_research_and_removes_available_lead(
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("public_failure", ["official", "news"])
+@pytest.mark.parametrize("public_failure", ["market", "news"])
 def test_partial_sources_retain_real_last_good_dates(
     tmp_path: Path, public_failure: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -168,6 +168,52 @@ def test_partial_sources_retain_real_last_good_dates(
             rows[public_failure].status == "error" and rows[public_failure].succeeded_at == old_at
         )
         assert rows["injuries"].status == "success"
+        await season.close()
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize("pool_error", [None, "ESPN repeated players across pages. Retry sync."])
+def test_only_actionable_player_list_issues_warn_on_saved_and_new_syncs(
+    tmp_path: Path, pool_error: str | None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def run() -> None:
+        sync, season, repo, reader, _, injury_repo = setup(tmp_path)
+        at = datetime.now(UTC) - timedelta(minutes=5)
+        old = replace(
+            capture(),
+            captured_at=at,
+            pool_captured_at=at,
+            recent_captured_at=at,
+            pool_complete=False,
+            pool_error=pool_error,
+        )
+        repo.save_capture(old)
+        injury_repo.save(
+            replace(
+                snapshot(at),
+                checks=(
+                    SourceCheck("official", "NBA Official", at, None, "Legacy failure", "", ""),
+                ),
+            )
+        )
+        saved = {s.key: s for s in (await sync.view()).sources}
+        assert "official" not in saved
+        assert saved["league"].status == ("warning" if pool_error else "saved")
+
+        def refreshed(*args: object) -> SeasonCapture:
+            now = datetime.now(UTC)
+            return replace(
+                old, id=str(uuid4()), captured_at=now, pool_captured_at=now, recent_captured_at=now
+            )
+
+        monkeypatch.setattr(reader, "read", refreshed)
+        await sync.start(SELECTION)
+        await sync.wait()
+        result = await sync.view()
+        league = next(s for s in result.sources if s.key == "league")
+        assert result.status == ("partial" if pool_error else "success")
+        assert league.message == (pool_error or "")
         await season.close()
 
     asyncio.run(run())

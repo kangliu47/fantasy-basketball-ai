@@ -44,9 +44,15 @@
         /></span>
       </div>
     }
-    @if (hasCapture() && tab() !== 'settings' && ownershipStale()) {
+    @if (hasCapture() && tab() !== 'settings' && ownershipStale() && !capture()?.pool_error) {
       <div class="notice stale-notice" role="status">
         <span>Saved player ownership needs a recheck before acting.</span>
+        <button mat-button type="button" (click)="sync.open()">Check data</button>
+      </div>
+    }
+    @if (capture()?.pool_error; as issue) {
+      <div class="notice error stale-notice" role="alert">
+        <span>{{ issue }}</span>
         <button mat-button type="button" (click)="sync.open()">Check data</button>
       </div>
     }
@@ -441,14 +447,9 @@
                     text="Ranked within the observed available subset, which may be incomplete. Counting categories follow league scoring direction. Shooting ranks use makes above your current team rate per game, a volume-aware research measure, not a forecast of percentage change. Missing or zero attempts remain unranked."
                   />
                 </div>
-                <p class="coverage" [class.warning]="!capture()?.pool_complete">
-                  {{
-                    capture()?.pool_complete
-                      ? 'Pool coverage: complete'
-                      : 'Pool coverage: partial or undeclared'
-                  }}
+                <p class="muted">
+                  Player list checked {{ freshness(capture()?.pool_captured_at) }}
                 </p>
-                <p class="muted">Pool source: {{ freshness(capture()?.pool_captured_at) }}</p>
                 @if (research(); as data) {
                   <p class="muted">
                     {{
@@ -828,12 +829,6 @@
         @for (message of state.capture?.messages ?? []; track $index) {
           <p class="notice">{{ message }}</p>
         }
-        <p class="notice">
-          Pool coverage: ESPN's returned pool may be partial or undeclared. The target list shows
-          both returned and completely rankable player counts; a complete fit sample does not
-          establish complete league availability. Refresh after reconnecting to check ownership and
-          source dates.
-        </p>
       }
     } @else {
       <section class="empty-state">

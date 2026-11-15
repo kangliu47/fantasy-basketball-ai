@@ -43,9 +43,11 @@ export class DataSyncStore {
   readonly needsConnection = computed(
     () => !['connected', 'saved'].includes(this.workspace.state()?.connection ?? 'disconnected'),
   );
-  readonly issues = computed(
-    () =>
-      this.state()?.sources.filter((s) => ['warning', 'error', 'skipped'].includes(s.status)) ?? [],
+  readonly sources = computed(
+    () => this.state()?.sources.filter((s) => s.key !== 'official') ?? [],
+  );
+  readonly issues = computed(() =>
+    this.sources().filter((s) => ['warning', 'error', 'skipped'].includes(s.status)),
   );
   readonly leagueAge = computed(() => {
     const checked = this.state()?.sources.find((source) => source.key === 'league')?.succeeded_at;

@@ -170,7 +170,9 @@ class InjuryService:
             signature,
             league.signature,
             self.operation if self._season == selection.season else Operation(),
-            snapshot.checks if snapshot else (),
+            tuple(check for check in snapshot.checks if check.key != "official")
+            if snapshot
+            else (),
             opportunities,
             scores,
             review,

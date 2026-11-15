@@ -45,11 +45,11 @@ export class DataSyncPanel {
       {
         label: 'Injuries & player news',
         icon: 'news',
-        keys: ['injuries', 'market', 'news', 'official'],
+        keys: ['injuries', 'market', 'news'],
       },
     ].map((g) => ({
       ...g,
-      sources: this.sync.state()?.sources.filter((s) => g.keys.includes(s.key)) ?? [],
+      sources: this.sync.sources().filter((s) => g.keys.includes(s.key)),
     })),
   );
   constructor() {

@@ -144,6 +144,17 @@
 
 ## Amendment history — newest first
 
+## 91. Actionable sync warnings — approved 2026-11-14
+
+The user removed NBA Official from the interface and asked that it be marked
+unused in the backend. Retain the standalone adapter and archived observations.
+Current sync only checks league and game data, the ESPN injury index, ESPN
+roster share, and ESPN and RotoWire player news.
+
+Keep a missing ESPN player-list total as an internal coverage limitation.
+Display an actionable message for a repeated, failed, inconsistent or bounded
+player-list read that stopped early. Place routine sample counts in help.
+
 ## 90. Trending-first My season — approved 2026-11-14
 
 Open on available players ordered by comparable dated ESPN roster-share changes.

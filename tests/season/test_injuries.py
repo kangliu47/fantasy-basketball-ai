@@ -311,11 +311,6 @@ class FakePublic(ESPNInjurySources):
         return snapshot().injuries
 
 
-class NoOfficial(NBAInjuryReportReader):
-    def read(self, season: int, event: Event | None = None) -> Any:
-        raise WorkspaceError("Synthetic unavailable official source")
-
-
 def news_reader() -> ESPNPlayerInformationReader:
     def handle(request: httpx.Request) -> httpx.Response:
         pid = (
@@ -343,9 +338,10 @@ def news_reader() -> ESPNPlayerInformationReader:
 
 def test_collector_partial_failure_retains_source_clocks_and_attribution() -> None:
     source = FakePublic()
-    collector = PublicInjuryCollector(source, NoOfficial(), news_reader())
+    collector = PublicInjuryCollector(source, news_reader())
     first = collector.read(2027, capture().players, None, Event())
-    assert next(c for c in first.checks if c.key == "official").error
+    assert {c.key for c in first.checks} == {"market", "injuries", "news"}
+    assert first.official is None
     assert first.injuries and first.news[0].fantasy_update
     assert first.news[0].fantasy_update.attribution == "RotoWire via ESPN"
     source.failed = True

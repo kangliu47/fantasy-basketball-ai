@@ -25,8 +25,8 @@ SOURCE_LABELS = {
     "injuries": "ESPN · Injury index",
     "market": "ESPN · Roster share",
     "news": "RotoWire via ESPN / ESPN articles",
-    "official": "NBA Official",
 }
+RESEARCH_SOURCES = ("injuries", "market", "news")
 
 
 @dataclass(frozen=True)
@@ -106,9 +106,18 @@ class DataSyncService:
                 sources["league"] = SyncSource(
                     "league",
                     SOURCE_LABELS["league"],
-                    "saved" if capture.pool_complete else "warning",
+                    "error"
+                    if capture.pool_captured_at is None
+                    else "warning"
+                    if capture.pool_error
+                    else "saved",
                     capture.pool_captured_at,
-                    "Returned pool coverage is unverified." if not capture.pool_complete else "",
+                    capture.pool_error
+                    or (
+                        "ESPN's player list was not checked."
+                        if not capture.pool_captured_at
+                        else ""
+                    ),
                 )
                 sources["actuals"] = SyncSource(
                     "actuals",
@@ -248,9 +257,9 @@ class DataSyncService:
             self.workspace.connection = "connected"
             self._source(
                 "league",
-                "success" if capture.pool_complete else "warning",
+                "warning" if capture.pool_error else "success",
                 capture.pool_captured_at,
-                "Returned pool coverage is unverified." if not capture.pool_complete else "",
+                capture.pool_error or "",
             )
             self._source(
                 "actuals",
@@ -262,7 +271,11 @@ class DataSyncService:
                 or ("No completed-game check date." if not capture.recent_captured_at else ""),
             )
             if not capture.pool_captured_at:
-                self._source("league", "error", message="Available-player pool was not checked.")
+                self._source(
+                    "league",
+                    "error",
+                    message=capture.pool_error or "ESPN's player list was not checked.",
+                )
                 self._status, self._message = "error", "Ownership needs a check. Research paused."
                 return
             if not self._current(selected):
@@ -280,7 +293,7 @@ class DataSyncService:
                 return
             injury = self.season.injuries
             if injury:
-                for key in ("injuries", "market", "news", "official"):
+                for key in RESEARCH_SOURCES:
                     self._source(key, "checking")
                 await injury.refresh(selected, coordinated=True)
                 await injury.wait_for_refresh()
@@ -293,7 +306,7 @@ class DataSyncService:
                     or latest.captured_at < self._started
                 ):
                     raise WorkspaceError("Research check failed. Last good reports retained.")
-                for key in ("injuries", "market", "news", "official"):
+                for key in RESEARCH_SOURCES:
                     check = next((c for c in latest.checks if c.key == key), None)
                     self._source(
                         key,
@@ -302,7 +315,7 @@ class DataSyncService:
                         (check.error or check.coverage) if check else "Source was not checked.",
                     )
             else:
-                for key in ("injuries", "market", "news", "official"):
+                for key in RESEARCH_SOURCES:
                     self._source(key, "skipped", message="Source adapter is unavailable.")
             if focused_news_error:
                 self._source("news", "error", message=focused_news_error)

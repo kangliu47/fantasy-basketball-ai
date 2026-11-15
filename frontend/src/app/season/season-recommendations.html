@@ -55,7 +55,16 @@
           ESPN roster-share change · percentage points
           <app-help-tip
             label="How Trending works"
-            text="Trending uses the change between comparable dated ESPN roster-share readings around seven days apart. The actual dates appear with each change. Market movement is separate from team fit and your league’s ownership. Players without a comparable pair appear after players with a measured change."
+            [text]="
+              available().length +
+              ' players listed · ' +
+              trendCoverage() +
+              ' with trend history' +
+              (currentOverview()
+                ? ' · ' + covered(currentOverview()!.overview.available) + ' rankable for Team fit'
+                : '') +
+              '. Trending compares dated ESPN roster-share readings about seven days apart. The list covers players ESPN sent to the app.'
+            "
           />
         </p>
         <p class="source-line">
@@ -82,17 +91,6 @@
                   : '') + data.evidence.message
               "
             />
-          }
-        </p>
-        <p class="source-line">
-          {{ available().length }} returned · {{ trendCoverage() }} with trend history ·
-          {{
-            currentOverview()
-              ? covered(currentOverview()!.overview.available) + ' rankable for fit'
-              : 'Fit unavailable'
-          }}
-          @if (!view().capture?.pool_complete) {
-            · Pool coverage unconfirmed
           }
         </p>
         @if (trendLoading()) {

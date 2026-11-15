@@ -1,5 +1,14 @@
 # Architecture and learning guide
 
+## Actionable sync warnings — November 14, 2026, latest
+
+Player-list completeness remains an analytical flag. The ESPN reader records a
+separate optional issue on the observation when pages stop early or report
+inconsistent evidence. Existing observations load with no issue value. Sync
+persists successful portions and surfaces the specific problem when available.
+The NBA Official adapter is inactive and saved historical reports retain their
+existing format. Active source lists disregard legacy NBA Official checks.
+
 ## Trending-first My season — November 14, 2026, latest
 
 The season page presents market discovery and category focus together. Fit and

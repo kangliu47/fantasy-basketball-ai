@@ -1,5 +1,12 @@
 # Implementation plan
 
+## Actionable sync warnings — November 14, 2026, latest
+
+Remove NBA Official from the live interface and sync coordinator. Keep ordinary
+unverified player-list coverage in help and surface concrete interruptions and
+inconsistencies with a recovery entry to Data & connection. Verify both a normal
+ESPN response without a total and a partial read with repeated pages.
+
 ## Trending-first My season — November 14, 2026, latest
 
 Implement the [approved My season design](ux-design-brief-2026-11-14.md) on a
